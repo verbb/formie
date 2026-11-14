@@ -23,6 +23,7 @@ use verbb\formie\records\Form as FormRecord;
 use verbb\formie\records\FormTemplate as FormTemplateRecord;
 use verbb\formie\records\Notification as NotificationRecord;
 use verbb\formie\records\PdfTemplate as PdfTemplateRecord;
+use verbb\formie\references\ReferenceMigration;
 use verbb\formie\services\Permissions;
 
 use Craft;
@@ -307,6 +308,8 @@ class ImportExportHelper
 
             $form->setNotifications($allNotifications);
         }
+
+        ReferenceMigration::legacyFormTokens($form);
 
         return $form;
     }

@@ -5,11 +5,14 @@ use verbb\formie\base\ContainerParentFieldInterface;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\base\RepeatableParentFieldInterface;
+use verbb\formie\conditions\ConditionMigration;
 use verbb\formie\elements\Form;
 use verbb\formie\fields\FileUpload;
 use verbb\formie\fields\Hidden;
 use verbb\formie\fields\Payment;
+use verbb\formie\helpers\FieldTraversal;
 use verbb\formie\models\ReferenceExpression;
+use verbb\formie\models\RichText;
 
 use craft\helpers\Json;
 
@@ -126,6 +129,46 @@ final class ReferenceMigration
         }
 
         return $settings;
+    }
+
+    /** Older exports and stencils hold the same tokens as stored settings did, and only reach the database through here. */
+    public static function legacyFormTokens(Form $form): void
+    {
+        $fields = $form->getFields();
+        $settings = $form->settings;
+
+        $settings->submissionTitleFormat = self::_legacyValue($settings->submissionTitleFormat, $fields, true);
+        $settings->redirectUrl = self::_legacyValue($settings->redirectUrl, $fields, true);
+        $settings->successMessage = RichText::from(self::_legacyValue($settings->successMessage->getSchema(), $fields, true));
+        $settings->integrations = self::legacyFormSettings(['integrations' => $settings->integrations], $fields)['integrations'];
+
+        foreach ($form->getPages() as $page) {
+            $pageSettings = $page->getPageSettings();
+            $pageSettings->pageConditions = ConditionMigration::legacyFieldTokens($pageSettings->pageConditions, $form);
+            $pageSettings->nextButtonConditions = ConditionMigration::legacyFieldTokens($pageSettings->nextButtonConditions, $form);
+        }
+
+        foreach ($form->getNotifications() as $notification) {
+            foreach (['conditions', 'toConditions'] as $attribute) {
+                if (is_array($notification->$attribute)) {
+                    $notification->$attribute = ConditionMigration::legacyFieldTokens($notification->$attribute, $form);
+                }
+            }
+        }
+
+        foreach (FieldTraversal::recursively($fields) as $field) {
+            if (is_array($field->conditions ?? null)) {
+                $field->conditions = ConditionMigration::legacyFieldTokens($field->conditions, $form);
+            }
+
+            $values = self::legacyFieldSettings(['uploadLocationSubpath' => $field->uploadLocationSubpath ?? null, 'filenameFormat' => $field->filenameFormat ?? null, 'defaultValue' => $field->defaultValue ?? null, 'providerSettings' => $field->providerSettings ?? null], $field, $fields);
+
+            foreach ($values as $key => $value) {
+                if ($value !== null && property_exists($field, $key)) {
+                    $field->$key = $value;
+                }
+            }
+        }
     }
 
     public static function canonicalFieldTokensForFields(array $fields, string $value): string

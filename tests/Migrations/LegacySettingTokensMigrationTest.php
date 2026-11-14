@@ -11,10 +11,12 @@ use verbb\formie\base\Field;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\Name;
 use verbb\formie\fields\SingleLineText;
+use verbb\formie\helpers\ImportExportHelper;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\Table;
 use verbb\formie\integrations\payments\Mollie;
 use verbb\formie\migrations\m261115_020000_legacy_setting_tokens;
+use verbb\formie\models\StencilData;
 use verbb\formie\references\ReferenceMigration;
 
 function legacySettingsForm(array $extra = []): \verbb\formie\elements\Form
@@ -214,6 +216,44 @@ it('leaves settings Formie 3 never parsed, and hidden defaults on other fields, 
     expect(legacyStoredSettings(Table::FORMIE_FIELDS, $text->definitionId))->toBe($before)
         ->and(legacyStoredSettings(Table::FORMIE_FORMS, $form->id))->toBe($formBefore)
         ->and(legacyStoredSettings(Table::FORMIE_FIELDS, $hidden->definitionId)['defaultValue'])->toBe('{field:' . $form->getFieldByHandle('email')->reference . '} {userEmail} {nope}');
+});
+
+it('converts stored tokens when importing an export from an older version', function() {
+    UploadTestHelper::ensureUploadVolume();
+    $source = legacySettingsForm([fn($builder) => $builder->fileUploadField('file', ['restrictFiles' => false, 'uploadLocationSubpath' => 'seed', 'filenameFormat' => 'seed'])]);
+    $export = ImportExportHelper::generateFormExport($source);
+    $export['handle'] = 'legacyImport' . bin2hex(random_bytes(3));
+    $export['title'] = 'Legacy import';
+
+    // These tokens came from the real exports of forms 2670 and 4994 on the Formie 3 site.
+    $export['settings'] = Json::encode(['submissionTitleFormat' => '{email} {nameMulti.firstName}'] + Json::decodeIfJson($export['settings']));
+    array_walk_recursive($export['pages'], function(mixed &$value, string|int $key) {
+        if ($key === 'uploadLocationSubpath') {
+            $value = '{company}/{id}';
+        }
+    });
+
+    $form = ImportExportHelper::createFormFromImport($export);
+    expect(Craft::$app->getElements()->saveElement($form, false))->toBeTrue();
+
+    $saved = freshLegacyForm($form->id);
+    $reference = static fn(string $handle) => '{field:' . $saved->getFieldByHandle($handle)->reference;
+
+    expect($saved->settings->submissionTitleFormat)->toBe($reference('email') . '} ' . $reference('nameMulti') . ':firstName}')
+        ->and($saved->getFieldByHandle('file')->uploadLocationSubpath)->toBe($reference('company') . '}/{submission:id}');
+});
+
+it('converts stored tokens when a stencil is applied to a new form', function() {
+    $source = legacySettingsForm();
+    $data = new StencilData();
+    $data->pages = StencilData::getSerializedLayout($source->getFormLayout());
+    $data->settings->submissionTitleFormat = '{email} {field.nameMulti.firstName}';
+
+    $form = new \verbb\formie\elements\Form();
+    $data->populateToForm($form, true);
+    $reference = static fn(string $handle) => '{field:' . $form->getFieldByHandle($handle)->reference;
+
+    expect($form->settings->submissionTitleFormat)->toBe($reference('email') . '} ' . $reference('nameMulti') . ':firstName}');
 });
 
 it('stores a path both forms can read when a synced field is shared between forms', function() {

@@ -6,6 +6,7 @@ use verbb\formie\base\FieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\helpers\FormSerializer;
 use verbb\formie\helpers\IntegrationSecrets;
+use verbb\formie\references\ReferenceMigration;
 
 use craft\base\Model;
 use craft\helpers\Json;
@@ -105,6 +106,7 @@ class StencilData extends Model
                 foreach ($config['pages'] as &$page) {
                     if ($page instanceof FieldLayoutPage) {
                         $page->uid ??= StringHelper::UUID();
+
                         continue;
                     }
 
@@ -206,6 +208,8 @@ class StencilData extends Model
         $form->setNotifications($data->notifications);
         $form->setFormLayout(new FieldLayout(['pages' => $data->pages]));
         $form->setPendingStencilTranslations($data->translations);
+
+        ReferenceMigration::legacyFormTokens($form);
     }
 
 
