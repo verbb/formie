@@ -1357,7 +1357,12 @@ class Table extends Field
 
                 $parsed = DateTimeHelper::toDateTime($value, false, false);
 
-                return $parsed ? DateTimeImmutable::createFromInterface($parsed) : $value;
+                if ($parsed) {
+                    return DateTimeImmutable::createFromInterface($parsed);
+                }
+
+                // An unanswered date or time posts as `['date' => '']`, which isn't a value.
+                return is_array($value) ? null : $value;
         }
 
         return $value;
