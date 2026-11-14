@@ -169,7 +169,7 @@ class Tags extends ElementField
         }
 
         if (!is_array($value)) {
-            $value = array_map(static fn($tag) => ['value' => $tag], StringHelper::explode($value, ' '));
+            $value = array_map(static fn($tag) => ['value' => $tag], array_filter(StringHelper::explode($value, ' '), static fn(string $tag): bool => $tag !== ''));
         }
 
         $requestedIds = [];
@@ -179,11 +179,13 @@ class Tags extends ElementField
         foreach (array_filter($value) as $tagValue) {
             if (!is_array($tagValue)) {
                 $invalid = true;
+
                 continue;
             }
 
             if (array_key_exists('id', $tagValue)) {
                 $requestedIds[] = $tagValue['id'];
+
                 continue;
             }
 
@@ -191,6 +193,7 @@ class Tags extends ElementField
 
             if (!is_string($title) || trim($title) === '') {
                 $invalid = true;
+
                 continue;
             }
 
@@ -221,6 +224,7 @@ class Tags extends ElementField
                 } catch (Throwable $exception) {
                     Formie::error('Failed to save tag: ' . $exception->getMessage());
                     $invalid = true;
+
                     continue;
                 }
             }

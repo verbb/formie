@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed forms with a Tags field being unable to submit with “Select only valid options” when the field was left blank.
 - Fixed the “Reassign submissions” modal throwing an error when deleting a user on Craft 5.10 to 5.11.1.
 - Fixed saving the field palette throwing an error instead of reporting that it couldn’t be saved, such as when two groups share a handle.
 - Fixed `craft.formie.getLabelPosition()` always returning Above Input when asked for a sub-field label position.
