@@ -3,6 +3,7 @@ namespace verbb\formie\variables;
 
 use verbb\formie\Formie as FormiePlugin;
 use verbb\formie\base\FieldInterface;
+use verbb\formie\base\FixedParentFieldInterface;
 use verbb\formie\base\PositionInterface;
 use verbb\formie\deprecations\FormieVariableDeprecations;
 use verbb\formie\elements\db\FormQuery;
@@ -152,7 +153,7 @@ class Formie
         // rendering for the whole request.
         try {
             /* @var PositionInterface $position */
-            $position = $subField && $field->hasSubFields() ? $field->subFieldLabelPosition : $field->labelPosition;
+            $position = $subField && $field instanceof FixedParentFieldInterface ? $field->subFieldLabelPosition : $field->labelPosition;
             $position = $position ?: $form->settings->defaultLabelPosition;
 
             if (!$position::supports($field) && $fallback = $position::fallback($field)) {
