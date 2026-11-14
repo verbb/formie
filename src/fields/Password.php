@@ -405,6 +405,12 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
         return '';
     }
 
+    protected function defineValueForReference(mixed $value, ElementInterface $element = null): mixed
+    {
+        // References can reach emails and other destinations, which must never see the hash.
+        return '';
+    }
+
     protected function defineValueForReport(mixed $value, ?ElementInterface $element = null, bool $useOptionLabels = true): mixed
     {
         return $this->defineValueForSummary($value, $element);
