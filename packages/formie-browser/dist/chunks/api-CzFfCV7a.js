@@ -340,7 +340,18 @@ function U(e) {
 	let t = e;
 	t.formieValidation && k(e, t.formieValidation);
 }
-function W(e, t) {
+function W(e) {
+	let t = e.dataset.formieScrollToTop?.trim().toLowerCase();
+	t !== void 0 && [
+		"",
+		"true",
+		"1"
+	].includes(t) && e.scrollIntoView({
+		behavior: "smooth",
+		block: "start"
+	});
+}
+function G(e, t) {
 	let n = I(e), r = be(e), i = n.findIndex((e) => e.getAttribute("data-formie-page-id") === t);
 	n.forEach((n) => {
 		n.getAttribute("data-formie-page-id") === t ? (n.removeAttribute("data-formie-page-hidden"), o(n, e, "pageHidden")) : (n.setAttribute("data-formie-page-hidden", "true"), s(n, e, "pageHidden"));
@@ -355,7 +366,7 @@ function W(e, t) {
 }
 function Oe(e, t) {
 	if (t.meta?.resetSubmissionIdentity === !0) {
-		F(e, "submissionId"), F(e, "submissionUid"), F(e, "progressId"), N(e, "expectedVersion", "0"), G(e);
+		F(e, "submissionId"), F(e, "submissionUid"), F(e, "progressId"), N(e, "expectedVersion", "0"), ke(e);
 		return;
 	}
 	let n = t.meta?.session?.version ?? t.meta?.version;
@@ -365,7 +376,7 @@ function Oe(e, t) {
 	let i = (t.meta?.session)?.continuation?.progressId;
 	typeof i == "string" && i.trim() !== "" ? N(e, "progressId", i) : F(e, "progressId");
 }
-function G(e) {
+function ke(e) {
 	let t = e.getAttribute("action");
 	t && e.setAttribute("action", ve(t, "resumeToken"));
 	try {
@@ -374,7 +385,7 @@ function G(e) {
 		e.searchParams.delete("resumeToken"), window.history.replaceState({}, document.title, `${e.pathname}${e.search}${e.hash}`);
 	} catch {}
 }
-function ke(e, t) {
+function Ae(e, t) {
 	let n = t.meta?.resumeUrl;
 	if (typeof n != "string" || n.trim() === "") return;
 	let r = n.trim();
@@ -392,12 +403,12 @@ function K(t, n = {}) {
 		e instanceof HTMLInputElement ? e.remove() : e.removeAttribute("data-formie-summary-token");
 	}), t.querySelectorAll("[data-formie-summary-blocks]").forEach((e) => e.replaceChildren()), t.querySelectorAll("[data-formie-file-upload-entry]").forEach((e) => e.remove()), t.querySelectorAll("[data-formie-file-summary], [data-formie-upload-manager-list]").forEach((e) => e.replaceChildren()), t.querySelectorAll("[data-formie-upload-manager-status]").forEach((e) => {
 		e.value = "";
-	}), n.preserveHiddenState || z(t, !1), F(t, "submissionId"), N(t, "expectedVersion", "0"), F(t, "submissionUid"), F(t, "progressId"), F(t, "pageId"), G(t), le(t), r?.resetLiveState(), i ? (W(t, i), y(t, e("reset"), void 0)) : (T(t), y(t, e("reset"), void 0));
+	}), n.preserveHiddenState || z(t, !1), F(t, "submissionId"), N(t, "expectedVersion", "0"), F(t, "submissionUid"), F(t, "progressId"), F(t, "pageId"), ke(t), le(t), r?.resetLiveState(), i ? (G(t, i), y(t, e("reset"), void 0)) : (T(t), y(t, e("reset"), void 0));
 }
-function Ae(e) {
+function je(e) {
 	return e.code === _e || e.meta?.resetState === !0;
 }
-function je(e, t) {
+function Me(e, t) {
 	let n = t.submitData, i = /* @__PURE__ */ new Set(), a = !1;
 	if (Array.isArray(n) && n.length > 0) {
 		let t = n.filter((e) => typeof e == "object" && !!e && "event" in e && typeof e.event == "string");
@@ -415,26 +426,26 @@ function je(e, t) {
 		detail: { data: c }
 	})), M.log("Dispatching fallback payment action event.", { eventName: l })), { hasPaymentFollowUpEvent: a };
 }
-function Me(e, t, n) {
+function Ne(e, t, n) {
 	if (M.log("Applying submit result state.", {
 		ok: t.ok,
 		action: n,
 		code: t.code,
 		hasRedirect: !!t.redirect?.url,
 		hasSubmitData: Array.isArray(t.submitData) && t.submitData.length > 0
-	}), Ae(t)) {
+	}), je(t)) {
 		K(e), M.log("Resetting state due to stale/reset marker.");
 		return;
 	}
 	t.payment?.action?.type === "redirect" && t.payment.action.url && P(e, "payment-redirect");
-	let r = je(e, t);
+	let r = Me(e, t);
 	if (!t.ok && t.redirect?.url && !r.hasPaymentFollowUpEvent) M.log("Applying redirect fallback for failed result.", {
 		url: t.redirect.url,
 		target: t.redirect.target
 	}), B(e), t.redirect.target === "new-tab" ? window.open(t.redirect.url, "_blank", "noopener,noreferrer") : (P(e, "redirect"), window.location.href = t.redirect.url);
 	else if (Oe(e, t), !t.ok) M.log("Non-redirect failure; keeping current form state."), B(e);
-	else if (Array.isArray(t.clientEvents) && t.clientEvents.length > 0 ? C(e, t.clientEvents) : w(e, n), t.nextPage?.id) B(e), e.formieValidation?.resetLiveState(), W(e, t.nextPage.id), y(e, "formie:page:navigate:after", { pageId: t.nextPage.id }), M.log("Advanced to next page.", { nextPageId: t.nextPage.id });
-	else if (n === "save") B(e), ke(e, t), M.log("Applied save/resume token state.");
+	else if (Array.isArray(t.clientEvents) && t.clientEvents.length > 0 ? C(e, t.clientEvents) : w(e, n), t.nextPage?.id) B(e), e.formieValidation?.resetLiveState(), G(e, t.nextPage.id), W(e), y(e, "formie:page:navigate:after", { pageId: t.nextPage.id }), M.log("Advanced to next page.", { nextPageId: t.nextPage.id });
+	else if (n === "save") B(e), Ae(e, t), M.log("Applied save/resume token state.");
 	else if (t.completion && n === "submit" && !t.redirect?.url) {
 		let n = L(e, t), r = n === "message" && R(e);
 		if (n === "reload") {
@@ -453,7 +464,7 @@ function Me(e, t, n) {
 }
 //#endregion
 //#region src/js/modules/payments/constants.ts
-var Ne = 2500, Pe = {
+var Pe = 2500, Fe = {
 	bpoint: ["bpointToken"],
 	stripe: ["stripePaymentIntentId"],
 	paypal: ["paypalOrderId", "paypalAuthId"],
@@ -468,25 +479,25 @@ var Ne = 2500, Pe = {
 };
 //#endregion
 //#region src/js/utils/fields.ts
-function Fe(e) {
+function Ie(e) {
 	return e.replace("{field:", "").replace("{", "").replace("}", "").replace("]", "").split("[").join("][");
 }
-function Ie(e) {
-	return `fields[${Fe(e)}]`;
+function Le(e) {
+	return `fields[${Ie(e)}]`;
 }
-function Le(e, t) {
-	let n = Ie(t), r = Array.from(e.querySelectorAll(`[name="${n}"]`)), i = Array.from(e.querySelectorAll(`[name="${n}[]"]`));
+function Re(e, t) {
+	let n = Le(t), r = Array.from(e.querySelectorAll(`[name="${n}"]`)), i = Array.from(e.querySelectorAll(`[name="${n}[]"]`));
 	return (i.length ? i : r).filter((e) => e instanceof HTMLElement);
 }
-function q(e, t) {
-	let n = Le(e, t);
+function ze(e, t) {
+	let n = Re(e, t);
 	for (let e of n) {
 		let t = e.closest("[data-formie-field-handle]")?.querySelector("[data-formie-field-label]")?.childNodes[0]?.textContent?.trim();
 		if (t) return t;
 	}
 	return "";
 }
-function J(e) {
+function q(e) {
 	let t = e.replace(/[^\d.,-]/g, ""), n = t.includes(","), r = t.includes(".");
 	if (n && r) t = t.lastIndexOf(",") > t.lastIndexOf(".") ? t.replace(/\./g, "").replace(",", ".") : t.replace(/,/g, "");
 	else if (n && !r) {
@@ -497,17 +508,17 @@ function J(e) {
 }
 //#endregion
 //#region src/js/modules/payments/utils.ts
-function Y(e) {
+function J(e) {
 	let t = e;
 	return !t.closest("[data-formie-conditionally-hidden]") && !t.closest("[data-formie-row-hidden]") && !t.closest("[data-formie-page-hidden]") && !t.closest("[hidden]");
 }
-function X(e, t) {
+function Y(e, t) {
 	let n = t.replace(/"/g, "\\\"");
 	return e.querySelector(`input[name$="[${n}]"]`) || e.querySelector(`input[name$="${n}"]`);
 }
-function Z(e, t) {
+function X(e, t) {
 	let n = t.find((t) => {
-		let n = X(e, t);
+		let n = Y(e, t);
 		return !n || String(n.value || "").trim() === "";
 	});
 	return {
@@ -515,35 +526,35 @@ function Z(e, t) {
 		missingSuffix: n
 	};
 }
-async function Re(e, t, n) {
-	let r = Z(e, t);
+async function Z(e, t, n) {
+	let r = X(e, t);
 	if (r.ok) return r;
 	let i = Date.now() + Math.max(n, 0);
 	for (; Date.now() < i;) {
 		await c(120);
-		let n = Z(e, t);
+		let n = X(e, t);
 		if (n.ok) return n;
 	}
-	return Z(e, t);
+	return X(e, t);
 }
 //#endregion
 //#region src/js/modules/payments/host.ts
-var ze = /* @__PURE__ */ new Set([
+var Be = /* @__PURE__ */ new Set([
 	"handle",
 	"requiredInputSuffixes",
 	"waitForValueMs",
 	"errorMessage"
-]), Be = "[data-payment-success]", Ve = "[data-payment-error]";
-function He(e, t) {
+]), Ve = "[data-payment-success]", He = "[data-payment-error]";
+function Ue(e, t) {
 	return (typeof t.handle == "string" && t.handle.trim() !== "" ? t.handle.trim() : "") || e;
 }
-function Ue(e, t, n) {
-	let r = t || {}, i = Object.entries(r).reduce((e, [t, n]) => (ze.has(t) || (e[t] = n), e), {}), a = Array.isArray(r.requiredInputSuffixes) ? r.requiredInputSuffixes.map(String).filter(Boolean) : n.defaultRequiredInputSuffixes || [], o = Number(r.waitForValueMs ?? n.defaultWaitForValueMs ?? 2500), s = typeof r.errorMessage == "string" && r.errorMessage.trim() !== "" ? r.errorMessage.trim() : "Payment authorization is incomplete.";
+function We(e, t, n) {
+	let r = t || {}, i = Object.entries(r).reduce((e, [t, n]) => (Be.has(t) || (e[t] = n), e), {}), a = Array.isArray(r.requiredInputSuffixes) ? r.requiredInputSuffixes.map(String).filter(Boolean) : n.defaultRequiredInputSuffixes || [], o = Number(r.waitForValueMs ?? n.defaultWaitForValueMs ?? 2500), s = typeof r.errorMessage == "string" && r.errorMessage.trim() !== "" ? r.errorMessage.trim() : "Payment authorization is incomplete.";
 	return {
-		handle: He(e, r),
+		handle: Ue(e, r),
 		transport: {
 			requiredInputSuffixes: a,
-			waitForValueMs: Number.isFinite(o) ? o : Ne,
+			waitForValueMs: Number.isFinite(o) ? o : Pe,
 			errorMessage: s
 		},
 		provider: i
@@ -554,7 +565,7 @@ function Q(e, t, n) {
 		e.removeEventListener(t, n);
 	};
 }
-function We(e, t) {
+function Ge(e, t) {
 	let n = e.target, r = e.form, i = e.root, a = r || i, o = t.transport.requiredInputSuffixes, c = () => m(r || i), h = (e) => {
 		let t = p(e, c()).value;
 		return Array.isArray(t) ? t[0] || "" : String(t || "");
@@ -566,47 +577,47 @@ function We(e, t) {
 		updateInputs: (e, t) => {
 			let r = Array.isArray(e) ? e : [e];
 			for (let e of r) {
-				let r = X(a, e) ?? n.querySelector(`input[name*="${e}"]`);
+				let r = Y(a, e) ?? n.querySelector(`input[name*="${e}"]`);
 				r && (r.value = t);
 			}
 		},
 		addError: (e) => {
-			let t = n.querySelector("[data-formie-field-type] > div, [data-field-type] > div") || n, a = t.querySelector(Ve);
+			let t = n.querySelector("[data-formie-field-type] > div, [data-field-type] > div") || n, a = t.querySelector(He);
 			a && a.remove();
 			let o = document.createElement("div");
 			o.setAttribute("data-payment-error", ""), o.textContent = e, s(o, r || i, "fieldError"), t.appendChild(o);
 		},
 		removeError: () => {
-			n.querySelector(Ve)?.remove();
+			n.querySelector(He)?.remove();
 		},
 		addSuccess: (e) => {
-			let t = n.querySelector("[data-formie-field-type] > div, [data-field-type] > div") || n, a = t.querySelector(Be);
+			let t = n.querySelector("[data-formie-field-type] > div, [data-field-type] > div") || n, a = t.querySelector(Ve);
 			a && a.remove();
 			let o = document.createElement("div");
 			o.setAttribute("data-payment-success", ""), o.textContent = e, s(o, r || i, "successMessage"), t.appendChild(o);
 		},
 		removeSuccess: () => {
-			n.querySelector(Be)?.remove();
+			n.querySelector(Ve)?.remove();
 		},
-		hasToken: () => Z(a, o).ok,
-		waitForToken: (e = t.transport.waitForValueMs) => Re(a, o, e).then((e) => e.ok),
+		hasToken: () => X(a, o).ok,
+		waitForToken: (e = t.transport.waitForValueMs) => Z(a, o, e).then((e) => e.ok),
 		getFieldValue: (e, t = "string") => {
 			let n = h(e);
-			return t === "float" || t === "int" || t === "number" ? J(n) : n;
+			return t === "float" || t === "int" || t === "number" ? q(n) : n;
 		},
 		resolveAmount: (e) => {
-			let t = r || i, n = String(e.type || "").toLowerCase() === "dynamic" && typeof e.variable == "string" && e.variable.trim() !== "", a = e.value ?? (n ? e.variable : e.fixed), o = String(a ?? "").trim(), s = typeof a == "number" ? a : J(o);
+			let t = r || i, n = String(e.type || "").toLowerCase() === "dynamic" && typeof e.variable == "string" && e.variable.trim() !== "", a = e.value ?? (n ? e.variable : e.fixed), o = String(a ?? "").trim(), s = typeof a == "number" ? a : q(o);
 			if (Number.isFinite(s) && s > 0) return {
 				ok: !0,
 				value: s
 			};
 			if (o !== "") {
-				let e = h(o), n = J(e);
+				let e = h(o), n = q(e);
 				if (Number.isFinite(n) && n > 0) return {
 					ok: !0,
 					value: n
 				};
-				let r = q(t, o);
+				let r = ze(t, o);
 				if (!e) return {
 					ok: !1,
 					error: r ? u("Provide a value for \"{label}\" to proceed.", { label: r }) : u("Provide a payment amount to proceed.")
@@ -629,7 +640,7 @@ function We(e, t) {
 					ok: !0,
 					value: n
 				};
-				let r = q(t, o);
+				let r = ze(t, o);
 				if (!e) return {
 					ok: !1,
 					error: r ? u("Provide a value for \"{label}\" to proceed.", { label: r }) : u("Provide a payment currency to proceed.")
@@ -697,8 +708,8 @@ function We(e, t) {
 //#endregion
 //#region src/js/modules/payments/factories.ts
 var $ = i("payments");
-function Ge(e) {
-	let t = e.defaultRequiredInputSuffixes ?? Pe[e.moduleId.split(":")[1]] ?? [];
+function Ke(e) {
+	let t = e.defaultRequiredInputSuffixes ?? Fe[e.moduleId.split(":")[1]] ?? [];
 	return {
 		moduleId: e.moduleId,
 		version: 2,
@@ -715,16 +726,16 @@ function Ge(e) {
 					await o.destroy();
 				} catch {}
 			}
-			let s = Ue(e.moduleId.split(":")[1], n.options || {}, { defaultRequiredInputSuffixes: t }), c = We(n, s), l = {
+			let s = We(e.moduleId.split(":")[1], n.options || {}, { defaultRequiredInputSuffixes: t }), c = Ge(n, s), l = {
 				...n,
 				options: s,
 				services: c
 			}, u = [], d = null, f = null, p = null, m = null, h = !1, g = null, _ = null, v = async () => (d ||= ($.log("Loading payment provider API.", { moduleId: e.moduleId }), e.load(l)), d), y = async () => {
 				let t = e.mount;
-				if (!h && t && !f && Y(n.target)) return p ||= (async () => {
+				if (!h && t && !f && J(n.target)) return p ||= (async () => {
 					try {
 						let r = await v();
-						if (h || !Y(n.target)) return;
+						if (h || !J(n.target)) return;
 						c.removeError(), f = await t({
 							api: r,
 							field: n.target,
@@ -746,7 +757,7 @@ function Ge(e) {
 				}), p;
 			}, b = () => {
 				y().catch(() => {
-					!h && Y(n.target) && c.addError(s.transport.errorMessage);
+					!h && J(n.target) && c.addError(s.transport.errorMessage);
 				});
 			};
 			if (u.push(n.on("formie:submit:before", () => {
@@ -758,7 +769,7 @@ function Ge(e) {
 					root: t
 				}), g.destroy && u.push(g.destroy);
 			}
-			e.mount && Y(n.target) && await y(), ["formie:page:navigate:after", "formie:submit:result"].forEach((e) => {
+			e.mount && J(n.target) && await y(), ["formie:page:navigate:after", "formie:submit:result"].forEach((e) => {
 				n.root.addEventListener(e, b), u.push(() => {
 					n.root.removeEventListener(e, b);
 				});
@@ -797,7 +808,7 @@ function Ge(e) {
 						await g.beforeSubmit(t);
 						return;
 					}
-					if (t.action !== "submit" || !Y(n.target)) return;
+					if (t.action !== "submit" || !J(n.target)) return;
 					await y();
 					let r = await v();
 					if (e.onBeforePayment) {
@@ -824,7 +835,7 @@ function Ge(e) {
 						return;
 					}
 					if (s.transport.requiredInputSuffixes.length === 0) return;
-					let i = await Re(n.form || n.root, s.transport.requiredInputSuffixes, s.transport.waitForValueMs);
+					let i = await Z(n.form || n.root, s.transport.requiredInputSuffixes, s.transport.waitForValueMs);
 					i.ok || ($.warn("Required payment input(s) missing.", {
 						moduleId: e.moduleId,
 						handle: s.handle,
@@ -859,6 +870,6 @@ function Ge(e) {
 }
 //#endregion
 //#region src/js/modules/payments/api.ts
-var Ke = Ge;
+var qe = Ke;
 //#endregion
-export { y as _, U as a, ge as c, E as d, ce as f, _ as g, ae as h, Me as i, ue as l, w as m, X as n, z as o, T as p, W as r, De as s, Ke as t, de as u, v };
+export { _, U as a, De as c, de as d, E as f, ae as g, w as h, Ne as i, ge as l, T as m, Y as n, W as o, ce as p, G as r, z as s, qe as t, ue as u, y as v, v as y };

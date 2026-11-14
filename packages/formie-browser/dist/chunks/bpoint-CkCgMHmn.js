@@ -1,4 +1,4 @@
-import { t as e } from "./api-Cgy32byY.js";
+import { t as e } from "./api-CzFfCV7a.js";
 //#region src/js/modules/payments/bpoint.ts
 var t = e({
 	moduleId: "formie:bpoint",

@@ -24,7 +24,7 @@ import {
 } from '#core/validation-focus';
 import { clearSubmitFeedback, executeAjaxSubmitFlow, shouldKeepSubmitLoading } from '#core/submit-flow';
 import { applySubmitResultUi, renderFieldErrors, renderFormErrors } from '#core/submit-result-ui';
-import { applyPageState, clearSubmitLoading, setSubmitLoading } from '#core/submit-result-state';
+import { applyPageState, clearSubmitLoading, scrollToFormTop, setSubmitLoading } from '#core/submit-result-state';
 import { EventBus } from '#events/event-bus';
 import { ModuleRegistry } from '#modules/registry';
 import { loadModulesFromManifest, type BrowserModuleRuntime } from '#modules/loader';
@@ -681,6 +681,7 @@ function bindFormEvents(
                     return;
                 }
 
+                scrollToFormTop(form);
                 dispatchFormieDomEvent(target, 'formie:page:navigate:after', {
                     pageId: nextPageId,
                     href,

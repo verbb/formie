@@ -303,6 +303,14 @@ export function clearSubmitLoading(form: HTMLFormElement): void {
     }
 }
 
+export function scrollToFormTop(form: HTMLFormElement): void {
+    const scrollToTop = form.dataset.formieScrollToTop?.trim().toLowerCase();
+
+    if (scrollToTop !== undefined && ['', 'true', '1'].includes(scrollToTop)) {
+        form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
 export function applyPageState(form: HTMLFormElement, nextPageId: string): void {
     const pages = getPageElements(form);
     const tabs = getTabElements(form);
@@ -615,6 +623,7 @@ export function applySubmitResultState(form: HTMLFormElement, result: FormSubmit
         const validator = formWithValidationApi.formieValidation;
         validator?.resetLiveState();
         applyPageState(form, result.nextPage.id);
+        scrollToFormTop(form);
         dispatchFormieDomEvent(form, 'formie:page:navigate:after', {
             pageId: result.nextPage.id,
         });

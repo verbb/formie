@@ -191,3 +191,90 @@ for (const scroll of ['', null]) {
         ).toBe(1);
     });
 }
+
+async function mountMultiPageForm(page: Page, scroll: string | null) {
+    await page.setViewportSize({ width: 1000, height: 720 });
+    await page.route('**/page-scroll-fixture', (route) =>
+        route.fulfill({
+            contentType: 'text/html',
+            body: `
+            <style>
+                body { margin: 0; }
+                header { height: 900px; }
+                [data-formie-page] { min-height: 1500px; }
+                [data-formie-page-hidden] { display: none !important; }
+                footer { height: 3000px; }
+            </style>
+            <header>Content above form</header>
+            <form data-formie data-formie-submit-method="ajax" method="post" action="/page-scroll-submit"
+                data-formie-completion-behavior="message" data-formie-validation-on-submit="true"
+                data-formie-success-message-position="top-form"
+                ${scroll === null ? '' : `data-formie-scroll-to-top="${scroll}"`}
+                data-formie-modules='{"contractVersion":2,"surface":"server-rendered","entries":[]}'>
+                <div data-formie-form-messages-top></div>
+                <section data-formie-page data-formie-page-id="1">
+                    <label>First <input name="fields[first]" value="Visitor"></label>
+                    <button type="submit" data-formie-action="submit">Next</button>
+                </section>
+                <section data-formie-page data-formie-page-id="2" data-formie-page-hidden>
+                    <label>Second <input name="fields[second]"></label>
+                    <button type="submit" data-formie-action="submit">Submit</button>
+                </section>
+            </form>
+            <footer>Content below form</footer>
+        `,
+        }),
+    );
+    await page.route('**/page-scroll-submit', (route) =>
+        route.fulfill({
+            json: {
+                success: true,
+                submitAction: 'submit',
+                outcome: 'pageChanged',
+                nextPageId: 2,
+                totalPages: 2,
+                isFinalPage: false,
+            },
+        }),
+    );
+    await page.goto('/page-scroll-fixture');
+    await page.addScriptTag({ content: script });
+    await page.evaluate(async () => {
+        await window.successScrollBoundary
+            .createFormieClient()
+            .mount(document.querySelector('form')!, {
+                mode: 'server-rendered',
+                refreshTokens: false,
+            });
+    });
+    await page
+        .getByRole('button', { name: 'Next', exact: true })
+        .scrollIntoViewIfNeeded();
+}
+
+for (const scroll of ['', 'true', '1']) {
+    test(`AJAX page change returns to the top of the form with scroll value "${scroll}"`, async ({
+        page,
+    }) => {
+        await mountMultiPageForm(page, scroll);
+        await page.getByRole('button', { name: 'Next', exact: true }).click();
+        await expect(page.getByLabel('Second')).toBeVisible();
+        await expect(page.getByLabel('Second')).toBeInViewport();
+        await expect
+            .poll(() => page.evaluate(() => Math.round(document.querySelector('form')!.getBoundingClientRect().top)))
+            .toBe(0);
+    });
+}
+
+for (const scroll of [null, 'false', '0']) {
+    test(`AJAX page change keeps the viewport with scroll value ${scroll}`, async ({
+        page,
+    }) => {
+        await mountMultiPageForm(page, scroll);
+        const before = await page.evaluate(() => window.scrollY);
+        await page.getByRole('button', { name: 'Next', exact: true }).click();
+        await expect(page.locator('[data-formie-page-id="2"]')).toBeVisible();
+        await page.waitForTimeout(600);
+        expect(await page.evaluate(() => window.scrollY)).toBe(before);
+    });
+}

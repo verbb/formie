@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed **Scroll To Top** not returning to the top of the form when moving to another page on AJAX forms, leaving visitors at the bottom of the next page.
 - Fixed visitors seeing an error page when a form with an unanswered Table date or time column failed validation.
 - Fixed forms with a Tags field being unable to submit with “Select only valid options” when the field was left blank.
 - Fixed the “Reassign submissions” modal throwing an error when deleting a user on Craft 5.10 to 5.11.1.

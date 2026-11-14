@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed
+- Fixed **Scroll To Top** not returning to the top of the form when moving to another page on AJAX forms.
+
 ## 4.0.9 - 2026-11-13
 
 ### Added
