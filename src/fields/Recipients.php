@@ -33,6 +33,7 @@ use verbb\formie\options\OptionSourceContext;
 use verbb\formie\options\OptionSourceFieldInterface;
 use verbb\formie\options\OptionSourceProviderHelper;
 use verbb\formie\positions\Hidden as HiddenPosition;
+use verbb\formie\references\ReferenceCondition;
 use verbb\formie\references\ReferenceType;
 use verbb\formie\theme\context\RenderContext;
 
@@ -976,6 +977,8 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
             FieldReferenceValue::primary(types: $this->displayType === 'checkboxes'
                 ? [ReferenceType::Email, ReferenceType::List, ReferenceType::Boolean]
                 : [ReferenceType::Email]),
+            FieldReferenceValue::selector('label', Craft::t('formie', 'Label'), when: ReferenceCondition::notEquals('displayType', 'checkboxes'), supportsFieldSelect: false, supportsBrowser: false),
+            FieldReferenceValue::selector('value', Craft::t('formie', 'Value'), [ReferenceType::Email], when: ReferenceCondition::notEquals('displayType', 'checkboxes'), supportsFieldSelect: false, supportsBrowser: false),
         ];
     }
 

@@ -8,6 +8,7 @@ use verbb\formie\fields\SingleLineText;
 use verbb\formie\Formie;
 use verbb\formie\helpers\Table;
 use verbb\formie\migrations\m261104_050000_bare_notification_tokens;
+use verbb\formie\migrations\m261115_040000_recipients_notification_tokens;
 use verbb\formie\models\Notification;
 
 function bareTokenNotification(Form $form, array $stored): int
@@ -139,4 +140,38 @@ it('changes nothing when run again', function (): void {
     $migration->safeUp();
 
     expect(bareTokenRow($id))->toBe($first);
+});
+
+it('converts the label and value of a Recipients selection and renders them', function (): void {
+    // Formie 3 notifications on the support site used `{country.label}` and `{recipients.value}` this way.
+    $form = formie()->form()->recipientsField('team', ['displayType' => 'dropdown', 'options' => [
+        ['label' => 'Sales', 'value' => 'sales@example.test'],
+        ['label' => 'Support', 'value' => 'support@example.test'],
+    ]])->create();
+    $reference = $form->getFieldByHandle('team')->reference;
+    $id = bareTokenNotification($form, [
+        'to' => '{team.value}',
+        'subject' => 'For {team.label}',
+        'content' => '[{"type":"paragraph","content":[{"type":"text","text":"Label={team.label} Value={team.value}"}]}]',
+    ]);
+    $submission = formie()->submission($form)->with(['team' => 'support@example.test'])->save();
+
+    foreach ([1, 2] as $run) {
+        expect((new m261115_040000_recipients_notification_tokens())->safeUp())->toBeTrue();
+    }
+
+    $row = bareTokenRow($id);
+
+    expect($row['to'])->toBe('{field:' . $reference . ':value}')
+        ->and($row['subject'])->toBe('For {field:' . $reference . ':label}');
+
+    $result = Formie::$plugin->getEmails()->renderEmail(Formie::$plugin->getNotifications()->getNotificationById($id), $submission);
+
+    expect($result['error'] ?? null)->toBeNull();
+
+    $email = $result['email']->getSymfonyEmail();
+
+    expect(array_map(fn($address) => $address->getAddress(), $email->getTo()))->toBe(['support@example.test'])
+        ->and($email->getSubject())->toBe('For Support')
+        ->and((string)$email->getHtmlBody())->toContain('Label=Support Value=support@example.test');
 });
