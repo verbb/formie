@@ -127,6 +127,8 @@ final class ReferenceMigration
 
     private static function _legacyFieldPath(array $fields, string $path): ?array
     {
+        // Formie 3's string form of a field with sub-fields is the whole field's value.
+        $path = preg_replace('/\.__toString$/D', '', $path);
         [$identifier, $selector] = array_pad(explode('.', $path, 2), 2, '');
 
         foreach ($fields as $field) {

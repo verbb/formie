@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed email notifications failing with “Reference resolution failed: missingField” after upgrading from Formie 3 when a setting such as the subject included a whole field with sub-fields, such as Name or Address. Upgraded sites are repaired when migrations run. ([#3123](https://github.com/verbb/formie/issues/3123))
+
 ## 4.0.9 - 2026-11-14
 
 ### Added
