@@ -29,6 +29,7 @@ final class BuiltinReferenceTransforms
                 }
             }
         }
+
         return $parameters[$id] ?? null;
     }
 
@@ -60,6 +61,7 @@ final class BuiltinReferenceTransforms
                     $decimals = isset($params['decimals']) && is_numeric($params['decimals']) ? (int)$params['decimals'] : 0;
                     $decimalPoint = isset($params['decimalPoint']) ? (string)$params['decimalPoint'] : '.';
                     $thousandsSeparator = isset($params['thousandsSeparator']) ? (string)$params['thousandsSeparator'] : ',';
+
                     return number_format((float)$value, $decimals, $decimalPoint, $thousandsSeparator);
                 }
 
@@ -78,6 +80,7 @@ final class BuiltinReferenceTransforms
 
                 try {
                     $date = DateFieldValue::toDateTime($value);
+
                     return $date ? $date->format($pattern) : $value;
                 } catch (Throwable) {
                     return $value;
@@ -110,6 +113,7 @@ final class BuiltinReferenceTransforms
                     if (function_exists('mb_substr') && function_exists('mb_strtoupper')) {
                         $first = mb_substr($text, 0, 1);
                         $rest = mb_substr($text, 1);
+
                         return mb_strtoupper($first) . $rest;
                     }
 
@@ -119,6 +123,10 @@ final class BuiltinReferenceTransforms
 
             case 'kebab': {
                 return StringHelper::toKebabCase(self::_stringifyVariableValue($value));
+            }
+
+            case 'camel': {
+                return StringHelper::toCamelCase(self::_stringifyVariableValue($value));
             }
 
             case 'replace': {
@@ -153,6 +161,7 @@ final class BuiltinReferenceTransforms
             case 'map': {
                 $trueLabel = isset($params['trueLabel']) ? (string)$params['trueLabel'] : Craft::t('formie', 'Yes');
                 $falseLabel = isset($params['falseLabel']) ? (string)$params['falseLabel'] : Craft::t('formie', 'No');
+
                 return self::_toBoolean($value) ? $trueLabel : $falseLabel;
             }
 
@@ -277,6 +286,12 @@ final class BuiltinReferenceTransforms
                     'id' => 'kebab',
                     'label' => Craft::t('formie', 'Kebab Case'),
                     'description' => Craft::t('formie', 'Convert text to lowercase words separated by hyphens.'),
+                    'params' => [],
+                ],
+                [
+                    'id' => 'camel',
+                    'label' => Craft::t('formie', 'Camel Case'),
+                    'description' => Craft::t('formie', 'Convert text to words joined together, each capitalized after the first.'),
                     'params' => [],
                 ],
                 [
@@ -464,6 +479,7 @@ final class BuiltinReferenceTransforms
                 $definition['appliesTo'] = [];
             }
         }
+
         return $transformerRegistry;
     }
 

@@ -873,6 +873,8 @@ Replace straightforward values and filters with the tokens inserted by the Varia
 
 `a1b2c3` represents the field's stable reference, not its handle. Insert that token with the Variable Picker; do not copy the placeholder or type `{field:myFieldHandle}`. For the user-based subpath, enable **Collect User** and require the person submitting to be logged in. A user named Ada Lovelace with ID 123 produces `ada-lovelace-123`.
 
+The upgrade converts field handles for you in upload subpaths and filenames, submission title formats, success messages, redirect URLs, Hidden field defaults, payment settings and integration messages, including `{myFieldHandle}`, `{field.myFieldHandle}` and `{myGroup[child]}`. It also converts simple filters in upload subpaths and filenames: `{formName\|camel}` becomes `{form:name;transform=camel}`, and `{postDate\|date("Ymd")}` becomes `{submission:date;transform=format;preset=custom;pattern=Ymd}`. Anything else stays as it was and needs replacing by hand.
+
 Transforms use `;transform=...`, such as `;transform=kebab` or `;transform=upper`. A pipe in a reference token introduces an empty-value fallback, not a Twig filter: `{user:fullName|Anonymous}` returns `Anonymous` when the full name is empty. Use the picker to configure the available transforms and their parameters.
 
 Twig conditionals, method calls, custom user properties and filters without a built-in transform need a [custom variable source](/developers/custom-variable-sources). Move that calculation into the source's PHP resolver, register it, then select it in the Variable Picker. Replace expressions manually where no equivalent reference or transform exists.

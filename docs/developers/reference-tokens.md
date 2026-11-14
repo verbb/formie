@@ -66,6 +66,8 @@ The variable picker configures these for you. When building tokens manually, mat
 
 The **Kebab Case** text transform converts a value such as `Ada Lovelace` to `ada-lovelace`, using Craft's kebab-case rules. It is useful for [upload subpaths and filenames](/fields/file-upload#upload-subpaths-and-filenames).
 
+The **Camel Case** text transform converts `Ada Lovelace` to `adaLovelace`, using Craft's camel-case rules.
+
 ## Built-in Tokens
 
 These tokens are available on every form. In the control panel, open the variable picker to insert them. From Twig, use `craft.formie.ref()` with the target and identifier shown in the **Twig** column.
