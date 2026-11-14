@@ -96,7 +96,7 @@ final class ReferenceMigration
         if (is_array($settings['integrations'] ?? null)) {
             foreach ($settings['integrations'] as $handle => $integration) {
                 if (is_array($integration)) {
-                    $settings['integrations'][$handle] = self::_legacySettings($integration, ['message', 'webhook', 'to'], $fields, true);
+                    $settings['integrations'][$handle] = self::_legacySettings($integration, ['message', 'webhook', 'url', 'to'], $fields, true);
                 }
             }
         }

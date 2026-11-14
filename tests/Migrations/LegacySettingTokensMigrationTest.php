@@ -200,6 +200,22 @@ it('resolves stored success messages and integration messages from Formie 3', fu
         ->and($settings['integrations']['slack']['webhook'])->toBe('https://example.test/?n={field:' . $form->getFieldByHandle('number')->reference . '}');
 });
 
+it('resolves a Webhook URL from Formie 3 that names a field', function() {
+    $form = legacySettingsForm();
+
+    // Formie 3 stored this as `webhook`, and Formie 4 moves it to `url` (form 3821 of the Formie 3 site).
+    storeLegacySetting(Table::FORMIE_FORMS, $form->id, ['integrations' => ['webhook' => ['enabled' => '1', 'url' => 'https://example.test/jobs/{number}/apply']]]);
+
+    foreach ([1, 2] as $run) {
+        expect((new m261115_020000_legacy_setting_tokens())->safeUp())->toBeTrue();
+    }
+
+    $url = legacyStoredSettings(Table::FORMIE_FORMS, $form->id)['integrations']['webhook']['url'];
+
+    expect($url)->toBe('https://example.test/jobs/{field:' . $form->getFieldByHandle('number')->reference . '}/apply')
+        ->and(References::parseUrl($url, legacySettingsSubmission(freshLegacyForm($form->id))))->toBe('https://example.test/jobs/11/apply');
+});
+
 it('leaves settings Formie 3 never parsed, and hidden defaults on other fields, as they were', function() {
     $form = legacySettingsForm([fn($builder) => $builder->hiddenField('hidden', ['valueSource' => 'custom', 'defaultValue' => 'seed'])->singleLineTextField('text', ['defaultValue' => '{email}', 'placeholder' => '{email}', 'instructions' => 'Use {email} here'])]);
     $hidden = $form->getFieldByHandle('hidden');
