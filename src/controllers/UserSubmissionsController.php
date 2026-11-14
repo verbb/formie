@@ -23,6 +23,7 @@ class UserSubmissionsController extends Controller
     public function actionReassignModal(): Response
     {
         $this->requireAcceptsJson();
+
         $userIds = $this->_userIds();
 
         return $this->asCpModal()
@@ -33,7 +34,8 @@ class UserSubmissionsController extends Controller
                     'label' => Craft::t('formie', 'Choose a new user'),
                     'name' => 'newUserId',
                     'elementType' => User::class,
-                    'context' => ElementSources::CONTEXT_RESTRICTED_MODAL,
+                    // Craft 5.10 added deletion blockers, but this context only arrived in 5.11.2.
+                    'context' => defined(ElementSources::class . '::CONTEXT_RESTRICTED_MODAL') ? ElementSources::CONTEXT_RESTRICTED_MODAL : ElementSources::CONTEXT_MODAL,
                     'criteria' => [
                         'id' => array_map(fn(int $id) => "not $id", $userIds),
                         'status' => null,
@@ -49,6 +51,7 @@ class UserSubmissionsController extends Controller
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
+
         $userIds = $this->_userIds();
         $newUserId = (int)$this->request->getRequiredBodyParam('newUserId');
 
@@ -67,6 +70,7 @@ class UserSubmissionsController extends Controller
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
+
         $userIds = $this->_userIds();
         $count = Db::update(Table::FORMIE_SUBMISSIONS, ['userId' => null], ['userId' => $userIds]);
 
