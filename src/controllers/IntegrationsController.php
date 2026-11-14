@@ -145,7 +145,8 @@ class IntegrationsController extends Controller
         $integration = Formie::$plugin->getIntegrations()->getIntegrationById((int)$integrationId);
 
         if (!$integration || !Formie::$plugin->getIntegrations()->deleteIntegration($integration)) {
-            $message = $integration?->getFirstError() ?: Craft::t('formie', 'Unable to delete integration.');
+            $errors = $integration?->getFirstErrors() ?? [];
+            $message = reset($errors) ?: Craft::t('formie', 'Unable to delete integration.');
 
             if ($request->getAcceptsJson()) {
                 return $this->asJson(['success' => false, 'error' => $message]);
