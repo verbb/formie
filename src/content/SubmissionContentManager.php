@@ -296,6 +296,11 @@ class SubmissionContentManager
             $value = $this->getFieldValue($submission, $field->handle);
             $html = $this->getProjectedFieldValue($submission, $field->handle, FieldValueProjectionContext::summary());
 
+            // A field can opt out of summaries.
+            if ($html === false || $html === null) {
+                continue;
+            }
+
             $items[] = [
                 'field' => $field,
                 'value' => $value,

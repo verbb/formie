@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed Payment fields showing raw provider IDs in submission summaries.
 - Fixed the `format` reference transform, and Submission Date mapped to an integration date field, changing the time by the site’s UTC offset. HubSpot received the Submission Date up to 20 hours out for a site in Melbourne.
 - Fixed submission titles missing values when **Submission Title Format** used the submission’s ID or date, or fields on later pages.
 - Fixed the progress bar’s percentage showing on upgraded forms with **Progress Value Position** set to **Hidden**, and sitting on its own line when set to the left or right of the bar.

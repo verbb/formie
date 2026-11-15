@@ -391,6 +391,12 @@ class Payment extends Field
         ]);
     }
 
+    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): mixed
+    {
+        // Summaries are shown to the person submitting, and these are only provider IDs.
+        return false;
+    }
+
     protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
     {
         return Json::encode($this->normalizeValue($value, $element)->getSafeAttributes());
