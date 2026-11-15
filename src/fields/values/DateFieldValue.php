@@ -46,7 +46,8 @@ class DateFieldValue extends BaseFieldValue
             return null;
         }
 
-        $date = DateTimeHelper::toDateTime($value);
+        // Strings without an offset are wall-clock values, and must keep the time they were written with.
+        $date = DateTimeHelper::toDateTime($value, false, false);
 
         return ($date instanceof DateTime) ? $date : null;
     }
@@ -187,6 +188,7 @@ class DateFieldValue extends BaseFieldValue
 
             if ($partKey === 'ampm') {
                 $normalized[$partKey] = strtoupper((string)$value);
+
                 continue;
             }
 
@@ -418,6 +420,7 @@ class DateFieldValue extends BaseFieldValue
         if ($value instanceof self) {
             $value = $value->toArray();
         }
+
         $this->parts = self::parseParts($value);
         $this->rawInput = is_array($value) ? ($value['_input'] ?? null) : null;
 
@@ -425,6 +428,7 @@ class DateFieldValue extends BaseFieldValue
             $nonEmpty = is_array($value) ? array_filter($value, static fn($part) => $part !== null && $part !== '') : $value;
             $this->rawInput = $nonEmpty ? $value : null;
         }
+
         FieldStorageCodec::assertSafe($this->rawInput);
     }
 
@@ -477,6 +481,7 @@ class DateFieldValue extends BaseFieldValue
                 return false;
             }
         }
+
         return !self::hasCompleteDateParts($this->parts) && !isset($this->parts['hour']) || self::partsToDateTime($this->parts) !== null;
     }
 
@@ -523,6 +528,7 @@ class DateFieldValue extends BaseFieldValue
         if ($this->rawInput !== null) {
             return is_string($this->rawInput) ? $this->rawInput : '';
         }
+
         return self::partsToString($this->parts);
     }
 }

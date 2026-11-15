@@ -1742,6 +1742,16 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             $rawValue = $slot->resolve($context);
         }
 
+        // The source is formatted in the site's time zone with no offset, which date conversions would read as UTC.
+        if ($slot->kind === ReferenceSlotKind::Exact && $slot->value === '{submission:date}') {
+            $rawValue = $submission->dateCreated;
+
+            if ($integrationField->getType() !== IntegrationField::TYPE_DATECLASS) {
+                $integrationField = clone $integrationField;
+                $integrationField->type = IntegrationField::TYPE_DATETIME;
+            }
+        }
+
         $fieldValue = $this->_projectIntegrationMappingValue($resolved, $rawValue, $submission, $integrationField);
 
         $event = new ModifyFieldIntegrationValueEvent([
