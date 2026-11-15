@@ -6,6 +6,7 @@ use verbb\formie\base\FieldInterface;
 use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\base\RepeatableParentFieldInterface;
 use verbb\formie\fields\Group;
+use verbb\formie\fields\Payment;
 use verbb\formie\fields\Phone;
 use verbb\formie\fields\Repeater;
 use verbb\formie\fields\Table;
@@ -38,6 +39,14 @@ final class FieldReferenceResolver
         $field = $entry['field'];
         $selector = $expression->selector;
         $params = $expression->transformerParams;
+
+        // Formie 3 wrote a whole Repeater, Table or Payment as its block in HTML content. None has a single readable value.
+        if ($selector === '' && !$params && $context->outputContext === ReferenceOutputContext::Html && ($field instanceof Repeater || $field instanceof Table || $field instanceof Payment) && !$this->_hasRowMarker($entry)) {
+            $html = $field->getReferenceBlockHtml($context->submission, $context->notification ?? new Notification(), $context->submission->getFieldValue($entry['path']));
+
+            return new ResolvedReference($expression, (string)$html, new ReferenceDefinition('field:' . $field->reference, $field->label, 'fields', FieldValueType::string(), shape: ReferenceShape::Block, allowTransforms: false), field: $field, fieldProjection: 'summary');
+        }
+
         $projection = $selector === '' && !isset($params['scope']) ? 'value' : 'none';
         $referenceValue = $this->_referenceValue($field, $selector);
 
