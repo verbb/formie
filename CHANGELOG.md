@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed the form’s **Default Label Position** being ignored when set to **Left of Input** or **Right of Input**, showing labels above or below the field instead.
 - Fixed failed notification alert emails leaving out why the notification failed.
 - Fixed notifications with **Attach PDF Template** enabled failing to send when no PDF template was selected, instead of attaching the default PDF.
 - Fixed notifications failing to send when a subject or From name contained brace text that can’t be a variable, such as `{(Enquiry)}` or `{foo bar}`. It now stays as written, including in the email body, and recipient settings still reject it.

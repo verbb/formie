@@ -86,3 +86,21 @@ it('renders inherited option-group label positions for question field delegates'
     [Survey::class, ['displayType' => 'radio']],
     [Survey::class, ['displayType' => 'checkboxes']],
 ]);
+
+it('renders the form default label position on ordinary fields', function (string $position, string $expected): void {
+    $form = formie()->form()->settings(['defaultLabelPosition' => $position])
+        ->singleLineTextField('example', ['label' => 'Example', 'labelPosition' => null])
+        ->create();
+
+    $form = Form::find()->id($form->id)->one();
+    $html = (string)Formie::$plugin->getRendering()->renderField($form, 'example');
+
+    expect($html)->toContain('data-formie-field-layout data-formie-label-position="' . $expected . '"')
+        ->and($html)->toContain('formie-field-layout-label-' . $expected);
+})->with([
+    'left' => [LeftInput::class, 'left'],
+    'right' => [RightInput::class, 'right'],
+    'above' => [AboveInput::class, 'above'],
+    'below' => [BelowInput::class, 'below'],
+    'hidden' => [Hidden::class, 'hidden'],
+]);

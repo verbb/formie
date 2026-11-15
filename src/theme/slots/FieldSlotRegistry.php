@@ -5,6 +5,8 @@ use verbb\formie\Formie;
 use verbb\formie\helpers\Html;
 use verbb\formie\models\Settings;
 use verbb\formie\models\SlotTag;
+use verbb\formie\positions\LeftInput;
+use verbb\formie\positions\RightInput;
 use verbb\formie\theme\context\RenderContext;
 
 use yii\base\Component;
@@ -293,6 +295,15 @@ class FieldSlotRegistry extends Component
         ];
 
         $candidates = ['above', 'below', 'left', 'right', 'hidden'];
+
+        // Left and right labels render in the above and below slots, so `shouldDisplay()` can't tell them apart.
+        if ($position instanceof LeftInput) {
+            return 'left';
+        }
+
+        if ($position instanceof RightInput) {
+            return 'right';
+        }
 
         if (is_object($position) && method_exists($position, 'shouldDisplay')) {
             foreach (['above', 'below', 'left', 'right'] as $candidate) {
