@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed submission titles missing values when **Submission Title Format** used the submission’s ID or date, or fields on later pages.
 - Fixed the progress bar’s percentage showing on upgraded forms with **Progress Value Position** set to **Hidden**, and sitting on its own line when set to the left or right of the bar.
 - Fixed fields without a label, such as headings, being squeezed into the label column when the label position is **Left of Input** or **Right of Input**.
 - Fixed the form’s **Default Label Position** being ignored when set to **Left of Input** or **Right of Input**, showing labels above or below the field instead.

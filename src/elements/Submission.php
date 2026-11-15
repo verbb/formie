@@ -877,7 +877,7 @@ class Submission extends Element
 
     public function updateTitle(Form $form): void
     {
-        if ($customTitle = References::parseContent($form->settings->submissionTitleFormat, $this)) {
+        if ($customTitle = References::parseContent((string)$form->settings->submissionTitleFormat, $this)) {
             // In case any values are encoded for HTML, we should decode them here. This is after sanitization
             $this->title = html_entity_decode($customTitle);
 

@@ -106,9 +106,17 @@ it('saves submissions from a fast device clock and logs guard rejections', funct
             ->and($saved->submission->id)->not->toBeNull();
 
         $logger = Craft::getLogger();
-        $messageOffset = count($logger->messages);
-        $rejected = $submit(skewedGuardTimestamps(60, 1));
-        $messages = array_column(array_slice($logger->messages, $messageOffset), 0);
+        // An automatic flush would empty the buffer this reads from.
+        $flushInterval = $logger->flushInterval;
+        $logger->flushInterval = PHP_INT_MAX;
+
+        try {
+            $messageOffset = count($logger->messages);
+            $rejected = $submit(skewedGuardTimestamps(60, 1));
+            $messages = array_column(array_slice($logger->messages, $messageOffset), 0);
+        } finally {
+            $logger->flushInterval = $flushInterval;
+        }
 
         expect($rejected->outcome->type)->toBe(SubmissionOutcomeType::REJECTED)
             ->and($rejected->submission->id)->toBeNull()
