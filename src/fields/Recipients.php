@@ -273,6 +273,11 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         ];
     }
 
+    public function getMulti(): bool
+    {
+        return $this->displayType === 'checkboxes';
+    }
+
     /** @deprecated Selection cardinality is determined by displayType. */
     public function getMultiple(): bool
     {

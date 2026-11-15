@@ -3,7 +3,12 @@ namespace verbb\formie\fields\values;
 
 use verbb\formie\helpers\ArrayHelper;
 
-class RecipientsFieldValue implements FieldValueInterface
+use ArrayIterator;
+use Countable;
+use IteratorAggregate;
+use Traversable;
+
+class RecipientsFieldValue implements FieldValueInterface, IteratorAggregate, Countable
 {
     // Properties
     // =========================================================================
@@ -70,6 +75,16 @@ class RecipientsFieldValue implements FieldValueInterface
         }
 
         return $this->label ? [$this->label] : [];
+    }
+
+    public function getIterator(): Traversable
+    {
+        return new ArrayIterator($this->_selectedOptions);
+    }
+
+    public function count(): int
+    {
+        return count($this->_selectedOptions);
     }
 
     public function isEmpty(): bool
