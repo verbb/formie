@@ -3,7 +3,7 @@
 ## Unreleased
 
 ### Fixed
-- Fixed notifications failing with `devMode` on when `{allFields}` included a Recipients field shown as a dropdown, Recipients fields shown as checkboxes leaving their selections out of `{allFields}`, and notifications failing when a multi-select Dropdown in a Group had no selection.
+- Fixed Recipients fields shown as checkboxes leaving their selections out of `{allFields}` in email notifications.
 - Fixed fields never showing when a condition compares a Number field with an empty value, such as “is not empty text”, or when “is” or “is not” compares an unanswered Number field.
 - Fixed answers being lost from fields shown by a condition on a Date field’s Year, Month or Day dropdown. The condition matched in the browser, but the server couldn’t read the value, so it cleared the answer when the form was submitted.
 - Fixed Form Templates upgraded from Formie 3 loading CSS or JavaScript that was turned off there, when only its nested theme setting was left on. Upgraded sites are repaired when migrations run, unless the template has been saved since.
