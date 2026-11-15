@@ -542,6 +542,10 @@ Formie 3 | Formie 4
 
 Built-in configuration is [migrated automatically](#spam-protection). Use [Submission Workflow](/developers/submission-workflow#screen) for custom server-side checks. Custom clients must still follow the [submission token and version requirements](#continuity-and-upload-upgrade-actions).
 
+### Removed Integration Providers
+
+Formie 4 no longer includes **Sendinblue**, **Klaviyo (Legacy)**, **HubSpot (Legacy)**, **Autopilot** or **Algolia Places**. An integration using one of these, or a provider from a custom module that hasn't been updated, shows as **Missing Integration**. If a form still has it turned on, Formie writes a warning to `storage/logs/formie-*.log` for each submission, and nothing is sent to that provider. Set up the current provider instead, such as **Brevo**, **Klaviyo**, **HubSpot** or **Ortto**, and map the form again, or turn the integration off on the form.
+
 ### Translation Strings
 
 Update custom text-limit counter translations and browser translation event listeners before upgrading. These are separate from [form content translations](#form-content-translations).
