@@ -44,12 +44,13 @@ class FormTemplate extends BaseTemplate
 
     public function __construct($config = [])
     {
-        if (!array_key_exists('outputCss', $config) && (array_key_exists('outputCssLayout', $config) || array_key_exists('outputCssTheme', $config))) {
-            $config['outputCss'] = (bool)($config['outputCssLayout'] ?? false) || (bool)($config['outputCssTheme'] ?? false);
+        if (!array_key_exists('outputCss', $config) && array_key_exists('outputCssLayout', $config)) {
+            // Formie 3's theme settings were nested under these, and only applied while they were on.
+            $config['outputCss'] = (bool)($config['outputCssLayout'] ?? false);
         }
 
-        if (!array_key_exists('outputJs', $config) && (array_key_exists('outputJsBase', $config) || array_key_exists('outputJsTheme', $config))) {
-            $config['outputJs'] = (bool)($config['outputJsBase'] ?? false) || (bool)($config['outputJsTheme'] ?? false);
+        if (!array_key_exists('outputJs', $config) && array_key_exists('outputJsBase', $config)) {
+            $config['outputJs'] = (bool)($config['outputJsBase'] ?? false);
         }
 
         unset($config['outputCssLayout']);

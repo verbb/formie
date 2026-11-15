@@ -115,6 +115,7 @@ class FormTemplates extends Component
 
         if ($existingTemplate && (!$template->id || $template->id != $existingTemplate->id)) {
             $template->addError('handle', Craft::t('formie', 'That handle is already in use'));
+
             return false;
         }
 
@@ -147,8 +148,8 @@ class FormTemplates extends Component
             $templateRecord->handle = $data['handle'];
             $templateRecord->template = $data['template'];
             $templateRecord->useCustomTemplates = $data['useCustomTemplates'];
-            $templateRecord->outputCss = $data['outputCss'] ?? (($data['outputCssLayout'] ?? false) || ($data['outputCssTheme'] ?? false));
-            $templateRecord->outputJs = $data['outputJs'] ?? (($data['outputJsBase'] ?? false) || ($data['outputJsTheme'] ?? false));
+            $templateRecord->outputCss = $data['outputCss'] ?? ($data['outputCssLayout'] ?? false);
+            $templateRecord->outputJs = $data['outputJs'] ?? ($data['outputJsBase'] ?? false);
             $templateRecord->outputCssLocation = $data['outputCssLocation'];
             $templateRecord->outputJsLocation = $data['outputJsLocation'];
             $templateRecord->sortOrder = $data['sortOrder'];
@@ -179,6 +180,7 @@ class FormTemplates extends Component
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
+
             throw $e;
         }
 
@@ -215,6 +217,7 @@ class FormTemplates extends Component
         }
 
         Craft::$app->getProjectConfig()->remove(self::CONFIG_TEMPLATES_KEY . '.' . $template->uid, "Delete form template “{$template->handle}”");
+
         return true;
     }
 
@@ -246,6 +249,7 @@ class FormTemplates extends Component
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
+
             throw $e;
         }
 

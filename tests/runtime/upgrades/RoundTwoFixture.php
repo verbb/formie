@@ -242,7 +242,7 @@ final class RoundTwoFixture
             $out['defaults']=['upload'=>$settings->defaultFileUploadVolume,'dateType'=>$settings->defaultDateDisplayType,'dateOption'=>$settings->defaultDateValueOption];
         }
         $template=Formie::$plugin->getFormTemplates()->getTemplateById($this->map['templateId']);
-        $out['template']=['id'=>$template->id,'template'=>$template->template,'custom'=>$template->useCustomTemplates,'css'=>$this->version===4?$template->outputCss:($template->outputCssLayout||$template->outputCssTheme),'js'=>$this->version===4?$template->outputJs:($template->outputJsBase||$template->outputJsTheme)];
+        $out['template']=['id'=>$template->id,'template'=>$template->template,'custom'=>$template->useCustomTemplates,'css'=>$this->version===4?$template->outputCss:$template->outputCssLayout,'js'=>$this->version===4?$template->outputJs:$template->outputJsBase];
         $out['configurationScopes']=['captcha'=>$this->version===4?$row['scope']:'project','spam'=>$this->version===4?Formie::$plugin->getSpamProtection()->getScope():'project'];
         $rawSettings=Craft::$app->getProjectConfig()->get('plugins.formie.settings')??[];
         $oldKeys=array_merge($this->map['spamKeys'],['defaultFileUploadVolume','defaultDateDisplayType','defaultDateValueOption']);

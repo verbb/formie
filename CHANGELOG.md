@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed Form Templates upgraded from Formie 3 loading CSS or JavaScript that was turned off there, when only its nested theme setting was left on. Upgraded sites are repaired when migrations run, unless the template has been saved since.
 - Fixed Payment fields showing raw provider IDs in submission summaries.
 - Fixed the `format` reference transform, and Submission Date mapped to an integration date field, changing the time by the site’s UTC offset. HubSpot received the Submission Date up to 20 hours out for a site in Melbourne.
 - Fixed submission titles missing values when **Submission Title Format** used the submission’s ID or date, or fields on later pages.

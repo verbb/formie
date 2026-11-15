@@ -565,12 +565,13 @@ class Rendering extends Component
             $renderOptions['includeJs'] = $renderOptions['renderJs'];
         }
 
-        if (!array_key_exists('outputCss', $renderOptions) && (array_key_exists('outputCssLayout', $renderOptions) || array_key_exists('outputCssTheme', $renderOptions))) {
-            $renderOptions['outputCss'] = (bool)($renderOptions['outputCssLayout'] ?? false) || (bool)($renderOptions['outputCssTheme'] ?? false);
+        // Formie 3's theme options were nested under these, and only applied while they were on.
+        if (!array_key_exists('outputCss', $renderOptions) && array_key_exists('outputCssLayout', $renderOptions)) {
+            $renderOptions['outputCss'] = (bool)$renderOptions['outputCssLayout'];
         }
 
-        if (!array_key_exists('outputJs', $renderOptions) && (array_key_exists('outputJsBase', $renderOptions) || array_key_exists('outputJsTheme', $renderOptions))) {
-            $renderOptions['outputJs'] = (bool)($renderOptions['outputJsBase'] ?? false) || (bool)($renderOptions['outputJsTheme'] ?? false);
+        if (!array_key_exists('outputJs', $renderOptions) && array_key_exists('outputJsBase', $renderOptions)) {
+            $renderOptions['outputJs'] = (bool)$renderOptions['outputJsBase'];
         }
 
         return $renderOptions;
