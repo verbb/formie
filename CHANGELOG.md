@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed fields without a label, such as headings, being squeezed into the label column when the label position is **Left of Input** or **Right of Input**.
 - Fixed the form’s **Default Label Position** being ignored when set to **Left of Input** or **Right of Input**, showing labels above or below the field instead.
 - Fixed failed notification alert emails leaving out why the notification failed.
 - Fixed notifications with **Attach PDF Template** enabled failing to send when no PDF template was selected, instead of attaching the default PDF.

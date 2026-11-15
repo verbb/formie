@@ -25,6 +25,12 @@
         align-items: start;
     }
 
+    /* Fields without a rendered label, such as headings, keep the full row. */
+    .formie-field-layout[data-formie-label-position="left"] > :only-child,
+    .formie-field-layout[data-formie-label-position="right"] > :only-child {
+        grid-column: 1 / -1;
+    }
+
     .formie-field-layout[data-formie-label-position="left"] > label.formie-field-label,
     .formie-field-layout[data-formie-label-position="right"] > label.formie-field-label {
         display: block;
