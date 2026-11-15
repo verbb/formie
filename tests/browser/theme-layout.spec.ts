@@ -32,3 +32,30 @@ for (const position of ['left', 'right']) {
         expect(labelled!.width).toBeLessThan(900);
     });
 }
+
+for (const position of ['left', 'right']) {
+    test(`a progress value positioned ${position} of the bar shares its line`, async ({ page }) => {
+        const value = '<span class="formie-progress-value" id="value">50%</span>';
+        const bar = '<div class="formie-progress" id="bar"><div class="formie-progress-bar" style="width:50%"></div></div>';
+
+        await render(page, `<div class="formie-progress-wrapper">${position === 'left' ? value + bar : bar + value}</div>`);
+
+        const valueBox = (await page.locator('#value').boundingBox())!;
+        const barBox = (await page.locator('#bar').boundingBox())!;
+
+        expect(valueBox.y + valueBox.height).toBeGreaterThan(barBox.y);
+        expect(valueBox.y).toBeLessThan(barBox.y + barBox.height);
+
+        if (position === 'left') {
+            expect(valueBox.x + valueBox.width).toBeLessThanOrEqual(barBox.x);
+        } else {
+            expect(valueBox.x).toBeGreaterThanOrEqual(barBox.x + barBox.width);
+        }
+    });
+}
+
+test('a progress bar without a separate value fills its wrapper', async ({ page }) => {
+    await render(page, '<div class="formie-progress-wrapper"><div class="formie-progress" id="bar"><div class="formie-progress-bar" style="width:50%"></div></div></div>');
+
+    expect((await page.locator('#bar').boundingBox())!.width).toBe(900);
+});

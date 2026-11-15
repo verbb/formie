@@ -14,7 +14,7 @@
 
         {% formtag 'progress' %}
             {% formtag 'progressContainer' %}
-                {% if form.settings.progressValuePosition != 'left' and form.settings.progressValuePosition != 'right' %}
+                {% if form.settings.progressValuePosition not in ['left', 'right', 'hidden'] %}
                     {{ progressHtml | raw }}
                 {% endif %}
             {% endformtag %}

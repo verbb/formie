@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed the progress value sitting on its own line when shown to the left or right of the progress bar.
 - Fixed fields without a label, such as headings, being squeezed into the label column when labels are left or right of the input.
 - Fixed page tabs on page-reload forms following a link the server rejects, and earlier tab errors staying visible after a successful page change.
 - Fixed **Scroll To Top** not returning to the top of the form when moving to another page on AJAX forms.

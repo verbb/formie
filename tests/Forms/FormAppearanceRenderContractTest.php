@@ -82,3 +82,35 @@ it('renders current page title only when enabled', function (): void {
     expect($hidden)->not->toContain((string)$page->label)
         ->and($shown)->toContain((string)$page->label);
 });
+
+it('leaves the progress value out when its stored position is hidden', function (string $position, bool $visible): void {
+    $form = formie()->form()
+        ->settings(['displayPageProgress' => true, 'progressValuePosition' => $position])
+        ->multiPage(2)
+        ->onPage(1)->singleLineTextField('first')
+        ->onPage(2)->singleLineTextField('second')
+        ->create();
+
+    $view = Craft::$app->getView();
+    $oldTemplateMode = $view->getTemplateMode();
+    $view->setTemplateMode(View::TEMPLATE_MODE_CP);
+
+    try {
+        $html = $view->renderTemplate('formie/_special/form-template/form/progress', ['form' => $form, 'submission' => null]);
+    } finally {
+        $view->setTemplateMode($oldTemplateMode);
+    }
+
+    expect($html)->toContain('data-formie-progress-bar');
+
+    if ($visible) {
+        expect($html)->toContain('data-formie-progress-value');
+    } else {
+        expect($html)->not->toContain('data-formie-progress-value');
+    }
+})->with([
+    'hidden' => ['hidden', false],
+    'left' => ['left', true],
+    'right' => ['right', true],
+    'inside center' => ['inside-center', true],
+]);
