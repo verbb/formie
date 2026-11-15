@@ -90,18 +90,31 @@ class Emails extends Component
         $newEmail = $event->email;
 
         // Don't fall back on Craft settings here, that'll be site-resolved in `Craft::$app->getMailer()->send()`
-        $fromEmail = $this->_parseNotificationEmailSetting($notification->from, $submission, $notification);
-        $fromName = $this->_parseNotificationTextSetting($notification->fromName, $submission, $notification);
+        try {
+            $fromEmail = $this->_parseNotificationEmailSetting($notification->from, $submission, $notification);
+            $fromName = $this->_parseNotificationTextSetting($notification->fromName, $submission, $notification);
 
-        $fromEmail = $this->_getParsedEmails($fromEmail, false)[0] ?? null;
-        $fromName = $this->_getFilteredString($fromName, false);
+            $fromEmail = $this->_getParsedEmails($fromEmail, false)[0] ?? null;
+            $fromName = $this->_getFilteredString($fromName, false);
 
-        if ($fromEmail) {
-            if ($fromName) {
-                $newEmail->setFrom([$fromEmail => $fromName]);
-            } else {
-                $newEmail->setFrom($fromEmail);
+            if ($fromEmail) {
+                if ($fromName) {
+                    $newEmail->setFrom([$fromEmail => $fromName]);
+                } else {
+                    $newEmail->setFrom($fromEmail);
+                }
             }
+        } catch (Throwable $e) {
+            Craft::$app->getErrorHandler()->logException($e);
+
+            $error = Craft::t('formie', 'Notification email parse error for From: {value}”. Template error: “{message}” {file}:{line}', [
+                'value' => $notification->from,
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return ['error' => $error, 'email' => $newEmail, 'exception' => $e];
         }
 
         // To:
@@ -383,22 +396,43 @@ class Emails extends Component
             return ['error' => $error];
         }
 
-        // Attach any file uploads
-        if ($notification->attachFiles) {
-            // Grab all the file upload fields, including in nested fields
-            if ($assets = $this->_getAssetsForSubmission($submission)) {
+        try {
+            // Attach any file uploads
+            if ($notification->attachFiles) {
+                // Grab all the file upload fields, including in nested fields
+                if ($assets = $this->_getAssetsForSubmission($submission)) {
+                    $this->_attachAssetsToEmail($assets, $newEmail);
+                }
+            }
+
+            // Attach any static assets
+            if ($assets = $notification->getAssetAttachments()) {
                 $this->_attachAssetsToEmail($assets, $newEmail);
             }
-        }
 
-        // Attach any static assets
-        if ($assets = $notification->getAssetAttachments()) {
-            $this->_attachAssetsToEmail($assets, $newEmail);
-        }
+            // Attach any PDF templates
+            if ($notification->attachPdf) {
+                $this->_attachPdfToEmail($notification, $newEmail, $submission);
+            }
+        } catch (Throwable $e) {
+            Craft::$app->getErrorHandler()->logException($e);
 
-        // Attach any PDF templates
-        if ($notification->attachPdf) {
-            $this->_attachPdfToEmail($notification, $newEmail, $submission);
+            // Nothing has been sent, so this is a plain failure rather than an unknown delivery.
+            $error = Craft::t('formie', 'Notification email “{notification}” could not be sent for submission “{submission}”. Error: {error} {file}:{line}', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'notification' => $notification->name,
+                'submission' => $submission->id ?: 'new',
+            ]);
+
+            Formie::error($error);
+
+            if ($createSentNotification) {
+                Formie::$plugin->getSentNotifications()->saveSentNotification($submission, $notification, $newEmail, false, $error);
+            }
+
+            return ['error' => $error];
         }
 
 

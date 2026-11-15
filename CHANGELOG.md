@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed a notification that failed before sending, such as on an invalid PDF filename or sender, being reported as an unknown delivery that blocked resending, with no entry in Sent Notifications.
 - Fixed element integrations blanking existing content from empty answers when **Overwrite Content** is off.
 - Fixed page tabs on page-reload forms showing visitors a “Post request required” error page. Tabs now change page the same way on both submit methods, and an earlier tab error clears once a page change succeeds.
 - Fixed **Scroll To Top** not returning to the top of the form when moving to another page on AJAX forms, leaving visitors at the bottom of the next page.
