@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed answers being lost from fields shown by a condition on a Date field’s Year, Month or Day dropdown. The condition matched in the browser, but the server couldn’t read the value, so it cleared the answer when the form was submitted.
 - Fixed Form Templates upgraded from Formie 3 loading CSS or JavaScript that was turned off there, when only its nested theme setting was left on. Upgraded sites are repaired when migrations run, unless the template has been saved since.
 - Fixed Payment fields showing raw provider IDs in submission summaries.
 - Fixed the `format` reference transform, and Submission Date mapped to an integration date field, changing the time by the site’s UTC offset. HubSpot received the Submission Date up to 20 hours out for a site in Melbourne.

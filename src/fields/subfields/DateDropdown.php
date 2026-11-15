@@ -2,6 +2,7 @@
 namespace verbb\formie\fields\subfields;
 
 use verbb\formie\base\ChildFieldInterface;
+use verbb\formie\elements\Submission;
 use verbb\formie\fields\Dropdown;
 use verbb\formie\fields\subfields\traits\DateSubFieldValueTrait;
 use verbb\formie\fields\values\OptionValue;
@@ -47,5 +48,15 @@ class DateDropdown extends Dropdown implements ChildFieldInterface
         $rules[] = [$this->handle, 'validateDateRange'];
 
         return $rules;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineValueForCondition(mixed $value, Submission $submission): mixed
+    {
+        // Date parts are stored as plain values on the Date field, rather than as option values.
+        return $value instanceof OptionValue ? $value->value : $value;
     }
 }
