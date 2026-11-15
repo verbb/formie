@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed forms silently sending nothing to providers Formie 4 removed. Sendinblue, HubSpot (Legacy) and both Klaviyo (Legacy) integrations now move to Brevo, HubSpot and Klaviyo when upgrading, and HubSpot needs a new access token. Autopilot and Algolia Places have no direct replacement, so forms still using them log a warning on each submission. See the [upgrade guide](https://verbb.io/craft-plugins/formie/docs/v4/get-started/upgrading-from-v3#removed-integration-providers).
 - Fixed stencils left with fields of unknown types after upgrading from Formie 2, which made forms created from them unusable.
 - Fixed Recipients fields shown as checkboxes leaving their selections out of `{allFields}` in email notifications.
 - Fixed fields never showing when a condition compares a Number field with an empty value, such as “is not empty text”, or when “is” or “is not” compares an unanswered Number field.

@@ -490,6 +490,8 @@ class Integrations extends Component
             return;
         }
 
+        $this->_warnAboutMissingIntegrations($form);
+
         $triggerContext = $this->_buildTriggerContext($operation, $triggerEvent, $operatorInitiated, $authority);
 
         if (Formie::$plugin->getIntegrationDispatcher()->shouldOrchestrate($form)) {
@@ -1852,6 +1854,20 @@ class Integrations extends Component
         $query->andWhere(['uid' => $uid]);
 
         return $query->one() ?? new IntegrationRecord();
+    }
+
+    private function _warnAboutMissingIntegrations(Form $form): void
+    {
+        foreach ($this->getEnabledFormIntegrations($form) as $binding) {
+            $integration = $binding->integration;
+
+            if ($integration instanceof MissingIntegration) {
+                Integration::warning($integration, Craft::t('formie', 'Nothing was sent for form “{form}”, because the provider “{type}” isn’t available in this version of Formie. Replace this integration, or turn it off on the form.', [
+                    'form' => $form->handle,
+                    'type' => $integration->expectedType,
+                ]));
+            }
+        }
     }
 
     private function _buildTriggerContext(
