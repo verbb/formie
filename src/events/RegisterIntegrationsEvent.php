@@ -18,4 +18,7 @@ class RegisterIntegrationsEvent extends Event
     public ?array $payments = [];
     public ?array $automations = [];
     public ?array $miscellaneous = [];
+
+    /** @deprecated Use $automations. */
+    public ?array $webhooks = [];
 }

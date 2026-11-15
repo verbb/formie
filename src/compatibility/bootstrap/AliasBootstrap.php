@@ -22,6 +22,10 @@ class AliasBootstrap
     private static function _aliases(): array
     {
         return [
+            // Webhook integrations became Automation integrations before 4.0.0
+            ['verbb\\formie\\base\\Automation', 'verbb\\formie\\base\\Webhook'],
+            ['verbb\\formie\\events\\ModifyAutomationPayloadEvent', 'verbb\\formie\\events\\ModifyWebhookPayloadEvent'],
+
             // Added in 3.1.3
             ['verbb\\formie\\services\\Countries', 'verbb\\formie\\services\\Phone'],
 

@@ -1459,6 +1459,18 @@ The base `getAmount()` adapter honours `getPaymentAmount()` overrides and preser
 
 Replace `className()` with `getShortClassName()` for a short class name, or use `::class` for a fully qualified class name. Replace `kebabClassName()` with `getClassHandle()` for an implementation handle. See [Method Contracts](/developers/custom-integration/overview#method-contracts) for signatures.
 
+#### Webhook Class Names
+
+Webhook integrations are called Automation integrations. The old names below still work, so an existing custom class keeps running while you update it:
+
+Formie 3 | Formie 4
+--- | ---
+`verbb\formie\base\Webhook` | `verbb\formie\base\Automation`
+`verbb\formie\events\ModifyWebhookPayloadEvent` | `verbb\formie\events\ModifyAutomationPayloadEvent`
+`EVENT_MODIFY_WEBHOOK_PAYLOAD` | `EVENT_MODIFY_AUTOMATION_PAYLOAD`
+`getWebhookUrl()` | `getEndpointUrl()`
+`$event->webhooks` on `RegisterIntegrationsEvent` | `$event->automations`
+
 ### Render Options
 
 The `sessionKey` replacement is a [required draft-context update](#scoping-in-progress-submissions). The asset option aliases below remain supported.

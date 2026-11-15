@@ -408,7 +408,7 @@ class Integrations extends Component
             Integration::TYPE_MESSAGING => $event->messaging,
             Integration::TYPE_PAYMENT => $event->payments,
 
-            Integration::TYPE_AUTOMATION => $event->automations,
+            Integration::TYPE_AUTOMATION => array_merge($event->automations ?? [], $event->webhooks ?? []),
 
             Integration::TYPE_MISC => $event->miscellaneous,
         ];

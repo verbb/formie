@@ -32,6 +32,9 @@ abstract class Automation extends Integration implements DispatchableIntegration
 
     public const EVENT_MODIFY_AUTOMATION_PAYLOAD = 'modifyAutomationPayload';
 
+    /** @deprecated Use EVENT_MODIFY_AUTOMATION_PAYLOAD. */
+    public const EVENT_MODIFY_WEBHOOK_PAYLOAD = 'modifyWebhookPayload';
+
 
     // Traits
     // =========================================================================
@@ -99,6 +102,7 @@ abstract class Automation extends Integration implements DispatchableIntegration
                 throw new IntegrationException('Unsupported public endpoint header.');
             }
         }
+
         $this->requirePublicHttpEndpoint($uri);
 
         if (preg_match('#^https?://#i', $uri) === 1) {
@@ -132,6 +136,7 @@ abstract class Automation extends Integration implements DispatchableIntegration
             'payload' => $payload,
         ]);
         $this->trigger(self::EVENT_MODIFY_AUTOMATION_PAYLOAD, $event);
+        $this->trigger(self::EVENT_MODIFY_WEBHOOK_PAYLOAD, $event);
 
         return $event->payload;
     }
@@ -142,6 +147,12 @@ abstract class Automation extends Integration implements DispatchableIntegration
         $url = References::parseUrl($url, $submission);
 
         return $this->requirePublicHttpEndpoint($url);
+    }
+
+    /** @deprecated Use getEndpointUrl(). */
+    protected function getWebhookUrl($url, Submission $submission): bool|string|null
+    {
+        return $this->getEndpointUrl((string)$url, $submission);
     }
 
     /**
