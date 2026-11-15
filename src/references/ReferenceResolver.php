@@ -85,7 +85,8 @@ final class ReferenceResolver
         return preg_replace_callback('/(?<!\{)\{[^{}]+\}(?!\})/', function(array $match) use ($context, $outputContext, $template, $allowFieldHtml): string {
             [$token, $offset] = $match[0];
 
-            if (preg_match('/^\{\s/', $token)) {
+            // A reference starts with a letter, so anything else is unrelated brace text. Twig tags stay invalid.
+            if (preg_match('/^\{[^a-zA-Z%#]/', $token)) {
                 return $token;
             }
 
@@ -100,6 +101,11 @@ final class ReferenceResolver
                 ], true);
 
                 if ($result->diagnostic === ReferenceDiagnostic::UnknownSource && !$this->_knownTarget($expression->target) && !$strictOutput) {
+                    return $token;
+                }
+
+                // Literal text in an address setting still fails, because it isn't a valid address.
+                if (!$expression->isValid && !in_array($context->usage, [ReferenceUsage::Integration, ReferenceUsage::Url], true) && !in_array($outputContext, [ReferenceOutputContext::UrlComponent, ReferenceOutputContext::StructuredData], true) && $this->_isBraceText($token)) {
                     return $token;
                 }
 
@@ -210,6 +216,23 @@ final class ReferenceResolver
         }
 
         return BuiltinReferenceTransforms::apply($value, $id, $expression->transformerParams);
+    }
+
+    private function _isBraceText(string $token): bool
+    {
+        // Twig tags stay invalid.
+        if (preg_match('/^\{[%#]/', $token)) {
+            return false;
+        }
+
+        $source = preg_split('/[;|]/', substr($token, 1, -1), 2)[0];
+
+        if (str_contains($source, ':')) {
+            return !$this->_knownTarget(explode(':', $source, 2)[0]);
+        }
+
+        // A single word or path could be a field handle, and a path into `field` is a broken reference.
+        return !str_starts_with($source, 'field.') && !preg_match('/^[a-zA-Z][a-zA-Z0-9_.\[\]-]*$/D', $source);
     }
 
     private function _knownTarget(string $target): bool
