@@ -218,3 +218,25 @@ it('includes conditionally visible summary fields when server conditions use cli
         ->and($allFields)->toContain('Other Reason')
         ->and($allFields)->toContain('Visible In Email');
 });
+
+it('formats dates and times in the site timezone', function (): void {
+    $timeZone = Craft::$app->getTimeZone();
+    Craft::$app->setTimeZone('Australia/Melbourne');
+
+    try {
+        $form = formie()->form()->singleLineTextField('fullName')->create();
+        $submission = formie()->submission($form)->with(['fullName' => 'Shown'])->save();
+        $melbourne = new DateTimeZone('Australia/Melbourne');
+        $submission->dateCreated = new DateTime('2026-02-03 23:30:00', $melbourne);
+
+        $before = (new DateTime('now', $melbourne))->format('H');
+        $time = References::parseContent('{time24}', $submission);
+        $after = (new DateTime('now', $melbourne))->format('H');
+
+        expect(References::parseContent('{submission:date;transform=format;preset=isoDate}', $submission))->toBe('2026-02-03')
+            ->and(References::parseContent('{submission:date;transform=format;preset=time24}', $submission))->toBe('23:30')
+            ->and(substr($time, 0, 2))->toBeIn([$before, $after]);
+    } finally {
+        Craft::$app->setTimeZone($timeZone);
+    }
+});
