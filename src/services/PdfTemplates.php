@@ -319,7 +319,7 @@ class PdfTemplates extends Component
 
     public function resolveSubmissionPdfFilename(
         Submission $submission,
-        PdfTemplate $pdfTemplate,
+        ?PdfTemplate $pdfTemplate,
         ?Notification $notification = null,
     ): string {
         $variables = [
@@ -328,7 +328,7 @@ class PdfTemplates extends Component
             'notification' => $notification,
         ];
 
-        $filenameFormat = $pdfTemplate->filenameFormat ?: 'Submission-{submission.id}';
+        $filenameFormat = $pdfTemplate?->filenameFormat ?: 'Submission-{submission.id}';
         $fileName = Formie::$plugin->getTemplates()->renderSandboxedObjectTemplate($filenameFormat, $submission, $variables, autoescape: false);
 
         return $fileName . '.pdf';

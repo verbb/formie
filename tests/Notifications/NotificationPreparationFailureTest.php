@@ -11,6 +11,7 @@ use verbb\formie\services\PdfTemplates;
 use craft\db\Query;
 
 use yii\base\Event;
+use yii\mail\BaseMailer;
 
 it('records a failed notification when its PDF filename cannot be rendered', function (): void {
     $form = formie()->form()->singleLineTextField('company')->create();
@@ -60,4 +61,43 @@ it('returns an error when a sender cannot be rendered', function (): void {
 
     expect($result)->toHaveKey('error')
         ->and($result['error'])->toContain('From');
+});
+
+it('attaches the default PDF when a notification has no PDF template selected', function (): void {
+    $form = formie()->form()->singleLineTextField('company')->create();
+    $saved = formie()->submission($form)->with(['company' => 'S Group'])->save();
+    $submission = Submission::find()->id($saved->id)->status(null)->one();
+    $notification = new Notification([
+        'formId' => $form->id,
+        'name' => 'Default PDF',
+        'handle' => 'defaultPdf',
+        'to' => 'staff@example.test',
+        'from' => 'sender@example.test',
+        'subject' => 'Enquiry',
+        'content' => 'Hello',
+        'attachPdf' => '1',
+        'enabled' => true,
+    ]);
+    expect(Formie::$plugin->getNotifications()->saveNotification($notification))->toBeTrue();
+
+    $attachments = [];
+    $capture = static function($event) use (&$attachments): void {
+        $attachments = array_map(static fn($part) => $part->getFilename(), $event->message->getSymfonyEmail()->getAttachments());
+        $event->isValid = false;
+    };
+    $handler = static function(PdfEvent $event): void {
+        $event->pdf = '%PDF-1.4';
+    };
+    $mailer = Craft::$app->getMailer();
+    $mailer->on(BaseMailer::EVENT_BEFORE_SEND, $capture);
+    Event::on(PdfTemplates::class, PdfTemplates::EVENT_BEFORE_RENDER_PDF, $handler);
+
+    try {
+        Formie::$plugin->getEmails()->sendEmail($notification, $submission);
+    } finally {
+        $mailer->off(BaseMailer::EVENT_BEFORE_SEND, $capture);
+        Event::off(PdfTemplates::class, PdfTemplates::EVENT_BEFORE_RENDER_PDF, $handler);
+    }
+
+    expect($attachments)->toBe(['Submission-' . $submission->id . '.pdf']);
 });
