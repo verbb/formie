@@ -1113,7 +1113,8 @@ class Notifications extends Component
         $uid = $queueJob instanceof DeliveryJobInterface ? $queueJob->getDeliveryAttemptUid() : $attempts->prepare($context, 'notification', ['notificationId' => $notification->id]);
 
         $diagnostics = $queueJob ?? new SendNotification(['deliveryAttemptUid' => $uid]);
-        $result = $attempts->execute($uid, function() use ($notification, $submission, $diagnostics, $deliveryKey, $attempts, $uid): IntegrationResult {
+        $error = null;
+        $result = $attempts->execute($uid, function() use ($notification, $submission, $diagnostics, $deliveryKey, $attempts, $uid, &$error): IntegrationResult {
             $attempts->checkpointSubmission($uid, $submission);
             $evaluation = $notification->enableConditions ? ConditionsHelper::evaluate($notification->conditions ?? [], $submission, 'notification') : null;
 
@@ -1136,11 +1137,13 @@ class Notifications extends Component
                 return IntegrationResult::succeeded();
             }
 
+            $error = $response['error'] ?? null;
+
             return IntegrationResult::failed('email_failed');
         });
 
         if (!in_array($result->status, [IntegrationStatus::Succeeded, IntegrationStatus::Skipped], true)) {
-            Formie::$plugin->getEmails()->sendFailAlertEmail($notification, $submission, $result->toStorage(), $deliveryKey);
+            Formie::$plugin->getEmails()->sendFailAlertEmail($notification, $submission, array_filter(['error' => $error]) + $result->toStorage(), $deliveryKey);
         }
 
         return $result->toStorage() + ['success' => in_array($result->status, [IntegrationStatus::Succeeded, IntegrationStatus::Skipped], true), 'error' => 'Notification delivery failed. Open this job in Utilities → Queue Manager and select Diagnostics for more information.'];
