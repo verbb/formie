@@ -149,7 +149,7 @@ class m240318_000000_migrate_stencils extends Migration
                     'data' => Json::encode($data),
                 ], ['id' => $stencil['id']], [], false);
             } catch (Throwable $e) {
-
+                Craft::warning('Unable to migrate stencil “' . $stencil['handle'] . '”: ' . $e->getMessage(), __METHOD__);
             }
         }
 

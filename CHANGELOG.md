@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed stencils left with fields of unknown types after upgrading from Formie 2, which made forms created from them unusable.
 - Fixed Recipients fields shown as checkboxes leaving their selections out of `{allFields}` in email notifications.
 - Fixed fields never showing when a condition compares a Number field with an empty value, such as “is not empty text”, or when “is” or “is not” compares an unanswered Number field.
 - Fixed answers being lost from fields shown by a condition on a Date field’s Year, Month or Day dropdown. The condition matched in the browser, but the server couldn’t read the value, so it cleared the answer when the form was submitted.
