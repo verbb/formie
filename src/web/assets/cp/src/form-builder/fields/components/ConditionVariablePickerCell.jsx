@@ -15,6 +15,7 @@ export function ConditionVariablePickerCell({
             variableCategories={column.variableCategories || {}}
             variableCategoryLabels={column.variableCategoryLabels || {}}
             variableCategoryOrder={column.variableCategoryOrder || []}
+            variableOptionIndex={column.variableOptionIndex || null}
             variableTransformerRegistry={column.variableTransformerRegistry || {}}
             noneOptionLabel={column.noneOptionLabel}
             // Popup panel sizing only — never reuse EditableTable `contentClassName`

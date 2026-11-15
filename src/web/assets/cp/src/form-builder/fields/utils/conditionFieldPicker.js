@@ -1,5 +1,12 @@
 import { clone, findRecursive } from '@verbb/plugin-kit-core';
 import { getFieldReferenceOptions } from '@form-builder/hooks/useFormTools';
+import { resolveVariableCategories } from '@form-builder/hooks/useVariableCategories';
+import { buildVariableOptionIndex } from '@form-builder/fields/utils/variablePicker';
+
+// New rules are limited to preceding fields, but a stored legacy rule can point at any field and still needs its label.
+export const buildStoredRuleOptionIndex = (config, formValues, variableConfig, options = {}) => {
+    return buildVariableOptionIndex(resolveVariableCategories(config, formValues, variableConfig, options));
+};
 
 export const buildConditionFieldPicker = ({
     baseFieldOptions = [],

@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed condition rules that read a field placed later in the form, such as those upgraded from Formie 3, showing no field in the form builder.
 - Fixed forms silently sending nothing to integration providers Formie 4 no longer includes, such as HubSpot (Legacy). Each submission now logs a warning naming the provider. See the [upgrade guide](https://verbb.io/craft-plugins/formie/docs/v4/get-started/upgrading-from-v3#removed-integration-providers).
 - Fixed stencils left with fields of unknown types after upgrading from Formie 2, which made forms created from them unusable.
 - Fixed Recipients fields shown as checkboxes leaving their selections out of `{allFields}` in email notifications.

@@ -6,7 +6,7 @@ import { useEngineField, FieldLayout } from '@verbb/plugin-kit-react/forms';
 import { EditableTable, SelectInput } from '@verbb/plugin-kit-react/components';
 import useAppStore from '@form-builder/hooks/useAppStore';
 import { useFormValues } from '@form-builder/hooks/useFormTools';
-import { buildConditionFieldPicker } from '@form-builder/fields/utils/conditionFieldPicker';
+import { buildConditionFieldPicker, buildStoredRuleOptionIndex } from '@form-builder/fields/utils/conditionFieldPicker';
 import { resolveVariableCategories } from '@form-builder/hooks/useVariableCategories';
 import { ConditionVariablePickerCell } from '@form-builder/fields/components/ConditionVariablePickerCell';
 
@@ -180,6 +180,16 @@ function ConditionsFieldBase({
         });
     }, [variableCategoriesConfig, formValues, conditionVariableConfig, getFieldTypeByType, form]);
 
+    const storedRuleOptionIndex = useMemo(() => {
+        return buildStoredRuleOptionIndex(variableCategoriesConfig || {}, formValues, {
+            ...CONDITION_FIELD_VARIABLE_CONFIG,
+            referenceContext,
+        }, {
+            getFieldTypeByType,
+            form,
+        });
+    }, [variableCategoriesConfig, formValues, referenceContext, getFieldTypeByType, form]);
+
     const t = useTranslation();
 
     const emptySettings = useMemo(() => {
@@ -282,6 +292,7 @@ function ConditionsFieldBase({
                             variableCategories,
                             variableCategoryLabels,
                             variableCategoryOrder,
+                            variableOptionIndex: storedRuleOptionIndex,
                             variableTransformerRegistry,
                             noneOptionLabel: t('Select an option'),
                             renderCell: ({
