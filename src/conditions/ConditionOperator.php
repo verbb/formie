@@ -43,7 +43,9 @@ final class ConditionOperator
             if (is_object($actual) || (is_array($actual) && !array_is_list($actual) && !in_array($type, ['collection', 'date', 'time', 'datetime'], true))) {
                 return ConditionEvaluation::invalid('invalidValue');
             }
+
             $empty = $actual === null || $actual === [] || (is_string($actual) && trim($actual, " \t\r\n\v\f") === '');
+
             return new ConditionEvaluation($operator === self::EMPTY ? $empty : !$empty);
         }
 
@@ -51,6 +53,7 @@ final class ConditionOperator
             if ((!is_array($actual) && $actual !== null) || (is_array($expected) && !array_is_list($expected))) {
                 return ConditionEvaluation::invalid('invalidValue');
             }
+
             $items = [];
             $actual ??= [];
             array_walk_recursive($actual, static function($item) use (&$items) {
@@ -63,6 +66,7 @@ final class ConditionOperator
                     return ConditionEvaluation::invalid('invalidValue');
                 }
             }
+
             $matched = false;
 
             foreach ($items as $item) {
@@ -70,15 +74,30 @@ final class ConditionOperator
                     $matched = $matched || self::_text($item) === self::_text($wanted);
                 }
             }
+
             return new ConditionEvaluation(in_array($operator, [self::NEQ, self::NOT_CONTAINS], true) ? !$matched : $matched);
         }
+
+        // An unanswered Number field, or a rule with no value, is blank rather than malformed. Ordering still needs a number.
+        if ($type === 'number' && in_array($operator, [self::EQ, self::NEQ], true) && (self::_isBlank($actual) || self::_isBlank($expected))) {
+            $other = self::_isBlank($actual) ? $expected : $actual;
+
+            if (!self::_isBlank($other) && self::_operand($other, $type) === null) {
+                return ConditionEvaluation::invalid('invalidValue');
+            }
+
+            return new ConditionEvaluation((self::_isBlank($actual) && self::_isBlank($expected)) === ($operator === self::EQ));
+        }
+
         $a = self::_operand($actual, $type);
         $b = self::_operand($expected, $type);
 
         if ($a === null || $b === null) {
             return ConditionEvaluation::invalid('invalidValue');
         }
+
         $order = $type === 'text' ? strcmp($a, $b) : ($a <=> $b);
+
         return new ConditionEvaluation(match ($operator) {
             self::EQ => $a === $b,
             self::NEQ => $a !== $b,
@@ -91,6 +110,11 @@ final class ConditionOperator
         });
     }
 
+    private static function _isBlank(mixed $value): bool
+    {
+        return $value === null || (is_string($value) && trim($value, " \t\r\n\v\f") === '');
+    }
+
     private static function _text(mixed $value): ?string
     {
         if (is_int($value) || is_float($value)) {
@@ -101,6 +125,7 @@ final class ConditionOperator
             if ($value == 0) {
                 return '0';
             }
+
             // JSON retains round-trip precision; PHP's string cast uses the lower display precision.
             $precision = ini_get('serialize_precision');
 
@@ -121,14 +146,18 @@ final class ConditionOperator
                     if ($position <= 0) {
                         return $parts[1] . '0.' . str_repeat('0', -$position) . $digits;
                     }
+
                     return $parts[1] . ($position >= strlen($digits)
                         ? $digits . str_repeat('0', $position - strlen($digits))
                         : substr($digits, 0, $position) . '.' . substr($digits, $position));
                 }
+
                 return $parts[1] . $digits[0] . (strlen($digits) > 1 ? '.' . substr($digits, 1) : '') . 'e' . ($exponent >= 0 ? '+' : '') . $exponent;
             }
+
             return $text;
         }
+
         return $value === null ? '' : (is_bool($value) ? ($value ? 'true' : 'false') : (is_string($value) ? $value : null));
     }
 
@@ -142,7 +171,9 @@ final class ConditionOperator
             if ((!is_string($value) && !is_int($value) && !is_float($value)) || !preg_match('/^[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?$/D', trim((string)$value, " \t\r\n\v\f"))) {
                 return null;
             }
+
             $number = (float)$value;
+
             return is_finite($number) ? $number : null;
         }
 
@@ -150,6 +181,7 @@ final class ConditionOperator
             if (is_bool($value)) {
                 return $value;
             }
+
             return match (strtolower(trim(self::_text($value) ?? '', " \t\r\n\v\f"))) {
                 'true', '1', 'yes', 'on' => true,
                 'false', '0', 'no', 'off' => false,
@@ -170,14 +202,17 @@ final class ConditionOperator
             if (isset($value['_input']) || (isset($value['second']) && !ctype_digit((string)$value['second']))) {
                 return null;
             }
+
             $hour = (int)($value['hour'] ?? 0);
 
             if (isset($value['ampm'])) {
                 if (!in_array($value['ampm'], ['AM', 'PM'], true) || $hour < 1 || $hour > 12) {
                     return null;
                 }
+
                 $hour = $hour % 12 + ($value['ampm'] === 'PM' ? 12 : 0);
             }
+
             $date = sprintf('%04d-%02d-%02d', $value['year'] ?? 1970, $value['month'] ?? 1, $value['day'] ?? 1);
             $time = sprintf('%02d:%02d:%02d', $hour, $value['minute'] ?? 0, $value['second'] ?? 0);
 
@@ -200,17 +235,20 @@ final class ConditionOperator
                             $candidates[$candidate] = true;
                         }
                     }
+
                     return count($candidates) === 1 ? (float)array_key_first($candidates) : null;
                 } catch (Throwable) {
                     return null;
                 }
             }
+
             $value = $type === 'date' ? $date : $time;
         }
 
         if (!is_string($value)) {
             return null;
         }
+
         $pattern = match ($type) {
             'date' => '/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/D',
             'time' => '/^([0-9]{2}):([0-9]{2})(?::([0-9]{2}))?$/D',
@@ -225,6 +263,7 @@ final class ConditionOperator
         if ($type !== 'time' && (!checkdate((int)$parts[2], (int)$parts[3], (int)$parts[1]) || (int)$parts[1] < 1)) {
             return null;
         }
+
         $offset = $type === 'time' ? 1 : 4;
 
         if ($type !== 'date' && ((int)$parts[$offset] > 23 || (int)$parts[$offset + 1] > 59 || (int)($parts[$offset + 2] ?? 0) > 59)) {
@@ -238,6 +277,7 @@ final class ConditionOperator
         if ($type === 'datetime' && $parts[7] !== 'Z' && ((int)substr($parts[7], 1, 2) > 23 || (int)substr($parts[7], 4, 2) > 59)) {
             return null;
         }
+
         return (float)(new DateTimeImmutable($value, new DateTimeZone('UTC')))->getTimestamp();
     }
 

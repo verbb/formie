@@ -898,5 +898,69 @@
         "actual": "\u0000true\u0000",
         "expected": true,
         "result": null
+    },
+    {
+        "name": "number blank is not a value",
+        "type": "number",
+        "operator": "!=",
+        "actual": "2",
+        "expected": "",
+        "result": true
+    },
+    {
+        "name": "number blank does not equal a value",
+        "type": "number",
+        "operator": "=",
+        "actual": "2",
+        "expected": "",
+        "result": false
+    },
+    {
+        "name": "number unanswered is not a value",
+        "type": "number",
+        "operator": "!=",
+        "actual": "",
+        "expected": "5",
+        "result": true
+    },
+    {
+        "name": "number null is not a value",
+        "type": "number",
+        "operator": "!=",
+        "actual": null,
+        "expected": "5",
+        "result": true
+    },
+    {
+        "name": "number unanswered does not equal a value",
+        "type": "number",
+        "operator": "=",
+        "actual": "",
+        "expected": "5",
+        "result": false
+    },
+    {
+        "name": "number unanswered equals blank",
+        "type": "number",
+        "operator": "=",
+        "actual": " ",
+        "expected": "",
+        "result": true
+    },
+    {
+        "name": "number unanswered is blank",
+        "type": "number",
+        "operator": "!=",
+        "actual": null,
+        "expected": "",
+        "result": false
+    },
+    {
+        "name": "number malformed against blank stays invalid",
+        "type": "number",
+        "operator": "!=",
+        "actual": "2oops",
+        "expected": "",
+        "result": null
     }
 ]

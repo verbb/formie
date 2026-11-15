@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed
+- Fixed `=` and `!=` conditions comparing a Number field with an empty value never matching.
+
 ## 4.0.9 - 2026-11-13
 
 ### Added

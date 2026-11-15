@@ -7,6 +7,7 @@ export type BrowserConditionSettings = { showRule: 'show' | 'hide' | 'enable' | 
 const invalid = (code: string): ConditionEvaluation => ({ value: null, diagnostics: [{ code }] });
 const text = (value: unknown): string | null => typeof value === 'number' && !Number.isFinite(value) ? null : value == null ? '' : ['string', 'number', 'boolean'].includes(typeof value) ? String(value) : null;
 const trim = (value: string): string => value.replace(/^[ \t\r\n\v\f]+|[ \t\r\n\v\f]+$/g, '');
+const isBlank = (value: unknown): boolean => value == null || (typeof value === 'string' && trim(value) === '');
 
 export function conditionNumber(value: unknown): number | null {
     if (!['number', 'string'].includes(typeof value) || !/^[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?$/.test(trim(String(value)))) return null;
@@ -86,6 +87,12 @@ export function evaluateCondition(operator: string, actual: unknown, expected: u
         if ([...values, ...expectedValues].some((value) => text(value) === null)) return invalid('invalidValue');
         const matches = values.some((value) => expectedValues.some((wanted) => text(value) === text(wanted)));
         return { value: ['!=', 'notContains'].includes(operator) ? !matches : matches, diagnostics: [] };
+    }
+    // An unanswered Number field, or a rule with no value, is blank rather than malformed. Ordering still needs a number.
+    if (type === 'number' && ['=', '!='].includes(operator) && (isBlank(actual) || isBlank(expected))) {
+        const other = isBlank(actual) ? expected : actual;
+        if (!isBlank(other) && operand(other, type) === null) return invalid('invalidValue');
+        return { value: (isBlank(actual) && isBlank(expected)) === (operator === '='), diagnostics: [] };
     }
     const a = operand(actual, type);
     const b = operand(expected, type);
