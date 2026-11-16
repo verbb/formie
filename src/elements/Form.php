@@ -2112,7 +2112,7 @@ class Form extends Element implements FormInterface
             Formie::$plugin->getFormDefaults()->applyCaptchaDefaultsToNewForm($this);
         }
 
-        $this->settings->integrations = ReferenceMigration::integrationSlots($this->settings->integrations);
+        $this->settings->integrations = ReferenceMigration::withoutDeletedFieldMappings(ReferenceMigration::integrationSlots($this->settings->integrations), $this);
 
         // Form-scoped data must never persist global integration credentials or endpoints.
         $integrationSettings = $this->settings->integrations ?? [];

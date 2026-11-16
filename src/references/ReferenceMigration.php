@@ -15,6 +15,7 @@ use verbb\formie\models\ReferenceExpression;
 use verbb\formie\models\RichText;
 
 use craft\helpers\Json;
+use craft\helpers\StringHelper;
 
 /** Lossless read/save migration restricted to known reference-bearing settings. */
 final class ReferenceMigration
@@ -29,12 +30,42 @@ final class ReferenceMigration
                 continue;
             }
 
-            if (str_ends_with(strtolower((string)$key), 'fieldmapping') || in_array($key, ['attributeMapping', 'emailSendMapping'], true)) {
+            if (self::_isIntegrationMapping((string)$key)) {
                 foreach ($value as $destination => $slot) {
                     $settings[$key][$destination] = ReferenceSlot::fromStored($slot)->toArray();
                 }
             } else {
                 $settings[$key] = self::integrationSlots($value);
+            }
+        }
+
+        return $settings;
+    }
+
+    /**
+     * A mapping to a field deleted from the form can never resolve, and the builder shows it as "Don't Include".
+     * Only stable field references are cleared. A handle path may still be converted by an upgrade migration.
+     */
+    public static function withoutDeletedFieldMappings(array $settings, Form $form): array
+    {
+        // A layout that failed to load has no fields to compare against.
+        if (!$form->getFields()) {
+            return $settings;
+        }
+
+        foreach ($settings as $key => $value) {
+            if (!is_array($value)) {
+                continue;
+            }
+
+            if (self::_isIntegrationMapping((string)$key)) {
+                foreach ($value as $destination => $slot) {
+                    if (self::_isDeletedFieldSlot($slot, $form)) {
+                        $settings[$key][$destination] = ['kind' => ReferenceSlotKind::Exact->value, 'value' => ''];
+                    }
+                }
+            } else {
+                $settings[$key] = self::withoutDeletedFieldMappings($value, $form);
             }
         }
 
@@ -258,6 +289,36 @@ final class ReferenceMigration
 
     // Private Methods
     // =========================================================================
+
+    private static function _isIntegrationMapping(string $key): bool
+    {
+        return str_ends_with(strtolower($key), 'fieldmapping') || in_array($key, ['attributeMapping', 'emailSendMapping'], true);
+    }
+
+    private static function _isDeletedFieldSlot(mixed $stored, Form $form): bool
+    {
+        try {
+            $slot = ReferenceSlot::fromStored($stored);
+        } catch (ReferenceException) {
+            return false;
+        }
+
+        if ($slot->kind !== ReferenceSlotKind::Exact || !is_string($slot->value)) {
+            return false;
+        }
+
+        $expression = ReferenceParser::parse($slot->value);
+
+        if (!$expression->isValid || $expression->target !== 'field' || !StringHelper::isUUID($expression->identifier)) {
+            return false;
+        }
+
+        try {
+            return (new FieldReferenceResolver())->findField($expression->identifier, new ReferenceContext(form: $form)) === null;
+        } catch (ReferenceException) {
+            return false;
+        }
+    }
 
     private static function _legacySubmissionToken(string $path, array $fields): ?string
     {

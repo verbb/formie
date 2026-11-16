@@ -28,6 +28,7 @@
 - Fixed notifications failing to send when a subject or From name contained brace text that can’t be a variable, such as `{(Enquiry)}` or `{foo bar}`. It now stays as written, including in the email body, and recipient settings still reject it.
 - Fixed a notification that failed before sending, such as on an invalid PDF filename or sender, being reported as an unknown delivery that blocked resending, with no entry in Sent Notifications.
 - Fixed element integrations blanking existing content from empty answers when **Overwrite Content** is off.
+- Fixed integrations failing every send with “Reference resolution failed: missingField” after a mapped field was deleted from the form. The mapping showed **Don’t Include** but still pointed at the deleted field. Saving the form now clears it, which also repairs forms already affected. ([#3128](https://github.com/verbb/formie/issues/3128))
 - Fixed page tabs on page-reload forms showing visitors a “Post request required” error page. Tabs now change page the same way on both submit methods, and an earlier tab error clears once a page change succeeds.
 - Fixed editing a completed multi-page submission on the front end saving it from the first page, so the later pages couldn’t be reached. Its pages now change in the browser, and the last page saves the answers from every page once. ([#3126](https://github.com/verbb/formie/issues/3126))
 - Fixed **Scroll To Top** not returning to the top of the form when moving to another page on AJAX forms, leaving visitors at the bottom of the next page.
