@@ -40,6 +40,7 @@
 - Fixed a Password field’s stored hash being written into notifications and other settings that reference the field.
 - Fixed email notifications from Formie 3 leaving out a Recipients field’s selected label or email address when they used `{handle.label}` or `{handle.value}`. Upgraded sites are repaired when migrations run.
 - Fixed exporting a report to Excel failing when an answer was longer than an Excel cell can hold (32,767 characters), such as a Signature drawn with many strokes. Excel exports now cut those answers to fit, and other formats keep them whole. ([#3125](https://github.com/verbb/formie/issues/3125))
+- Fixed upgrading from Formie 4.0.0-beta.10 to 4.0.0-beta.16 failing with “Setting unknown property: verbb\formie\models\FormSettings::integrationPolicies” when migrations ran.
 
 ### Added
 - Added a **Camel Case** text transform for references.

@@ -25,3 +25,18 @@ it('migrates persisted integration tokens within their own form without altering
         }
     }
 });
+
+it('loads forms that still store beta integration policies', function (): void {
+    $form = formie()->form()->emailField('email')->create();
+    $reference = $form->getFieldByHandle('email')->reference;
+    $settings = fn() => Json::decode((new Query())->select('settings')->from(Table::FORMIE_FORMS)->where(['id' => $form->id])->scalar());
+    $legacy = $settings();
+    $legacy['integrations'] = ['fixture' => ['enabled' => false, 'fieldMapping' => ['EMAIL' => '{field:email}']]];
+    $legacy['integrationPolicies'] = ['rerun' => ['fixture' => ['policy' => 'onEdit']]];
+    Craft::$app->getDb()->createCommand()->update(Table::FORMIE_FORMS, ['settings' => Json::encode($legacy)], ['id' => $form->id])->execute();
+
+    expect((new m260913_000001_integration_field_references())->safeUp())->toBeTrue();
+    expect($settings())->not->toHaveKey('integrationPolicies')
+        ->and($settings()['integrations']['fixture']['fieldMapping']['EMAIL'])->toBe('{field:' . $reference . '}')
+        ->and($settings()['integrations']['fixture']['trigger'])->toBe(['policy' => 'onEdit']);
+});
