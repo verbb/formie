@@ -16,6 +16,7 @@ use verbb\formie\services\SubmissionGrants;
 use Craft;
 use craft\elements\Asset;
 use craft\helpers\Assets;
+use craft\helpers\FileHelper;
 use craft\web\Controller;
 use craft\web\UploadedFile;
 
@@ -64,10 +65,12 @@ class FileUploadController extends Controller
         if ($profile === BrowserRequestProfile::CROSS_ORIGIN) {
             $this->enableCsrfValidation = false;
         }
+
         CrossOriginRequestHelper::applyHeaders($this->request, $this->response);
 
         if ($this->request->getIsOptions()) {
             $this->response->setStatusCode(204);
+
             return false;
         }
 
@@ -141,6 +144,14 @@ class FileUploadController extends Controller
         $tempPath = Assets::tempFilePath($filename);
         $this->_moveUploadedFile($uploadedFile->tempName, $tempPath);
 
+        if (!Formie::$plugin->getFileUploads()->sanitizeSvgUpload($tempPath, $filename)) {
+            FileHelper::unlink($tempPath);
+
+            throw new BadRequestHttpException(Craft::t('formie', '“{filename}” isn’t a valid SVG file.', [
+                'filename' => $filename,
+            ]));
+        }
+
         $asset = new Asset();
         $asset->tempFilePath = $tempPath;
         $asset->setFilename($filename);
@@ -198,6 +209,7 @@ class FileUploadController extends Controller
         if (!$this->request->getIsGet() && !$this->request->getIsHead()) {
             throw new MethodNotAllowedHttpException('Upload previews require GET or HEAD.');
         }
+
         $upload = UploadAccess::resolveToken((string)$this->request->getQueryParam('token', ''), 'view');
         $asset = $upload ? Asset::find()->id((int)$upload['assetId'])->status(null)->one() : null;
 
@@ -382,6 +394,7 @@ class FileUploadController extends Controller
         if (Formie::$plugin->getSubmissionGrants()->bound($form, $purpose, (int)$submission->id)) {
             return true;
         }
+
         $resumeToken = trim((string)$this->request->getBodyParam('submissionEditToken', $this->request->getBodyParam('resumeToken', '')));
 
         if ($resumeToken === '') {
@@ -389,6 +402,7 @@ class FileUploadController extends Controller
         }
 
         $purpose = $submission->isIncomplete ? SubmissionGrants::CONTINUE : SubmissionGrants::REVISE;
+
         return Formie::$plugin->getSubmissionGrants()->exchange($resumeToken, $purpose, $form, (int)$submission->id) !== null;
 
     }

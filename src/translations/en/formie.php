@@ -3697,6 +3697,7 @@ To review it please log into your control panel.
   '“{email}” is not a valid email address.' => '“{email}” is not a valid email address.',
   '“{filename}” does not match its detected file type.' => '“{filename}” does not match its detected file type.',
   '“{filename}” exceeds the maximum email attachment size of {limit} MB.' => '“{filename}” exceeds the maximum email attachment size of {limit} MB.',
+  '“{filename}” isn’t a valid SVG file.' => '“{filename}” isn’t a valid SVG file.',
   '“{handle}” isn’t a valid handle.' => '“{handle}” isn’t a valid handle.',
   '“{id}” does not support connection.' => '“{id}” does not support connection.',
   '“{label}” must be unique.' => '“{label}” must be unique.',

@@ -27,7 +27,10 @@ use craft\helpers\Assets;
 use craft\helpers\Console;
 use craft\helpers\Db;
 use craft\helpers\Json;
+use craft\image\SvgAllowedAttributes;
 use craft\models\VolumeFolder;
+
+use enshrined\svgSanitize\Sanitizer;
 
 use yii\base\Component;
 use yii\web\BadRequestHttpException;
@@ -49,6 +52,36 @@ class FileUploads extends Component
 
     // Public Methods
     // =========================================================================
+
+    /**
+     * Visitor SVG files can carry scripts, so clean them before they become assets. This runs even when a site
+     * turns off Craft's `sanitizeSvgUploads`, which is usually done to keep the site's own CP icons intact.
+     * Servers pick the content type from the extension, so that decides which files are cleaned, not their contents.
+     */
+    public function sanitizeSvgUpload(string $path, string $filename): bool
+    {
+        if (mb_strtolower(pathinfo($filename, PATHINFO_EXTENSION)) !== 'svg') {
+            return true;
+        }
+
+        $contents = file_get_contents($path);
+
+        if ($contents === false) {
+            return false;
+        }
+
+        // Match the sanitizer setup Craft uses for its own SVG uploads.
+        $sanitizer = new Sanitizer();
+        $sanitizer->setAllowedAttrs(new SvgAllowedAttributes());
+        $sanitized = $sanitizer->sanitize($contents);
+
+        // The sanitizer returns false for malformed XML, which can't be cleaned safely.
+        if (!$sanitized) {
+            return false;
+        }
+
+        return file_put_contents($path, $sanitized) !== false;
+    }
 
     public function getStagingFolder(): VolumeFolder
     {

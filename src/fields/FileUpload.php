@@ -1333,6 +1333,16 @@ class FileUpload extends ElementField
                         break;
                 }
 
+                if (!Formie::$plugin->getFileUploads()->sanitizeSvgUpload($tempPath, $file['filename'])) {
+                    FileHelper::unlink($tempPath);
+
+                    $element->addError($this->valueKey(), Craft::t('formie', '“{filename}” isn’t a valid SVG file.', [
+                        'filename' => $file['filename'],
+                    ]));
+
+                    continue;
+                }
+
                 $uploadFolder = $assetsService->getFolderById($uploadFolderId);
                 $asset = new Asset();
                 $asset->tempFilePath = $tempPath;
