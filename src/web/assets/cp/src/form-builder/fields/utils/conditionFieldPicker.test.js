@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { resolveVariableCategories } from '@form-builder/hooks/useVariableCategories';
 import { precedingConditionValues } from '@form-builder/utils/conditionSources';
-import { buildStoredRuleOptionIndex } from './conditionFieldPicker';
+import { CONDITION_FIELD_TYPES, buildConditionFieldPicker, buildStoredRuleOptionIndex } from './conditionFieldPicker';
 import { findOptionLabelByValue } from './variablePicker';
 
 vi.hoisted(() => {
@@ -42,5 +42,36 @@ describe('stored condition rule labels', () => {
 
         expect(index.labelByValue.get('{field:edited-ref}')).toBe('Edited (edited)');
         expect(index.labelByValue.get('{field:name-ref:firstName}')).toBe('Full Name: First Name');
+    });
+});
+
+describe('boolean condition sources', () => {
+    const agree = { _id: 'agree', type: 'Agree', reference: 'agree-ref', handle: 'agreeTerms', label: 'Agree to terms' };
+    const dependent = { _id: 'dependent', type: 'Text', reference: 'dependent-ref', handle: 'dependent', label: 'Dependent' };
+    const agreeValues = { pages: [{ label: 'Page 1', rows: [{ fields: [agree, dependent] }] }] };
+    const agreeRequest = { ...request, types: CONDITION_FIELD_TYPES };
+    const getAgreeFieldType = (type) => {
+        return type === 'Agree'
+            ? { conditionValueType: 'boolean', conditionOperators: ['=', '!=', 'empty', 'notEmpty'], referenceValues: [{ kind: 'primary', label: 'Value', types: ['boolean'], shape: 'inline' }] }
+            : getFieldTypeByType(type);
+    };
+
+    it('offers an earlier Agree field to a later field', () => {
+        const selectable = resolveVariableCategories({}, precedingConditionValues(agreeValues, 'dependent'), agreeRequest, { getFieldTypeByType: getAgreeFieldType });
+
+        expect(findOptionLabelByValue(selectable, '{field:agree-ref}')).toBe('Agree to terms (agreeTerms)');
+    });
+
+    it('compares an Agree field with Checked or Unchecked', () => {
+        const { modifyValueColumn } = buildConditionFieldPicker({
+            formValues: precedingConditionValues(agreeValues, 'dependent'),
+            getFieldTypeByType: getAgreeFieldType,
+            t: (message) => { return message; },
+        });
+
+        expect(modifyValueColumn({ field: '{field:agree-ref}', condition: '=' }, 'value')).toEqual({
+            type: 'select',
+            options: [{ label: 'Checked', value: '1' }, { label: 'Unchecked', value: '0' }],
+        });
     });
 });

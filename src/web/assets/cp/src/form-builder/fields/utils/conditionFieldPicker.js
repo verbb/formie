@@ -3,6 +3,9 @@ import { getFieldReferenceOptions } from '@form-builder/hooks/useFormTools';
 import { resolveVariableCategories } from '@form-builder/hooks/useVariableCategories';
 import { buildVariableOptionIndex } from '@form-builder/fields/utils/variablePicker';
 
+// Condition rules compare text, and boolean values such as an Agree field's.
+export const CONDITION_FIELD_TYPES = ['text', 'boolean'];
+
 // New rules are limited to preceding fields, but a stored legacy rule can point at any field and still needs its label.
 export const buildStoredRuleOptionIndex = (config, formValues, variableConfig, options = {}) => {
     return buildVariableOptionIndex(resolveVariableCategories(config, formValues, variableConfig, options));
@@ -52,6 +55,16 @@ export const buildConditionFieldPicker = ({
 
         if (foundField && foundField.column) {
             return foundField.column;
+        }
+
+        if (foundField?.conditionValueType === 'boolean') {
+            return {
+                type: 'select',
+                options: [
+                    { label: t('Checked'), value: '1' },
+                    { label: t('Unchecked'), value: '0' },
+                ],
+            };
         }
     };
 

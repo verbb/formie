@@ -6,13 +6,13 @@ import { useEngineField, FieldLayout } from '@verbb/plugin-kit-react/forms';
 import { EditableTable, SelectInput } from '@verbb/plugin-kit-react/components';
 import useAppStore from '@form-builder/hooks/useAppStore';
 import { useFormValues } from '@form-builder/hooks/useFormTools';
-import { buildConditionFieldPicker, buildStoredRuleOptionIndex } from '@form-builder/fields/utils/conditionFieldPicker';
+import { CONDITION_FIELD_TYPES, buildConditionFieldPicker, buildStoredRuleOptionIndex } from '@form-builder/fields/utils/conditionFieldPicker';
 import { resolveVariableCategories } from '@form-builder/hooks/useVariableCategories';
 import { ConditionVariablePickerCell } from '@form-builder/fields/components/ConditionVariablePickerCell';
 
 const CONDITION_FIELD_VARIABLE_CONFIG = {
     shapes: ['inline'],
-    types: ['text'],
+    types: CONDITION_FIELD_TYPES,
     groupFieldsByPage: true,
     showFieldHandle: true,
     groups: [

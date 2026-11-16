@@ -7,6 +7,7 @@
 - Fixed Table and Repeater fields being left out of notification content, and Payment fields showing raw provider data, when the whole field was referenced as it was in Formie 3.
 - Fixed custom integrations using `verbb\formie\base\Webhook`, `ModifyWebhookPayloadEvent`, `EVENT_MODIFY_WEBHOOK_PAYLOAD`, `getWebhookUrl()` or `$event->webhooks` failing after upgrading from Formie 3. These names still work, and the [upgrade guide](https://verbb.io/craft-plugins/formie/docs/v4/get-started/upgrading-from-v3#webhook-class-names) lists their replacements.
 - Fixed condition rules that read a field placed later in the form, such as those upgraded from Formie 3, showing no field in the form builder.
+- Fixed Agree fields missing from the field list when setting up conditions. Rules on an Agree field now offer **Checked** and **Unchecked**, as they did in Formie 3. ([#3127](https://github.com/verbb/formie/issues/3127))
 - Fixed forms silently sending nothing to integration providers Formie 4 no longer includes, such as HubSpot (Legacy). Each submission now logs a warning naming the provider. See the [upgrade guide](https://verbb.io/craft-plugins/formie/docs/v4/get-started/upgrading-from-v3#removed-integration-providers).
 - Fixed stencils left with fields of unknown types after upgrading from Formie 2, which made forms created from them unusable.
 - Fixed Recipients fields shown as checkboxes leaving their selections out of `{allFields}` in email notifications.
