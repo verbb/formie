@@ -17,6 +17,12 @@ use OpenSpout\Writer\XLSX\Writer;
 
 class ReportExportWriter
 {
+    // Constants
+    // =========================================================================
+
+    private const XLSX_MAX_CELL_CHARACTERS = 32767;
+
+
     // Static Methods
     // =========================================================================
 
@@ -24,6 +30,7 @@ class ReportExportWriter
     {
         if ($format === 'xlsx') {
             self::_writeXlsx($path, $headers, $rows);
+
             return;
         }
 
@@ -183,6 +190,13 @@ class ReportExportWriter
 
             $text = self::_text($value);
             self::_xml($text);
+
+            // An Excel cell holds at most 32,767 characters, and the writer rejects longer text, such as
+            // a signature's image data. Other formats keep the whole value.
+            if (mb_strlen($text) > self::XLSX_MAX_CELL_CHARACTERS) {
+                $text = mb_substr($text, 0, self::XLSX_MAX_CELL_CHARACTERS);
+            }
+
             return new StringCell($text, null);
         }, $values), $style);
     }
@@ -205,6 +219,7 @@ class ReportExportWriter
     {
         $values = array_map(static function($value): string {
             $text = self::_text($value);
+
             return preg_match('/^(?:[\x00-\x20]*[=+@-]|[\t\r\n])/', $text) ? "'" . $text : $text;
         }, $values);
 
