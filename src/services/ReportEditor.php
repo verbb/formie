@@ -282,8 +282,9 @@ class ReportEditor extends Component
             return null;
         }
 
+        // Dates without a time zone are the site's wall-clock time, as the date pickers send them.
         if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $stringValue)) {
-            $date = DateTimeHelper::toDateTime($stringValue);
+            $date = DateTimeHelper::toDateTime($stringValue, true);
 
             if (!$date) {
                 return null;
@@ -298,7 +299,7 @@ class ReportEditor extends Component
             return $date->format('Y-m-d H:i:s');
         }
 
-        $date = DateTimeHelper::toDateTime($stringValue);
+        $date = DateTimeHelper::toDateTime($stringValue, true);
 
         return $date ? $date->format('Y-m-d H:i:s') : null;
     }

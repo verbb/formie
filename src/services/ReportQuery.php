@@ -19,6 +19,7 @@ use craft\helpers\Db;
 use yii\db\Expression;
 
 use DateTime;
+use DateTimeZone;
 
 class ReportQuery extends Component
 {
@@ -53,10 +54,10 @@ class ReportQuery extends Component
         $filters = $this->resolveFilters($report, $viewer);
 
         if ($since) {
-            $existingStart = DateTimeHelper::toDateTime($filters['startDate'] ?? null);
+            $existingStart = $this->_filterDateTime($filters, 'startDate');
 
             if (!$existingStart || $since > $existingStart) {
-                $filters['startDate'] = $since->format('Y-m-d H:i:s');
+                $filters['startDate'] = (clone $since)->setTimezone(new DateTimeZone(Craft::$app->getTimeZone()))->format('Y-m-d H:i:s');
             }
         }
 
@@ -130,7 +131,7 @@ class ReportQuery extends Component
 
         $query = (new Query())
             ->select([
-                'bucket' => new Expression('DATE([[elements.dateCreated]])'),
+                'bucket' => new Expression($this->_siteDateSql()),
                 'complete' => new Expression(
                     'SUM(CASE WHEN [[submissions.isIncomplete]] = FALSE AND [[submissions.isSpam]] = FALSE THEN 1 ELSE 0 END)',
                 ),
@@ -375,8 +376,8 @@ class ReportQuery extends Component
 
     private function _applyDateFilters(ElementQueryInterface $query, array $filters, ?DateTime $since = null): void
     {
-        $startDate = DateTimeHelper::toDateTime($filters['startDate'] ?? null);
-        $endDate = DateTimeHelper::toDateTime($filters['endDate'] ?? null);
+        $startDate = $this->_filterDateTime($filters, 'startDate');
+        $endDate = $this->_filterDateTime($filters, 'endDate');
 
         if ($since) {
             $startDate = $since;
@@ -384,12 +385,13 @@ class ReportQuery extends Component
 
         $params = [];
 
+        // Craft reads date params without an offset as site time, so pass the offset along.
         if ($startDate) {
-            $params[] = '>= ' . Db::prepareDateForDb($startDate);
+            $params[] = '>= ' . $startDate->format(DateTime::ATOM);
         }
 
         if ($endDate) {
-            $params[] = '<= ' . Db::prepareDateForDb($endDate);
+            $params[] = '<= ' . $endDate->format(DateTime::ATOM);
         }
 
         if ($params === []) {
@@ -450,8 +452,8 @@ class ReportQuery extends Component
     {
         $this->_applyDbStateFilters($query, $filters);
 
-        $startDate = DateTimeHelper::toDateTime($filters['startDate'] ?? null);
-        $endDate = DateTimeHelper::toDateTime($filters['endDate'] ?? null);
+        $startDate = $this->_filterDateTime($filters, 'startDate');
+        $endDate = $this->_filterDateTime($filters, 'endDate');
 
         if ($startDate) {
             $query->andWhere(['>=', 'elements.dateCreated', Db::prepareDateForDb($startDate)]);
@@ -546,8 +548,8 @@ class ReportQuery extends Component
 
     private function _applyDbDateFilters(Query $query, array $filters): void
     {
-        $startDate = DateTimeHelper::toDateTime($filters['startDate'] ?? null);
-        $endDate = DateTimeHelper::toDateTime($filters['endDate'] ?? null);
+        $startDate = $this->_filterDateTime($filters, 'startDate');
+        $endDate = $this->_filterDateTime($filters, 'endDate');
 
         if ($startDate) {
             $query->andWhere(['>=', 'elements.dateCreated', Db::prepareDateForDb($startDate)]);
@@ -560,8 +562,8 @@ class ReportQuery extends Component
 
     private function _resolveChartDateRange(array $filters, array $rows): array
     {
-        $filterStart = DateTimeHelper::toDateTime($filters['startDate'] ?? null);
-        $filterEnd = DateTimeHelper::toDateTime($filters['endDate'] ?? null);
+        $filterStart = $this->_filterDateTime($filters, 'startDate');
+        $filterEnd = $this->_filterDateTime($filters, 'endDate');
 
         $rangeEnd = $filterEnd ? (clone $filterEnd) : new DateTime('today');
         $rangeEnd->setTime(23, 59, 59);
@@ -576,8 +578,8 @@ class ReportQuery extends Component
         }
 
         if ($rows !== [] && !$filterStart && !$filterEnd) {
-            $firstBucket = DateTimeHelper::toDateTime($rows[0]['date']);
-            $lastBucket = DateTimeHelper::toDateTime($rows[array_key_last($rows)]['date']);
+            $firstBucket = DateTimeHelper::toDateTime($rows[0]['date'], true);
+            $lastBucket = DateTimeHelper::toDateTime($rows[array_key_last($rows)]['date'], true);
 
             if ($firstBucket && $firstBucket < $rangeStart) {
                 $rangeStart = (clone $firstBucket)->setTime(0, 0, 0);
@@ -636,5 +638,33 @@ class ReportQuery extends Component
         }
 
         return $filled;
+    }
+
+    /**
+     * Resolved report dates are the site's wall-clock time, as the bounds and viewer pickers set them.
+     */
+    private function _filterDateTime(array $filters, string $key): ?DateTime
+    {
+        return DateTimeHelper::toDateTime($filters[$key] ?? null, true) ?: null;
+    }
+
+    /**
+     * Groups chart rows by the site's calendar day, so they line up with the site-day bounds.
+     */
+    private function _siteDateSql(): string
+    {
+        $db = Craft::$app->getDb();
+        $timeZone = $db->quoteValue(Craft::$app->getTimeZone());
+
+        if ($db->getIsPgsql()) {
+            return "DATE(([[elements.dateCreated]] AT TIME ZONE 'UTC') AT TIME ZONE $timeZone)";
+        }
+
+        // MySQL needs its time zone tables loaded to convert named zones, otherwise days stay in UTC.
+        if (Db::supportsTimeZones($db)) {
+            return "DATE(CONVERT_TZ([[elements.dateCreated]], 'UTC', $timeZone))";
+        }
+
+        return 'DATE([[elements.dateCreated]])';
     }
 }

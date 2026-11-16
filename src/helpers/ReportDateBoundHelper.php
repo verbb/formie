@@ -6,7 +6,6 @@ use verbb\formie\Formie;
 use craft\helpers\DateTimeHelper;
 
 use DateTime;
-use DateTimeZone;
 
 class ReportDateBoundHelper
 {
@@ -143,14 +142,15 @@ class ReportDateBoundHelper
             $operator = $bound['offset'] === 'add' ? '+' : '-';
             $interval = "{$operator}{$bound['offsetNumber']} {$bound['offsetType']}";
 
-            $date = (new DateTime('now', new DateTimeZone('UTC')))->modify($interval);
+            // Bounds are site days, like Craft's own date filters, so start from the site's current date.
+            $date = DateTimeHelper::now()->modify($interval);
             $date->setTime($isEnd ? 23 : 0, $isEnd ? 59 : 0, $isEnd ? 59 : 0);
 
             return $date;
         }
 
         if ($option === 'date' && $bound['date']) {
-            return DateTimeHelper::toDateTime($bound['date']);
+            return DateTimeHelper::toDateTime($bound['date'], true);
         }
 
         return null;

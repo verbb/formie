@@ -41,6 +41,7 @@
 - Fixed email notifications from Formie 3 leaving out a Recipients field’s selected label or email address when they used `{handle.label}` or `{handle.value}`. Upgraded sites are repaired when migrations run.
 - Fixed exporting a report to Excel failing when an answer was longer than an Excel cell can hold (32,767 characters), such as a Signature drawn with many strokes. Excel exports now cut those answers to fit, and other formats keep them whole. ([#3125](https://github.com/verbb/formie/issues/3125))
 - Fixed upgrading from Formie 4.0.0-beta.10 to 4.0.0-beta.16 failing with “Setting unknown property: verbb\formie\models\FormSettings::integrationPolicies” when migrations ran.
+- Fixed report date bounds using UTC instead of the site’s time zone. On sites ahead of UTC, **Today’s Date/Time** could fall on the previous day, and report tables and exports left out recent submissions that the summary counted. **Specific Date/Time** bounds moved by the site’s UTC offset each time a report was saved, so check any set before this fix. Report charts and scheduled report start and end dates now follow the site’s days too.
 
 ### Added
 - Added a **Camel Case** text transform for references.

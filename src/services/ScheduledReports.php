@@ -259,7 +259,7 @@ class ScheduledReports extends Component
         $delivery = $scheduledReport->getDeliveryModel();
 
         if ($delivery->startAt) {
-            $startAt = DateTimeHelper::toDateTime($delivery->startAt);
+            $startAt = DateTimeHelper::toDateTime($delivery->startAt, true);
 
             if ($startAt && $now < $startAt) {
                 return false;
@@ -267,7 +267,7 @@ class ScheduledReports extends Component
         }
 
         if ($delivery->endAt) {
-            $endAt = DateTimeHelper::toDateTime($delivery->endAt);
+            $endAt = DateTimeHelper::toDateTime($delivery->endAt, true);
 
             if ($endAt && preg_match('/^\d{4}-\d{2}-\d{2}$/', $delivery->endAt)) {
                 $endAt->setTime(23, 59, 59, 999999);
