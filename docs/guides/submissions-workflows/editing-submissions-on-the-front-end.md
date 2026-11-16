@@ -73,9 +73,9 @@ If you need notifications on front-end edits, trigger them from `Submission::EVE
 
 ## Multi-Page Forms
 
-Edit forms respect the submission's current page state. Users can navigate pages and save progress depending on form settings.
+When someone edits a completed submission on a multi-page form, they can move between its pages before saving. The buttons on each page, **Back** and the page tabs change page in the browser without saving anything, and each page's answers are checked before moving forward. The submit button on the last page saves the submission once, with the answers from every page. If the save finds a problem with an answer on another page, the form shows that page with its error.
 
-Save-and-continue behaviour on edit forms follows the same draft rules as new submissions — see [Save and continue later](/guides/submissions-workflows/save-and-continue-later).
+Editing an incomplete submission continues it page by page instead, following the same draft rules as new submissions. [Save and continue later](/guides/submissions-workflows/save-and-continue-later) explains those rules.
 
 ## Pre-Populating vs Editing
 

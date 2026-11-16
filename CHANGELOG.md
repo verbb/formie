@@ -26,6 +26,7 @@
 - Fixed a notification that failed before sending, such as on an invalid PDF filename or sender, being reported as an unknown delivery that blocked resending, with no entry in Sent Notifications.
 - Fixed element integrations blanking existing content from empty answers when **Overwrite Content** is off.
 - Fixed page tabs on page-reload forms showing visitors a “Post request required” error page. Tabs now change page the same way on both submit methods, and an earlier tab error clears once a page change succeeds.
+- Fixed editing a completed multi-page submission on the front end saving it from the first page, so the later pages couldn’t be reached. Its pages now change in the browser, and the last page saves the answers from every page once. ([#3126](https://github.com/verbb/formie/issues/3126))
 - Fixed **Scroll To Top** not returning to the top of the form when moving to another page on AJAX forms, leaving visitors at the bottom of the next page.
 - Fixed visitors seeing an error page when a form with an unanswered Table date or time column failed validation.
 - Fixed forms with a Tags field being unable to submit with “Select only valid options” when the field was left blank.

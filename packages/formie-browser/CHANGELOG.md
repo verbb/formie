@@ -7,6 +7,7 @@
 - Fixed fields without a label, such as headings, being squeezed into the label column when labels are left or right of the input.
 - Fixed page tabs on page-reload forms following a link the server rejects, and earlier tab errors staying visible after a successful page change.
 - Fixed **Scroll To Top** not returning to the top of the form when moving to another page on AJAX forms.
+- Fixed editing a completed multi-page submission saving it from the first page. Forms marked with `data-formie-revise` now change page in the browser, check each page before moving forward, and send every page’s answers with the last page’s save. ([#3126](https://github.com/verbb/formie/issues/3126))
 
 ## 4.0.9 - 2026-11-13
 

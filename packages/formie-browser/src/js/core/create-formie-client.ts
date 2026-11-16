@@ -25,6 +25,7 @@ import {
 import { clearSubmitFeedback, executeAjaxSubmitFlow, shouldKeepSubmitLoading } from '#core/submit-flow';
 import { applySubmitResultUi, renderFieldErrors, renderFormErrors } from '#core/submit-result-ui';
 import { applyPageState, clearSubmitLoading, scrollToFormTop, setSubmitLoading } from '#core/submit-result-state';
+import { handleRevisePageAction, handleRevisePageTab, isReviseForm, showRevisePageWithErrors } from '#core/revise-pages';
 import { EventBus } from '#events/event-bus';
 import { ModuleRegistry } from '#modules/registry';
 import { loadModulesFromManifest, type BrowserModuleRuntime } from '#modules/loader';
@@ -654,6 +655,11 @@ function bindFormEvents(
                 href,
             });
 
+            if (isReviseForm(form)) {
+                handleRevisePageTab(form, nextPageId, validator, shouldValidateOnSubmit(form));
+                return;
+            }
+
             try {
                 const response = await requestSetPage(href, form, nextPageId);
                 if (response.pageId) applyPageState(form, String(response.pageId));
@@ -741,6 +747,12 @@ function bindFormEvents(
 
         const submitAction = form.querySelector('input[name="submitAction"]') as HTMLInputElement | null;
         const action = actionFromSubmitter || pendingAction || (submitAction?.value as FormAction) || 'submit';
+
+        if (isReviseForm(form) && handleRevisePageAction(form, action, validator, shouldValidateOnSubmit(form))) {
+            setPendingAction(null);
+            return;
+        }
+
         let result: FormSubmitResult | null = null;
         let nativeSubmitStarted = false;
 
@@ -762,6 +774,10 @@ function bindFormEvents(
                         dispatchFormieDomEvent(target, 'formie:submit:result', submitResult);
                     },
                 });
+
+                if (isReviseForm(form) && !result.ok) {
+                    showRevisePageWithErrors(form);
+                }
             } else {
                 clearSubmitFeedback(form);
                 setSubmitLoading(form, submitter);
@@ -827,6 +843,11 @@ function bindFormEvents(
                 }
 
                 applySubmitResultUi(form, result);
+
+                if (isReviseForm(form)) {
+                    showRevisePageWithErrors(form);
+                }
+
                 dispatchFormieDomEvent(target, 'formie:submit:result', result);
                 clearInternalNavigation(form);
             }
@@ -853,6 +874,11 @@ function bindFormEvents(
     unbinds.push(() => {
         form.removeEventListener('submit', submitHandler);
     });
+
+    // A page-reload save rejected by the server renders its errors on whichever page has them.
+    if (isReviseForm(form)) {
+        showRevisePageWithErrors(form);
+    }
 }
 
 async function refreshTokensIfNeeded(target: Element, options: FormMountOptions, form: HTMLFormElement | null): Promise<void> {

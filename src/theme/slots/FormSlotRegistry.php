@@ -106,6 +106,8 @@ class FormSlotRegistry extends Component
                 'data-formie-handle' => $form?->handle,
                 'data-formie-static-cache' => $hasStaticCache ? true : false,
                 'data-formie-submit-method' => $form?->settings->submitMethod,
+                // Editing a completed submission saves it once, so its pages change in the browser.
+                'data-formie-revise' => $form?->getActionUrl() === 'formie/submissions/save-submission',
                 'data-formie-completion-behavior' => $form?->settings->completionBehavior,
                 'data-formie-hide-form-after-submit' => $form?->settings->hideFormAfterSubmit ? true : false,
                 'data-formie-automatic-submission-state' => $form?->settings->automaticSubmissionState ? true : false,

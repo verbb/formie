@@ -2,6 +2,7 @@ import type { FormieFormInstance } from '#contracts/client';
 import type { FormAction, SubmitStage } from '#contracts/common';
 import type { FormSubmitResult } from '#contracts/schema';
 import { withFormEventInstance } from '#core/dom-events';
+import { isReviseForm } from '#core/revise-pages';
 import { EventBus } from '#events/event-bus';
 import { submitForm } from '#transport/forms-api';
 import { createDebug } from '#utils/debug';
@@ -165,9 +166,17 @@ function buildSubmitFormData(form: HTMLFormElement, action: FormAction): FormDat
 
     // Multi-page AJAX submits only send the current page plus root transport
     // inputs so page transitions behave like the server-rendered workflow.
+    // Editing a completed submission saves once, with every page's answers.
     const formData = new FormData();
     appendControlsFromRoot(formData, form);
-    const fieldNames = appendControlsFromPage(formData, currentPage);
+    const fieldNames = new Set<string>();
+
+    (isReviseForm(form) ? pages : [currentPage]).forEach((page) => {
+        appendControlsFromPage(formData, page).forEach((name) => {
+            fieldNames.add(name);
+        });
+    });
+
     appendMissingFieldClears(formData, fieldNames);
     formData.set('submitAction', action);
 
