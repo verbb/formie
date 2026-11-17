@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 4.0.10 - 2026-11-17
+
 ### Fixed
 - Fixed `=` and `!=` conditions comparing a Number field with an empty value never matching.
 

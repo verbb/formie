@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 4.0.10 - 2026-11-17
+
 ### Fixed
 - Fixed the progress value sitting on its own line when shown to the left or right of the progress bar.
 - Fixed fields without a label, such as headings, being squeezed into the label column when labels are left or right of the input.
