@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.10 - 2026-11-17
 
 ### Added
 - Added a **Camel Case** text transform for references.
