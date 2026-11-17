@@ -486,6 +486,7 @@ class Entry extends Element
             'name' => 'updateSearchIndexes',
             'label' => Craft::t('app', 'Update Search Index'),
             'instructions' => Craft::t('formie', 'Whether this integration should update the search indexes to include content for this element.'),
+            'defaultValue' => $this->updateSearchIndexes,
         ]);
 
         return $schema;

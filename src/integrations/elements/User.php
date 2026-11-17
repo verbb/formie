@@ -553,6 +553,7 @@ class User extends Element
             'name' => 'sendActivationEmail',
             'label' => Craft::t('formie', 'Send Activation Email'),
             'instructions' => Craft::t('formie', 'Whether to send the activation email for the user automatically.'),
+            'defaultValue' => $this->sendActivationEmail,
         ]);
         $schema[] = SchemaHelper::integrationFieldMappingField([
             'name' => 'attributeMapping',
@@ -621,6 +622,7 @@ class User extends Element
             'name' => 'updateSearchIndexes',
             'label' => Craft::t('formie', 'Update Search Index'),
             'instructions' => Craft::t('formie', 'Whether this integration should update the search indexes to include content for this element.'),
+            'defaultValue' => $this->updateSearchIndexes,
         ]);
 
         return $schema;
