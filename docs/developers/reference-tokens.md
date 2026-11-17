@@ -135,7 +135,7 @@ Values reflect the logged-in user when the submission is made, or the submission
 | --- | --- | --- |
 | Current date/time | `{timestamp}` | `craft.formie.ref('timestamp')` |
 
-Use transform metadata for formatted output — for example `{timestamp;transform=format;preset=isoDate}`. The picker exposes the available format options.
+Use transform metadata for formatted output — for example `{timestamp;transform=format;preset=isoDate}`. The picker exposes the available format options. Choose **Custom** to enter your own [PHP date format](https://www.php.net/manual/en/datetime.format.php), such as `d.m.Y` for `17.11.2026`, which the picker saves as `{timestamp;transform=format;preset=custom;pattern=d.m.Y}`.
 
 ### Environment
 

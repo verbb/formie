@@ -5,6 +5,7 @@
 ### Fixed
 - Fixed the Entries integration ignoring **Default Entry Author** and making user 1 the author of every entry it created. ([#3131](https://github.com/verbb/formie/issues/3131))
 - Fixed users and untitled entries chosen in the form builder, such as the **Default Entry Author**, showing as “Element 10” instead of their name after the form was saved. ([#3131](https://github.com/verbb/formie/issues/3131))
+- Fixed **Custom** missing from the formats of the **Date Format** variable transform, which left no way to use your own date format, such as `d.m.Y`.
 
 ## 4.0.10 - 2026-11-17
 

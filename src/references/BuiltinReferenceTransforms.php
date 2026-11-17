@@ -399,6 +399,10 @@ final class BuiltinReferenceTransforms
                                     'label' => Craft::t('formie', 'Time (24h)'),
                                     'group' => Craft::t('formie', 'Time'),
                                 ],
+                                [
+                                    'value' => 'custom',
+                                    'label' => Craft::t('formie', 'Custom'),
+                                ],
                             ],
                         ],
                         [
