@@ -1,7 +1,6 @@
 <?php
 namespace verbb\formie\integrations\miscellaneous;
 
-use verbb\formie\Formie;
 use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
@@ -126,12 +125,8 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
         $settings = [];
 
         try {
-            $formId = Craft::$app->getRequest()->getParam('formId');
-            $form = Formie::$plugin->getForms()->getFormById($formId);
-
-            $spreadsheetId = $this->getSpreadSheetId();
-
-            $spreadsheet = $this->request('GET', $spreadsheetId);
+            // The base API URL already points at the spreadsheet.
+            $spreadsheet = $this->request('GET', '');
             $allSheets = $spreadsheet['sheets'] ?? [];
             $sheets = [];
             $savedColumns = [];
@@ -187,7 +182,6 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
-            $spreadsheetId = $this->getSpreadsheetId();
             $sheetId = $this->getSheetId();
 
             // Fetch the columns from our private stash
@@ -211,7 +205,7 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
             // This does require column `A` to not be hidden, otherwise it won't append values.
             $range = "'{$sheetId}'!A1";
 
-            $response = $this->deliverPayload($submission, "{$spreadsheetId}/values/{$range}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS", $payload);
+            $response = $this->deliverPayload($submission, "values/{$range}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS", $payload);
 
             if ($response === false) {
                 return $this->resultForPayload(true);
@@ -248,7 +242,7 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
             $selectedSheetId = $this->_getFirstSheetId();
         }
 
-        $schema[] = SchemaHelper::comboboxField([
+        $schema[] = SchemaHelper::integrationRefreshComboboxField([
             'name' => 'sheetId',
             'label' => Craft::t('formie', 'Sheet'),
             'instructions' => Craft::t('formie', 'Select which {name} sheet to add rows to.', ['name' => $this->displayName()]),
