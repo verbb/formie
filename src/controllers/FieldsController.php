@@ -60,7 +60,7 @@ class FieldsController extends Controller
             return [
                 'id' => $element->id,
                 'siteId' => $element->siteId,
-                'label' => $element->title,
+                'label' => $element->getUiLabel(),
                 'url' => $element->cpEditUrl,
                 'status' => $element->status,
                 'elementType' => get_class($element),
@@ -401,6 +401,7 @@ class FieldsController extends Controller
     public function actionGetSummaryHtml(): string
     {
         $this->requirePostRequest();
+
         $context = $this->_resolveFieldAccessContext((string)$this->request->getParam('accessToken', ''));
 
         if (!$context) {

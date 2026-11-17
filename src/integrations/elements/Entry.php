@@ -194,7 +194,7 @@ class Entry extends Element
 
     public function getAuthor($form): array
     {
-        $defaultAuthorId = $this->defaultAuthorId;
+        $defaultAuthorId = $this->_getDefaultAuthorId();
 
         if ($defaultAuthorId) {
             return User::find()->id($defaultAuthorId)->all();
@@ -598,11 +598,23 @@ class Entry extends Element
             return (int)$submission->userId;
         }
 
-        if ($this->defaultAuthorId) {
-            return (int)$this->defaultAuthorId;
+        return $this->_getDefaultAuthorId();
+    }
+
+    private function _getDefaultAuthorId(): ?int
+    {
+        // The builder saves `[{id, siteId}]`, while forms from Formie 3 keep a list of IDs such as `["10"]`.
+        $value = $this->defaultAuthorId;
+
+        if (is_array($value)) {
+            $value = reset($value);
+
+            if (is_array($value)) {
+                $value = $value['id'] ?? null;
+            }
         }
 
-        return null;
+        return is_numeric($value) ? (int)$value : null;
     }
 
     private function _normalizeIds($content): array
