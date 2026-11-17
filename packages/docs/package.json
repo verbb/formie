@@ -16,7 +16,7 @@
     "@verbb/formie-browser": "4.0.10",
     "tailwindcss": "^4.2.4",
     "typescript": "^6.0.3",
-    "vite": "6.4.4",
+    "vite": "6.4.5",
     "vitepress": "^1.6.4"
   },
   "overrides": {
