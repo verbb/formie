@@ -55,3 +55,19 @@ it('allows extensions to add browser JavaScript translation strings', function (
     expect($eventHandled)->toBeTrue()
         ->and($translations)->toHaveKey('Custom browser message.');
 });
+
+it('translates the searchable dropdown strings for the browser', function (): void {
+    $language = Craft::$app->language;
+    Craft::$app->language = 'de';
+
+    try {
+        $translations = (new Rendering())->getBrowserJsTranslations();
+    } finally {
+        Craft::$app->language = $language;
+    }
+
+    expect($translations)
+        ->toHaveKey('No results found', 'Keine Ergebnisse gefunden')
+        ->toHaveKey('Remove', 'Entfernen')
+        ->toHaveKey('Clear selection', 'Auswahl löschen');
+});

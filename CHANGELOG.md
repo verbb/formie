@@ -6,6 +6,7 @@
 - Fixed the Google Sheets integration being unable to load its sheets or add rows, and its **Sheet** setting missing a refresh button. ([#3136](https://github.com/verbb/formie/issues/3136))
 - Fixed the Entries integration ignoring **Default Entry Author** and making user 1 the author of every entry it created. ([#3131](https://github.com/verbb/formie/issues/3131))
 - Fixed **Default Entry Author** and the other element integrations’ default author showing no user in the form builder on forms upgraded from Formie 3. Upgraded sites are repaired when migrations run. ([#3131](https://github.com/verbb/formie/issues/3131))
+- Fixed searchable dropdowns showing “No results found” and the **Remove** and clear button titles in English instead of the site’s language. ([#3135](https://github.com/verbb/formie/issues/3135))
 - Fixed conditions on the **Title** or **Public URL** of an Entries, Categories or other element field never matching on the front end, as they compared the selected element’s ID. ([#3133](https://github.com/verbb/formie/issues/3133))
 - Fixed the **Settings** item missing from a form’s **Integrations** tab when only one integration was enabled, so its order, notification timing and **Apply recommended setup** couldn’t be reached. ([#3132](https://github.com/verbb/formie/issues/3132))
 - Fixed users and untitled entries chosen in the form builder, such as the **Default Entry Author**, showing as “Element 10” instead of their name after the form was saved. ([#3131](https://github.com/verbb/formie/issues/3131))

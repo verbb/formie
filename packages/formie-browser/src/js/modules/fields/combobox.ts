@@ -118,7 +118,8 @@ export function initFormieCombobox(select: SelectElement, options: FormieCombobo
         // Limit rendered results while retaining the full option list for searching.
         maxOptions: options.maxOptions === undefined ? 100 : options.maxOptions,
         maxItems: multiple ? null : 1,
-        plugins: multiple ? ['remove_button'] : options.allowClear ? {
+        // Keep an array for multi-selects so before-init listeners can still push plugins.
+        plugins: multiple ? [{ name: 'remove_button', options: { title: t('Remove') } }] : options.allowClear ? {
             remove_button: {
                 // Use a native button so clearing a single answer works with keyboard input too.
                 html: () => {
@@ -142,6 +143,11 @@ export function initFormieCombobox(select: SelectElement, options: FormieCombobo
         // which would duplicate Formie select chrome if left on the <select>.
         copyClassesToDropdown: false,
         wrapperClass: 'ts-wrapper formie-combobox',
+        render: {
+            no_results: (_data: unknown, escape: (value: string) => string) => {
+                return `<div class="no-results">${escape(t('No results found'))}</div>`;
+            },
+        },
         onChange: () => {
             // Mirror Tom Select changes back through the native select so validation,
             // conditions, and calculations respond to combobox-driven updates.

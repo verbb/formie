@@ -1869,7 +1869,10 @@ function $(e, t = {}) {
 		create: !1,
 		maxOptions: t.maxOptions === void 0 ? 100 : t.maxOptions,
 		maxItems: s ? null : 1,
-		plugins: s ? ["remove_button"] : t.allowClear ? { remove_button: { html: () => {
+		plugins: s ? [{
+			name: "remove_button",
+			options: { title: r("Remove") }
+		}] : t.allowClear ? { remove_button: { html: () => {
 			let e = document.createElement("button");
 			return e.type = "button", e.className = "remove", e.title = r("Clear selection"), e.setAttribute("aria-label", e.title), e.textContent = "×", e;
 		} } } : [],
@@ -1881,6 +1884,7 @@ function $(e, t = {}) {
 		diacritics: !0,
 		copyClassesToDropdown: !1,
 		wrapperClass: "ts-wrapper formie-combobox",
+		render: { no_results: (e, t) => `<div class="no-results">${t(r("No results found"))}</div>` },
 		onChange: () => {
 			e.dispatchEvent(new Event("input", { bubbles: !0 })), e.dispatchEvent(new Event("change", { bubbles: !0 }));
 		}

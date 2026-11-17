@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed searchable dropdowns showing “No results found” and the **Remove** and clear button titles in English instead of the site’s language. ([#3135](https://github.com/verbb/formie/issues/3135))
 - Fixed conditions on an element field’s **Title** or **Public URL** never matching, as they compared the selected element’s ID. ([#3133](https://github.com/verbb/formie/issues/3133))
 
 ## 4.0.10 - 2026-11-17
