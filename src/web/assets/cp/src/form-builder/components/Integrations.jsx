@@ -107,7 +107,6 @@ function Integrations({ schema }) {
         form: parentForm,
         getValueAtPath,
         errors: parentErrors,
-        values,
     } = useFormBuilderForm();
     const formId = useAppStore((state) => { return state.formId; });
     const router = useUrlRouter();
@@ -142,30 +141,8 @@ function Integrations({ schema }) {
         });
     }, [enabledPayloadIntegrations]);
 
-    const showDispatchSettings = useMemo(() => {
-        if (!payloadIntegrations.length || !enabledPayloadIntegrations.length) {
-            return false;
-        }
-
-        if (enabledPayloadIntegrations.length >= 2) {
-            return true;
-        }
-
-        const plan = getValueAtPath('settings.integrationDispatch', null);
-        const bindings = getValueAtPath('settings.integrations', null);
-
-        if (plan?.enabled) {
-            return true;
-        }
-
-        if (bindings && typeof bindings === 'object') {
-            return Object.values(bindings).some((entry) => {
-                return entry?.trigger?.policy && entry.trigger.policy !== 'submitOnly';
-            });
-        }
-
-        return true;
-    }, [payloadIntegrations.length, enabledPayloadIntegrations.length, getValueAtPath, values]);
+    // A single integration still needs these settings to run synchronously or send notifications after it.
+    const showDispatchSettings = enabledPayloadIntegrations.length > 0;
     const isDispatchSettingsActive = activeIntegrationHandle === DISPATCH_SETTINGS_HANDLE;
 
     const activeIntegration = isDispatchSettingsActive
