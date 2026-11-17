@@ -9,6 +9,7 @@
 - Fixed the **Settings** item missing from a form’s **Integrations** tab when only one integration was enabled, so its order, notification timing and **Apply recommended setup** couldn’t be reached. ([#3132](https://github.com/verbb/formie/issues/3132))
 - Fixed users and untitled entries chosen in the form builder, such as the **Default Entry Author**, showing as “Element 10” instead of their name after the form was saved. ([#3131](https://github.com/verbb/formie/issues/3131))
 - Fixed **Custom** missing from the formats of the **Date Format** variable transform, which left no way to use your own date format, such as `d.m.Y`.
+- Fixed opening a submission in the control panel creating its File Upload folder when the field’s subpath uses submission values, such as `{submission:id}`, which left an empty folder for every submission opened. ([#3134](https://github.com/verbb/formie/issues/3134))
 
 ## 4.0.10 - 2026-11-17
 

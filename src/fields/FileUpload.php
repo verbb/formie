@@ -1580,7 +1580,7 @@ class FileUpload extends ElementField
         return $files;
     }
 
-    private function _findFolder(?ElementInterface $element): VolumeFolder
+    private function _findFolder(?ElementInterface $element, bool $createFolder = true): VolumeFolder
     {
         $subpath = $this->uploadLocationSubpath;
 
@@ -1661,6 +1661,10 @@ class FileUpload extends ElementField
 
         // Ensure that the folder exists
         if (!$folder) {
+            if (!$createFolder) {
+                throw new InvalidSubpathException($subpath);
+            }
+
             $folder = $assetsService->ensureFolderByFullPathAndVolume($subpath, $volume);
         }
 
@@ -1687,7 +1691,8 @@ class FileUpload extends ElementField
     private function _getCpUploadFolderId(?ElementInterface $element, Volume $volume): int
     {
         try {
-            return (int)$this->_findFolder($element)->id;
+            // Opening the screen shouldn't create the folder. A file uploaded to the root moves into it on save.
+            return (int)$this->_findFolder($element, false)->id;
         } catch (InvalidSubpathException) {
             // A new submission can't resolve a subpath that uses its values yet.
             return (int)Craft::$app->getAssets()->getRootFolderByVolumeId($volume->id)->id;

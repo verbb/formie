@@ -483,6 +483,38 @@ it('offers a direct upload to the field upload folder for users who can save ass
         ->and($withoutGrant['html'])->not->toContain('folderId:')->toContain('"canUpload":false');
 });
 
+it('opens a submission without creating its upload folder, and moves a file uploaded there into it on save', function (): void {
+    $volume = UploadTestHelper::ensureUploadVolume();
+    $prefix = 'opened-' . uniqid();
+    $form = formie()->form()->fileUploadField('document', [
+        'restrictFiles' => false,
+        'uploadLocationSource' => 'volume:' . $volume->uid,
+        'uploadLocationSubpath' => $prefix . '/{submission:id}',
+    ])->create();
+    $user = User::find()->admin(true)->one();
+    $root = Craft::$app->getAssets()->getRootFolderByVolumeId($volume->id);
+    $folders = (new Query())->select('path')->from('{{%volumefolders}}')
+        ->where(['volumeId' => $volume->id])->andWhere(['like', 'path', $prefix . '/%', false]);
+
+    expect(cpScreenSave($user, $form, [])?->data['success'] ?? null)->toBeTrue();
+    $saved = Submission::find()->formId($form->id)->isIncomplete(null)->isSpam(null)->status(null)->one();
+
+    expect(cpScreenRender($user, $form, $saved)['html'])->toContain('folderId:' . $root->id . '}')
+        ->and($folders->column())->toBe([]);
+
+    $assetId = cpScreenUpload($user, $volume, 'opened-' . bin2hex(random_bytes(4)) . '.txt', 'opened');
+    $path = $prefix . '/' . $saved->id . '/';
+
+    expect(cpScreenSave($user, $form, ['document' => [$assetId]], $saved)?->data['success'] ?? null)->toBeTrue()
+        ->and(Asset::find()->id($assetId)->one()->folderPath)->toBe($path)
+        ->and($folders->column())->toEqualCanonicalizing([$prefix . '/', $path]);
+
+    // Once a file has made the folder, the screen uploads straight into it.
+    $folder = Craft::$app->getAssets()->findFolder(['volumeId' => $volume->id, 'path' => $path]);
+
+    expect(cpScreenRender($user, $form, Submission::find()->id($saved->id)->one())['html'])->toContain('folderId:' . $folder->id . '}');
+});
+
 it('lets the same asset be chosen on more than one submission', function (): void {
     $volume = UploadTestHelper::ensureUploadVolume();
     $form = formie()->form()->fileUploadField('document', ['restrictFiles' => false, 'uploadLocationSource' => 'volume:' . $volume->uid])->create();
