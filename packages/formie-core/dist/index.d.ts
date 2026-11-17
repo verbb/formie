@@ -23,6 +23,6 @@ export type { BrowserConditionRule, BrowserConditionSettings, ConditionEvaluatio
 export { validateBrowserValue, browserValueEmpty, registerBrowserValidationRule } from './validation.js';
 export type { BrowserValidationRule, BrowserValidationContext } from './validation.js';
 export { clientActionAllowed, evaluateClientCondition } from './condition-state.js';
-export { selectConditionRows } from './condition-projections.js';
+export { projectElementConditionValues, selectConditionRows } from './condition-projections.js';
 export type { ClientDisplayContent } from './schema.js';
 //# sourceMappingURL=index.d.ts.map

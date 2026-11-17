@@ -1,4 +1,4 @@
-import { selectConditionRows } from './condition-projections.js';
+import { projectElementConditionValues, selectConditionRows } from './condition-projections.js';
 import { combineConditions, evaluateCondition } from './conditions.js';
 import type { ConditionEvaluation, ConditionValueType } from './conditions.js';
 import { allFields, compositePartDefinitions, isRepeatableField, repeaterFieldDefinitions } from './schema.js';
@@ -48,6 +48,8 @@ export function evaluateClientCondition(condition: ClientFieldDefinition['condit
             const result = selectConditionRows(rows, params, current != null && /^[0-9]+$/.test(current) ? Number(current) : undefined);
             if (result.diagnostic) return { value: null, diagnostics: [{ code: result.diagnostic }] };
             value = params.scope === 'rows' && !Array.isArray(result.value) ? [result.value] : result.value;
+        } else if (rule.source?.elementValues) {
+            value = projectElementConditionValues(value, rule.source.elementValues);
         } else if (selector.length) {
             if (source.field.input.fieldKind === 'options' && selector.length === 1 && ['label', 'value'].includes(selector[0])) {
                 if (selector[0] === 'label') {
@@ -62,7 +64,7 @@ export function evaluateClientCondition(condition: ClientFieldDefinition['condit
         }
         if ((value == null || value === '' || (Array.isArray(value) && !value.length)) && rule.source?.defaultValue) value = rule.source.defaultValue;
         const kind = source.field.client?.valueType?.kind;
-        const type: ConditionValueType = rule.valueType ?? (kind === 'boolean' ? 'boolean' : Array.isArray(value) ? 'collection' : 'text');
+        const type: ConditionValueType = rule.source?.elementValues && Array.isArray(value) ? 'collection' : rule.valueType ?? (kind === 'boolean' ? 'boolean' : Array.isArray(value) ? 'collection' : 'text');
         return evaluateCondition(rule.operator, value, rule.value, type);
     }));
 }

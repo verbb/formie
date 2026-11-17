@@ -196,6 +196,41 @@ describe('createClientFormInstance', () => {
         expect(runtime.getState().values.conditional).toBeNull();
     });
 
+    it('compares the title of a selected entry, which the rule sends by entry ID', () => {
+        const titleRule = (operator: string, value: string) => ({
+            mode: 'all' as const,
+            effect: 'show' as const,
+            rules: [{
+                fieldId: 'scheme',
+                operator,
+                value,
+                valueType: 'text' as const,
+                source: { target: 'field', handle: 'scheme', selector: 'title', elementValues: { 407: 'Property 1', 409: 'Graduate Scheme' } },
+            }],
+        });
+        const runtime = createClientFormInstance({
+            envelope: createEnvelope([
+                createTextField('scheme', 'scheme'),
+                createTextField('exact', 'exact', { condition: titleRule('=', 'Graduate Scheme') }),
+                createTextField('partial', 'partial', { condition: titleRule('contains', 'Graduate') }),
+            ]),
+            transport: createTransport(),
+        });
+
+        expect(runtime.getState().fieldStates.exact.hidden).toBe(true);
+
+        runtime.setValue('scheme', '409');
+        expect(runtime.getState().fieldStates.exact.hidden).toBe(false);
+        expect(runtime.getState().fieldStates.partial.hidden).toBe(false);
+
+        runtime.setValue('scheme', '407');
+        expect(runtime.getState().fieldStates.exact.hidden).toBe(true);
+
+        // Several selected entries compare as a collection, as the server reads them.
+        runtime.setValue('scheme', ['407', '409']);
+        expect(runtime.getState().fieldStates.exact.hidden).toBe(false);
+    });
+
     it('supports notContains condition operators', () => {
         const runtime = createClientFormInstance({
             envelope: createEnvelope([

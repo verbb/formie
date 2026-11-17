@@ -1,4 +1,4 @@
-import { evaluateCondition, finalizeConditionEvaluation } from '@verbb/formie-core';
+import { evaluateCondition, finalizeConditionEvaluation, projectElementConditionValues } from '@verbb/formie-core';
 
 import type { ConditionDefinition, ParsedConditionSettings } from '#modules/fields/conditions/types';
 import { resolveConditionSource } from '#modules/fields/conditions/references';
@@ -35,6 +35,11 @@ export function evaluateConditionSettings(
             : readConditionValues(availableInputs, source);
 
         if (condition.browserSafe === false || Boolean(source?.transformerId) || source?.isValid === false || (!inputs.length && source?.target !== 'submission')) return { value: null, diagnostics: [{ code: 'unresolvedReference' }] };
+        if (source?.elementValues) {
+            // Element inputs post IDs, so title and URL rules compare the values the server sent for each ID.
+            const elementValue = projectElementConditionValues(actualValues, source.elementValues) ?? (source.defaultValue || null);
+            return evaluateCondition(condition.condition, elementValue, condition.value, Array.isArray(elementValue) ? 'collection' : condition.valueType ?? 'text');
+        }
         const type = condition.valueType ?? (actualValues.length > 1 ? 'collection' : 'text');
         const value = source?.target === 'submission' ? (type === 'collection' ? actualValues : actualValues[0] ?? null) : readConditionProjection(availableInputs, source, type, Number(from?.querySelector('input,select,textarea')?.getAttribute('name')?.match(/\[([0-9]+)\]/)?.[1]));
         if (value && typeof value === 'object' && 'conditionDiagnostic' in value) return { value: null, diagnostics: [{ code: String(value.conditionDiagnostic) }] };

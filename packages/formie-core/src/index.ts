@@ -88,5 +88,5 @@ export type { BrowserValidationRule, BrowserValidationContext } from './validati
 
 export { clientActionAllowed, evaluateClientCondition } from './condition-state.js';
 
-export { selectConditionRows } from './condition-projections.js';
+export { projectElementConditionValues, selectConditionRows } from './condition-projections.js';
 export type { ClientDisplayContent } from './schema.js';

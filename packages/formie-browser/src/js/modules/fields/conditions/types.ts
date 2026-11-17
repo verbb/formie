@@ -9,6 +9,7 @@ export type ConditionSource = {
     transformerId: string;
     transformerParams: Record<string, string>;
     isValid: boolean;
+    elementValues?: Record<string, string>;
 };
 
 export type ConditionDefinition = {

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed
+- Fixed conditions on an element field’s **Title** or **Public URL** never matching, as they compared the selected element’s ID. ([#3133](https://github.com/verbb/formie/issues/3133))
+
 ## 4.0.10 - 2026-11-17
 
 ### Fixed

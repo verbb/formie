@@ -54,7 +54,7 @@ export type ClientFieldDefinition = {
             operator: string;
             value: unknown;
             field?: string;
-            source?: { selector?: string; handle?: string; target?: string; defaultValue?: string; transformerId?: string; transformerParams?: Record<string, string>; isValid?: boolean };
+            source?: { selector?: string; handle?: string; target?: string; defaultValue?: string; transformerId?: string; transformerParams?: Record<string, string>; isValid?: boolean; elementValues?: Record<string, string> };
             valueType?: import('./conditions.js').ConditionValueType;
             browserSafe?: boolean;
         }>;

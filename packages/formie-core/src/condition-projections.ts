@@ -22,3 +22,17 @@ export function selectConditionRows(rows: unknown[], params: Record<string, stri
     }
     return { diagnostic: 'missingRowScope' };
 }
+
+/**
+ * Element inputs hold the selected element IDs, while title and URL rules compare the values the server sends by ID.
+ * Like the server, blank values are left out, one value compares as text and several as a collection.
+ */
+export function projectElementConditionValues(selected: unknown, elementValues: Record<string, string>): string | string[] | null {
+    const ids = Array.isArray(selected) ? selected : [selected];
+    const values = ids.map((id) => {
+        const key = id && typeof id === 'object' && 'id' in id ? (id as { id: unknown }).id : id;
+        return key == null ? '' : elementValues[String(key)] ?? '';
+    }).filter((value) => value !== '');
+
+    return values.length > 1 ? values : values[0] ?? null;
+}

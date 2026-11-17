@@ -9,6 +9,7 @@ function parseConditionSource(value: unknown): ConditionSource | null {
 
     const candidate = value as Record<string, unknown>;
     const transformerParams = candidate.transformerParams;
+    const elementValues = candidate.elementValues;
 
     return {
         raw: typeof candidate.raw === 'string' ? candidate.raw : '',
@@ -23,6 +24,12 @@ function parseConditionSource(value: unknown): ConditionSource | null {
             }))
             : {},
         isValid: candidate.isValid !== false,
+        // PHP encodes an empty map as a list.
+        ...(elementValues && typeof elementValues === 'object' ? {
+            elementValues: Object.fromEntries(Object.entries(elementValues as Record<string, unknown>).map(([key, item]) => {
+                return [key, String(item ?? '')];
+            })),
+        } : {}),
     };
 }
 

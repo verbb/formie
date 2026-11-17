@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added
+- Added `projectElementConditionValues()`, which turns selected element IDs into the titles or URLs a condition compares.
+
+### Fixed
+- Fixed client-rendered conditions on an element field’s **Title** or **Public URL** never matching. ([#3133](https://github.com/verbb/formie/issues/3133))
+
 ## 4.0.10 - 2026-11-17
 
 ### Fixed

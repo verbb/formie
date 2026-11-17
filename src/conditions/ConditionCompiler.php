@@ -2,6 +2,7 @@
 namespace verbb\formie\conditions;
 
 use verbb\formie\Formie;
+use verbb\formie\base\ElementField;
 use verbb\formie\base\Field;
 use verbb\formie\base\OptionsField;
 use verbb\formie\base\RepeatableParentFieldInterface;
@@ -76,6 +77,19 @@ final class ConditionCompiler
         }
 
         return $fallback;
+    }
+
+    private static function _elementValues(ElementField $field, string $selector): array
+    {
+        $values = [];
+
+        // The same query that builds the field's options, so every element a visitor can pick is covered.
+        foreach ($field->getElementsQuery()->all() as $element) {
+            $value = $field->resolveElementProperty($element, $selector);
+            $values[(string)$element->id] = is_scalar($value) ? (string)$value : '';
+        }
+
+        return $values;
     }
 
 
@@ -156,6 +170,12 @@ final class ConditionCompiler
                 'transformerId' => $expression->transformerId, 'transformerParams' => $params,
                 'isValid' => $expression->isValid, 'browserSafe' => $browser,
             ];
+
+            // Element inputs only post IDs, so the browser looks up each selectable element's title or URL here.
+            if ($browser && $field instanceof ElementField && in_array($selector, ['title', 'url'], true)) {
+                $source['elementValues'] = self::_elementValues($field, $selector);
+            }
+
             $rules[] = [
                 'fieldId' => $field ? (string)$field->id : $expression->identifier,
                 'field' => $token, 'source' => $source, 'operator' => $rule->operator,

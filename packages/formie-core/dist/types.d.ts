@@ -38,6 +38,7 @@ export type ClientFieldDefinition = {
                 transformerId?: string;
                 transformerParams?: Record<string, string>;
                 isValid?: boolean;
+                elementValues?: Record<string, string>;
             };
             valueType?: import('./conditions.js').ConditionValueType;
             browserSafe?: boolean;

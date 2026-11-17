@@ -5,6 +5,7 @@
 ### Fixed
 - Fixed the Entries integration ignoring **Default Entry Author** and making user 1 the author of every entry it created. ([#3131](https://github.com/verbb/formie/issues/3131))
 - Fixed **Default Entry Author** and the other element integrations’ default author showing no user in the form builder on forms upgraded from Formie 3. Upgraded sites are repaired when migrations run. ([#3131](https://github.com/verbb/formie/issues/3131))
+- Fixed conditions on the **Title** or **Public URL** of an Entries, Categories or other element field never matching on the front end, as they compared the selected element’s ID. ([#3133](https://github.com/verbb/formie/issues/3133))
 - Fixed the **Settings** item missing from a form’s **Integrations** tab when only one integration was enabled, so its order, notification timing and **Apply recommended setup** couldn’t be reached. ([#3132](https://github.com/verbb/formie/issues/3132))
 - Fixed users and untitled entries chosen in the form builder, such as the **Default Entry Author**, showing as “Element 10” instead of their name after the form was saved. ([#3131](https://github.com/verbb/formie/issues/3131))
 - Fixed **Custom** missing from the formats of the **Date Format** variable transform, which left no way to use your own date format, such as `d.m.Y`.
