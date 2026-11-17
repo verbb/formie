@@ -7,6 +7,7 @@ import {
     useVariableTagConfigureSession,
     VariableTagConfigureOverlay,
 } from '@form-builder/fields/variable-picker/VariableTagConfigureOverlay';
+import { useVariableTransformLabel } from '@form-builder/fields/variable-picker/useVariableTransformLabel';
 import {
     readPkTiptapChangeValue,
     normalizePkTiptapStoreValue,
@@ -48,6 +49,8 @@ export function VariablePickerInputCell({
     const resolvedOrder = variableCategoryOrder ?? contextOrder;
     const resolvedRegistry = variableTransformerRegistry ?? contextRegistry ?? {};
 
+    const variableTransformerLabel = useVariableTransformLabel(variableCategories, resolvedRegistry);
+
     const hasVariables = Object.values(variableCategories ?? {}).some(
         (items) => Array.isArray(items) && items.length > 0,
     );
@@ -77,6 +80,7 @@ export function VariablePickerInputCell({
                 value={stored}
                 variableCategories={variableCategories}
                 variableTransformerRegistry={resolvedRegistry}
+                variableTransformerLabel={variableTransformerLabel}
                 variableTagConfigure={openConfigureSession}
                 onPkVariableTagConfigure={(event) => {
                     openConfigureSession(event?.detail);

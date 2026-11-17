@@ -13,6 +13,7 @@ import {
     useVariableTagConfigureSession,
     VariableTagConfigureOverlay,
 } from '@form-builder/fields/variable-picker/VariableTagConfigureOverlay';
+import { useVariableTransformLabel } from '@form-builder/fields/variable-picker/useVariableTransformLabel';
 import { readPkTiptapChangeValue, normalizePkTiptapStoreValue, usePkTiptapEditor } from '@form-builder/fields/utils/pkTiptapField';
 
 const flattenVariableOptions = (options = []) => {
@@ -183,6 +184,8 @@ export function CalculationsField({ form, field }) {
         return getVariableCategories(scopedVariableConfig, { form });
     }, [field, form, getVariableCategories]);
 
+    const variableTransformerLabel = useVariableTransformLabel(resolvedVariableCategories, variableTransformerRegistry);
+
     const availableVariableTokens = useMemo(() => {
         return getAvailableVariableTokens(resolvedVariableCategories);
     }, [resolvedVariableCategories]);
@@ -256,6 +259,7 @@ export function CalculationsField({ form, field }) {
                     rows={field.rows ?? 8}
                     placeholder={field.placeholder}
                     variableTransformerRegistry={variableTransformerRegistry}
+                    variableTransformerLabel={variableTransformerLabel}
                     variableTagConfigure={openConfigureSession}
                     onPkVariableTagConfigure={(event) => {
                         openConfigureSession(event?.detail);

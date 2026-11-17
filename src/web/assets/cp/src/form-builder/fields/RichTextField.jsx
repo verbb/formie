@@ -7,6 +7,7 @@ import {
     useVariableTagConfigureSession,
     VariableTagConfigureOverlay,
 } from '@form-builder/fields/variable-picker/VariableTagConfigureOverlay';
+import { useVariableTransformLabel } from '@form-builder/fields/variable-picker/useVariableTransformLabel';
 import { readPkTiptapChangeValue, normalizePkTiptapStoreValue, usePkTiptapEditor } from '@form-builder/fields/utils/pkTiptapField';
 import { isRichTextEmpty } from '@utils/tiptapUtils';
 
@@ -51,6 +52,8 @@ export function RichTextField({ form, field }) {
         return getVariableCategories(variableConfig, { form });
     }, [variableConfig, form, getVariableCategories]);
 
+    const variableTransformerLabel = useVariableTransformLabel(variableCategories, variableTransformerRegistry);
+
     const hasVariables = Object.values(variableCategories ?? {}).some(
         (items) => Array.isArray(items) && items.length > 0,
     );
@@ -73,6 +76,7 @@ export function RichTextField({ form, field }) {
                     ref={hostRef}
                     value={normalizePkTiptapStoreValue(value)}
                     variableTransformerRegistry={variableTransformerRegistry}
+                    variableTransformerLabel={variableTransformerLabel}
                     // Preferred bridge (parity with TiptapInput) + composed event fallback.
                     variableTagConfigure={openConfigureSession}
                     onPkVariableTagConfigure={(event) => {

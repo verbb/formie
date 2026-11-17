@@ -473,3 +473,19 @@ export const buildTransformOptions = (selectedVariableOption, registry = {}, tok
 
     return Array.from(byId.values());
 };
+
+// Chip badge name for a variable tag's transform. Value types share IDs (Number and Date Format are both
+// `format`), so look it up the way the configure overlay lists transforms for the tag's variable.
+export const resolveTransformLabel = (attrs = {}, variableCategories = {}, registry = {}) => {
+    const transformerId = String(attrs?.transformerId ?? '').trim();
+    if (!transformerId) {
+        return undefined;
+    }
+
+    const tokenValue = String(attrs?.value ?? '');
+    const option = findVariableOptionByValue(variableCategories, tokenValue);
+
+    return buildTransformOptions(option, registry, tokenValue).find((transform) => {
+        return transform.value === transformerId;
+    })?.label;
+};
