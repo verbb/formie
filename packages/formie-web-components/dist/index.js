@@ -846,7 +846,7 @@ function jt(e, t, n, r, i) {
             aria-describedby=${J(e, i)}
                 class="starter-component-control"
                 ?disabled=${n}
-                multiple=${l}
+                ?multiple=${l}
                 .value=${l ? void 0 : typeof t == "string" ? t : ""}
                 @change=${(e) => {
 			let t = e.target;
@@ -1003,7 +1003,7 @@ function Nt(e, t, n, r, i) {
                 aria-describedby=${J(e, i)}
                 class="starter-component-control"
                 ?disabled=${n}
-                multiple=${l}
+                ?multiple=${l}
                 @change=${(e) => {
 		let t = e.target;
 		r(Array.from(t.files || []));

@@ -236,7 +236,7 @@ function renderNestedInput(
             aria-describedby=${describedBy(field, labelling)}
                 class="starter-component-control"
                 ?disabled=${disabled}
-                multiple=${multiple}
+                ?multiple=${multiple}
                 .value=${multiple ? undefined : typeof value === 'string' ? value : ''}
                 @change=${(e: Event) => {
                     const target = e.target as HTMLSelectElement;
@@ -487,7 +487,7 @@ function renderFile(
                 aria-describedby=${describedBy(field, labelling)}
                 class="starter-component-control"
                 ?disabled=${disabled}
-                multiple=${multiple}
+                ?multiple=${multiple}
                 @change=${(e: Event) => {
                     const t = e.target as HTMLInputElement;
 

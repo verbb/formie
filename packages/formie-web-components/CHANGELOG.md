@@ -10,6 +10,9 @@
 - Field labels now point at their control with `for` instead of the control repeating the label in `aria-label`, and field instructions describe the control with `aria-describedby`. Controls rendered inside a custom field host keep their `aria-label`. ([#3140](https://github.com/verbb/formie/issues/3140))
 - Radio options are now grouped with `role="radiogroup"` and Checkboxes options with `role="group"`, each named by the field label. The Agree checkbox is wrapped in an element with `role="group"` named by the field label, and keeps its description as its own label. ([#3140](https://github.com/verbb/formie/issues/3140))
 
+### Fixed
+- Fixed every Dropdown field rendering as a multi-select list, and every File Upload field accepting several files, even when the field allows only one.
+
 ## 4.0.10 - 2026-11-17
 
 ### Changed

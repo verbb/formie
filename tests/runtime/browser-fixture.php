@@ -72,6 +72,13 @@ $journey->getPages()[1]->getPageSettings()->showBackButton = true;
 if (!Craft::$app->getElements()->saveElement($journey)) {
     throw new RuntimeException('Cannot save browser journey navigation settings.');
 }
+\verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Single and multiple values', 'handle' => 'valueCountContract'])
+    ->settings(['disableCaptchas' => true])
+    ->dropdownField('enquiry', ['label' => 'Enquiry', 'options' => [['label' => 'General', 'value' => 'general'], ['label' => 'Other', 'value' => 'other']]])
+    ->dropdownField('interests', ['label' => 'Interests', 'multi' => true, 'options' => [['label' => 'News', 'value' => 'news'], ['label' => 'Events', 'value' => 'events']]])
+    ->fileUploadField('photo', ['label' => 'Photo', 'restrictFiles' => false, 'maxFiles' => 1])
+    ->fileUploadField('documents', ['label' => 'Documents', 'restrictFiles' => false])
+    ->create();
 function createRenderedBrowserFixture(string $handle, string $method): \verbb\formie\elements\Form {
     $rendered = \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Rendered contract', 'handle' => $handle])
         ->settings(['disableCaptchas' => true, 'submitMethod' => $method])

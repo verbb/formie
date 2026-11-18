@@ -104,3 +104,25 @@ for (const adapter of ['react', 'vue', 'web-components']) {
         expect(errors).toEqual([]);
     });
 }
+
+for (const adapter of ['react', 'vue', 'web-components']) {
+    test(`${adapter}: renders single and multiple value controls as configured`, async ({ page }) => {
+        const errors: string[] = [];
+        page.on('pageerror', error => errors.push(error.message));
+        await page.goto(`/browser-fixture?adapter=${adapter}&form=valueCountContract`);
+        const host = page.locator('#host');
+        const multiple = (label: string) => host.getByLabel(label, { exact: true }).evaluate((element) => (element as HTMLSelectElement | HTMLInputElement).multiple);
+
+        await expect(host.getByRole('combobox', { name: 'Enquiry', exact: true })).toBeVisible();
+        await expect(host.getByRole('listbox', { name: 'Interests', exact: true })).toBeVisible();
+        expect(await multiple('Enquiry')).toBe(false);
+        expect(await multiple('Interests')).toBe(true);
+        expect(await multiple('Photo')).toBe(false);
+        expect(await multiple('Documents')).toBe(true);
+
+        // A single dropdown keeps one chosen value.
+        await host.getByLabel('Enquiry', { exact: true }).selectOption('other');
+        await expect(host.getByLabel('Enquiry', { exact: true })).toHaveValue('other');
+        expect(errors).toEqual([]);
+    });
+}
