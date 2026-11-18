@@ -7,10 +7,13 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
+use Tests\Support\UploadTestHelper;
 use verbb\formie\Formie;
 use verbb\formie\enums\IntegrationStatus;
 use verbb\formie\enums\SubmissionOperation;
+use verbb\formie\events\ModifyFieldIntegrationValuesEvent;
 use verbb\formie\events\ModifyFormIntegrationsEvent;
+use verbb\formie\helpers\References;
 use verbb\formie\integrations\helpdesk\Freshdesk;
 use verbb\formie\jobs\TriggerIntegration;
 use verbb\formie\services\Integrations;
@@ -139,3 +142,33 @@ it('fails on Freshdesk errors it cannot handle', function(string $failure, int $
     ['update validation', 2], ['unrelated missing resource', 2], ['unrelated method', 2],
     ['update timeout', 2], ['update server', 2], ['ticket timeout', 3],
 ]);
+
+it('sends Freshdesk attachments that a mapping hook replaced with binary strings', function(): void {
+    $volume = UploadTestHelper::ensureUploadVolume();
+    $asset = UploadTestHelper::seedAsset('freshdesk-photo.heic', 'original bytes', $volume);
+    $form = formie()->form()->fileUploadField('files', ['restrictFiles' => false])->create();
+    $submission = formie()->submission($form)->with(['files' => [$asset->id]])->save();
+    $integration = freshdeskDeliveryFixture([new Response(201, [], '{"id":456}')]);
+    $integration->mapToContact = false;
+    $integration->ticketFieldMapping = [
+        'attachments' => ['kind' => 'reference', 'value' => References::field($form->getFieldByHandle('files')->reference)],
+    ];
+    $jpeg = "\xFF\xD8\xFF\xE0\x00\x10JFIF\x00\x01\xFF\xD9";
+    $listener = function(ModifyFieldIntegrationValuesEvent $event) use ($jpeg): void {
+        foreach ($event->fieldValues as $index => $part) {
+            if ($part['name'] === 'attachments[]') {
+                $event->fieldValues[$index]['contents'] = $jpeg;
+                $event->fieldValues[$index]['filename'] = 'photo.jpg';
+            }
+        }
+    };
+    Event::on(Freshdesk::class, Freshdesk::EVENT_MODIFY_FIELD_MAPPING_VALUES, $listener);
+    try {
+        $result = Formie::$plugin->getIntegrationRunner()->runIntegration($integration, $submission, 'freshdesk-binary', 'queued');
+    } finally {
+        Event::off(Freshdesk::class, Freshdesk::EVENT_MODIFY_FIELD_MAPPING_VALUES, $listener);
+    }
+    expect($result->status)->toBe(IntegrationStatus::Succeeded)
+        ->and(FreshdeskDeliveryFixture::$requests)->toHaveCount(1)
+        ->and((string)FreshdeskDeliveryFixture::$requests[0]['request']->getBody())->toContain('filename="photo.jpg"', $jpeg);
+});

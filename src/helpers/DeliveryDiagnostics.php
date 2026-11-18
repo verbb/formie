@@ -46,6 +46,7 @@ final class DeliveryDiagnostics
                     $safe[$key] = self::redact($item, $secrets, $depth + 1);
                 }
             }
+
             return $safe;
         }
 
@@ -57,8 +58,10 @@ final class DeliveryDiagnostics
                     return json_encode(self::redact($decoded, $secrets, $depth + 1), JSON_INVALID_UTF8_SUBSTITUTE);
                 }
             }
+
             return mb_substr(self::_redactString($value, $secrets), 0, 2048);
         }
+
         return is_scalar($value) || $value === null ? $value : '[unsupported value]';
     }
 
@@ -78,10 +81,16 @@ final class DeliveryDiagnostics
                     $safe[$key] = self::redactComplete($item, $secrets, $depth + 1);
                 }
             }
+
             return $safe;
         }
 
         if (is_string($value)) {
+            // Binary contents, such as converted file uploads, can't be stored as JSON evidence.
+            if (!mb_check_encoding($value, 'UTF-8')) {
+                return '[binary ' . strlen($value) . ' bytes]';
+            }
+
             if (strlen($value) <= 2097152 && in_array($value[0] ?? '', ['{', '['], true)) {
                 $decoded = json_decode($value, true);
 
@@ -89,8 +98,10 @@ final class DeliveryDiagnostics
                     return json_encode(self::redactComplete($decoded, $secrets, $depth + 1), JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR);
                 }
             }
+
             return self::_redactString($value, $secrets);
         }
+
         return is_scalar($value) || $value === null ? $value : '[unsupported value]';
     }
 
@@ -101,6 +112,7 @@ final class DeliveryDiagnostics
         if (strlen($json) > 16384) {
             return json_encode(['truncated' => true, 'preview' => mb_strcut($json, 0, 8192)], JSON_INVALID_UTF8_SUBSTITUTE);
         }
+
         return $json;
     }
 
@@ -111,6 +123,7 @@ final class DeliveryDiagnostics
                 $value = str_replace($secret, '[redacted]', $value);
             }
         }
+
         $value = preg_replace('/((?:password|secret|api[_-]?key|access[_-]?token)\s*[:=]\s*)[^\s,;]+/i', '$1[redacted]', $value);
         $value = preg_replace('/\b(Bearer|Basic)\s+[^\s"<>]+/i', '$1 [redacted]', $value);
 
