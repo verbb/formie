@@ -7,6 +7,7 @@
 - Client-rendered forms built with `@verbb/formie-vue`, `@verbb/formie-react` or the Formie web components now link each field’s label to its control, so clicking the label focuses it, and describe the control with the field’s instructions. Radio, Checkboxes and Agree fields are grouped and named by the field label, as in server-rendered forms. ([#3140](https://github.com/verbb/formie/issues/3140))
 
 ### Fixed
+- Fixed Dropdown fields rendering as a multi-select list, and File Upload fields accepting several files when they allow only one, in client-rendered forms built with the Formie web components.
 - Fixed the Google Sheets integration being unable to load its sheets or add rows, and its **Sheet** setting missing a refresh button. ([#3136](https://github.com/verbb/formie/issues/3136))
 - Fixed the Entries integration ignoring **Default Entry Author** and making user 1 the author of every entry it created. ([#3131](https://github.com/verbb/formie/issues/3131))
 - Fixed **Default Entry Author** and the other element integrations’ default author showing no user in the form builder on forms upgraded from Formie 3. Upgraded sites are repaired when migrations run. ([#3131](https://github.com/verbb/formie/issues/3131))
