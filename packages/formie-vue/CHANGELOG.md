@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added
+- Added `inputId`, `labelId` and `instructionsId` to custom `Field` components and field components, so a custom label can point at the field’s control. ([#3140](https://github.com/verbb/formie/issues/3140))
+
+### Changed
+- Field labels now point at their control with `for` instead of the control repeating the label in `aria-label`, and field instructions describe the control with `aria-describedby`. Controls rendered inside a custom `Field` component keep their `aria-label`. ([#3140](https://github.com/verbb/formie/issues/3140))
+- Radio options are now grouped with `role="radiogroup"` and Checkboxes options with `role="group"`, each named by the field label. The Agree checkbox is wrapped in `.formie-vue-agree` named by the field label, and keeps its description as its own label. ([#3140](https://github.com/verbb/formie/issues/3140))
+
 ## 4.0.10 - 2026-11-17
 
 ### Changed

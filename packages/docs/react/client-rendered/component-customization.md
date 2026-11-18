@@ -28,10 +28,10 @@ import {
   type FormieFieldComponentProps,
 } from '@verbb/formie-react';
 
-function Field({ field, errors, children }: FormieFieldProps) {
+function Field({ field, errors, inputId, children }: FormieFieldProps) {
   return (
     <div className="starter-component-card">
-      {field.label ? <label>{field.label}</label> : null}
+      {field.label ? <label htmlFor={inputId}>{field.label}</label> : null}
       {children}
       {errors.length ? (
         <ul>
@@ -42,10 +42,11 @@ function Field({ field, errors, children }: FormieFieldProps) {
   );
 }
 
-function TextField({ field, value, disabled, setValue }: FormieFieldComponentProps) {
+function TextField({ field, value, disabled, inputId, setValue }: FormieFieldComponentProps) {
   return (
     <input
       type="text"
+      id={inputId}
       value={typeof value === 'string' ? value : ''}
       disabled={disabled}
       placeholder={typeof field.input.placeholder === 'string' ? field.input.placeholder : undefined}
@@ -71,6 +72,12 @@ export function ContactForm() {
   );
 }
 ```
+
+## Labels and Accessibility
+
+Each field gets IDs that link its label, instructions and errors to its control. Custom `Field` components and field components both receive them as props: `inputId` for the control, `labelId` for the label, `instructionsId` for the instructions and `errorId` for the error list. The default `Field` component gives its label `htmlFor={inputId}`, and the default controls use these IDs, so clicking a label focuses its control and screen readers announce the instructions with it.
+
+In the example above, the custom label points at `inputId` and the custom text input uses it as its `id`. Radio, Checkboxes and Agree fields have several controls, so the default controls group them with `role="group"` (`radiogroup` for Radio) and name the group with `aria-labelledby` pointing at `labelId`. When you replace the `Field` component, the default controls also name themselves with `aria-label`, so they stay accessible even if your label doesn't use these IDs.
 
 ## Top-Level Components
 

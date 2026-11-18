@@ -55,6 +55,9 @@ export type FormieFieldProps = {
     errors: string[];
     errorId: string;
     errorAriaLive: ClientErrorAriaLive;
+    inputId: string;
+    labelId: string;
+    instructionsId: string;
 };
 export type FormieErrorSummaryProps = {
     errors: string[];
@@ -66,6 +69,9 @@ export type FormieFieldComponentProps = {
     errorKey: string;
     errorId: string;
     errorAriaLive: ClientErrorAriaLive;
+    inputId: string;
+    labelId: string;
+    instructionsId: string;
     disabled: boolean;
     hidden: boolean;
     setValue: (value: unknown) => void;

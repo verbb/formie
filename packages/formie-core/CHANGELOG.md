@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Added `getClientFieldIds()`, `getClientFieldLabelTarget()` and `joinIdReferences()` for linking a field’s label, instructions and errors to its control. ([#3140](https://github.com/verbb/formie/issues/3140))
 - Added `projectElementConditionValues()`, which turns selected element IDs into the titles or URLs a condition compares.
 
 ### Fixed

@@ -51,6 +51,16 @@ file_put_contents(dirname(__DIR__, 2) . '/.cache/verbb-tests/sent-notification-b
     ->headingField('section', ['label' => 'Your details', 'headingSize' => 'h3'])
     ->singleLineTextField('visitorName', ['label' => 'Visitor name'])
     ->create();
+\verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Accessibility contract', 'handle' => 'accessibilityContract'])
+    ->settings(['disableCaptchas' => true])
+    ->singleLineTextField('visitorName', ['label' => 'Visitor name', 'required' => true, 'instructions' => 'As it appears on your ID.'])
+    ->emailField('visitorEmail', ['label' => 'Visitor email'])
+    ->multiLineTextField('message', ['label' => 'Message', 'required' => true])
+    ->dropdownField('enquiry', ['label' => 'Enquiry', 'required' => true, 'options' => [['label' => 'General', 'value' => 'general'], ['label' => 'Other', 'value' => 'other']]])
+    ->radioField('contactMethod', ['label' => 'Contact method', 'required' => true, 'instructions' => 'Pick one.', 'options' => [['label' => 'Phone', 'value' => 'phone'], ['label' => 'Post', 'value' => 'post']]])
+    ->checkboxesField('topics', ['label' => 'Topics', 'options' => [['label' => 'News', 'value' => 'news'], ['label' => 'Events', 'value' => 'events']]])
+    ->agreeField('newsletter', ['label' => 'Newsletter', 'required' => true, 'description' => \verbb\formie\models\RichText::fromHtml('<p>Yes, send me updates.</p>')])
+    ->create();
 \Tests\Support\UploadTestHelper::ensureUploadVolume();
 $journey =\verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Browser journey', 'handle' => 'browserJourney'])
     ->multiPage(2)->onPage(1)

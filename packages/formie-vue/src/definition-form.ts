@@ -5,7 +5,9 @@ import {
     compositePartDefinitions,
     createClientFormInstance,
     getClientErrorAriaLive,
-    getClientFieldErrorId,
+    getClientFieldIds,
+    getClientFieldLabelTarget,
+    joinIdReferences,
     createGraphqlClientTransport,
     createRepeaterRowValue,
     createRestClientTransport,
@@ -111,6 +113,9 @@ export type FormieFieldProps = {
     errors: string[];
     errorId: string;
     errorAriaLive: ClientErrorAriaLive;
+    inputId: string;
+    labelId: string;
+    instructionsId: string;
 };
 
 export type FormieErrorSummaryProps = {
@@ -124,6 +129,9 @@ export type FormieFieldComponentProps = {
     errorKey: string;
     errorId: string;
     errorAriaLive: ClientErrorAriaLive;
+    inputId: string;
+    labelId: string;
+    instructionsId: string;
     disabled: boolean;
     hidden: boolean;
     setValue: (value: unknown) => void;
@@ -175,6 +183,18 @@ const fieldComponentProps = {
     errorAriaLive: {
         type: String as PropType<ClientErrorAriaLive>,
         default: 'polite',
+    },
+    inputId: {
+        type: String,
+        default: '',
+    },
+    labelId: {
+        type: String,
+        default: '',
+    },
+    instructionsId: {
+        type: String,
+        default: '',
     },
     disabled: {
         type: Boolean,
@@ -283,6 +303,10 @@ function resolveFieldModule(field: ClientFieldDefinition, definition: ClientForm
     return definition.modules.entries.find((module) => refs.has(module.key) && module.moduleId === moduleId) || null;
 }
 
+function isDefaultFieldWrapper(context: FormieDefinitionContextValue): boolean {
+    return !context.components.value.Field;
+}
+
 function renderSlotWrapper(context: FormieDefinitionContextValue, slotKey: string, child: VNode | null, attributes?: Record<string, unknown>) {
     if (!child) {
         return null;
@@ -348,12 +372,33 @@ const DefaultField = defineComponent({
             type: String as PropType<ClientErrorAriaLive>,
             required: true,
         },
+        inputId: {
+            type: String,
+            default: '',
+        },
+        labelId: {
+            type: String,
+            default: '',
+        },
+        instructionsId: {
+            type: String,
+            default: '',
+        },
     },
     setup(props, componentContext) {
         const context = useDefinitionContext();
 
         return () => {
             const children = componentContext.slots.default?.() || [];
+            const labelAttributes = {
+                class: 'formie-vue-label',
+                id: props.labelId || undefined,
+                for: props.inputId && getClientFieldLabelTarget(props.field, resolveFieldRendererType(props.field)) === 'control' ? props.inputId : undefined,
+            };
+            const instructionsAttributes = {
+                class: 'formie-vue-description',
+                id: props.instructionsId || undefined,
+            };
 
             return h('div', {
                 class: 'formie-vue-field',
@@ -362,19 +407,13 @@ const DefaultField = defineComponent({
                 'data-formie-field-type': props.field.type,
             }, [
                 props.field.label && !isFieldLabelHidden(props.field)
-                    ? renderSlotWrapper(context, 'label', h('label', {
-                        class: 'formie-vue-label',
-                    }, props.field.label), {
-                        class: 'formie-vue-label',
-                    })
+                    ? renderSlotWrapper(context, 'label', h('label', labelAttributes, props.field.label), labelAttributes)
                     : null,
                 props.field.instructions
                     ? renderSlotWrapper(context, 'instructions', h('div', {
-                        class: 'formie-vue-description',
+                        ...instructionsAttributes,
                         innerHTML: props.field.instructions,
-                    }), {
-                        class: 'formie-vue-description',
-                    })
+                    }), instructionsAttributes)
                     : null,
                 renderSlotWrapper(context, 'input', h('div', {
                     class: 'formie-vue-input',
@@ -699,6 +738,8 @@ const FileFieldInput = defineComponent({
     name: 'FormieVueFileFieldInput',
     props: fieldComponentProps,
     setup(props) {
+        const context = useDefinitionContext();
+
         return () => {
             const contract = props.field.input;
             const files = Array.isArray(props.value) ? props.value : [];
@@ -725,7 +766,7 @@ const FileFieldInput = defineComponent({
                 h('input', {
                     key: 'input',
                     type: 'file',
-                    ...errorReferenceAttributes(props.errors, props.errorId),
+                    ...controlAttributes(props.field, controlLabelling(props, isDefaultFieldWrapper(context))),
                     disabled: props.disabled,
                     multiple,
                     onChange: (event: Event) => {
@@ -769,7 +810,8 @@ const ConfigFieldNode = defineComponent({
             const rendererType = resolveFieldRendererType(props.field);
             const renderer = context.fieldComponents.value[props.field.type] || context.fieldComponents.value[rendererType] || DefaultFieldInput;
             const FieldComponent = context.components.value.Field || DefaultField;
-            const errorId = getClientFieldErrorId(state.session, props.errorKey);
+            const ids = getClientFieldIds(state.session, props.errorKey);
+            const errorId = ids.errors;
             const errorAriaLive = getClientErrorAriaLive(state.definition);
 
             return h(FieldComponent, {
@@ -777,6 +819,9 @@ const ConfigFieldNode = defineComponent({
                 errors: props.errors,
                 errorId,
                 errorAriaLive,
+                inputId: ids.input,
+                labelId: ids.label,
+                instructionsId: ids.instructions,
             }, {
                 default: () => [
                     h(renderer, {
@@ -786,6 +831,9 @@ const ConfigFieldNode = defineComponent({
                         errorKey: props.errorKey,
                         errorId,
                         errorAriaLive,
+                        inputId: ids.input,
+                        labelId: ids.label,
+                        instructionsId: ids.instructions,
                         disabled: props.disabled,
                         hidden,
                         setValue: props.setValue,
@@ -1004,13 +1052,59 @@ function errorReferenceAttributes(errors: string[], errorId: string) {
     } : {};
 }
 
-function renderNestedFieldInput(field: ClientFieldDefinition, value: unknown, disabled: boolean, setValue: (value: unknown) => void, errors: string[] = [], errorId = '') {
+type ControlLabelling = {
+    errors: string[];
+    errorId: string;
+    inputId: string;
+    labelId: string;
+    instructionsId: string;
+    // The default Field wrapper renders the label and instructions these IDs point to. A custom wrapper
+    // may not, so controls fall back to naming themselves.
+    labelledByWrapper: boolean;
+};
+
+function controlLabelling(props: FormieFieldComponentProps, labelledByWrapper: boolean): ControlLabelling {
+    return {
+        errors: props.errors,
+        errorId: props.errorId,
+        inputId: props.inputId,
+        labelId: props.labelId,
+        instructionsId: props.instructionsId,
+        labelledByWrapper: labelledByWrapper && Boolean(props.field.label),
+    };
+}
+
+function instructionsReference(field: ClientFieldDefinition, labelling: ControlLabelling) {
+    return labelling.labelledByWrapper && field.instructions ? labelling.instructionsId : null;
+}
+
+function controlAttributes(field: ClientFieldDefinition, labelling: ControlLabelling) {
+    const hasErrors = labelling.errors.length > 0;
+
+    return {
+        id: labelling.inputId || undefined,
+        'aria-label': labelling.labelledByWrapper ? undefined : field.label || field.handle,
+        'aria-invalid': hasErrors ? 'true' : undefined,
+        'aria-errormessage': hasErrors ? labelling.errorId : undefined,
+        'aria-describedby': joinIdReferences(instructionsReference(field, labelling), hasErrors && labelling.errorId),
+    };
+}
+
+function groupAttributes(field: ClientFieldDefinition, labelling: ControlLabelling, role: 'group' | 'radiogroup') {
+    return {
+        role,
+        'aria-labelledby': labelling.labelledByWrapper ? labelling.labelId : undefined,
+        'aria-label': labelling.labelledByWrapper ? undefined : field.label || field.handle,
+        'aria-describedby': joinIdReferences(instructionsReference(field, labelling)),
+    };
+}
+
+function renderNestedFieldInput(field: ClientFieldDefinition, value: unknown, disabled: boolean, setValue: (value: unknown) => void, labelling: ControlLabelling) {
     const contract = field.input;
 
     if (field.type === 'multi-line-text') {
         return h('textarea', {
-        'aria-label': field.label || field.handle,
-        ...errorReferenceAttributes(errors, errorId),
+            ...controlAttributes(field, labelling),
             value: typeof value === 'string' ? value : '',
             disabled,
             placeholder: typeof contract.placeholder === 'string' ? contract.placeholder : undefined,
@@ -1026,8 +1120,7 @@ function renderNestedFieldInput(field: ClientFieldDefinition, value: unknown, di
         const multiple = contract.multiple === true;
 
         return h('select', {
-        'aria-label': field.label || field.handle,
-        ...errorReferenceAttributes(errors, errorId),
+            ...controlAttributes(field, labelling),
             value: multiple ? undefined : (typeof value === 'string' ? value : ''),
             disabled,
             multiple,
@@ -1057,8 +1150,7 @@ function renderNestedFieldInput(field: ClientFieldDefinition, value: unknown, di
         : (field.type === 'email' ? 'email' : (field.type === 'phone' ? 'tel' : (field.type === 'number' ? 'number' : 'text')));
 
     return h('input', {
-        'aria-label': field.label || field.handle,
-        ...errorReferenceAttributes(errors, errorId),
+        ...controlAttributes(field, labelling),
         type: inputType,
         value: typeof value === 'string' || typeof value === 'number' ? String(value) : '',
         disabled,
@@ -1081,9 +1173,12 @@ const DefaultFieldInput = defineComponent({
     name: 'FormieVueDefaultFieldInput',
     props: fieldComponentProps,
     setup(props) {
+        const context = useDefinitionContext();
+
         return () => {
             const contract = props.field.input;
             const rendererType = resolveFieldRendererType(props.field);
+            const labelling = controlLabelling(props, isDefaultFieldWrapper(context));
 
             if (isCompositeField(props.field)) {
                 return h(CompositeFieldInput, props);
@@ -1102,7 +1197,7 @@ const DefaultFieldInput = defineComponent({
             }
 
             if (rendererType === 'multi-line-text' || rendererType === 'dropdown') {
-                return renderNestedFieldInput(props.field, props.value, props.disabled, props.setValue, props.errors, props.errorId);
+                return renderNestedFieldInput(props.field, props.value, props.disabled, props.setValue, labelling);
             }
 
             if (rendererType === 'radio') {
@@ -1110,6 +1205,7 @@ const DefaultFieldInput = defineComponent({
 
                 return h('div', {
                     class: 'formie-vue-choices',
+                    ...groupAttributes(props.field, labelling, 'radiogroup'),
                 }, options.map((option) => {
                     const optionValue = String(option.value ?? '');
                     const optionDisabled = props.disabled || option.disabled === true;
@@ -1140,6 +1236,7 @@ const DefaultFieldInput = defineComponent({
 
                 return h('div', {
                     class: 'formie-vue-choices',
+                    ...groupAttributes(props.field, labelling, 'group'),
                 }, options.map((option) => {
                     const optionValue = String(option.value ?? '');
                     const checked = selectedValues.includes(optionValue);
@@ -1172,28 +1269,35 @@ const DefaultFieldInput = defineComponent({
             if (rendererType === 'agree') {
                 const descriptionHtml = typeof contract.descriptionHtml === 'string' ? contract.descriptionHtml : null;
 
-                return h('label', {
-                    class: 'formie-vue-boolean',
+                // As in server-rendered forms, the field label names the group and the description labels the checkbox.
+                return h('div', {
+                    class: 'formie-vue-agree',
+                    ...groupAttributes(props.field, labelling, 'group'),
                 }, [
-                    h('input', {
-                        key: 'input',
-                        type: 'checkbox',
-                        ...errorReferenceAttributes(props.errors, props.errorId),
-                        checked: props.value === true,
-                        disabled: props.disabled,
-                        onChange: (event: Event) => {
-                            const target = event.target as HTMLInputElement;
-                            props.setValue(target.checked);
-                        },
-                    }),
-                    descriptionHtml
-                        ? h('span', {
-                            key: 'description',
-                            innerHTML: descriptionHtml,
-                        })
-                        : h('span', {
-                            key: 'description',
-                        }, props.field.label),
+                    h('label', {
+                        class: 'formie-vue-boolean',
+                    }, [
+                        h('input', {
+                            key: 'input',
+                            type: 'checkbox',
+                            id: props.inputId || undefined,
+                            ...errorReferenceAttributes(props.errors, props.errorId),
+                            checked: props.value === true,
+                            disabled: props.disabled,
+                            onChange: (event: Event) => {
+                                const target = event.target as HTMLInputElement;
+                                props.setValue(target.checked);
+                            },
+                        }),
+                        descriptionHtml
+                            ? h('span', {
+                                key: 'description',
+                                innerHTML: descriptionHtml,
+                            })
+                            : h('span', {
+                                key: 'description',
+                            }, props.field.label),
+                    ]),
                 ]);
             }
 
@@ -1211,7 +1315,7 @@ const DefaultFieldInput = defineComponent({
                 }, `Unsupported field type: ${String(props.field.meta?.fieldType ?? props.field.type)}`);
             }
 
-            return renderNestedFieldInput(props.field, props.value, props.disabled, props.setValue, props.errors, props.errorId);
+            return renderNestedFieldInput(props.field, props.value, props.disabled, props.setValue, labelling);
         };
     },
 });

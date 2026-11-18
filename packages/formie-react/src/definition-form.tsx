@@ -6,7 +6,9 @@ import {
     createRepeaterRowValue,
     createClientFormInstance,
     getClientErrorAriaLive,
-    getClientFieldErrorId,
+    getClientFieldIds,
+    getClientFieldLabelTarget,
+    joinIdReferences,
     createGraphqlClientTransport,
     createRestClientTransport,
     isCompositeField,
@@ -104,6 +106,9 @@ export type FormieFieldProps = {
     errors: string[];
     errorId: string;
     errorAriaLive: ClientErrorAriaLive;
+    inputId: string;
+    labelId: string;
+    instructionsId: string;
     children?: ReactNode;
 };
 
@@ -118,6 +123,9 @@ export type FormieFieldComponentProps = {
     errorKey: string;
     errorId: string;
     errorAriaLive: ClientErrorAriaLive;
+    inputId: string;
+    labelId: string;
+    instructionsId: string;
     disabled: boolean;
     hidden: boolean;
     setValue(value: unknown): void;
@@ -205,7 +213,7 @@ function DefaultErrorSummary({ errors }: FormieErrorSummaryProps) {
     })));
 }
 
-function DefaultField({ field, errors, errorId, errorAriaLive, children }: FormieFieldProps) {
+function DefaultField({ field, errors, errorId, errorAriaLive, inputId, labelId, instructionsId, children }: FormieFieldProps) {
     const { slots } = useDefinitionContext();
 
     const renderSlot = (slotKey: string, child: ReactNode, attributes?: Record<string, unknown>) => {
@@ -231,10 +239,13 @@ function DefaultField({ field, errors, errorId, errorAriaLive, children }: Formi
         field.label && !isFieldLabelHidden(field) ? renderSlot('label', createElement('label', {
             key: 'label',
             className: 'formie-react-label',
+            id: labelId || undefined,
+            htmlFor: inputId && getClientFieldLabelTarget(field, resolveFieldRendererType(field)) === 'control' ? inputId : undefined,
         }, field.label)) : null,
         field.instructions ? renderSlot('instructions', createElement('div', {
             key: 'instructions',
             className: 'formie-react-description',
+            id: instructionsId || undefined,
             dangerouslySetInnerHTML: { __html: field.instructions },
         })) : null,
         renderSlot('input', createElement('div', {
@@ -351,13 +362,59 @@ function errorReferenceAttributes(errors: string[], errorId: string) {
     } : {};
 }
 
-function renderNestedFieldInput(field: ClientFieldDefinition, value: unknown, disabled: boolean, setValue: (value: unknown) => void, errors: string[] = [], errorId = ''): ReactNode {
+type ControlLabelling = {
+    errors: string[];
+    errorId: string;
+    inputId: string;
+    labelId: string;
+    instructionsId: string;
+    // The default Field wrapper renders the label and instructions these IDs point to. A custom wrapper
+    // may not, so controls fall back to naming themselves.
+    labelledByWrapper: boolean;
+};
+
+function controlLabelling(props: Pick<FormieFieldComponentProps, 'field' | 'errors' | 'errorId' | 'inputId' | 'labelId' | 'instructionsId'>, labelledByWrapper: boolean): ControlLabelling {
+    return {
+        errors: props.errors,
+        errorId: props.errorId,
+        inputId: props.inputId,
+        labelId: props.labelId,
+        instructionsId: props.instructionsId,
+        labelledByWrapper: labelledByWrapper && Boolean(props.field.label),
+    };
+}
+
+function instructionsReference(field: ClientFieldDefinition, labelling: ControlLabelling) {
+    return labelling.labelledByWrapper && field.instructions ? labelling.instructionsId : null;
+}
+
+function controlAttributes(field: ClientFieldDefinition, labelling: ControlLabelling) {
+    const hasErrors = labelling.errors.length > 0;
+
+    return {
+        id: labelling.inputId || undefined,
+        'aria-label': labelling.labelledByWrapper ? undefined : field.label || field.handle,
+        'aria-invalid': hasErrors ? 'true' as const : undefined,
+        'aria-errormessage': hasErrors ? labelling.errorId : undefined,
+        'aria-describedby': joinIdReferences(instructionsReference(field, labelling), hasErrors && labelling.errorId),
+    };
+}
+
+function groupAttributes(field: ClientFieldDefinition, labelling: ControlLabelling, role: 'group' | 'radiogroup') {
+    return {
+        role,
+        'aria-labelledby': labelling.labelledByWrapper ? labelling.labelId : undefined,
+        'aria-label': labelling.labelledByWrapper ? undefined : field.label || field.handle,
+        'aria-describedby': joinIdReferences(instructionsReference(field, labelling)),
+    };
+}
+
+function renderNestedFieldInput(field: ClientFieldDefinition, value: unknown, disabled: boolean, setValue: (value: unknown) => void, labelling: ControlLabelling): ReactNode {
     const contract = field.input;
 
     if (field.type === 'multi-line-text') {
         return createElement('textarea', {
-        'aria-label': field.label || field.handle,
-        ...errorReferenceAttributes(errors, errorId),
+            ...controlAttributes(field, labelling),
             value: typeof value === 'string' ? value : '',
             disabled,
             placeholder: typeof contract.placeholder === 'string' ? contract.placeholder : undefined,
@@ -373,8 +430,7 @@ function renderNestedFieldInput(field: ClientFieldDefinition, value: unknown, di
         const multiple = contract.multiple === true;
 
         return createElement('select', {
-        'aria-label': field.label || field.handle,
-        ...errorReferenceAttributes(errors, errorId),
+            ...controlAttributes(field, labelling),
             value: multiple ? undefined : (typeof value === 'string' ? value : ''),
             disabled,
             multiple,
@@ -404,8 +460,7 @@ function renderNestedFieldInput(field: ClientFieldDefinition, value: unknown, di
         : (field.type === 'email' ? 'email' : (field.type === 'phone' ? 'tel' : (field.type === 'number' ? 'number' : 'text')));
 
     return createElement('input', {
-        'aria-label': field.label || field.handle,
-        ...errorReferenceAttributes(errors, errorId),
+        ...controlAttributes(field, labelling),
         type: inputType,
         value: typeof value === 'string' ? value : '',
         disabled,
@@ -626,11 +681,10 @@ function CompositeFieldInput({
 function FileFieldInput({
     field,
     value,
-    errors,
-    errorId,
+    labelling,
     disabled,
     setValue,
-}: Pick<FormieFieldComponentProps, 'field' | 'value' | 'errors' | 'errorId' | 'disabled' | 'setValue'>) {
+}: Pick<FormieFieldComponentProps, 'field' | 'value' | 'disabled' | 'setValue'> & { labelling: ControlLabelling }) {
     const contract = field.input;
     const files = Array.isArray(value) ? value : [];
     const multiple = contract.multiple === true;
@@ -656,7 +710,7 @@ function FileFieldInput({
         createElement('input', {
             key: 'input',
             type: 'file',
-            ...errorReferenceAttributes(errors, errorId),
+            ...controlAttributes(field, labelling),
             disabled,
             multiple,
             onChange: (event: Event) => {
@@ -759,10 +813,11 @@ function RepeaterFieldInput({
     ]);
 }
 
-function defaultFieldRenderer(props: FormieFieldComponentProps): ReactNode {
+function defaultFieldRenderer(props: FormieFieldComponentProps, labelledByWrapper = true): ReactNode {
     const { field, value, errorKey, errorId, disabled, setValue } = props;
     const contract = field.input;
     const rendererType = resolveFieldRendererType(field);
+    const labelling = controlLabelling(props, labelledByWrapper);
 
     if (isCompositeField(field)) {
         return createElement(CompositeFieldInput, {
@@ -788,8 +843,7 @@ function defaultFieldRenderer(props: FormieFieldComponentProps): ReactNode {
         return createElement(FileFieldInput, {
             field,
             value,
-            errors: props.errors,
-            errorId,
+            labelling,
             disabled,
             setValue,
         });
@@ -806,11 +860,11 @@ function defaultFieldRenderer(props: FormieFieldComponentProps): ReactNode {
     }
 
     if (rendererType === 'multi-line-text') {
-        return renderNestedFieldInput(field, value, disabled, setValue, props.errors, errorId);
+        return renderNestedFieldInput(field, value, disabled, setValue, labelling);
     }
 
     if (rendererType === 'dropdown') {
-        return renderNestedFieldInput(field, value, disabled, setValue, props.errors, errorId);
+        return renderNestedFieldInput(field, value, disabled, setValue, labelling);
     }
 
     if (rendererType === 'radio') {
@@ -818,6 +872,7 @@ function defaultFieldRenderer(props: FormieFieldComponentProps): ReactNode {
 
         return createElement('div', {
             className: 'formie-react-choices',
+            ...groupAttributes(field, labelling, 'radiogroup'),
         }, options.map((option) => {
             const optionValue = String(option.value ?? '');
             const optionDisabled = disabled || option.disabled === true;
@@ -846,6 +901,7 @@ function defaultFieldRenderer(props: FormieFieldComponentProps): ReactNode {
 
         return createElement('div', {
             className: 'formie-react-choices',
+            ...groupAttributes(field, labelling, 'group'),
         }, options.map((option) => {
             const optionValue = String(option.value ?? '');
             const checked = selectedValues.includes(optionValue);
@@ -876,12 +932,17 @@ function defaultFieldRenderer(props: FormieFieldComponentProps): ReactNode {
     if (rendererType === 'agree') {
         const descriptionHtml = typeof contract.descriptionHtml === 'string' ? contract.descriptionHtml : null;
 
-        return createElement('label', {
+        // As in server-rendered forms, the field label names the group and the description labels the checkbox.
+        return createElement('div', {
+            className: 'formie-react-agree',
+            ...groupAttributes(field, labelling, 'group'),
+        }, createElement('label', {
             className: 'formie-react-boolean',
         }, [
             createElement('input', {
                 key: 'input',
                 type: 'checkbox',
+                id: props.inputId || undefined,
                 ...errorReferenceAttributes(props.errors, errorId),
                 checked: value === true,
                 disabled,
@@ -898,7 +959,7 @@ function defaultFieldRenderer(props: FormieFieldComponentProps): ReactNode {
                     },
                 })
                 : createElement('span', { key: 'description' }, field.label),
-        ]);
+        ]));
     }
 
     const display = displayFieldContent(field);
@@ -915,7 +976,7 @@ function defaultFieldRenderer(props: FormieFieldComponentProps): ReactNode {
         }, `Unsupported field type: ${String(field.meta?.fieldType ?? field.type)}`);
     }
 
-    return renderNestedFieldInput(field, value, disabled, setValue, props.errors, errorId);
+    return renderNestedFieldInput(field, value, disabled, setValue, labelling);
 }
 
 function ConfigFieldNode({
@@ -944,25 +1005,33 @@ function ConfigFieldNode({
     const rendererType = resolveFieldRendererType(field);
     const renderer = fieldComponents[field.type] || fieldComponents[rendererType] || defaultFieldRenderer;
     const Field = components.Field || DefaultField;
-    const errorId = getClientFieldErrorId(state.session, errorKey);
+    const ids = getClientFieldIds(state.session, errorKey);
+    const errorId = ids.errors;
     const errorAriaLive = getClientErrorAriaLive(state.definition);
+    const rendererProps: FormieFieldComponentProps = {
+        field,
+        value,
+        errors,
+        errorKey,
+        errorId,
+        errorAriaLive,
+        inputId: ids.input,
+        labelId: ids.label,
+        instructionsId: ids.instructions,
+        disabled,
+        hidden,
+        setValue,
+    };
 
     return createElement(Field, {
         field,
         errors,
         errorId,
         errorAriaLive,
-        children: renderer({
-            field,
-            value,
-            errors,
-            errorKey,
-            errorId,
-            errorAriaLive,
-            disabled,
-            hidden,
-            setValue,
-        }),
+        inputId: ids.input,
+        labelId: ids.label,
+        instructionsId: ids.instructions,
+        children: renderer === defaultFieldRenderer ? defaultFieldRenderer(rendererProps, !components.Field) : renderer(rendererProps),
     });
 }
 

@@ -183,9 +183,11 @@ document.body.append(el);
 
 Use **`registerField(tagName)`** when you want one custom element to wrap every field’s control. Formie sets **`field`** and **`errors`** and projects the built-in or registry control as **light DOM children**; use a **shadow root + `<slot>`** (as above) or your own projection so the control appears where you want.
 
+Formie also sets **`inputId`**, **`labelId`**, **`instructionsId`** and **`errorId`**, the IDs of the field's control, label, instructions and error list. The default field host uses them to link its label to the control with `for` and to describe the control with its instructions. A label inside a shadow root can't point at a control in the light DOM, so when you register a field host the default controls also name themselves with `aria-label`. If your host renders its label in the light DOM, give it `for` set to `inputId`.
+
 ## Field Controls
 
-Use **`registerFieldControl(fieldKey, tagName)`** when you only replace the control for a field type. Formie sets **`field`**, **`value`**, **`errorKey`**, **`disabled`**, and **`hidden`**, and listens for **`FORMIE_CONTROL_VALUE_EVENT`** with **`detail`** = the next value.
+Use **`registerFieldControl(fieldKey, tagName)`** when you only replace the control for a field type. Formie sets **`field`**, **`value`**, **`errorKey`**, **`errorId`**, **`inputId`**, **`disabled`**, and **`hidden`**, and listens for **`FORMIE_CONTROL_VALUE_EVENT`** with **`detail`** = the next value. Give your input the `inputId` as its `id` so the default field label points at it.
 
 ```js
 import {

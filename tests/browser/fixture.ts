@@ -19,16 +19,20 @@ const observations: unknown[] = [];
 for (const name of ['formie:browser:module:mount', 'formie:browser:module:error', 'formie:browser:module:delegated']) document.addEventListener(name, (event) => observations.push({ name, ...(event as CustomEvent).detail, target: undefined }));
 (globalThis as any).moduleObservations = observations;
 const host = document.querySelector('#host')!;
+// `custom=field` replaces the whole Field wrapper with one that renders an unlinked label.
+const custom = query.get('custom');
+const reactCustom = custom === 'field' ? { components: { Field: ({ field, children }: any) => createElement('div', { 'data-custom-field': field.handle }, field.label ? createElement('label', null, field.label) : null, children) } } : {};
+const vueCustom = custom === 'field' ? { components: { Field: { props: ['field', 'errors', 'errorId', 'errorAriaLive'], setup: (props: any, { slots }: any) => () => h('div', { 'data-custom-field': props.field.handle }, [props.field.label ? h('label', props.field.label) : null, slots.default?.()]) } } } : {};
 let teardown: (() => void) | undefined;
 function mount() {
     teardown?.();
     host.replaceChildren();
     if (adapter === 'react') {
         const root = createRoot(host);
-        root.render(serverRendered ? createElement(ReactServerForm, { transport, profile, endpoint: source.endpoint, formHandle: source.formHandle }) : createElement(ReactForm, { source }));
+        root.render(serverRendered ? createElement(ReactServerForm, { transport, profile, endpoint: source.endpoint, formHandle: source.formHandle }) : createElement(ReactForm, { source, ...reactCustom }));
         teardown = () => root.unmount();
     } else if (adapter === 'vue') {
-        const app = createApp({ render: () => serverRendered ? h(VueServerForm, { transport, profile, endpoint: source.endpoint, formHandle: source.formHandle }) : h(VueForm, { source }) });
+        const app = createApp({ render: () => serverRendered ? h(VueServerForm, { transport, profile, endpoint: source.endpoint, formHandle: source.formHandle }) : h(VueForm, { source, ...vueCustom }) });
         app.mount(host);
         teardown = () => app.unmount();
     } else {

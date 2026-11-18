@@ -31,11 +31,12 @@ const Field = defineComponent({
   props: {
     field: { type: Object, required: true },
     errors: { type: Array as () => string[], required: true },
+    inputId: { type: String, default: '' },
   },
   setup(props, { slots }) {
     return () =>
       h('div', { class: 'starter-component-card' }, [
-        props.field.label ? h('label', props.field.label) : null,
+        props.field.label ? h('label', { for: props.inputId }, props.field.label) : null,
         slots.default?.(),
         props.errors.length
           ? h(
@@ -56,12 +57,14 @@ const TextField = defineComponent({
     field: { type: Object, required: true },
     value: { default: undefined },
     disabled: { type: Boolean, default: false },
+    inputId: { type: String, default: '' },
     setValue: { type: Function as unknown as () => (v: unknown) => void, required: true },
   },
   setup(props) {
     return () =>
       h('input', {
         type: 'text',
+        id: props.inputId,
         value: typeof props.value === 'string' ? props.value : '',
         disabled: props.disabled,
         placeholder:
@@ -87,6 +90,12 @@ const TextField = defineComponent({
   />
 </template>
 ```
+
+## Labels and Accessibility
+
+Each field gets IDs that link its label, instructions and errors to its control. Custom `Field` components and field components both receive them as props: `inputId` for the control, `labelId` for the label, `instructionsId` for the instructions and `errorId` for the error list. The default `Field` component gives its label `for="inputId"`, and the default controls use these IDs, so clicking a label focuses its control and screen readers announce the instructions with it.
+
+In the example above, the custom label points at `inputId` and the custom text input uses it as its `id`. Radio, Checkboxes and Agree fields have several controls, so the default controls group them with `role="group"` (`radiogroup` for Radio) and name the group with `aria-labelledby` pointing at `labelId`. When you replace the `Field` component, the default controls also name themselves with `aria-label`, so they stay accessible even if your label doesn't use these IDs.
 
 ## Top-Level Components
 

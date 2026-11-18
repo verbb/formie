@@ -3,7 +3,9 @@ import {
     compositePartDefinitions,
     createRepeaterRowValue,
     getClientErrorAriaLive,
-    getClientFieldErrorId,
+    getClientFieldIds,
+    getClientFieldLabelTarget,
+    joinIdReferences,
     isCompositeField,
     isFileField,
     displayFieldContent,
@@ -12,6 +14,7 @@ import {
     isRepeatableField,
     repeaterRowDefinitions,
     type ClientFieldDefinition,
+    type ClientFieldElementIds,
     type ClientErrorAriaLive,
     type ClientFormDefinition,
     type ClientFormInstance,
@@ -52,7 +55,7 @@ function bindRegistryControlHost(
     value: unknown,
     errorKey: string,
     errors: string[],
-    errorId: string,
+    ids: ClientFieldElementIds,
     errorAriaLive: ClientErrorAriaLive,
     disabled: boolean,
     hidden: boolean,
@@ -78,7 +81,10 @@ function bindRegistryControlHost(
     el.value = value;
     el.errorKey = errorKey;
     el.errors = errors;
-    el.errorId = errorId;
+    el.errorId = ids.errors;
+    el.inputId = ids.input;
+    el.labelId = ids.label;
+    el.instructionsId = ids.instructions;
     el.errorAriaLive = errorAriaLive;
     el.disabled = disabled;
     el.hidden = hidden;
@@ -91,7 +97,7 @@ function renderRegistryControl(
     value: unknown,
     errorKey: string,
     errors: string[],
-    errorId: string,
+    ids: ClientFieldElementIds,
     errorAriaLive: ClientErrorAriaLive,
     disabled: boolean,
     hidden: boolean,
@@ -100,7 +106,7 @@ function renderRegistryControl(
     return html`<div
         class="starter-core-registry-host min-w-0"
         ${ref((host) => {
-            bindRegistryControlHost(host, registryTag, field, value, errorKey, errors, errorId, errorAriaLive, disabled, hidden, onChange);
+            bindRegistryControlHost(host, registryTag, field, value, errorKey, errors, ids, errorAriaLive, disabled, hidden, onChange);
         })}
     ></div>`;
 }
@@ -109,56 +115,80 @@ function wrapField(
     ctx: RenderViewContext,
     field: ClientFieldDefinition,
     errors: string[],
-    errorId: string,
+    ids: ClientFieldElementIds,
     errorAriaLive: ClientErrorAriaLive,
     control: TemplateResult,
     layout: 'default' | 'compositePart' = 'default',
 ): TemplateResult {
     if (layout === 'compositePart') {
-        return wrapCompositePartField(field, errors, errorId, errorAriaLive, control);
+        return wrapCompositePartField(field, errors, ids, errorAriaLive, control);
     }
 
     const tag = ctx.registry.fieldTag;
 
     if (!tag) {
-        return wrapDefaultField(field, errors, errorId, errorAriaLive, control);
+        return wrapDefaultField(field, errors, ids, errorAriaLive, control);
     }
 
     const s = st(tag);
 
-    return staticHtml`<${s} .field=${field} .errors=${errors} .errorId=${errorId} .errorAriaLive=${errorAriaLive}>${control}</${s}>`;
+    return staticHtml`<${s} .field=${field} .errors=${errors} .errorId=${ids.errors} .inputId=${ids.input} .labelId=${ids.label} .instructionsId=${ids.instructions} .errorAriaLive=${errorAriaLive}>${control}</${s}>`;
+}
+
+function labelFor(field: ClientFieldDefinition, ids: ClientFieldElementIds) {
+    return getClientFieldLabelTarget(field, resolveFieldRendererType(field)) === 'control' ? ids.input : nothing;
 }
 
 /** Matches Vue starter name-part layout: one bordered card on the parent, parts inside the grid. */
-function wrapCompositePartField(field: ClientFieldDefinition, errors: string[], errorId: string, errorAriaLive: ClientErrorAriaLive, control: TemplateResult): TemplateResult {
+function wrapCompositePartField(field: ClientFieldDefinition, errors: string[], ids: ClientFieldElementIds, errorAriaLive: ClientErrorAriaLive, control: TemplateResult): TemplateResult {
     return html`
         <div class="starter-component-subfield" data-formie-field-type=${field.type} data-formie-field-uid=${field.uid} data-formie-field-handle=${field.handle}>
             ${field.label
-                ? html`<label class="starter-component-subfield-label">${field.label}</label>`
+                ? html`<label class="starter-component-subfield-label" id=${ids.label} for=${labelFor(field, ids)}>${field.label}</label>`
                 : nothing}
             <div class="starter-component-injected-control grid gap-2 text-slate-900">${control}</div>
-            <ul id=${errorId} data-formie-field-errors aria-live=${errorAriaLive === 'off' ? nothing : errorAriaLive} aria-atomic=${errorAriaLive === 'off' ? nothing : 'true'} style=${errors.length === 0 ? 'position: absolute' : nothing} class="grid gap-1 text-sm text-red-600">
+            <ul id=${ids.errors} data-formie-field-errors aria-live=${errorAriaLive === 'off' ? nothing : errorAriaLive} aria-atomic=${errorAriaLive === 'off' ? nothing : 'true'} style=${errors.length === 0 ? 'position: absolute' : nothing} class="grid gap-1 text-sm text-red-600">
                 ${errors.map((err) => html`<li>${err}</li>`)}
             </ul>
         </div>
     `;
 }
 
-function wrapDefaultField(field: ClientFieldDefinition, errors: string[], errorId: string, errorAriaLive: ClientErrorAriaLive, control: TemplateResult): TemplateResult {
+function wrapDefaultField(field: ClientFieldDefinition, errors: string[], ids: ClientFieldElementIds, errorAriaLive: ClientErrorAriaLive, control: TemplateResult): TemplateResult {
     return html`
         <div class="starter-component-card" data-formie-field-type=${field.type} data-formie-field-uid=${field.uid} data-formie-field-handle=${field.handle}>
             ${field.label && !isFieldLabelHidden(field)
-                ? html`<label class="starter-component-label">${field.label}</label>`
+                ? html`<label class="starter-component-label" id=${ids.label} for=${labelFor(field, ids)}>${field.label}</label>`
                 : nothing}
             ${field.instructions
-                ? html`<div class="starter-component-help">${unsafeHTML(field.instructions)}</div>`
+                ? html`<div class="starter-component-help" id=${ids.instructions}>${unsafeHTML(field.instructions)}</div>`
                 : nothing}
             <div class="starter-component-injected-control grid gap-2 text-slate-900">${control}</div>
-            <ul id=${errorId} data-formie-field-errors aria-live=${errorAriaLive === 'off' ? nothing : errorAriaLive} aria-atomic=${errorAriaLive === 'off' ? nothing : 'true'} style=${errors.length === 0 ? 'position: absolute' : nothing} class="grid gap-1 text-sm text-red-600">
+            <ul id=${ids.errors} data-formie-field-errors aria-live=${errorAriaLive === 'off' ? nothing : errorAriaLive} aria-atomic=${errorAriaLive === 'off' ? nothing : 'true'} style=${errors.length === 0 ? 'position: absolute' : nothing} class="grid gap-1 text-sm text-red-600">
                 ${errors.map((err) => html`<li>${err}</li>`)}
             </ul>
         </div>
     `;
+}
+
+type ControlLabelling = {
+    errors: string[];
+    ids: ClientFieldElementIds;
+    // The default field wrapper renders the label and instructions these IDs point to. A custom field
+    // element may not, so controls fall back to naming themselves.
+    labelledByWrapper: boolean;
+};
+
+function instructionsReference(field: ClientFieldDefinition, labelling: ControlLabelling) {
+    return labelling.labelledByWrapper && field.instructions ? labelling.ids.instructions : null;
+}
+
+function describedBy(field: ClientFieldDefinition, labelling: ControlLabelling) {
+    return joinIdReferences(instructionsReference(field, labelling), labelling.errors.length > 0 && labelling.ids.errors) ?? nothing;
+}
+
+function ownName(field: ClientFieldDefinition, labelling: ControlLabelling) {
+    return labelling.labelledByWrapper ? nothing : field.label || field.handle;
 }
 
 function renderNestedInput(
@@ -166,18 +196,20 @@ function renderNestedInput(
     value: unknown,
     disabled: boolean,
     setValue: (v: unknown) => void,
-    errors: string[] = [],
-    errorId = '',
+    labelling: ControlLabelling,
 ): TemplateResult {
     const contract = field.input;
+    const errors = labelling.errors;
+    const errorId = labelling.ids.errors;
 
     if (field.type === 'multi-line-text') {
         return html`
             <textarea
-            aria-label=${field.label || field.handle}
+            id=${labelling.ids.input}
+            aria-label=${ownName(field, labelling)}
             aria-invalid=${errors.length > 0 ? "true" : nothing}
             aria-errormessage=${errors.length > 0 ? errorId : nothing}
-            aria-describedby=${errors.length > 0 ? errorId : nothing}
+            aria-describedby=${describedBy(field, labelling)}
                 class="starter-component-control"
                 .value=${typeof value === 'string' ? value : ''}
                 ?disabled=${disabled}
@@ -195,10 +227,11 @@ function renderNestedInput(
 
         return html`
             <select
-            aria-label=${field.label || field.handle}
+            id=${labelling.ids.input}
+            aria-label=${ownName(field, labelling)}
             aria-invalid=${errors.length > 0 ? "true" : nothing}
             aria-errormessage=${errors.length > 0 ? errorId : nothing}
-            aria-describedby=${errors.length > 0 ? errorId : nothing}
+            aria-describedby=${describedBy(field, labelling)}
                 class="starter-component-control"
                 ?disabled=${disabled}
                 multiple=${multiple}
@@ -240,10 +273,11 @@ function renderNestedInput(
 
     return html`
         <input
-            aria-label=${field.label || field.handle}
+            id=${labelling.ids.input}
+            aria-label=${ownName(field, labelling)}
             aria-invalid=${errors.length > 0 ? "true" : nothing}
             aria-errormessage=${errors.length > 0 ? errorId : nothing}
-            aria-describedby=${errors.length > 0 ? errorId : nothing}
+            aria-describedby=${describedBy(field, labelling)}
             class="starter-component-control"
             type=${inputType}
             .value=${typeof value === 'string' ? value : ''}
@@ -256,10 +290,17 @@ function renderNestedInput(
     `;
 }
 
-function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps): TemplateResult {
+function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps & { ids: ClientFieldElementIds; labelledByWrapper: boolean }): TemplateResult {
     const { field, value, errorKey, disabled, setValue } = props;
     const contract = field.input;
     const rendererType = resolveFieldRendererType(field);
+    const labelling: ControlLabelling = {
+        errors: props.errors,
+        ids: props.ids,
+        labelledByWrapper: props.labelledByWrapper && Boolean(field.label),
+    };
+    const groupLabelledBy = labelling.labelledByWrapper ? props.ids.label : nothing;
+    const groupDescribedBy = joinIdReferences(instructionsReference(field, labelling)) ?? nothing;
 
     if (isCompositeField(field)) {
         return renderComposite(ctx, props);
@@ -270,7 +311,7 @@ function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps): Te
     }
 
     if (isFileField(field)) {
-        return renderFile(field, value, disabled, setValue, props.errors, props.errorId);
+        return renderFile(field, value, disabled, setValue, labelling);
     }
 
     if (rendererType === 'signature') {
@@ -289,14 +330,14 @@ function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps): Te
     }
 
     if (rendererType === 'multi-line-text' || rendererType === 'dropdown') {
-        return renderNestedInput(field, value, disabled, setValue, props.errors, props.errorId);
+        return renderNestedInput(field, value, disabled, setValue, labelling);
     }
 
     if (rendererType === 'radio') {
         const options = Array.isArray(contract.options) ? (contract.options as Array<Record<string, unknown>>) : [];
 
         return html`
-            <div class="flex flex-col gap-2">
+            <div class="flex flex-col gap-2" role="radiogroup" aria-labelledby=${groupLabelledBy} aria-label=${ownName(field, labelling)} aria-describedby=${groupDescribedBy}>
                 ${options.map((option) => {
                     const optionValue = String(option.value ?? '');
                     const optionDisabled = disabled || option.disabled === true;
@@ -328,7 +369,7 @@ function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps): Te
         const selected = Array.isArray(value) ? value.map((x) => String(x)) : [];
 
         return html`
-            <div class="flex flex-col gap-2">
+            <div class="flex flex-col gap-2" role="group" aria-labelledby=${groupLabelledBy} aria-label=${ownName(field, labelling)} aria-describedby=${groupDescribedBy}>
                 ${options.map((option) => {
                     const optionValue = String(option.value ?? '');
                     const checked = selected.includes(optionValue);
@@ -362,21 +403,25 @@ function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps): Te
     if (rendererType === 'agree') {
         const descriptionHtml = typeof contract.descriptionHtml === 'string' ? contract.descriptionHtml : null;
 
+        // As in server-rendered forms, the field label names the group and the description labels the checkbox.
         return html`
-            <label class="flex items-start gap-2 text-sm text-slate-800">
-                <input
-                    type="checkbox"
-                    aria-invalid=${props.errors.length > 0 ? 'true' : nothing}
-                    aria-errormessage=${props.errors.length > 0 ? props.errorId : nothing}
-                    aria-describedby=${props.errors.length > 0 ? props.errorId : nothing}
-                    .checked=${value === true}
-                    ?disabled=${disabled}
-                    @change=${(e: Event) => {
-                        setValue((e.target as HTMLInputElement).checked);
-                    }}
-                />
-                <span>${descriptionHtml ? unsafeHTML(descriptionHtml) : field.label ?? ''}</span>
-            </label>
+            <div role="group" aria-labelledby=${groupLabelledBy} aria-label=${ownName(field, labelling)} aria-describedby=${groupDescribedBy}>
+                <label class="flex items-start gap-2 text-sm text-slate-800">
+                    <input
+                        type="checkbox"
+                        id=${props.ids.input}
+                        aria-invalid=${props.errors.length > 0 ? 'true' : nothing}
+                        aria-errormessage=${props.errors.length > 0 ? props.errorId : nothing}
+                        aria-describedby=${props.errors.length > 0 ? props.errorId : nothing}
+                        .checked=${value === true}
+                        ?disabled=${disabled}
+                        @change=${(e: Event) => {
+                            setValue((e.target as HTMLInputElement).checked);
+                        }}
+                    />
+                    <span>${descriptionHtml ? unsafeHTML(descriptionHtml) : field.label ?? ''}</span>
+                </label>
+            </div>
         `;
     }
 
@@ -395,7 +440,7 @@ function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps): Te
         </div>`;
     }
 
-    return renderNestedInput(field, value, disabled, setValue, props.errors, props.errorId);
+    return renderNestedInput(field, value, disabled, setValue, labelling);
 }
 
 function renderFile(
@@ -403,9 +448,10 @@ function renderFile(
     value: unknown,
     disabled: boolean,
     setValue: (v: unknown) => void,
-    errors: string[] = [],
-    errorId = '',
+    labelling: ControlLabelling,
 ): TemplateResult {
+    const errors = labelling.errors;
+    const errorId = labelling.ids.errors;
     const contract = field.input;
     const files = Array.isArray(value) ? value : [];
     const multiple = contract.multiple === true;
@@ -429,9 +475,11 @@ function renderFile(
         <div class="grid gap-2">
             <input
                 type="file"
+                id=${labelling.ids.input}
+                aria-label=${ownName(field, labelling)}
                 aria-invalid=${errors.length > 0 ? 'true' : nothing}
                 aria-errormessage=${errors.length > 0 ? errorId : nothing}
-                aria-describedby=${errors.length > 0 ? errorId : nothing}
+                aria-describedby=${describedBy(field, labelling)}
                 class="starter-component-control"
                 ?disabled=${disabled}
                 multiple=${multiple}
@@ -571,7 +619,8 @@ function renderFieldNode(
     }
 
     const rendererType = resolveFieldRendererType(field);
-    const errorId = getClientFieldErrorId(ctx.state.session, errorKey);
+    const ids = getClientFieldIds(ctx.state.session, errorKey);
+    const errorId = ids.errors;
     const errorAriaLive = getClientErrorAriaLive(ctx.state.definition);
     const regTag =
         ctx.registry.fieldControls[field.type] || ctx.registry.fieldControls[rendererType] || null;
@@ -582,10 +631,17 @@ function renderFieldNode(
     };
 
     const inner = regTag
-        ? renderRegistryControl(ctx, regTag, field, value, errorKey, errors, errorId, errorAriaLive, disabled, hidden, syncSet)
-        : renderDefaultControl(ctx, { ...props, errorId, errorAriaLive, setValue: syncSet });
+        ? renderRegistryControl(ctx, regTag, field, value, errorKey, errors, ids, errorAriaLive, disabled, hidden, syncSet)
+        : renderDefaultControl(ctx, {
+            ...props,
+            errorId,
+            errorAriaLive,
+            ids,
+            labelledByWrapper: fieldLayout === 'compositePart' || !ctx.registry.fieldTag,
+            setValue: syncSet,
+        });
 
-    return wrapField(ctx, field, errors, errorId, errorAriaLive, inner, fieldLayout);
+    return wrapField(ctx, field, errors, ids, errorAriaLive, inner, fieldLayout);
 }
 
 function renderNestedRow(

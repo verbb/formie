@@ -14,6 +14,12 @@ export type FormieFieldControlElement = HTMLElement & {
     errors: string[];
     errorId: string;
     errorAriaLive: ClientErrorAriaLive;
+    /** ID the default field wrapper's label points to with `for`. Give it to the form control. */
+    inputId?: string;
+    /** ID of the default field wrapper's label, for `aria-labelledby` on a group of controls. */
+    labelId?: string;
+    /** ID of the default field wrapper's instructions, for `aria-describedby`. */
+    instructionsId?: string;
     disabled: boolean;
     hidden: boolean;
 };
@@ -28,6 +34,10 @@ export type FormieFieldElement = HTMLElement & {
     errors: string[];
     errorId: string;
     errorAriaLive: ClientErrorAriaLive;
+    /** Give the label `for` this ID to link it to the default control. */
+    inputId?: string;
+    labelId?: string;
+    instructionsId?: string;
 };
 
 /** Keys for optional custom elements that replace default layout regions on `<formie-client-form>`. */

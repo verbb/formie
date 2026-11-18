@@ -43,8 +43,8 @@ export {
     serializeTransportFieldValues,
 } from './schema.js';
 export { countGraphemes, getTextLimitMetrics, getWordCount, normalizeText } from './text.js';
-export { getClientErrorAriaLive, getClientFieldErrorId } from './accessibility.js';
-export type { ClientErrorAriaLive } from './accessibility.js';
+export { getClientErrorAriaLive, getClientFieldErrorId, getClientFieldIds, getClientFieldLabelTarget, joinIdReferences } from './accessibility.js';
+export type { ClientErrorAriaLive, ClientFieldElementIds, ClientFieldLabelTarget } from './accessibility.js';
 
 export type {
     ClientFieldDefinition,

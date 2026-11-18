@@ -7,8 +7,8 @@ export { buildActionUrl, createRestClientTransport, loadClientFormBootstrap } fr
 export { createGraphqlClientTransport, loadGraphqlClientFormBootstrap } from './graphql.js';
 export { allFields, compositePartDefinitions, createRepeaterRowValue, defaultValueForField, displayFieldContent, fieldValueContract, fieldValueStructure, fieldValueAsStrings, findFieldById, findFieldByHandle, isBooleanField, isCompositeField, isEmailField, isFileField, isFieldLabelHidden, isKnownClientFieldType, isMultiValueField, isNumericField, isRepeatableField, repeaterFieldDefinitions, repeaterRowDefinitions, serializeFieldValues, serializeTransportFieldValues, } from './schema.js';
 export { countGraphemes, getTextLimitMetrics, getWordCount, normalizeText } from './text.js';
-export { getClientErrorAriaLive, getClientFieldErrorId } from './accessibility.js';
-export type { ClientErrorAriaLive } from './accessibility.js';
+export { getClientErrorAriaLive, getClientFieldErrorId, getClientFieldIds, getClientFieldLabelTarget, joinIdReferences } from './accessibility.js';
+export type { ClientErrorAriaLive, ClientFieldElementIds, ClientFieldLabelTarget } from './accessibility.js';
 export type { ClientFieldDefinition, ClientFieldValueContract, ClientFieldValueStructure, ClientFieldType, ClientFieldValueType, ClientFormDefinition, ClientFormBootstrap, ClientFormSession, KnownClientFieldType, ClientPageDefinition, ClientRowDefinition, ClientFormEventName, ClientFormFieldState, ClientFormInstance, ClientFormPageState, ClientFormState, ClientSubmitAction, ClientSubmitResult, PaymentDecision, ClientTransport, } from './types.js';
 export { parseReference, serializeReference } from './references.js';
 export type { ReferenceExpression } from './references.js';
