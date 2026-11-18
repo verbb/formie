@@ -1,10 +1,10 @@
 import { f as e, h as t, m as n, p as r, u as i } from "./dist-Bcs1HXFR.js";
 import { t as a } from "./debug-rhzqP1j2.js";
-import { r as o, t as s } from "./field-references.keys-58ZSTrCW.js";
-import { n as c, r as l } from "./field-references.resolver-CPNxQUYG.js";
-import { i as u, n as d } from "./shared-CJ1LIEh3.js";
+import { n as o, r as s, t as c } from "./field-references.keys-58ZSTrCW.js";
+import { n as l, r as u } from "./field-references.resolver-CPNxQUYG.js";
+import { i as d, n as f } from "./shared-CJ1LIEh3.js";
 //#region src/js/utils/field-references.row-scope.ts
-var f = /* @__PURE__ */ new Set([
+var p = /* @__PURE__ */ new Set([
 	"first",
 	"last",
 	"index",
@@ -12,10 +12,10 @@ var f = /* @__PURE__ */ new Set([
 	"count",
 	"rows"
 ]);
-function p(e) {
+function m(e) {
 	return e.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
-function m(e, t) {
+function h(e, t) {
 	let n = String(e || "").trim().toLowerCase();
 	if (!n || t <= 0) return [];
 	if (n === "even") {
@@ -49,8 +49,8 @@ function m(e, t) {
 		Number.isFinite(a) && a >= 1 && a <= t && i.push(a - 1);
 	}), [...new Set(i)].sort((e, t) => e - t);
 }
-function h(e) {
-	let t = o(e), n = t.split(".").filter(Boolean);
+function g(e) {
+	let t = s(e), n = t.split(".").filter(Boolean);
 	return n.length < 2 ? {
 		fieldKey: t,
 		columnKey: n[n.length - 1] || ""
@@ -62,20 +62,20 @@ function h(e) {
 		columnKey: n.slice(1).join(".")
 	};
 }
-function g(e, t, n) {
-	let r = RegExp(`^${p(e)}\\.(\\d+)\\.${p(t)}$`);
+function _(e, t, n) {
+	let r = RegExp(`^${m(e)}\\.(\\d+)\\.${m(t)}$`);
 	return [...n.keys()].filter((e) => r.test(e)).sort((e, t) => Number.parseInt(e.split(".")[1] || "0", 10) - Number.parseInt(t.split(".")[1] || "0", 10));
 }
-function _(e, t) {
-	return c(e, t).value;
+function v(e, t) {
+	return l(e, t).value;
 }
-function v(e, t, n) {
-	let r = /* @__PURE__ */ new Set(), { fieldKey: i, columnKey: a } = h(e), o = String(t.scope || "").trim().toLowerCase();
-	if (!i || !a || !f.has(o)) {
-		let t = s(e);
+function y(e, t, n) {
+	let r = /* @__PURE__ */ new Set(), { fieldKey: i, columnKey: a } = g(e), o = String(t.scope || "").trim().toLowerCase();
+	if (!i || !a || !p.has(o)) {
+		let t = c(e);
 		return t && (r.add(t), r.add(`${t}[]`)), r;
 	}
-	return g(i, a, n).forEach((e) => {
+	return _(i, a, n).forEach((e) => {
 		let t = n.get(e);
 		if (t?.names?.length) {
 			t.names.forEach((e) => {
@@ -83,16 +83,16 @@ function v(e, t, n) {
 			});
 			return;
 		}
-		let i = s(e);
+		let i = c(e);
 		i && (r.add(i), r.add(`${i}[]`));
 	}), r;
 }
-function y(e, t, n) {
+function b(e, t, n) {
 	let r = String(t.scope || "").trim().toLowerCase();
-	if (!r || !f.has(r)) return c(e, n);
-	let { fieldKey: i, columnKey: a } = h(e);
-	if (!i || !a) return c(e, n);
-	let o = g(i, a, n), s = o.map((e) => _(e, n));
+	if (!r || !p.has(r)) return l(e, n);
+	let { fieldKey: i, columnKey: a } = g(e);
+	if (!i || !a) return l(e, n);
+	let o = _(i, a, n), s = o.map((e) => v(e, n));
 	if (r === "count") return {
 		key: `${i}.${a}`,
 		value: String(o.length),
@@ -110,7 +110,7 @@ function y(e, t, n) {
 	};
 	if (r === "index") {
 		let e = `${i}.${Number.parseInt(String(t.index ?? "0"), 10)}.${a}`;
-		return c(e, n);
+		return l(e, n);
 	}
 	if (r === "all") {
 		let e = s.flatMap((e) => Array.isArray(e) ? e : e === "" ? [] : [e]);
@@ -121,7 +121,7 @@ function y(e, t, n) {
 		};
 	}
 	if (r === "rows") {
-		let e = m(String(t.rows || ""), o.length);
+		let e = h(String(t.rows || ""), o.length);
 		if (e.length === 0) return {
 			key: `${i}.${a}`,
 			value: "",
@@ -142,12 +142,12 @@ function y(e, t, n) {
 			found: n.length > 0
 		};
 	}
-	return c(e, n);
+	return l(e, n);
 }
 //#endregion
 //#region src/js/modules/fields/calculations.ts
-var b = "input[data-formie-calculation-input]";
-function x(e) {
+var x = "input[data-formie-calculation-input]";
+function S(e) {
 	let t = e;
 	return {
 		scope: t.scope,
@@ -156,129 +156,145 @@ function x(e) {
 		fieldKind: t.fieldKind
 	};
 }
-var S = "calculations", C = a("fields", "calculations");
-function w(e, t, i) {
-	let a = l(e), o = {};
-	return t.forEach(([e, t]) => {
-		let n = x(t);
-		if (String(n.scope || "").trim()) {
-			let i = y(t.sourceKey || "", n, a);
-			o[e] = r(t, i.value);
-			return;
-		}
-		let i = c(t.sourceKey || "", a);
-		o[e] = r(t, i.value);
-	}), n(o, i.formatting);
+var C = "calculations";
+function w(e) {
+	let t = o(e.name).split(".").filter(Boolean);
+	return t.length >= 3 ? {
+		handle: t[0],
+		row: t[1]
+	} : null;
 }
 function T(e, t) {
-	let n = l(e), r = /* @__PURE__ */ new Set();
-	return t.forEach(([, e]) => {
-		let t = x(e);
-		if (String(t.scope || "").trim()) {
-			v(e.sourceKey || "", t, n).forEach((e) => {
-				r.add(e);
-			});
-			return;
-		}
-		let i = o(e.sourceKey || ""), a = n.get(i);
-		if (a?.names?.length) {
-			a.names.forEach((e) => {
-				r.add(e);
-			});
-			return;
-		}
-		let c = s(i);
-		c && (r.add(c), r.add(`${c}[]`));
-	}), r;
+	let n = s(e).split(".").filter(Boolean);
+	return !t || n.length < 2 || n[0] !== t.handle || /^\d+$/.test(n[1] || "") ? e : [
+		n[0],
+		t.row,
+		...n.slice(1)
+	].join(".");
 }
-function E(n, r, a, o) {
-	let s = e(o), c = t(o), l = /* @__PURE__ */ new Map(), u = null, f = !1, p = !1, m = !1, h = () => {
-		l.forEach((e, t) => {
+var E = a("fields", "calculations");
+function D(e, t, i, a = null) {
+	let o = u(e), s = {};
+	return t.forEach(([e, t]) => {
+		let n = S(t);
+		if (String(n.scope || "").trim()) {
+			let i = b(t.sourceKey || "", n, o);
+			s[e] = r(t, i.value);
+			return;
+		}
+		let i = l(T(t.sourceKey || "", a), o);
+		s[e] = r(t, i.value);
+	}), n(s, i.formatting);
+}
+function O(e, t, n = null) {
+	let r = u(e), i = /* @__PURE__ */ new Set();
+	return t.forEach(([, e]) => {
+		let t = S(e);
+		if (String(t.scope || "").trim()) {
+			y(e.sourceKey || "", t, r).forEach((e) => {
+				i.add(e);
+			});
+			return;
+		}
+		let a = s(T(e.sourceKey || "", n)), o = r.get(a);
+		if (o?.names?.length) {
+			o.names.forEach((e) => {
+				i.add(e);
+			});
+			return;
+		}
+		let l = c(a);
+		l && (i.add(l), i.add(`${l}[]`));
+	}), i;
+}
+function k(n, r, a, o) {
+	let s = e(o), c = t(o), l = w(a), u = /* @__PURE__ */ new Map(), d = null, p = !1, m = !1, h = !1, g = () => {
+		u.forEach((e, t) => {
 			e.forEach((e, n) => {
 				t.removeEventListener(n, e);
 			});
-		}), l.clear();
-	}, g = (e) => {
-		e && !f && queueMicrotask(() => {
-			f || (a.dispatchEvent(new Event("input", { bubbles: !0 })), a.dispatchEvent(new Event("change", { bubbles: !0 })));
+		}), u.clear();
+	}, _ = (e) => {
+		e && !p && queueMicrotask(() => {
+			p || (a.dispatchEvent(new Event("input", { bubbles: !0 })), a.dispatchEvent(new Event("change", { bubbles: !0 })));
 		});
-	}, _ = (e = !1) => {
-		let t = w(n, c, o);
-		C.log("Evaluate requested.", {
+	}, v = (e = !1) => {
+		let t = D(n, c, o, l);
+		E.log("Evaluate requested.", {
 			fieldHandle: r.getAttribute("data-formie-field-handle") || null,
 			isInit: e
 		});
-		let l = {
+		let u = {
 			calculations: a,
 			init: e,
 			formula: s,
 			variables: t
 		};
-		if (d(r, S, "before-evaluate", l), !l.formula) {
+		if (f(r, C, "before-evaluate", u), !u.formula) {
 			let e = a.value !== "";
-			a.value = "", g(e);
+			a.value = "", _(e);
 		} else try {
-			let t = i(l.formula, l.variables, o), n = {
+			let t = i(u.formula, u.variables, o), n = {
 				calculations: a,
 				init: e,
-				formula: l.formula,
-				variables: l.variables,
+				formula: u.formula,
+				variables: u.variables,
 				result: t
 			};
-			d(r, S, "after-evaluate", n);
+			f(r, C, "after-evaluate", n);
 			let s = typeof n.result == "string" || typeof n.result == "number" ? String(n.result) : "", c = a.value !== s;
-			a.value = s, C.log("Evaluate complete.", {
+			a.value = s, E.log("Evaluate complete.", {
 				fieldHandle: r.getAttribute("data-formie-field-handle") || null,
 				valueChanged: c,
 				nextValue: s
-			}), g(c);
+			}), _(c);
 		} catch (e) {
 			let t = a.value !== "";
-			console.error("[formie] Failed to evaluate calculation.", e), C.warn("Evaluate failed.", {
+			console.error("[formie] Failed to evaluate calculation.", e), E.warn("Evaluate failed.", {
 				fieldHandle: r.getAttribute("data-formie-field-handle") || null,
 				error: e instanceof Error ? e.message : e
-			}), a.value = "", g(t);
+			}), a.value = "", _(t);
 		}
-	}, v = (e = !1) => {
-		p || f || (p = !0, queueMicrotask(() => {
-			p = !1, _(e);
+	}, y = (e = !1) => {
+		m || p || (m = !0, queueMicrotask(() => {
+			m = !1, v(e);
 		}));
-	}, y = () => {
-		h();
-		let e = T(n, c);
-		if (C.log("Binding variable watchers.", {
+	}, b = () => {
+		g();
+		let e = O(n, c, l);
+		if (E.log("Binding variable watchers.", {
 			fieldHandle: r.getAttribute("data-formie-field-handle") || null,
 			watchCount: e.size
 		}), !e.size) return;
 		let t = (t) => {
 			let n = t.target?.name || "";
-			n && e.has(n) && (C.log("Source change detected.", {
+			n && e.has(n) && (E.log("Source change detected.", {
 				fieldHandle: r.getAttribute("data-formie-field-handle") || null,
 				sourceName: n,
 				eventType: t.type
-			}), v(!1));
+			}), y(!1));
 		};
 		["input", "change"].forEach((e) => {
 			n.addEventListener(e, t);
-			let r = l.get(n) || /* @__PURE__ */ new Map();
-			r.set(e, t), l.set(n, r);
+			let r = u.get(n) || /* @__PURE__ */ new Map();
+			r.set(e, t), u.set(n, r);
 		});
-	}, b = () => {
-		m || f || (m = !0, queueMicrotask(() => {
-			m = !1, y(), v(!1);
+	}, x = () => {
+		h || p || (h = !0, queueMicrotask(() => {
+			h = !1, b(), y(!1);
 		}));
 	};
-	return y(), u = new MutationObserver(() => {
-		b();
-	}), u.observe(n, {
+	return b(), d = new MutationObserver(() => {
+		x();
+	}), d.observe(n, {
 		childList: !0,
 		subtree: !0
-	}), _(!0), () => {
-		f = !0, u?.disconnect(), h();
+	}), v(!0), () => {
+		p = !0, d?.disconnect(), g();
 	};
 }
-var D = {
-	moduleId: `formie:${S}`,
+var A = {
+	moduleId: `formie:${C}`,
 	version: 2,
 	surfaces: [
 		"server-rendered",
@@ -286,23 +302,23 @@ var D = {
 		"cp-edit"
 	],
 	kind: "field",
-	match: (e) => !!e.target.querySelector(b),
+	match: (e) => !!e.target.querySelector(x),
 	setup: async (e) => {
-		let t = e.options || {}, n = u(e);
-		C.log("Module setup.", {
+		let t = e.options || {}, n = d(e);
+		E.log("Module setup.", {
 			fieldCount: n.length,
 			formatting: t.formatting || null
 		});
 		let r = n.map((n) => {
-			let r = n.querySelector(b);
-			return r instanceof HTMLInputElement ? E(e.root, n, r, t) : () => {};
+			let r = n.querySelector(x);
+			return r instanceof HTMLInputElement ? k(e.root, n, r, t) : () => {};
 		});
 		return await e.emit("formie:module:calculations:init", { count: r.length }), { destroy: () => {
-			C.log("Module destroy.", { fieldCount: r.length }), r.forEach((e) => {
+			E.log("Module destroy.", { fieldCount: r.length }), r.forEach((e) => {
 				e();
 			}), e.emit("formie:module:calculations:destroy", {});
 		} };
 	}
 };
 //#endregion
-export { D as calculationsModule };
+export { A as calculationsModule };

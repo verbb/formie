@@ -97,7 +97,10 @@ if ($path === '/browser-module-parity') {
 }
 if ($path === '/browser-rendered' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $fixture = json_decode(file_get_contents($runtime . '/browser-enabled.json'), true);
-    $form = \verbb\formie\elements\Form::find()->id($fixture[($_GET['method'] ?? '') === 'native' ? 'renderedNativeId' : 'renderedId'])->one();
+    // `form` renders another fixture form by handle with the same published assets.
+    $form = isset($_GET['form'])
+        ? \verbb\formie\elements\Form::find()->handle((string)$_GET['form'])->one()
+        : \verbb\formie\elements\Form::find()->id($fixture[($_GET['method'] ?? '') === 'native' ? 'renderedNativeId' : 'renderedId'])->one();
     $cached = isset($_GET['cached']);
     \verbb\formie\Formie::$plugin->getSettings()->staticCacheRefreshOnLoad = $cached;
     \verbb\formie\Formie::$plugin->getSettings()->compatibilityMode = ($_GET['compatibility'] ?? '1') !== '0';

@@ -1164,7 +1164,7 @@ var en = class {
 	snaptcha: () => import("./chunks/snaptcha-P3EoSQud.js").then((e) => e.snaptchaModule),
 	turnstile: () => import("./chunks/turnstile-DQF_MuTJ.js").then((e) => e.turnstileModule)
 }, on = {
-	calculations: () => import("./chunks/calculations-DALJNsQ6.js").then((e) => e.calculationsModule),
+	calculations: () => import("./chunks/calculations-CoaRU3Rx.js").then((e) => e.calculationsModule),
 	"checkbox-radio": () => import("./chunks/checkbox-radio-CSXo6svm.js").then((e) => e.checkboxRadioModule),
 	combobox: () => import("./chunks/combobox-By3jpAIt.js").then((e) => e.comboboxModule),
 	conditions: () => import("./chunks/conditions-D-nnw6uA.js").then((e) => e.conditionsModule),

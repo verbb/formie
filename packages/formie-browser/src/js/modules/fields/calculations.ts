@@ -11,7 +11,7 @@ import {
 
 import type { BrowserModuleDefinition } from '#contracts/modules';
 import { dispatchFieldEvent, getModuleFieldContainers } from '#modules/fields/shared';
-import { buildFieldValueRegistry, fieldKeyToInputName, normalizeFieldKey, resolveFieldReferenceLive } from '#utils/field-references';
+import { buildFieldValueRegistry, fieldKeyToInputName, inputNameToFieldKey, normalizeFieldKey, resolveFieldReferenceLive } from '#utils/field-references';
 import { getRowScopedWatchNames, resolveRowScopedFieldReference, type RowScopeParams } from '#utils/field-references.row-scope';
 import { createDebug } from '#utils/debug';
 
@@ -28,12 +28,34 @@ function getRowScopeParams(variable: CalculationVariable): RowScopeParams {
     };
 }
 const MODULE_ID = 'calculations';
+
+type RowContext = { handle: string; row: string };
+
+// A Calculations field in a Repeater row is named like `fields[items][2][total]`.
+function getRowContext(input: HTMLInputElement): RowContext | null {
+    const parts = inputNameToFieldKey(input.name).split('.').filter(Boolean);
+
+    return parts.length >= 3 ? { handle: parts[0], row: parts[1] } : null;
+}
+
+// A source from the calculation's own Repeater, such as `items.qty`, reads the calculation's row (`items.2.qty`).
+// Row scopes such as `scope:all` still read across rows.
+function sourceKeyForRow(sourceKey: string, row: RowContext | null): string {
+    const parts = normalizeFieldKey(sourceKey).split('.').filter(Boolean);
+
+    if (!row || parts.length < 2 || parts[0] !== row.handle || /^\d+$/.test(parts[1] || '')) {
+        return sourceKey;
+    }
+
+    return [parts[0], row.row, ...parts.slice(1)].join('.');
+}
 const debug = createDebug('fields', 'calculations');
 
 function resolveVariables(
     root: Element,
     variableEntries: CalculationVariableEntry[],
     options: CalculationOptions,
+    row: RowContext | null = null,
 ): Record<string, unknown> {
     const registry = buildFieldValueRegistry(root);
     const variables: Record<string, unknown> = {};
@@ -48,14 +70,14 @@ function resolveVariables(
             return;
         }
 
-        const resolved = resolveFieldReferenceLive(variable.sourceKey || '', registry);
+        const resolved = resolveFieldReferenceLive(sourceKeyForRow(variable.sourceKey || '', row), registry);
         variables[variableKey] = readCalculationVariableValue(variable, resolved.value);
     });
 
     return coerceCalculationVariables(variables, options.formatting);
 }
 
-function getWatchNames(root: Element, variableEntries: CalculationVariableEntry[]): Set<string> {
+function getWatchNames(root: Element, variableEntries: CalculationVariableEntry[], row: RowContext | null = null): Set<string> {
     const registry = buildFieldValueRegistry(root);
     const watchNames = new Set<string>();
 
@@ -71,7 +93,7 @@ function getWatchNames(root: Element, variableEntries: CalculationVariableEntry[
             return;
         }
 
-        const key = normalizeFieldKey(variable.sourceKey || '');
+        const key = normalizeFieldKey(sourceKeyForRow(variable.sourceKey || '', row));
         const entry = registry.get(key);
 
         if (entry?.names?.length) {
@@ -95,6 +117,7 @@ function getWatchNames(root: Element, variableEntries: CalculationVariableEntry[
 function bindCalculationsField(root: Element, field: HTMLElement, input: HTMLInputElement, options: CalculationOptions): () => void {
     const formula = getCalculationFormula(options);
     const variableEntries = getCalculationVariableEntries(options);
+    const row = getRowContext(input);
     const sourceBindings = new Map<EventTarget, Map<string, EventListener>>();
     let observer: MutationObserver | null = null;
     let destroyed = false;
@@ -127,7 +150,7 @@ function bindCalculationsField(root: Element, field: HTMLElement, input: HTMLInp
     };
 
     const evaluate = (isInit = false) => {
-        const variables = resolveVariables(root, variableEntries, options);
+        const variables = resolveVariables(root, variableEntries, options, row);
         debug.log('Evaluate requested.', {
             fieldHandle: field.getAttribute('data-formie-field-handle') || null,
             isInit,
@@ -198,7 +221,7 @@ function bindCalculationsField(root: Element, field: HTMLElement, input: HTMLInp
 
     const bindSources = () => {
         cleanupBindings();
-        const watchNames = getWatchNames(root, variableEntries);
+        const watchNames = getWatchNames(root, variableEntries, row);
         debug.log('Binding variable watchers.', {
             fieldHandle: field.getAttribute('data-formie-field-handle') || null,
             watchCount: watchNames.size,
