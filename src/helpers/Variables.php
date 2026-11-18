@@ -4,6 +4,7 @@ namespace verbb\formie\helpers;
 use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\Agree;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\models\Notification;
 use verbb\formie\references\BuiltinReferenceTransforms;
@@ -186,7 +187,8 @@ class Variables
 
             $allFields[] = $field;
 
-            if (!$field->isValueEmpty($value, $submission)) {
+            // An unticked Agree field still has content when its Unchecked Value is set, as in Formie 3.
+            if (!$field->isValueEmpty($value, $submission) || ($field instanceof Agree && !$value && (string)$field->uncheckedValue !== '')) {
                 $allContentFields[] = $field;
             }
 

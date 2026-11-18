@@ -1,7 +1,8 @@
 {% for field in fields %}
     {% set value = submission.getFieldValue(field.valueKey()) %}
+    {% set uncheckedAgree = field is instance of('verbb\\formie\\fields\\Agree') and not value and field.uncheckedValue|length %}
 
-    {% if not field.isValueEmpty(value, submission) and field.includeInEmailFieldSummaries and not field.isConditionallyHidden(submission) %}
+    {% if (uncheckedAgree or not field.isValueEmpty(value, submission)) and field.includeInEmailFieldSummaries and not field.isConditionallyHidden(submission) %}
         {{ formieInclude('field') }}
     {% endif %}
 {% endfor %}

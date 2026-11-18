@@ -82,7 +82,10 @@ final class ReferenceResolver
             throw new ReferenceException(ReferenceDiagnostic::InvalidOutput);
         }
 
-        return preg_replace_callback('/(?<!\{)\{[^{}]+\}(?!\})/', function(array $match) use ($context, $outputContext, $template, $allowFieldHtml): string {
+        $blocks = [];
+        $placeholder = "\0" . bin2hex(random_bytes(8)) . ':';
+
+        $html = preg_replace_callback('/(?<!\{)\{[^{}]+\}(?!\})/', function(array $match) use ($context, $outputContext, $template, $allowFieldHtml, &$blocks, $placeholder): string {
             [$token, $offset] = $match[0];
 
             // A reference starts with a letter, so anything else is unrelated brace text. Twig tags stay invalid.
@@ -145,11 +148,23 @@ final class ReferenceResolver
 
             if ($summary && $outputContext === ReferenceOutputContext::Html) {
                 // Only registered, field-owned summary templates can produce trusted block HTML.
-                return (string)$value;
+                $blocks[] = (string)$value;
+
+                return $placeholder . array_key_last($blocks) . "\0";
             }
 
             return $this->_encode($value, $outputContext);
         }, $template, flags: PREG_OFFSET_CAPTURE);
+
+        if (!$blocks) {
+            return $html;
+        }
+
+        // A block alone in a paragraph replaces it, as block HTML inside a `<p>` leaves an empty paragraph behind.
+        $token = preg_quote($placeholder, '/') . '(\d+)\x00';
+        $html = preg_replace('/<p\b[^>]*>\s*(?:<span\b[^>]*\bdata-type="variableTag"[^>]*>\s*' . $token . '\s*<\/span>|' . $token . ')\s*<\/p>/', $placeholder . '$1$2' . "\0", $html);
+
+        return preg_replace_callback('/' . $token . '/', static fn(array $match): string => $blocks[(int)$match[1]], $html);
     }
 
     public function fieldFor(string $identifier, ReferenceContext $context): ?FieldInterface
