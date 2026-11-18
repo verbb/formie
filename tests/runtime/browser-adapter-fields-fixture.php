@@ -52,14 +52,14 @@ if (!Craft::$app->getElements()->saveElement($fields)) {
 }
 
 \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Adapter required repeater', 'handle' => 'adapterRequiredRepeater'])
-    ->settings(['disableCaptchas' => true, 'submitMethod' => 'ajax'])
+    ->settings(['disableCaptchas' => true, 'submitMethod' => 'ajax', 'displayCurrentPageTitle' => true])
     ->repeaterField('items', ['label' => 'Items', 'required' => true, 'minRows' => 0, 'rows' => [['fields' => [
         ['type' => SingleLineText::class, 'handle' => 'itemName', 'label' => 'Item name'],
     ]]]])
     ->create();
 
 $pages = \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Adapter pages', 'handle' => 'adapterPages'])
-    ->settings(['disableCaptchas' => true, 'submitMethod' => 'ajax', 'completionBehavior' => 'message', 'hideFormAfterSubmit' => true])
+    ->settings(['disableCaptchas' => true, 'submitMethod' => 'ajax', 'completionBehavior' => 'message', 'hideFormAfterSubmit' => true, 'displayCurrentPageTitle' => true, 'displayPageProgress' => true, 'progressPosition' => 'start'])
     ->multiPage(2)->onPage(1)
     ->singleLineTextField('stepOne', ['label' => 'Step one', 'required' => true])
     ->onPage(2)
@@ -69,4 +69,33 @@ $pages->getPages()[1]->getPageSettings()->showBackButton = true;
 
 if (!Craft::$app->getElements()->saveElement($pages)) {
     throw new RuntimeException('Cannot save adapter pages fixture.');
+}
+
+$nested = \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Adapter nested calculations', 'handle' => 'adapterNestedCalculations'])
+    ->settings(['disableCaptchas' => true, 'submitMethod' => 'ajax'])
+    ->numberField('rate', ['label' => 'Rate'])
+    ->groupField('details', ['label' => 'Details', 'rows' => [['fields' => [
+        ['type' => \verbb\formie\fields\Number::class, 'handle' => 'hours', 'label' => 'Hours'],
+        ['type' => \verbb\formie\fields\Calculations::class, 'handle' => 'groupTotal', 'label' => 'Group total'],
+    ]]]])
+    ->repeaterField('items', ['label' => 'Items', 'minRows' => 2, 'rows' => [['fields' => [
+        ['type' => \verbb\formie\fields\Number::class, 'handle' => 'qty', 'label' => 'Qty'],
+        ['type' => \verbb\formie\fields\Calculations::class, 'handle' => 'rowTotal', 'label' => 'Row total'],
+    ]]]])
+    ->create();
+$rate = $nested->getFieldByHandle('rate')->reference;
+
+foreach (['details' => 'hours', 'items' => 'qty'] as $parentHandle => $sourceHandle) {
+    $children = $nested->getFieldByHandle($parentHandle)->getFields();
+    $source = current(array_filter($children, fn($child) => $child->handle === $sourceHandle));
+
+    foreach ($children as $child) {
+        if ($child instanceof \verbb\formie\fields\Calculations) {
+            $child->formula = RichText::from('{field:' . $rate . '} * {field:' . $source->reference . '}');
+        }
+    }
+}
+
+if (!Craft::$app->getElements()->saveElement($nested)) {
+    throw new RuntimeException('Cannot save adapter nested calculations fixture.');
 }

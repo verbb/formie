@@ -58,13 +58,15 @@ export {
     getClientFieldIds,
     getClientFieldLabelTarget,
     focusClientFormResult,
+    getClientPageProgress,
     getClientString,
+    showsClientPageTitle,
     isFieldLabelVisuallyHidden,
     joinIdReferences,
     VISUALLY_HIDDEN_CSS,
     VISUALLY_HIDDEN_STYLE,
 } from './accessibility.js';
-export type { ClientErrorAriaLive, ClientFieldElementIds, ClientFieldLabelTarget } from './accessibility.js';
+export type { ClientErrorAriaLive, ClientFieldElementIds, ClientFieldLabelTarget, ClientPageProgress } from './accessibility.js';
 
 export type {
     ClientFieldDefinition,

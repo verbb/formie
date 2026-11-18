@@ -17,7 +17,7 @@ export type KnownClientFieldType =
     | 'signature'
     | 'file';
 
-export type ClientStringKey = 'addRow' | 'remove' | 'removeRow' | 'clear' | 'clearSignature';
+export type ClientStringKey = 'addRow' | 'remove' | 'removeRow' | 'clear' | 'clearSignature' | 'progress';
 
 export type ClientFieldType = KnownClientFieldType | (string & {});
 
@@ -112,7 +112,11 @@ export type ClientFormDefinition = {
         progress?: {
             enabled: boolean;
             calculation: 'completion' | 'page-position' | string;
+            display?: boolean;
+            position?: 'start' | 'end' | string;
+            valuePosition?: 'inside-center' | 'inside-start' | 'inside-end' | 'left' | 'right' | 'hidden' | string;
         };
+        displayCurrentPageTitle?: boolean;
         strings?: Partial<Record<ClientStringKey, string>>;
     };
     pages: ClientPageDefinition[];

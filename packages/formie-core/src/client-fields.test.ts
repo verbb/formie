@@ -172,6 +172,53 @@ describe('client calculations', () => {
         expect(deriveCalculationValues(current).values[2]).toBeNull();
     });
 
+    it('works out Calculations fields in a Group and in each Repeater row', () => {
+        const calc = (handle: string, ref: string) => field('calculations', {}, { id: handle, handle, moduleRefs: [ref] });
+        const nested = {
+            definition: {
+                pages: [{ id: 'p', rows: [{ fields: [
+                    field('number', {}, { id: '1', handle: 'rate' }),
+                    field('group', { parts: [field('number', {}, { id: '21', handle: 'hours' }), calc('groupTotal', 'group')] }, {
+                        id: '2', handle: 'details', client: { children: { model: 'container-parent' }, valueType: { kind: 'object' } },
+                    }),
+                    field('repeater', { rowSchema: { rows: [{ fields: [field('number', {}, { id: '31', handle: 'qty' }), calc('rowTotal', 'row')] }] } }, {
+                        id: '3', handle: 'items', client: { children: { model: 'repeatable-parent' }, valueType: { kind: 'array' } },
+                    }),
+                ] }] }],
+                modules: { entries: [
+                    { key: 'group', moduleId: 'formie:calculations', config: { formula: { expression: 'field_rate * field_details_hours', variables: { field_rate: { sourceKey: 'rate' }, field_details_hours: { sourceKey: 'details.hours' } } } } },
+                    { key: 'row', moduleId: 'formie:calculations', config: { formula: { expression: 'field_rate * field_items_qty', variables: { field_rate: { sourceKey: 'rate' }, field_items_qty: { sourceKey: 'items.qty' } } } } },
+                ] },
+            },
+            values: { 1: '3', 2: { hours: '2', groupTotal: '' }, 3: [{ qty: '4', rowTotal: '' }, { qty: '5', rowTotal: '' }, { qty: '6', rowTotal: '' }] },
+            fieldStates: { '3.1.rowTotal': { hidden: true, disabled: false } },
+        } as unknown as ClientFormState;
+        const values = deriveCalculationValues(nested).values;
+
+        expect(values[2]).toEqual({ hours: '2', groupTotal: 6 });
+        // Each row reads its own Qty, and a hidden row field stays as it was.
+        expect(values[3]).toEqual([{ qty: '4', rowTotal: 12 }, { qty: '5', rowTotal: '' }, { qty: '6', rowTotal: 18 }]);
+
+        // A Group that conditions cleared isn't rebuilt with only its answer.
+        expect(deriveCalculationValues({ ...nested, values: { ...nested.values, 2: null } } as unknown as ClientFormState).values[2]).toBeNull();
+    });
+
+    it('stops a formula that reads itself after a pass per Calculations field', () => {
+        const looping = {
+            definition: {
+                pages: [{ id: 'p', rows: [{ fields: [
+                    field('repeater', { rowSchema: { rows: [{ fields: [field('calculations', {}, { id: '31', handle: 'rowTotal', moduleRefs: ['row'] })] }] } }, {
+                        id: '3', handle: 'items', client: { children: { model: 'repeatable-parent' }, valueType: { kind: 'array' } },
+                    }),
+                ] }] }],
+                modules: { entries: [{ key: 'row', moduleId: 'formie:calculations', config: { formula: { expression: 'field_items_rowTotal + 1', variables: { field_items_rowTotal: { sourceKey: 'items.rowTotal' } } } } }] },
+            },
+            values: { 3: Array.from({ length: 50 }, () => ({ rowTotal: 0 })) },
+        } as unknown as ClientFormState;
+
+        expect((deriveCalculationValues(looping).values[3] as Array<{ rowTotal: number }>)[0].rowTotal).toBe(2);
+    });
+
     it('picks Repeater rows by position, as the server-rendered module does', () => {
         const scoped = (variable: Record<string, unknown>) => ({
             definition: {

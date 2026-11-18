@@ -15,7 +15,9 @@ import {
     dropdownOptions,
     fieldOptions,
     focusClientFormResult,
+    getClientPageProgress,
     getClientString,
+    showsClientPageTitle,
     isArrayValuedField,
     isCalculationField,
     isFieldLabelVisuallyHidden,
@@ -331,14 +333,51 @@ function DefaultForm({ definition, session, state, children, className, onSubmit
 }
 
 function DefaultPage({ page, state, children }: FormiePageComponentProps) {
+    const showTitle = showsClientPageTitle(state.definition) && !!page.label;
+    const titleId = `formie-${state.session.tokens.render || state.session.id}-page-${page.id}-title`;
+
     return createElement('section', {
         'data-page-id': page.id,
         'data-formie-page-id': page.id,
         className: 'formie-react-page',
         // Focus moves here when the page changes, and the page name says where the visitor is.
         tabIndex: -1,
-        'aria-label': state.definition.pages.length > 1 && page.label ? page.label : undefined,
-    }, children);
+        'aria-labelledby': showTitle ? titleId : undefined,
+        'aria-label': !showTitle && state.definition.pages.length > 1 && page.label ? page.label : undefined,
+    }, showTitle ? createElement('h3', { id: titleId, className: 'formie-react-page-title' }, page.label) : null, children);
+}
+
+// The form's progress through its pages, shown as the server-rendered progress bar is.
+function renderProgress(state: ClientFormState): ReactNode {
+    const progress = getClientPageProgress(state.definition, state.currentPageId);
+
+    if (!progress) {
+        return null;
+    }
+
+    const value = createElement('span', { key: 'value', className: 'formie-react-progress-value', 'aria-hidden': 'true' }, `${progress.percent}%`);
+    const inside = !['left', 'right', 'hidden'].includes(progress.valuePosition);
+
+    return createElement('div', {
+        key: 'progress',
+        className: 'formie-react-progress',
+        'data-formie-progress-position': progress.position,
+        'data-formie-progress-value-position': progress.valuePosition,
+        // Themes use the state to keep the value inside the bar at 0% and 100%, as in server-rendered forms.
+        'data-formie-progress-state': progress.percent <= 0 ? 'start' : (progress.percent >= 100 ? 'end' : 'middle'),
+    }, [
+        progress.valuePosition === 'left' ? value : null,
+        createElement('div', {
+            key: 'track',
+            className: 'formie-react-progress-track',
+            role: 'progressbar',
+            'aria-label': getClientString(state.definition, 'progress'),
+            'aria-valuenow': progress.percent,
+            'aria-valuemin': 0,
+            'aria-valuemax': 100,
+        }, createElement('div', { className: 'formie-react-progress-bar', style: { width: `${progress.percent}%` } }, inside ? value : null)),
+        progress.valuePosition === 'right' ? value : null,
+    ]);
 }
 
 function useDefinitionContext(): FormieDefinitionContextValue {
@@ -1281,6 +1320,8 @@ function ConfigRenderer({ className }: { className?: string }) {
     }) || state.definition.pages.find((item) => state.pageStates[item.id]?.hidden !== true) || state.definition.pages[0];
     const errorMessage = state.lastSubmitResult?.messages.error;
     const shouldRenderStandaloneError = !!errorMessage && !state.errors.form.includes(errorMessage);
+    const pageShown = !(state.lastSubmitResult?.completion?.behavior === 'message' && state.lastSubmitResult.completion.hideForm);
+    const progressPosition = pageShown ? getClientPageProgress(state.definition, state.currentPageId)?.position : undefined;
 
     if (!page) {
         return null;
@@ -1315,7 +1356,8 @@ function ConfigRenderer({ className }: { className?: string }) {
                 tabIndex: -1,
                 'data-formie-form-message': true,
             }, errorMessage) : null,
-            !(state.lastSubmitResult?.completion?.behavior === 'message' && state.lastSubmitResult.completion.hideForm) ? createElement(PageComponent, {
+            progressPosition === 'start' ? renderProgress(state) : null,
+            pageShown ? createElement(PageComponent, {
                 key: page.id,
                 page,
                 state,
@@ -1330,6 +1372,7 @@ function ConfigRenderer({ className }: { className?: string }) {
                     createElement(ConfigPageActions, { key: 'actions' }),
                 ],
             }) : null,
+            progressPosition === 'end' ? renderProgress(state) : null,
         ],
     });
 }

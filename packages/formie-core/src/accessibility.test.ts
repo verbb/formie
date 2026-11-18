@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getClientErrorAriaLive, getClientFieldErrorId, getClientFieldIds, getClientFieldLabelTarget, joinIdReferences } from './accessibility';
+import { getClientErrorAriaLive, getClientFieldErrorId, getClientFieldIds, getClientFieldLabelTarget, getClientPageProgress, joinIdReferences, showsClientPageTitle } from './accessibility';
 import type { ClientFieldDefinition, ClientFormDefinition, ClientFormSession } from './types';
 
 describe('frontend field error accessibility', () => {
@@ -74,5 +74,29 @@ describe('frontend field error accessibility', () => {
     it('joins only the ids that are present', () => {
         expect(joinIdReferences('a', '', false, null, undefined, 'b')).toBe('a b');
         expect(joinIdReferences(false, undefined)).toBeUndefined();
+    });
+
+    it('works out page progress as server-rendered forms do', () => {
+        const definition = (progress: Record<string, unknown>, pages = 4) => ({
+            settings: { progress: { enabled: true, ...progress } },
+            pages: Array.from({ length: pages }, (_, index) => ({ id: String(index + 1) })),
+        }) as unknown as ClientFormDefinition;
+
+        expect(getClientPageProgress(definition({ display: false }), '1')).toBeNull();
+        expect(getClientPageProgress(definition({ display: true }, 1), '1')).toBeNull();
+        expect(getClientPageProgress(definition({ display: true, calculation: 'completion' }), '1')).toEqual({ percent: 0, position: 'end', valuePosition: 'inside-center' });
+        expect(getClientPageProgress(definition({ display: true, calculation: 'completion' }), '3')?.percent).toBe(50);
+        expect(getClientPageProgress(definition({ display: true, calculation: 'page-position', position: 'start', valuePosition: 'right' }), '2')).toEqual({ percent: 50, position: 'start', valuePosition: 'right' });
+    });
+
+    it('shows page titles on forms that ask for them, as server-rendered forms do', () => {
+        const definition = (displayCurrentPageTitle: boolean, pages: number) => ({
+            settings: { displayCurrentPageTitle },
+            pages: Array.from({ length: pages }, (_, index) => ({ id: String(index + 1) })),
+        }) as unknown as ClientFormDefinition;
+
+        expect(showsClientPageTitle(definition(true, 2))).toBe(true);
+        expect(showsClientPageTitle(definition(false, 2))).toBe(false);
+        expect(showsClientPageTitle(definition(true, 1))).toBe(true);
     });
 });

@@ -7,7 +7,8 @@
 - Added `projectElementConditionValues()`, which turns selected element IDs into the titles or URLs a condition compares.
 - Added `resolveClientRendererType()`, which picks the default control for fields without a built-in type, such as Recipients, Entries, Calculations and Address or Date parts, from their field kind.
 - Added `fieldOptions()`, `dropdownOptions()`, `isArrayValuedField()`, `tableColumns()`, `createTableRowValue()` and `isCalculationField()` for rendering option, element and Table fields.
-- Added `deriveCalculationValues()`, and client form instances now work out top-level Calculations fields from the form values, including Repeater and Table row scopes.
+- Added `deriveCalculationValues()`, and client form instances now work out Calculations fields from the form values, including those in Groups and Repeater rows and Repeater and Table row scopes. In a Repeater row, a source from the same Repeater is read from the calculation’s own row.
+- Added `getClientPageProgress()` and `showsClientPageTitle()`, and the client definition’s `settings.progress.display`, `position` and `valuePosition` and `settings.displayCurrentPageTitle`.
 - Added `parseRowsExpression()` for the row numbers a calculation picks.
 - Added `getClientString()`, `isFieldLabelVisuallyHidden()`, `focusClientFormResult()`, `VISUALLY_HIDDEN_STYLE` and `VISUALLY_HIDDEN_CSS` for translated button text, Hidden label positions and focus after a submit or page change.
 

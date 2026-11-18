@@ -72,6 +72,7 @@ const CLIENT_STRING_FALLBACKS: Record<ClientStringKey, string> = {
     removeRow: 'Remove row',
     clear: 'Clear',
     clearSignature: 'Clear signature',
+    progress: 'Progress',
 };
 
 /**
@@ -121,4 +122,40 @@ export function focusClientFormResult(form: Element | null | undefined, previous
     const target = invalid || message || (pageChanged && page ? (page.hasAttribute('tabindex') ? page : page.querySelector<HTMLElement>(focusable)) : null);
 
     target?.focus();
+}
+
+export type ClientPageProgress = {
+    percent: number;
+    position: 'start' | 'end';
+    valuePosition: string;
+};
+
+/**
+ * The progress bar for a multi-page form, when the form shows one. As in server-rendered forms, Completion counts
+ * the pages before the current one and Page Position includes it.
+ */
+export function getClientPageProgress(definition: Pick<ClientFormDefinition, 'settings' | 'pages'>, currentPageId: string): ClientPageProgress | null {
+    const progress = definition.settings.progress;
+    const total = definition.pages.length;
+
+    if (!progress?.display || total < 2) {
+        return null;
+    }
+
+    const index = Math.max(0, definition.pages.findIndex((page) => page.id === currentPageId));
+    const completed = progress.calculation === 'page-position' ? index + 1 : index;
+
+    return {
+        percent: Math.round((completed / total) * 100),
+        position: progress.position === 'start' ? 'start' : 'end',
+        valuePosition: progress.valuePosition || 'inside-center',
+    };
+}
+
+/**
+ * Whether the current page shows its name as a heading, from the form's Display Current Page Title setting. As in
+ * server-rendered forms, this applies to single-page forms too.
+ */
+export function showsClientPageTitle(definition: Pick<ClientFormDefinition, 'settings'>): boolean {
+    return definition.settings.displayCurrentPageTitle === true;
 }

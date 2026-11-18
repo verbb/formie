@@ -7,6 +7,7 @@
 - Added `inputId`, `labelId` and `instructionsId` to custom field hosts and field controls, so a custom label can point at the field’s control. ([#3140](https://github.com/verbb/formie/issues/3140))
 - Added Address Country, Date dropdown parts, Group, Table, Recipients and Section fields, and Entries, Categories and other element fields, which showed “Unsupported field type”. Fields without a control of their own use the `dropdown`, `radio` or `checkboxes` renderer, so a component registered for one of those renders them too. Element fields send a list of IDs from all three. Survey fields with Likert, Rank, Rating or text display types still show “Unsupported field type”.
 - Added `role="alert"` to the form error summary and error message, and `role="status"` to the completion message. Focus moves to the first invalid field, then to these messages, and to the new page after a page change.
+- Added the page title (`.starter-core-page-title`) for forms that turn on **Display Current Page Title**, and the progress bar (`.starter-core-progress`, with `role="progressbar"` and `data-formie-progress-state`) for multi-page forms that turn on **Display Page Progress**, placed and worked out as in server-rendered forms. The page is named by its title. A custom page host renders its own title, using `showsClientPageTitle()` from `@verbb/formie-core`.
 - Added `autocomplete` to inputs that have an autocomplete hint, and kept labels in the **Hidden** position in the page, visually hidden, so they still name their control.
 
 ### Changed
@@ -18,7 +19,7 @@
 
 ### Fixed
 - Fixed every Dropdown field rendering as a multi-select list, and every File Upload field accepting several files, even when the field allows only one.
-- Fixed Calculations fields never showing their answer, and accepting typing. Calculations fields inside a Group or Repeater are still left empty.
+- Fixed Calculations fields never showing their answer, and accepting typing, including in Groups and Repeater rows.
 - Fixed Dropdown fields without a placeholder showing no option, and multi-select Dropdown fields not showing their default options as selected. A Dropdown without an empty option now starts on its first option, as server-rendered forms do.
 - Fixed the Signature pad having no accessible name.
 - Fixed choosing a Radio option in one Repeater row clearing the same field in another row, as every row shared one `name`.

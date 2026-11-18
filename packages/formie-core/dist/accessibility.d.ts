@@ -49,4 +49,19 @@ export declare const VISUALLY_HIDDEN_CSS = "position:absolute;width:1px;height:1
  * message (an error summary or completion notice), then to the new page when the page changed.
  */
 export declare function focusClientFormResult(form: Element | null | undefined, previousPageId?: string | null): void;
+export type ClientPageProgress = {
+    percent: number;
+    position: 'start' | 'end';
+    valuePosition: string;
+};
+/**
+ * The progress bar for a multi-page form, when the form shows one. As in server-rendered forms, Completion counts
+ * the pages before the current one and Page Position includes it.
+ */
+export declare function getClientPageProgress(definition: Pick<ClientFormDefinition, 'settings' | 'pages'>, currentPageId: string): ClientPageProgress | null;
+/**
+ * Whether the current page shows its name as a heading, from the form's Display Current Page Title setting. As in
+ * server-rendered forms, this applies to single-page forms too.
+ */
+export declare function showsClientPageTitle(definition: Pick<ClientFormDefinition, 'settings'>): boolean;
 //# sourceMappingURL=accessibility.d.ts.map

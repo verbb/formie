@@ -8,7 +8,8 @@
 
 ### Fixed
 - Fixed Address Country, Date dropdown parts, Group, Table, Recipients and Section fields, and Entries, Categories and other element fields, showing “Unsupported field type” in client-rendered forms built with `@verbb/formie-vue`, `@verbb/formie-react` or the Formie web components. A form with a Recipients field couldn’t be submitted.
-- Fixed Calculations fields never showing their answer, and accepting typing, in client-rendered forms built with `@verbb/formie-vue`, `@verbb/formie-react` or the Formie web components. Calculations fields inside a Group or Repeater are still left empty there.
+- Fixed Calculations fields never showing their answer, and accepting typing, in client-rendered forms built with `@verbb/formie-vue`, `@verbb/formie-react` or the Formie web components. This includes Calculations fields in Groups and Repeater rows, where a field from the same Repeater is read from the calculation’s own row.
+- Fixed client-rendered forms built with `@verbb/formie-vue`, `@verbb/formie-react` or the Formie web components not showing the page title of forms that turn on **Display Current Page Title**, or the progress bar of multi-page forms that turn on **Display Page Progress**.
 - Fixed Dropdown fields showing their first option while sending no answer, and multi-select Dropdown fields not showing their default options as selected, in client-rendered forms built with `@verbb/formie-vue`, `@verbb/formie-react` or the Formie web components.
 - Fixed Radio options not working with arrow keys in some browsers in client-rendered forms, and choosing a Radio option in one Repeater row clearing the same field in another row in the Formie web components.
 - Fixed client-rendered forms built with `@verbb/formie-vue`, `@verbb/formie-react` or the Formie web components leaving focus nowhere after a page change or a completed submission, and not announcing form errors or completion messages to screen readers.

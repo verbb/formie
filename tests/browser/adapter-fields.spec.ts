@@ -74,6 +74,28 @@ for (const adapter of ['react', 'vue', 'web-components']) {
         expect(errors).toEqual([]);
     });
 
+    test(`${adapter}: calculates Calculations fields in a Group and in each Repeater row`, async ({ page }) => {
+        const { host, errors } = await openForm(page, adapter, 'adapterNestedCalculations');
+        const rows = page.locator('#host [data-formie-field-handle="items"] [data-formie-repeater-item]');
+
+        await field(page, 'rate').getByRole('spinbutton').fill('3');
+        await field(page, 'hours').getByRole('spinbutton').fill('2');
+        await rows.nth(0).locator('[data-formie-field-handle="qty"]').getByRole('spinbutton').fill('4');
+        await rows.nth(1).locator('[data-formie-field-handle="qty"]').getByRole('spinbutton').fill('5');
+
+        const groupTotal = field(page, 'groupTotal').getByRole('textbox');
+        await expect(groupTotal).toHaveValue('6');
+        await expect(groupTotal).toHaveJSProperty('readOnly', true);
+        await expect(rows.nth(0).locator('[data-formie-field-handle="rowTotal"]').getByRole('textbox')).toHaveValue('12');
+        await expect(rows.nth(1).locator('[data-formie-field-handle="rowTotal"]').getByRole('textbox')).toHaveValue('15');
+
+        const values = await submittedValues(page, () => host.locator('button[type="submit"]').click());
+        expect(String((values.details as Record<string, unknown>).groupTotal)).toBe('6');
+        expect((values.items as Array<Record<string, unknown>>).map(row => String(row.rowTotal))).toEqual(['12', '15']);
+        await expect(host.getByRole('status')).toContainText('Submission saved.');
+        expect(errors).toEqual([]);
+    });
+
     test(`${adapter}: calculates Calculations fields as read-only values`, async ({ page }) => {
         const { errors } = await openForm(page, adapter, 'adapterFields');
         const total = field(page, 'total').getByRole('textbox');
@@ -156,6 +178,8 @@ for (const adapter of ['react', 'vue', 'web-components']) {
     test(`${adapter}: shows a Repeater error once and announces the form error`, async ({ page }) => {
         const { host, errors } = await openForm(page, adapter, 'adapterRequiredRepeater');
 
+        // A single-page form shows its page title too, as server-rendered forms do.
+        await expect(host.getByRole('heading', { level: 3, name: 'Page 1' })).toBeVisible();
         await host.locator('button[type="submit"]').click();
         const items = field(page, 'items');
         await expect(items.getByText('Items cannot be blank.')).toHaveCount(1);
@@ -164,15 +188,25 @@ for (const adapter of ['react', 'vue', 'web-components']) {
         expect(errors).toEqual([]);
     });
 
-    test(`${adapter}: moves focus with page changes and announces completion`, async ({ page }) => {
+    test(`${adapter}: shows page titles and progress, moves focus with page changes and announces completion`, async ({ page }) => {
         const { host, errors } = await openForm(page, adapter, 'adapterPages');
 
         const pageFocused = () => page.evaluate(() => document.activeElement?.matches('#host [data-page-id]') === true);
+        const progress = host.getByRole('progressbar', { name: 'Progress' });
+
+        // The form shows its page title and progress, as server-rendered forms do.
+        await expect(host.getByRole('heading', { level: 3, name: 'Page 1' })).toBeVisible();
+        await expect(progress).toHaveAttribute('aria-valuenow', '0');
+        expect(await progress.evaluate((bar) => !!(bar.compareDocumentPosition(document.querySelector('#host [data-page-id]')!) & Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
 
         await field(page, 'stepOne').getByRole('textbox').fill('One');
         await host.locator('button[type="submit"]').click();
         await expect(field(page, 'stepTwo')).toBeVisible();
         await expect.poll(pageFocused).toBe(true);
+        await expect(host.getByRole('heading', { level: 3, name: 'Page 2' })).toBeVisible();
+        await expect(host.getByRole('region', { name: 'Page 2' })).toBeFocused();
+        await expect(progress).toHaveAttribute('aria-valuenow', '50');
+        await expect(progress).toContainText('50%');
 
         await host.getByRole('button', { name: 'Back' }).click();
         await expect(field(page, 'stepOne')).toBeVisible();

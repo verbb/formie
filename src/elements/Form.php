@@ -954,7 +954,12 @@ class Form extends Element implements FormInterface
                 'progress' => [
                     'enabled' => $this->hasMultiplePages(),
                     'calculation' => (string)$this->settings->progressCalculation,
+                    // Whether the form shows its progress bar, and where, as server-rendered forms do.
+                    'display' => $this->hasMultiplePages() && (bool)$this->settings->displayPageProgress,
+                    'position' => (string)$this->settings->progressPosition,
+                    'valuePosition' => (string)$this->settings->progressValuePosition,
                 ],
+                'displayCurrentPageTitle' => (bool)$this->settings->displayCurrentPageTitle,
                 // Client-rendered forms have no templates, so they use these for their own buttons.
                 'strings' => [
                     'addRow' => Craft::t('formie', 'Add another row'),
@@ -962,6 +967,7 @@ class Form extends Element implements FormInterface
                     'removeRow' => Craft::t('formie', 'Remove row'),
                     'clear' => Craft::t('formie', 'Clear'),
                     'clearSignature' => Craft::t('formie', 'Clear signature'),
+                    'progress' => Craft::t('formie', 'Progress'),
                 ],
             ],
             'pages' => $pages,

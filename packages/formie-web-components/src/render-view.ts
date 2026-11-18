@@ -6,7 +6,9 @@ import {
     dropdownOptions,
     fieldOptions,
     focusClientFormResult,
+    getClientPageProgress,
     getClientString,
+    showsClientPageTitle,
     isArrayValuedField,
     isCalculationField,
     isFieldLabelVisuallyHidden,
@@ -890,6 +892,8 @@ export function renderFormView(ctx: RenderViewContext): TemplateResult {
     // Formie sanitizes rich completion messages before placing them in the client contract.
     const noticeHtml = ctx.state.lastSubmitResult?.messages.notice;
     const shouldStandaloneErr = !!errorMessage && !formErrors.includes(errorMessage);
+    const pageShown = !(ctx.state.lastSubmitResult?.completion?.behavior === 'message' && ctx.state.lastSubmitResult.completion.hideForm);
+    const progressPosition = getClientPageProgress(ctx.state.definition, ctx.state.currentPageId)?.position;
 
     const formInner = html`
         ${formErrors.length > 0
@@ -907,7 +911,9 @@ export function renderFormView(ctx: RenderViewContext): TemplateResult {
         ${shouldStandaloneErr
             ? html`<div class="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert" tabindex="-1" data-formie-form-message>${errorMessage}</div>`
             : nothing}
-        ${ctx.state.lastSubmitResult?.completion?.behavior === 'message' && ctx.state.lastSubmitResult.completion.hideForm ? nothing : renderFormPage(ctx, page)}
+        ${pageShown && progressPosition === 'start' ? renderProgress(ctx) : nothing}
+        ${pageShown ? renderFormPage(ctx, page) : nothing}
+        ${pageShown && progressPosition === 'end' ? renderProgress(ctx) : nothing}
     `;
 
     const renderId = ctx.state.session.tokens.render ?? '';
@@ -950,10 +956,38 @@ function renderFormPage(
         return staticHtml`<${t} .page=${page} .state=${ctx.state}>${pageBody}</${t}>`;
     }
 
+    const showTitle = showsClientPageTitle(ctx.state.definition) && !!page.label;
+    const titleId = `formie-${ctx.state.session.tokens.render || ctx.state.session.id}-page-${page.id}-title`;
+
     return html`
-        <section data-page-id=${page.id} class="starter-core-page space-y-4" tabindex="-1" aria-label=${ctx.state.definition.pages.length > 1 && page.label ? page.label : nothing}>
+        <section data-page-id=${page.id} class="starter-core-page space-y-4" tabindex="-1" aria-labelledby=${showTitle ? titleId : nothing} aria-label=${!showTitle && ctx.state.definition.pages.length > 1 && page.label ? page.label : nothing}>
+            ${showTitle ? html`<h3 id=${titleId} class="starter-core-page-title">${page.label}</h3>` : nothing}
             ${pageBody}
         </section>
+    `;
+}
+
+// The form's progress through its pages, shown as the server-rendered progress bar is.
+function renderProgress(ctx: RenderViewContext): TemplateResult {
+    const progress = getClientPageProgress(ctx.state.definition, ctx.state.currentPageId);
+
+    if (!progress) {
+        return html``;
+    }
+
+    const value = html`<span class="starter-core-progress-value text-xs font-semibold" aria-hidden="true">${progress.percent}%</span>`;
+    const inside = !['left', 'right', 'hidden'].includes(progress.valuePosition);
+    // Themes use the state to keep the value inside the bar at 0% and 100%, as in server-rendered forms.
+    const state = progress.percent <= 0 ? 'start' : (progress.percent >= 100 ? 'end' : 'middle');
+
+    return html`
+        <div class="starter-core-progress mb-4 flex items-center gap-2" data-formie-progress-position=${progress.position} data-formie-progress-value-position=${progress.valuePosition} data-formie-progress-state=${state}>
+            ${progress.valuePosition === 'left' ? value : nothing}
+            <div class="starter-core-progress-track h-4 flex-1 overflow-hidden rounded-full bg-slate-200" role="progressbar" aria-label=${getClientString(ctx.state.definition, 'progress')} aria-valuenow=${progress.percent} aria-valuemin="0" aria-valuemax="100">
+                <div class="starter-core-progress-bar flex h-full items-center justify-center rounded-full bg-slate-900 text-white" style=${`width: ${progress.percent}%`}>${inside ? value : nothing}</div>
+            </div>
+            ${progress.valuePosition === 'right' ? value : nothing}
+        </div>
     `;
 }
 

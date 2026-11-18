@@ -7,7 +7,7 @@ import {
     type CalculationOptions,
     type CalculationVariable,
 } from './calculations.js';
-import { allFields, isCalculationField } from './schema.js';
+import { allFields, compositePartDefinitions, isCalculationField, isCompositeField, isRepeatableField, repeaterFieldDefinitions } from './schema.js';
 import type { ClientFieldDefinition, ClientFormState } from './types.js';
 
 function calculationOptions(state: ClientFormState, field: ClientFieldDefinition): CalculationOptions | null {
@@ -87,12 +87,21 @@ export function parseRowsExpression(expression: string, rowCount: number): numbe
     return [...new Set(indices)].sort((left, right) => left - right);
 }
 
+type RowContext = { handle: string; index: number };
+
 // Reads a source like `quantity`, `group.part` or `repeater.rowField` from form values keyed by field ID.
-function sourceValue(state: ClientFormState, variable: CalculationVariable): string | string[] {
+function sourceValue(state: ClientFormState, variable: CalculationVariable, row?: RowContext): string | string[] {
     const [handle, ...path] = (variable.sourceKey || '').split('.').filter(Boolean);
     const source = allFields(state.definition).find((field) => field.handle === handle);
     const value = source ? state.values[source.id] : undefined;
     const scope = String(variable.scope || '').trim().toLowerCase();
+
+    // A calculation in a Repeater row reads the other fields of its own row.
+    if (row && !scope && handle === row.handle && path.length > 0) {
+        const rows = Array.isArray(value) ? value : [];
+
+        return toStrings(readPath(rows[row.index], /^\d+$/.test(path[0]) ? path.slice(1) : path));
+    }
 
     // Repeater and Table rows can be picked by position, as in server-rendered forms.
     if (ROW_SCOPES.has(scope) && path.length > 0) {
@@ -138,64 +147,130 @@ function sourceValue(state: ClientFormState, variable: CalculationVariable): str
     return path.length > 0 || Array.isArray(values[0]) ? strings : (strings[0] ?? '');
 }
 
-/**
- * Calculations fields are read-only answers worked out from other fields. Server-rendered forms work them out
- * from the page's inputs, so client-rendered forms work them out from the form values instead. Only top-level
- * Calculations fields are worked out here.
- */
-export function deriveCalculationValues(state: ClientFormState): ClientFormState {
-    const calculations = allFields(state.definition).filter(isCalculationField);
+type CalculationOccurrence = {
+    field: ClientFieldDefinition;
+    // The field's state key, such as `12`, `12.total` or `12.0.total`.
+    key: string;
+    path: Array<string | number>;
+    row?: RowContext;
+};
 
-    if (calculations.length === 0) {
-        return state;
+function calculationOccurrences(state: ClientFormState, values: ClientFormState['values']): CalculationOccurrence[] {
+    return allFields(state.definition).flatMap((field): CalculationOccurrence[] => {
+        if (isCalculationField(field)) {
+            return [{ field, key: field.id, path: [field.id] }];
+        }
+
+        if (isCompositeField(field)) {
+            return compositePartDefinitions(field).filter(isCalculationField).map((part) => ({
+                field: part,
+                key: `${field.id}.${part.handle}`,
+                path: [field.id, part.handle],
+            }));
+        }
+
+        if (isRepeatableField(field)) {
+            const rows = Array.isArray(values[field.id]) ? values[field.id] as unknown[] : [];
+            const calculations = repeaterFieldDefinitions(field).filter(isCalculationField);
+
+            return rows.flatMap((_, index) => calculations.map((rowField) => ({
+                field: rowField,
+                key: `${field.id}.${index}.${rowField.handle}`,
+                path: [field.id, index, rowField.handle],
+                row: { handle: field.handle, index },
+            })));
+        }
+
+        return [];
+    });
+}
+
+function readValue(values: ClientFormState['values'], path: Array<string | number>): unknown {
+    return path.slice(1).reduce<unknown>((current, key) => {
+        return current && typeof current === 'object' ? (current as Record<string | number, unknown>)[key] : undefined;
+    }, values[path[0] as string]);
+}
+
+function writeValue(values: ClientFormState['values'], path: Array<string | number>, result: unknown): ClientFormState['values'] {
+    const write = (current: unknown, keys: Array<string | number>): unknown => {
+        const [key, ...rest] = keys;
+        const next = rest.length === 0 ? result : write(current && typeof current === 'object' ? (current as Record<string | number, unknown>)[key] : undefined, rest);
+
+        if (Array.isArray(current)) {
+            return current.map((item, index) => index === key ? next : item);
+        }
+
+        return { ...(current && typeof current === 'object' ? current as Record<string, unknown> : {}), [key]: next };
+    };
+
+    return write(values, path) as ClientFormState['values'];
+}
+
+function calculate(state: ClientFormState, occurrence: CalculationOccurrence): string | number | null {
+    const options = calculationOptions(state, occurrence.field);
+    const formula = options ? getCalculationFormula(options) : '';
+
+    if (!options || !formula) {
+        return null;
     }
 
-    let values = state.values;
+    const variables: Record<string, unknown> = {};
 
-    // A calculation can read another one later in the form, so repeat until the answers settle.
-    for (let pass = 0; pass < calculations.length; pass++) {
+    getCalculationVariableEntries(options).forEach(([key, variable]) => {
+        variables[key] = readCalculationVariableValue(variable, sourceValue(state, variable, occurrence.row));
+    });
+
+    try {
+        const result = evaluateCalculationExpression(formula, coerceCalculationVariables(variables, options.formatting), options);
+
+        return typeof result === 'number' && !Number.isFinite(result) ? '' : result;
+    } catch {
+        // An incomplete formula, such as one waiting on an empty source, has no answer yet.
+        return '';
+    }
+}
+
+/**
+ * Calculations fields are read-only answers worked out from other fields. Server-rendered forms work them out
+ * from the page's inputs, so client-rendered forms work them out from the form values instead, including
+ * Calculations fields in Groups and Repeater rows.
+ */
+export function deriveCalculationValues(state: ClientFormState): ClientFormState {
+    let values = state.values;
+    let occurrences = calculationOccurrences(state, values);
+
+    // A calculation can read another one later in the form, so repeat until the answers settle. A formula that
+    // reads itself never settles, so the passes are capped by the number of Calculations fields, not rows.
+    const passes = new Set(occurrences.map((occurrence) => occurrence.field.id || occurrence.field.handle)).size + 1;
+
+    for (let pass = 0; pass < passes; pass++) {
         const previous = values;
 
-        for (const field of calculations) {
+        for (const occurrence of occurrences) {
             // Conditions clear a hidden field's answer, so it isn't worked out again.
-            if (state.fieldStates?.[field.id]?.hidden === true) {
+            if (state.fieldStates?.[occurrence.key]?.hidden === true) {
                 continue;
             }
 
-            const options = calculationOptions(state, field);
-            const formula = options ? getCalculationFormula(options) : '';
+            // A Group or Repeater row that conditions cleared stays cleared, rather than coming back with only its answer.
+            const parent = occurrence.path.length > 1 ? readValue(values, occurrence.path.slice(0, -1)) : values;
 
-            if (!options || !formula) {
+            if (!parent || typeof parent !== 'object') {
                 continue;
             }
 
-            const variables: Record<string, unknown> = {};
+            const result = calculate({ ...state, values }, occurrence);
 
-            getCalculationVariableEntries(options).forEach(([key, variable]) => {
-                variables[key] = readCalculationVariableValue(variable, sourceValue({ ...state, values }, variable));
-            });
-
-            let result: string | number;
-
-            try {
-                result = evaluateCalculationExpression(formula, coerceCalculationVariables(variables, options.formatting), options);
-            } catch {
-                // An incomplete formula, such as one waiting on an empty source, has no answer yet.
-                result = '';
-            }
-
-            if (typeof result === 'number' && !Number.isFinite(result)) {
-                result = '';
-            }
-
-            if (values[field.id] !== result) {
-                values = { ...values, [field.id]: result };
+            if (result !== null && readValue(values, occurrence.path) !== result) {
+                values = writeValue(values, occurrence.path, result);
             }
         }
 
         if (values === previous) {
             break;
         }
+
+        occurrences = calculationOccurrences(state, values);
     }
 
     return values === state.values ? state : { ...state, values };

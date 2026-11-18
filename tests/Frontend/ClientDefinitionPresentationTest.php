@@ -61,6 +61,7 @@ it('sends the label position, autocomplete hints and button text that client-ren
                 'removeRow' => 'Remove row',
                 'clear' => 'Clear',
                 'clearSignature' => 'Clear signature',
+                'progress' => 'Progress',
             ]);
     });
 });
@@ -86,3 +87,29 @@ it('translates the button text for the form’s language', function(): void {
             ->and($strings['clearSignature'])->toBe('Unterschrift löschen');
     });
 });
+
+it('sends the page title and progress settings of multi-page forms', function(): void {
+    $multiPage = formie()->form(['title' => 'Client presentation pages'])
+        ->settings(['displayCurrentPageTitle' => true, 'displayPageProgress' => true, 'progressPosition' => 'start', 'progressValuePosition' => 'right', 'progressCalculation' => 'page-position'])
+        ->multiPage(2)->onPage(1)->singleLineTextField('first')->onPage(2)->singleLineTextField('second')
+        ->create();
+    $singlePage = formie()->form(['title' => 'Client presentation single page'])
+        ->settings(['displayCurrentPageTitle' => true, 'displayPageProgress' => true])
+        ->singleLineTextField('only')
+        ->create();
+
+    WebRequestTestHelper::withWebRequestContext(function() use ($multiPage, $singlePage): void {
+        $settings = fn($form) => Formie::$plugin->getClientFormBootstrapBuilder()->build($form, new LoadContext([
+            'handle' => $form->handle,
+        ]))->toArrayRecursive()['definition']['settings'];
+        $multi = $settings($multiPage);
+        $single = $settings($singlePage);
+
+        expect($multi['displayCurrentPageTitle'])->toBeTrue()
+            ->and($multi['progress'])->toMatchArray(['display' => true, 'position' => 'start', 'valuePosition' => 'right', 'calculation' => 'page-position'])
+            ->and($multi['strings']['progress'])->toBe('Progress')
+            ->and($single['displayCurrentPageTitle'])->toBeTrue()
+            ->and($single['progress']['display'])->toBeFalse();
+    });
+});
+

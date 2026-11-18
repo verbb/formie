@@ -15,7 +15,9 @@ import {
     dropdownOptions,
     fieldOptions,
     focusClientFormResult,
+    getClientPageProgress,
     getClientString,
+    showsClientPageTitle,
     isArrayValuedField,
     isCalculationField,
     isFieldLabelVisuallyHidden,
@@ -510,15 +512,56 @@ const DefaultPage = defineComponent({
         },
     },
     setup(props, componentContext) {
-        return () => h('section', {
-            'data-page-id': props.page.id,
-            class: 'formie-vue-page',
-            // Focus moves here when the page changes, and the page name says where the visitor is.
-            tabindex: -1,
-            'aria-label': props.state.definition.pages.length > 1 && props.page.label ? props.page.label : undefined,
-        }, componentContext.slots.default?.() || []);
+        return () => {
+            const showTitle = showsClientPageTitle(props.state.definition) && !!props.page.label;
+            const titleId = `formie-${props.state.session.tokens.render || props.state.session.id}-page-${props.page.id}-title`;
+
+            return h('section', {
+                'data-page-id': props.page.id,
+                class: 'formie-vue-page',
+                // Focus moves here when the page changes, and the page name says where the visitor is.
+                tabindex: -1,
+                'aria-labelledby': showTitle ? titleId : undefined,
+                'aria-label': !showTitle && props.state.definition.pages.length > 1 && props.page.label ? props.page.label : undefined,
+            }, [
+                showTitle ? h('h3', { id: titleId, class: 'formie-vue-page-title' }, props.page.label) : null,
+                ...(componentContext.slots.default?.() || []),
+            ]);
+        };
     },
 });
+
+// The form's progress through its pages, shown as the server-rendered progress bar is.
+function renderProgress(state: ClientFormState): VNode | null {
+    const progress = getClientPageProgress(state.definition, state.currentPageId);
+
+    if (!progress) {
+        return null;
+    }
+
+    const value = h('span', { class: 'formie-vue-progress-value', 'aria-hidden': 'true' }, `${progress.percent}%`);
+    const inside = !['left', 'right', 'hidden'].includes(progress.valuePosition);
+
+    return h('div', {
+        key: 'progress',
+        class: 'formie-vue-progress',
+        'data-formie-progress-position': progress.position,
+        'data-formie-progress-value-position': progress.valuePosition,
+        // Themes use the state to keep the value inside the bar at 0% and 100%, as in server-rendered forms.
+        'data-formie-progress-state': progress.percent <= 0 ? 'start' : (progress.percent >= 100 ? 'end' : 'middle'),
+    }, [
+        progress.valuePosition === 'left' ? value : null,
+        h('div', {
+            class: 'formie-vue-progress-track',
+            role: 'progressbar',
+            'aria-label': getClientString(state.definition, 'progress'),
+            'aria-valuenow': progress.percent,
+            'aria-valuemin': 0,
+            'aria-valuemax': 100,
+        }, h('div', { class: 'formie-vue-progress-bar', style: { width: `${progress.percent}%` } }, inside ? value : null)),
+        progress.valuePosition === 'right' ? value : null,
+    ]);
+}
 
 const SignatureFieldInput = defineComponent({
     name: 'FormieVueSignatureFieldInput',
@@ -1530,6 +1573,7 @@ const ConfigRenderer = defineComponent({
             }) || state.definition.pages.find((item) => state.pageStates[item.id]?.hidden !== true) || state.definition.pages[0];
             const errorMessage = state.lastSubmitResult?.messages.error;
             const shouldRenderStandaloneError = !!errorMessage && !state.errors.form.includes(errorMessage);
+            const pageShown = !(state.lastSubmitResult?.completion?.behavior === 'message' && state.lastSubmitResult.completion.hideForm);
 
             if (!page) {
                 return null;
@@ -1565,7 +1609,8 @@ const ConfigRenderer = defineComponent({
                         tabindex: -1,
                         'data-formie-form-message': true,
                     }, errorMessage) : null,
-                    !(state.lastSubmitResult?.completion?.behavior === 'message' && state.lastSubmitResult.completion.hideForm) ? h(PageComponent, {
+                    pageShown && getClientPageProgress(state.definition, state.currentPageId)?.position === 'start' ? renderProgress(state) : null,
+                    pageShown ? h(PageComponent, {
                         key: page.id,
                         page,
                         state,
@@ -1581,6 +1626,7 @@ const ConfigRenderer = defineComponent({
                             }),
                         ],
                     }) : null,
+                    pageShown && getClientPageProgress(state.definition, state.currentPageId)?.position === 'end' ? renderProgress(state) : null,
                 ],
             });
         };

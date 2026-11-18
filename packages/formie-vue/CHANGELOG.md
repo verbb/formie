@@ -8,6 +8,7 @@
 - Added `inputId`, `labelId` and `instructionsId` to custom `Field` components and field components, so a custom label can point at the field’s control. ([#3140](https://github.com/verbb/formie/issues/3140))
 - Added Address Country, Date dropdown parts, Group, Table, Recipients and Section fields, and Entries, Categories and other element fields, which showed “Unsupported field type”. Fields without a control of their own use the `dropdown`, `radio` or `checkboxes` renderer, so a component registered for one of those renders them too. Element fields send a list of IDs from all three. Survey fields with Likert, Rank, Rating or text display types still show “Unsupported field type”.
 - Added `role="alert"` to the form error summary and error message, and `role="status"` to the completion message. Focus moves to the first invalid field, then to these messages, and to the new page after a page change.
+- Added the page title (`.formie-vue-page-title`) for forms that turn on **Display Current Page Title**, and the progress bar (`.formie-vue-progress`, with `role="progressbar"` and `data-formie-progress-state`) for multi-page forms that turn on **Display Page Progress**, placed and worked out as in server-rendered forms. The page is named by its title. A custom `Page` component renders its own title, using `showsClientPageTitle()` from `@verbb/formie-core`.
 - Added `autocomplete` to inputs that have an autocomplete hint, and kept labels in the **Hidden** position in the page, visually hidden, so they still name their control.
 
 ### Changed
@@ -18,7 +19,7 @@
 - Repeater and Table **Remove** buttons are now named “Remove row 1”, “Remove row 2” and so on, and Repeater, Table and Signature buttons use the text the server translates for the site.
 
 ### Fixed
-- Fixed Calculations fields never showing their answer, and accepting typing. Calculations fields inside a Group or Repeater are still left empty.
+- Fixed Calculations fields never showing their answer, and accepting typing, including in Groups and Repeater rows.
 - Fixed Dropdown fields showing their first option while sending no answer, and multi-select Dropdown fields not showing their default options as selected.
 - Fixed Radio options having no shared `name`, so arrow keys didn’t move between them in some browsers.
 - Fixed Repeater errors showing twice.
