@@ -481,7 +481,7 @@ return [
   'Clear' => 'Löschen',
   'Clear Formatting' => 'Formatierung entfernen',
   'Clear selection' => 'Auswahl löschen',
-  'Clear signature' => 'Deutliche Unterschrift',
+  'Clear signature' => 'Unterschrift löschen',
   'Clerical/Administrative' => 'Verwaltung/Verwaltung',
   'Client Event Defaults' => 'Standardwerte für Kundenveranstaltungen',
   'Client Events' => 'Kundenveranstaltungen',

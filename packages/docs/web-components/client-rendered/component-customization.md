@@ -204,6 +204,8 @@ A custom field host receives the whole `field`, so it can check `field.required`
 
 Use **`registerFieldControl(fieldKey, tagName)`** when you only replace the control for a field type. Formie sets **`field`**, **`value`**, **`errorKey`**, **`errorId`**, **`inputId`**, **`disabled`**, and **`hidden`**, and listens for **`FORMIE_CONTROL_VALUE_EVENT`** with **`detail`** = the next value. Give your input the `inputId` as its `id` so the default field label points at it.
 
+Formie looks for a control under the field's type first, then under the control it renders. Fields without a control of their own, such as Recipients, Entries, Address Country and the parts of a Date field, render as `dropdown`, `radio` or `checkboxes`, so a control registered for `dropdown` renders them too. Element fields like Entries store a list of IDs even when only one can be chosen.
+
 ```js
 import {
   registerFormieWebComponents,

@@ -11,6 +11,17 @@ import {
     createGraphqlClientTransport,
     createRepeaterRowValue,
     createRestClientTransport,
+    createTableRowValue,
+    dropdownOptions,
+    fieldOptions,
+    focusClientFormResult,
+    getClientString,
+    isArrayValuedField,
+    isCalculationField,
+    isFieldLabelVisuallyHidden,
+    resolveClientRendererType,
+    tableColumns,
+    VISUALLY_HIDDEN_STYLE,
     isCompositeField,
     isFileField,
     displayFieldContent,
@@ -273,29 +284,7 @@ function flattenFields(definition: ClientFormDefinition): ClientFieldDefinition[
 }
 
 function resolveFieldRendererType(field: ClientFieldDefinition): ClientFieldDefinition['type'] {
-    if (isKnownClientFieldType(field.type)) {
-        return field.type;
-    }
-
-    const fieldKind = typeof field.input.fieldKind === 'string' ? field.input.fieldKind : null;
-
-    if (fieldKind === 'text') {
-        return 'single-line-text';
-    }
-
-    if (fieldKind === 'textarea') {
-        return 'multi-line-text';
-    }
-
-    if (fieldKind === 'boolean') {
-        return 'agree';
-    }
-
-    if (fieldKind === 'file') {
-        return 'file';
-    }
-
-    return field.type;
+    return resolveClientRendererType(field);
 }
 
 function resolveFieldModule(field: ClientFieldDefinition, definition: ClientFormDefinition, moduleId: string) {
@@ -344,6 +333,9 @@ const DefaultErrorSummary = defineComponent({
 
             return h('div', {
                 class: 'formie-vue-errors',
+                role: 'alert',
+                tabindex: -1,
+                'data-formie-form-message': true,
             }, [
                 h('ul', null, props.errors.map((error, index) => {
                     return h('li', {
@@ -394,6 +386,7 @@ const DefaultField = defineComponent({
             const children = componentContext.slots.default?.() || [];
             const labelAttributes = {
                 class: 'formie-vue-label',
+                style: isFieldLabelVisuallyHidden(props.field) ? VISUALLY_HIDDEN_STYLE : undefined,
                 id: props.labelId || undefined,
                 for: props.inputId && getClientFieldLabelTarget(props.field, resolveFieldRendererType(props.field)) === 'control' ? props.inputId : undefined,
             };
@@ -494,8 +487,9 @@ const DefaultForm = defineComponent({
             onSubmit: async (event: Event) => {
                 event.preventDefault();
                 const form = event.currentTarget as HTMLFormElement;
+                const previousPageId = props.state.currentPageId;
                 await props.onSubmit();
-                requestAnimationFrame(() => form.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus());
+                requestAnimationFrame(() => focusClientFormResult(form, previousPageId));
             },
             'data-formie-definition': props.definition.handle,
             'data-formie-render-id': props.session.tokens.render,
@@ -519,6 +513,9 @@ const DefaultPage = defineComponent({
         return () => h('section', {
             'data-page-id': props.page.id,
             class: 'formie-vue-page',
+            // Focus moves here when the page changes, and the page name says where the visitor is.
+            tabindex: -1,
+            'aria-label': props.state.definition.pages.length > 1 && props.page.label ? props.page.label : undefined,
         }, componentContext.slots.default?.() || []);
     },
 });
@@ -670,18 +667,20 @@ const SignatureFieldInput = defineComponent({
                 key: 'canvas',
                 ref: canvasRef,
                 'data-formie-signature-canvas': true,
+                ...signatureCanvasAttributes(props.field, controlLabelling(props, isDefaultFieldWrapper(context))),
                 style: props.disabled ? { pointerEvents: 'none' } : undefined,
             }),
             h('button', {
                 key: 'clear',
                 type: 'button',
                 disabled: props.disabled,
+                'aria-label': getClientString(context.state.value?.definition, 'clearSignature'),
                 'data-formie-signature-clear': true,
                 onClick: () => {
                     padRef.value?.clear();
                     props.setValue('');
                 },
-            }, 'Clear'),
+            }, getClientString(context.state.value?.definition, 'clear')),
             loadError.value ? h('div', {
                 key: 'error',
                 class: 'formie-vue-unsupported',
@@ -714,6 +713,7 @@ const CompositeFieldInput = defineComponent({
 
             return h('div', {
                 class: 'formie-vue-name-grid',
+                ...groupAttributes(props.field, controlLabelling(props, isDefaultFieldWrapper(context)), 'group'),
             }, parts.filter((part) => part.meta?.hidden !== true).map((part) => {
                 const partErrorKey = `${props.errorKey}.${part.handle}`;
 
@@ -779,7 +779,7 @@ const FileFieldInput = defineComponent({
                 }),
                 items.length > 0 ? h('ul', {
                     key: 'summary',
-                    class: 'formie-vue-field-errors',
+                    class: 'formie-vue-file-list',
                 }, items.map((item, index) => {
                     return h('li', {
                         key: `${item}:${index}`,
@@ -803,8 +803,9 @@ const ConfigFieldNode = defineComponent({
                 return null;
             }
 
-            const fieldState = state.fieldStates[props.field.id];
-            const hidden = fieldState?.hidden === true;
+            // Fields in Repeater rows and composite parts have their own state, keyed by their path.
+            const fieldState = state.fieldStates[props.errorKey];
+            const hidden = fieldState?.hidden === true || props.hidden;
 
             if (hidden) {
                 return null;
@@ -976,9 +977,13 @@ const RepeaterFieldInput = defineComponent({
                 }, 'Unsupported repeater field.');
             }
 
+            const labelling = controlLabelling(props, isDefaultFieldWrapper(context));
+            const definition = state.definition;
+
             return h('div', {
                 class: 'formie-vue-repeater',
                 'data-formie-repeater-container': true,
+                ...groupAttributes(props.field, labelling, 'group'),
             }, [
                 ...currentRows.map((rowValue, rowIndex) => {
                     const itemKey = `${props.field.id}:${rowIndex}`;
@@ -1016,11 +1021,12 @@ const RepeaterFieldInput = defineComponent({
                             key: 'remove',
                             type: 'button',
                             disabled: props.disabled || (minRows > 0 && currentRows.length <= minRows),
+                            'aria-label': `${getClientString(definition, 'removeRow')} ${rowIndex + 1}`,
                             'data-formie-repeater-remove': true,
                             onClick: () => {
                                 props.setValue(currentRows.filter((_, candidateIndex) => candidateIndex !== rowIndex));
                             },
-                        }, 'Remove'),
+                        }, getClientString(definition, 'remove')),
                     ]);
                 }),
                 h('button', {
@@ -1031,17 +1037,7 @@ const RepeaterFieldInput = defineComponent({
                     onClick: () => {
                         props.setValue([...currentRows, createRepeaterRowValue(props.field)]);
                     },
-                }, String(contract.addRowLabel ?? 'Add another row')),
-                state.errors.fields[props.errorKey] && state.errors.fields[props.errorKey].length > 0
-                    ? h('ul', {
-                        key: 'errors',
-                        class: 'formie-vue-field-errors',
-                    }, state.errors.fields[props.errorKey].map((message, index) => {
-                        return h('li', {
-                            key: `${message}:${index}`,
-                        }, message);
-                    }))
-                    : null,
+                }, String(contract.addRowLabel || getClientString(definition, 'addRow'))),
             ]);
         };
     },
@@ -1091,6 +1087,16 @@ function controlAttributes(field: ClientFieldDefinition, labelling: ControlLabel
         'aria-invalid': hasErrors ? 'true' : undefined,
         'aria-errormessage': hasErrors ? labelling.errorId : undefined,
         'aria-describedby': joinIdReferences(instructionsReference(field, labelling), hasErrors && labelling.errorId),
+        autocomplete: typeof field.input.autocomplete === 'string' ? field.input.autocomplete : undefined,
+    };
+}
+
+// The pad can't be used without a pointer, but its name says what it's for.
+function signatureCanvasAttributes(field: ClientFieldDefinition, labelling: ControlLabelling) {
+    return {
+        role: 'img',
+        'aria-labelledby': labelling.labelledByWrapper ? labelling.labelId : undefined,
+        'aria-label': labelling.labelledByWrapper ? undefined : field.label || field.handle,
     };
 }
 
@@ -1105,10 +1111,10 @@ function groupAttributes(field: ClientFieldDefinition, labelling: ControlLabelli
     };
 }
 
-function renderNestedFieldInput(field: ClientFieldDefinition, value: unknown, disabled: boolean, setValue: (value: unknown) => void, labelling: ControlLabelling) {
+function renderNestedFieldInput(field: ClientFieldDefinition, value: unknown, disabled: boolean, setValue: (value: unknown) => void, labelling: ControlLabelling, rendererType = resolveFieldRendererType(field)) {
     const contract = field.input;
 
-    if (field.type === 'multi-line-text') {
+    if (rendererType === 'multi-line-text') {
         return h('textarea', {
             ...controlAttributes(field, labelling),
             value: typeof value === 'string' ? value : '',
@@ -1121,13 +1127,20 @@ function renderNestedFieldInput(field: ClientFieldDefinition, value: unknown, di
         });
     }
 
-    if (field.type === 'dropdown') {
-        const options = Array.isArray(contract.options) ? contract.options as Array<Record<string, unknown>> : [];
+    if (rendererType === 'dropdown') {
         const multiple = contract.multiple === true;
+        // Element fields keep a list of IDs even when only one can be chosen.
+        const listValue = isArrayValuedField(field);
+        const selected = (Array.isArray(value) ? value : (value == null ? [] : [value])).map((item) => String(item));
+        const options = multiple ? fieldOptions(field) : dropdownOptions(field);
+        const current = multiple ? '' : (selected[0] ?? '');
+        // Without this, a dropdown whose answer was cleared would show its first option instead.
+        const showEmpty = !multiple && current === '' && !options.some((option) => option.value === '');
 
         return h('select', {
             ...controlAttributes(field, labelling),
-            value: multiple ? undefined : (typeof value === 'string' ? value : ''),
+            // Setting a value on a multi-select clears the options' own selection, so only single selects get one.
+            ...(multiple ? {} : { value: current }),
             disabled,
             multiple,
             onChange: (event: Event) => {
@@ -1138,17 +1151,19 @@ function renderNestedFieldInput(field: ClientFieldDefinition, value: unknown, di
                     return;
                 }
 
-                setValue(target.value);
+                setValue(listValue ? (target.value === '' ? [] : [target.value]) : target.value);
             },
-        }, options.map((option) => {
-            const optionValue = String(option.value ?? '');
-
-            return h('option', {
-                key: `${field.id}:${optionValue}`,
-                value: optionValue,
-                disabled: option.disabled === true,
-            }, String(option.label ?? optionValue));
-        }));
+        }, [
+            showEmpty ? h('option', { key: `${field.id}:empty`, value: '', disabled: true, hidden: true }) : null,
+            ...options.map((option) => {
+                return h('option', {
+                    key: `${field.id}:${option.value}`,
+                    value: option.value,
+                    disabled: option.disabled,
+                    selected: multiple ? selected.includes(option.value) : undefined,
+                }, option.label);
+            }),
+        ]);
     }
 
     const inputType = typeof contract.inputType === 'string'
@@ -1160,6 +1175,8 @@ function renderNestedFieldInput(field: ClientFieldDefinition, value: unknown, di
         type: inputType,
         value: typeof value === 'string' || typeof value === 'number' ? String(value) : '',
         disabled,
+        // Calculations fields show an answer worked out from other fields.
+        readonly: isCalculationField(field) || undefined,
         placeholder: typeof contract.placeholder === 'string' ? contract.placeholder : undefined,
         onInput: (event: Event) => {
             const target = event.target as HTMLInputElement;
@@ -1172,6 +1189,104 @@ function renderNestedFieldInput(field: ClientFieldDefinition, value: unknown, di
 
             setValue(target.value);
         },
+    });
+}
+
+const TableFieldInput = defineComponent({
+    name: 'FormieVueTableFieldInput',
+    props: fieldComponentProps,
+    setup(props) {
+        const context = useDefinitionContext();
+
+        return () => {
+            const definition = context.state.value?.definition;
+            const columns = tableColumns(props.field);
+            const rows = Array.isArray(props.value) ? props.value as Array<Record<string, unknown>> : [];
+            const contract = props.field.input;
+            const fixedRows = contract.static === true || contract.staticRows === true;
+            const minRows = Number(contract.minRows ?? 0) || 0;
+            const maxRows = Number(contract.maxRows ?? 0) || 0;
+            const canAddRow = !props.disabled && !fixedRows && (maxRows <= 0 || rows.length < maxRows);
+            const setCell = (rowIndex: number, handle: string, nextValue: unknown) => {
+                props.setValue(rows.map((row, index) => index === rowIndex ? { ...row, [handle]: nextValue } : row));
+            };
+
+            return h('div', {
+                class: 'formie-vue-table',
+                ...groupAttributes(props.field, controlLabelling(props, isDefaultFieldWrapper(context)), 'group'),
+            }, [
+                h('table', null, [
+                    h('thead', null, h('tr', null, [
+                        ...columns.map((column) => h('th', { key: column.id, scope: 'col' }, column.heading)),
+                        fixedRows ? null : h('td', { key: 'actions' }),
+                    ])),
+                    h('tbody', null, rows.map((row, rowIndex) => h('tr', { key: rowIndex }, [
+                        ...columns.map((column) => h('td', { key: column.id }, renderTableCell(column, row[column.handle], props.disabled, (nextValue) => setCell(rowIndex, column.handle, nextValue)))),
+                        fixedRows ? null : h('td', { key: 'actions' }, h('button', {
+                            type: 'button',
+                            disabled: props.disabled || rows.length <= minRows,
+                            'aria-label': `${getClientString(definition, 'removeRow')} ${rowIndex + 1}`,
+                            onClick: () => props.setValue(rows.filter((_, index) => index !== rowIndex)),
+                        }, getClientString(definition, 'remove'))),
+                    ]))),
+                ]),
+                fixedRows ? null : h('button', {
+                    type: 'button',
+                    disabled: !canAddRow,
+                    onClick: () => props.setValue([...rows, createTableRowValue(props.field)]),
+                }, String(contract.addRowLabel || getClientString(definition, 'addRow'))),
+            ]);
+        };
+    },
+});
+
+function renderTableCell(column: ReturnType<typeof tableColumns>[number], value: unknown, disabled: boolean, setValue: (value: unknown) => void) {
+    if (column.type === 'heading') {
+        return h('span', null, typeof value === 'string' ? value : '');
+    }
+
+    if (column.type === 'checkbox') {
+        return h('input', {
+            type: 'checkbox',
+            'aria-label': column.heading,
+            checked: value === true || value === '1' || value === 1,
+            disabled,
+            onChange: (event: Event) => setValue((event.target as HTMLInputElement).checked),
+        });
+    }
+
+    if (column.type === 'multiline') {
+        return h('textarea', {
+            'aria-label': column.heading,
+            value: typeof value === 'string' ? value : '',
+            disabled,
+            onInput: (event: Event) => setValue((event.target as HTMLTextAreaElement).value),
+        });
+    }
+
+    if (column.type === 'select' || column.type === 'dropdown') {
+        const current = value == null ? '' : String(value);
+
+        return h('select', {
+            'aria-label': column.heading,
+            value: current,
+            disabled,
+            onChange: (event: Event) => setValue((event.target as HTMLSelectElement).value),
+        }, [
+            // An answer that isn't one of the options shows as empty rather than as the first option.
+            column.options.some((option) => option.value === current) ? null : h('option', { key: ':empty', value: current, disabled: true, hidden: true }),
+            ...column.options.map((option) => h('option', { key: option.value, value: option.value }, option.label)),
+        ]);
+    }
+
+    const inputTypes: Record<string, string> = { number: 'number', email: 'email', url: 'url', date: 'date', time: 'time', color: 'color' };
+
+    return h('input', {
+        type: inputTypes[column.type] ?? 'text',
+        'aria-label': column.heading,
+        value: typeof value === 'string' || typeof value === 'number' ? String(value) : '',
+        disabled,
+        onInput: (event: Event) => setValue((event.target as HTMLInputElement).value),
     });
 }
 
@@ -1203,18 +1318,29 @@ const DefaultFieldInput = defineComponent({
             }
 
             if (rendererType === 'multi-line-text' || rendererType === 'dropdown') {
-                return renderNestedFieldInput(props.field, props.value, props.disabled, props.setValue, labelling);
+                return renderNestedFieldInput(props.field, props.value, props.disabled, props.setValue, labelling, rendererType);
+            }
+
+            if (rendererType === 'table') {
+                return h(TableFieldInput, props);
+            }
+
+            if (rendererType === 'section') {
+                return h('hr', { class: 'formie-vue-section' });
             }
 
             if (rendererType === 'radio') {
-                const options = Array.isArray(contract.options) ? contract.options as Array<Record<string, unknown>> : [];
+                const options = fieldOptions(props.field);
+                // Element fields shown as radios keep a list of one ID.
+                const listValue = isArrayValuedField(props.field);
+                const current = Array.isArray(props.value) ? String(props.value[0] ?? '') : (props.value == null ? '' : String(props.value));
 
                 return h('div', {
                     class: 'formie-vue-choices',
                     ...groupAttributes(props.field, labelling, 'radiogroup'),
                 }, options.map((option) => {
-                    const optionValue = String(option.value ?? '');
-                    const optionDisabled = props.disabled || option.disabled === true;
+                    const optionValue = option.value;
+                    const optionDisabled = props.disabled || option.disabled;
 
                     return h('label', {
                         key: `${props.field.id}:${optionValue}`,
@@ -1222,31 +1348,34 @@ const DefaultFieldInput = defineComponent({
                         h('input', {
                             key: 'input',
                             type: 'radio',
+                            // One name per field occurrence groups the radios for keyboard use, including in Repeater rows.
+                            name: props.inputId || `${props.field.id}-radio`,
+                            value: optionValue,
                             ...errorReferenceAttributes(props.errors, props.errorId),
-                            checked: props.value === optionValue,
+                            checked: current === optionValue,
                             disabled: optionDisabled,
                             onChange: () => {
-                                props.setValue(optionValue);
+                                props.setValue(listValue ? [optionValue] : optionValue);
                             },
                         }),
                         h('span', {
                             key: 'label',
-                        }, String(option.label ?? optionValue)),
+                        }, option.label),
                     ]);
                 }));
             }
 
             if (rendererType === 'checkboxes') {
-                const options = Array.isArray(contract.options) ? contract.options as Array<Record<string, unknown>> : [];
+                const options = fieldOptions(props.field);
                 const selectedValues = Array.isArray(props.value) ? props.value.map((item) => String(item)) : [];
 
                 return h('div', {
                     class: 'formie-vue-choices',
                     ...groupAttributes(props.field, labelling, 'group'),
                 }, options.map((option) => {
-                    const optionValue = String(option.value ?? '');
+                    const optionValue = option.value;
                     const checked = selectedValues.includes(optionValue);
-                    const optionDisabled = props.disabled || option.disabled === true;
+                    const optionDisabled = props.disabled || option.disabled;
 
                     return h('label', {
                         key: `${props.field.id}:${optionValue}`,
@@ -1267,7 +1396,7 @@ const DefaultFieldInput = defineComponent({
                         }),
                         h('span', {
                             key: 'label',
-                        }, String(option.label ?? optionValue)),
+                        }, option.label),
                     ]);
                 }));
             }
@@ -1322,7 +1451,7 @@ const DefaultFieldInput = defineComponent({
                 }, `Unsupported field type: ${String(props.field.meta?.fieldType ?? props.field.type)}`);
             }
 
-            return renderNestedFieldInput(props.field, props.value, props.disabled, props.setValue, labelling);
+            return renderNestedFieldInput(props.field, props.value, props.disabled, props.setValue, labelling, rendererType);
         };
     },
 });
@@ -1352,8 +1481,11 @@ const ConfigPageActions = defineComponent({
                 buttons.push(h('button', {
                     key: action.type,
                     type: 'button',
-                    onClick: () => {
-                        void instance.submit(action.type);
+                    onClick: async (event: Event) => {
+                        const form = (event.currentTarget as HTMLElement).closest('form');
+                        const previousPageId = state.currentPageId;
+                        await instance.submit(action.type);
+                        requestAnimationFrame(() => focusClientFormResult(form, previousPageId));
                     },
                 }, action.label));
             });
@@ -1420,12 +1552,18 @@ const ConfigRenderer = defineComponent({
                     state.lastSubmitResult?.messages.notice ? h('div', {
                         key: 'notice',
                         class: 'formie-vue-notice',
+                        role: 'status',
+                        tabindex: -1,
+                        'data-formie-form-message': true,
                         // Formie sanitizes rich completion messages before placing them in the client contract.
                         innerHTML: state.lastSubmitResult.messages.notice,
                     }) : null,
                     shouldRenderStandaloneError ? h('div', {
                         key: 'error',
                         class: 'formie-vue-error',
+                        role: 'alert',
+                        tabindex: -1,
+                        'data-formie-form-message': true,
                     }, errorMessage) : null,
                     !(state.lastSubmitResult?.completion?.behavior === 'message' && state.lastSubmitResult.completion.hideForm) ? h(PageComponent, {
                         key: page.id,

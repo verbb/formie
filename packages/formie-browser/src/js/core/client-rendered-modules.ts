@@ -14,6 +14,8 @@ const nativeModuleDelegations: Record<string, { kind: BrowserModuleKind; reason:
     'checkbox-radio': { kind: 'field', reason: 'Framework controls own checked state.' },
     'text-limit': { kind: 'field', reason: 'Core validation enforces the structured minimum and maximum rules.' },
     'date-picker': { kind: 'field', reason: 'The adapter renders the structured date input contract.' },
+    calculations: { kind: 'field', reason: 'Core works out calculated answers from the form values.' },
+    table: { kind: 'field', reason: 'The adapter owns table rows and core owns row values.' },
 };
 
 export async function mountClientRenderedModules(root: Element, instance: ClientFormInstance, registry = clientRenderedModuleRegistry) {

@@ -17,6 +17,8 @@ export type KnownClientFieldType =
     | 'signature'
     | 'file';
 
+export type ClientStringKey = 'addRow' | 'remove' | 'removeRow' | 'clear' | 'clearSignature';
+
 export type ClientFieldType = KnownClientFieldType | (string & {});
 
 export type ClientFieldValueStructure =
@@ -111,6 +113,7 @@ export type ClientFormDefinition = {
             enabled: boolean;
             calculation: 'completion' | 'page-position' | string;
         };
+        strings?: Partial<Record<ClientStringKey, string>>;
     };
     pages: ClientPageDefinition[];
     modules: BrowserModuleManifest;

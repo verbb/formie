@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- Client-rendered forms now leave Calculations and Table fields to the form state and the framework adapter, instead of running the server-rendered modules on markup they don’t produce.
+
 ### Fixed
 - Fixed searchable dropdowns showing “No results found” and the **Remove** and clear button titles in English instead of the site’s language. ([#3135](https://github.com/verbb/formie/issues/3135))
 - Fixed conditions on an element field’s **Title** or **Public URL** never matching, as they compared the selected element’s ID. ([#3133](https://github.com/verbb/formie/issues/3133))

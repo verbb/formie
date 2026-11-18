@@ -7,6 +7,9 @@ export declare class FormieInternalSignature extends LitElement {
     modules: ClientFormDefinition['modules'];
     value: string;
     disabled: boolean;
+    /** Button text and accessible name for clearing the pad, translated by the server. */
+    clearLabel: string;
+    clearAccessibleLabel: string;
     private loadError;
     private pad;
     private strokeListener;

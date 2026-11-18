@@ -5,6 +5,19 @@
 ### Added
 - Added `getClientFieldIds()`, `getClientFieldLabelTarget()` and `joinIdReferences()` for linking a field’s label, instructions and errors to its control. ([#3140](https://github.com/verbb/formie/issues/3140))
 - Added `projectElementConditionValues()`, which turns selected element IDs into the titles or URLs a condition compares.
+- Added `resolveClientRendererType()`, which picks the default control for fields without a built-in type, such as Recipients, Entries, Calculations and Address or Date parts, from their field kind.
+- Added `fieldOptions()`, `dropdownOptions()`, `isArrayValuedField()`, `tableColumns()`, `createTableRowValue()` and `isCalculationField()` for rendering option, element and Table fields.
+- Added `deriveCalculationValues()`, and client form instances now work out top-level Calculations fields from the form values, including Repeater and Table row scopes.
+- Added `parseRowsExpression()` for the row numbers a calculation picks.
+- Added `getClientString()`, `isFieldLabelVisuallyHidden()`, `focusClientFormResult()`, `VISUALLY_HIDDEN_STYLE` and `VISUALLY_HIDDEN_CSS` for translated button text, Hidden label positions and focus after a submit or page change.
+
+### Changed
+- `isCompositeField()` now includes Group fields, which have parts like Name, Address and Date.
+- `getClientFieldLabelTarget()` now returns `group` for Name, Address, Date, Group, Repeater and Table fields, and `none` for Section fields.
+- A single-choice dropdown without an empty option now starts on its first option, as server-rendered forms submit it. Element fields still start empty. Composite parts the server sends no answer for start from their own default.
+- `isMultiValueField()` now includes element fields, which keep a list of IDs whichever control they use, and Checkboxes-style fields such as Recipients.
+- Table fields start with their minimum number of rows when they have no default rows, and a select cell without one of its options starts on the first option.
+- `isFieldLabelHidden()` now hides the label of Section fields.
 
 ### Fixed
 - Fixed client-rendered conditions on an element field’s **Title** or **Public URL** never matching. ([#3133](https://github.com/verbb/formie/issues/3133))

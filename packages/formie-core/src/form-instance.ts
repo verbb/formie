@@ -1,3 +1,4 @@
+import { deriveCalculationValues } from './client-calculations.js';
 import { deriveConditionState, clientActionAllowed } from './condition-state.js';
 import { validateBrowserValue } from './validation.js';
 import { assertClientFormBootstrap } from './contract.js';
@@ -128,7 +129,8 @@ function fieldIdsForPage(state: ClientFormState, pageId: string): string[] {
 }
 
 function applyDerivedState(state: ClientFormState): ClientFormState {
-    return deriveConditionState(state);
+    // Conditions can read a calculated answer, and clearing a hidden source changes the calculation again.
+    return deriveCalculationValues(deriveConditionState(deriveCalculationValues(state)));
 }
 
 function isEmptyValue(field: ClientFieldDefinition, value: unknown): boolean {
@@ -145,8 +147,9 @@ function isEmptyValue(field: ClientFieldDefinition, value: unknown): boolean {
     }
 
     if (isCompositeField(field) && value && typeof value === 'object') {
+        // Unchecked parts and empty lists, such as a Group's Agree or Checkboxes field, don't count as an answer.
         return Object.values(value as Record<string, unknown>).every((item) => {
-            return item == null || (typeof item === 'string' && item.trim() === '');
+            return item == null || item === false || (Array.isArray(item) && item.length === 0) || (typeof item === 'string' && item.trim() === '');
         });
     }
 

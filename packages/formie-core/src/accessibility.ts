@@ -1,5 +1,5 @@
 import { displayFieldContent, isCompositeField, isRepeatableField } from './schema.js';
-import type { ClientFieldDefinition, ClientFormDefinition, ClientFormSession } from './types.js';
+import type { ClientFieldDefinition, ClientFormDefinition, ClientFormSession, ClientStringKey } from './types.js';
 
 export type ClientErrorAriaLive = 'polite' | 'assertive' | 'off';
 
@@ -39,12 +39,13 @@ export function getClientFieldIds(session: ClientFormSession, errorKey: string):
  * `rendererType` is the adapter's resolved renderer, which maps custom fields onto the built-in controls.
  */
 export function getClientFieldLabelTarget(field: ClientFieldDefinition, rendererType: string): ClientFieldLabelTarget {
-    if (rendererType === 'radio' || rendererType === 'checkboxes' || rendererType === 'agree') {
-        return 'group';
+    if (displayFieldContent(field) || rendererType === 'signature' || rendererType === 'section') {
+        return 'none';
     }
 
-    if (isCompositeField(field) || isRepeatableField(field) || displayFieldContent(field) || rendererType === 'signature') {
-        return 'none';
+    // Name, Address, Date, Group, Repeater and Table fields name the set of controls they hold.
+    if (rendererType === 'radio' || rendererType === 'checkboxes' || rendererType === 'agree' || rendererType === 'table' || isCompositeField(field) || isRepeatableField(field)) {
+        return 'group';
     }
 
     return 'control';
@@ -63,4 +64,61 @@ function clientFieldIdPrefix(session: ClientFormSession, errorKey: string): stri
     const renderId = session.tokens.render || session.id;
 
     return `formie-${renderId}-${errorKey}`;
+}
+
+const CLIENT_STRING_FALLBACKS: Record<ClientStringKey, string> = {
+    addRow: 'Add another row',
+    remove: 'Remove',
+    removeRow: 'Remove row',
+    clear: 'Clear',
+    clearSignature: 'Clear signature',
+};
+
+/**
+ * Button text for client-rendered controls, translated by the server for the form's site. Older definitions
+ * fall back to English.
+ */
+export function getClientString(definition: Pick<ClientFormDefinition, 'settings'> | null | undefined, key: ClientStringKey): string {
+    return definition?.settings?.strings?.[key] || CLIENT_STRING_FALLBACKS[key];
+}
+
+/**
+ * A label in the Hidden position still names its control, so it stays in the page for assistive technology.
+ */
+export function isFieldLabelVisuallyHidden(field: ClientFieldDefinition): boolean {
+    return field.input.labelPosition === 'hidden';
+}
+
+/** Hides content visually while keeping it available to assistive technology. */
+export const VISUALLY_HIDDEN_STYLE = {
+    position: 'absolute',
+    width: '1px',
+    height: '1px',
+    padding: '0',
+    margin: '-1px',
+    overflow: 'hidden',
+    clip: 'rect(0, 0, 0, 0)',
+    whiteSpace: 'nowrap',
+    border: '0',
+} as const;
+
+export const VISUALLY_HIDDEN_CSS = 'position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0';
+
+/**
+ * Moves focus after a submit, page change or Back: to the first invalid control, then to a form-level
+ * message (an error summary or completion notice), then to the new page when the page changed.
+ */
+export function focusClientFormResult(form: Element | null | undefined, previousPageId?: string | null): void {
+    if (!form) {
+        return;
+    }
+
+    const focusable = 'input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])';
+    const invalid = form.querySelector<HTMLElement>('[aria-invalid="true"]');
+    const message = form.querySelector<HTMLElement>('[data-formie-form-message]');
+    const page = form.querySelector<HTMLElement>('[data-page-id]');
+    const pageChanged = previousPageId != null && page?.getAttribute('data-page-id') !== previousPageId;
+    const target = invalid || message || (pageChanged && page ? (page.hasAttribute('tabindex') ? page : page.querySelector<HTMLElement>(focusable)) : null);
+
+    target?.focus();
 }

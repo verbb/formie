@@ -6,10 +6,25 @@
 - Added `data-formie-field-required="true"` to the wrapper of a required field and `aria-required="true"` to its control (the radio group for Radio fields), so themes can style required fields and screen readers announce them. ([#3139](https://github.com/verbb/formie/issues/3139))
 - Added `field` to the props passed to slot components, so a custom label can show its own required marker. ([#3139](https://github.com/verbb/formie/issues/3139))
 - Added `inputId`, `labelId` and `instructionsId` to custom `Field` components and field components, so a custom label can point at the field’s control. ([#3140](https://github.com/verbb/formie/issues/3140))
+- Added Address Country, Date dropdown parts, Group, Table, Recipients and Section fields, and Entries, Categories and other element fields, which showed “Unsupported field type”. Fields without a control of their own use the `dropdown`, `radio` or `checkboxes` renderer, so a component registered for one of those renders them too. Element fields send a list of IDs from all three. Survey fields with Likert, Rank, Rating or text display types still show “Unsupported field type”.
+- Added `role="alert"` to the form error summary and error message, and `role="status"` to the completion message. Focus moves to the first invalid field, then to these messages, and to the new page after a page change.
+- Added `autocomplete` to inputs that have an autocomplete hint, and kept labels in the **Hidden** position in the page, visually hidden, so they still name their control.
 
 ### Changed
 - Field labels now point at their control with `for` instead of the control repeating the label in `aria-label`, and field instructions describe the control with `aria-describedby`. Controls rendered inside a custom `Field` component keep their `aria-label`. ([#3140](https://github.com/verbb/formie/issues/3140))
 - Radio options are now grouped with `role="radiogroup"` and Checkboxes options with `role="group"`, each named by the field label. The Agree checkbox is wrapped in `.formie-react-agree` named by the field label, and keeps its description as its own label. ([#3140](https://github.com/verbb/formie/issues/3140))
+- Name, Address, Date, Group, Repeater and Table fields now group their controls with `role="group"`, named by the field label.
+- The file list of a File Upload field now uses `formie-react-file-list` instead of the field errors class.
+- Repeater and Table **Remove** buttons are now named “Remove row 1”, “Remove row 2” and so on, and Repeater, Table and Signature buttons use the text the server translates for the site.
+
+### Fixed
+- Fixed Calculations fields never showing their answer, and accepting typing. Calculations fields inside a Group or Repeater are still left empty.
+- Fixed Dropdown fields showing their first option while sending no answer, and multi-select Dropdown fields not showing their default options as selected.
+- Fixed Radio options having no shared `name`, so arrow keys didn’t move between them in some browsers.
+- Fixed Repeater errors showing twice.
+- Fixed the Signature pad having no accessible name.
+- Fixed `fieldComponents` being called as plain functions, so a component using hooks caused React errors when a condition showed or hid its field. They’re now rendered as React components, so define them outside the component that renders the form, or React remounts them on every render.
+- Fixed number values, such as a calculated answer, showing as an empty input.
 
 ## 4.0.10 - 2026-11-17
 

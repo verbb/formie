@@ -7,6 +7,33 @@ export declare function isKnownClientFieldType(fieldType: string): fieldType is 
 export declare function fieldValueContract(field: ClientFieldDefinition): ClientFieldValueContract;
 export declare function fieldValueStructure(field: ClientFieldDefinition): ClientFieldValueContract['structure'];
 export declare function isCompositeField(field: ClientFieldDefinition): boolean;
+/**
+ * The default control for a field. Fields without a built-in type, such as Recipients, Entries, Calculations or
+ * Date and Address parts, use the control their field kind describes.
+ */
+export declare function resolveClientRendererType(field: ClientFieldDefinition): string;
+export declare function isCalculationField(field: ClientFieldDefinition): boolean;
+export type ClientFieldOption = {
+    label: string;
+    value: string;
+    disabled: boolean;
+};
+export declare function fieldOptions(field: ClientFieldDefinition): ClientFieldOption[];
+export declare function isArrayValuedField(field: ClientFieldDefinition): boolean;
+/**
+ * Options for a single-choice dropdown, with the placeholder as an empty first option. The server sends the
+ * placeholder option for most dropdowns, but element fields only send the placeholder text.
+ */
+export declare function dropdownOptions(field: ClientFieldDefinition): ClientFieldOption[];
+export type ClientTableColumn = {
+    id: string;
+    handle: string;
+    heading: string;
+    type: string;
+    options: ClientFieldOption[];
+};
+export declare function tableColumns(field: ClientFieldDefinition): ClientTableColumn[];
+export declare function createTableRowValue(field: ClientFieldDefinition): Record<string, unknown>;
 export declare function isRepeatableField(field: ClientFieldDefinition): boolean;
 export declare function isFileField(field: ClientFieldDefinition): boolean;
 export declare function isMultiValueField(field: ClientFieldDefinition): boolean;

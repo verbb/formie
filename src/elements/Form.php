@@ -955,6 +955,14 @@ class Form extends Element implements FormInterface
                     'enabled' => $this->hasMultiplePages(),
                     'calculation' => (string)$this->settings->progressCalculation,
                 ],
+                // Client-rendered forms have no templates, so they use these for their own buttons.
+                'strings' => [
+                    'addRow' => Craft::t('formie', 'Add another row'),
+                    'remove' => Craft::t('formie', 'Remove'),
+                    'removeRow' => Craft::t('formie', 'Remove row'),
+                    'clear' => Craft::t('formie', 'Clear'),
+                    'clearSignature' => Craft::t('formie', 'Clear signature'),
+                ],
             ],
             'pages' => $pages,
             'modules' => $moduleManifest->toArray(),

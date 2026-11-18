@@ -5,13 +5,25 @@
 ### Added
 - Added `data-formie-field-required="true"` to the wrapper of a required field and `aria-required="true"` to its control (the radio group for Radio fields), so themes can style required fields and screen readers announce them. ([#3139](https://github.com/verbb/formie/issues/3139))
 - Added `inputId`, `labelId` and `instructionsId` to custom field hosts and field controls, so a custom label can point at the field’s control. ([#3140](https://github.com/verbb/formie/issues/3140))
+- Added Address Country, Date dropdown parts, Group, Table, Recipients and Section fields, and Entries, Categories and other element fields, which showed “Unsupported field type”. Fields without a control of their own use the `dropdown`, `radio` or `checkboxes` renderer, so a component registered for one of those renders them too. Element fields send a list of IDs from all three. Survey fields with Likert, Rank, Rating or text display types still show “Unsupported field type”.
+- Added `role="alert"` to the form error summary and error message, and `role="status"` to the completion message. Focus moves to the first invalid field, then to these messages, and to the new page after a page change.
+- Added `autocomplete` to inputs that have an autocomplete hint, and kept labels in the **Hidden** position in the page, visually hidden, so they still name their control.
 
 ### Changed
 - Field labels now point at their control with `for` instead of the control repeating the label in `aria-label`, and field instructions describe the control with `aria-describedby`. Controls rendered inside a custom field host keep their `aria-label`. ([#3140](https://github.com/verbb/formie/issues/3140))
 - Radio options are now grouped with `role="radiogroup"` and Checkboxes options with `role="group"`, each named by the field label. The Agree checkbox is wrapped in an element with `role="group"` named by the field label, and keeps its description as its own label. ([#3140](https://github.com/verbb/formie/issues/3140))
+- Name, Address, Date, Group, Repeater and Table fields now group their controls with `role="group"`, named by the field label.
+- The file list of a File Upload field now uses `starter-component-file-list` instead of the field errors class.
+- Repeater and Table **Remove** buttons are now named “Remove row 1”, “Remove row 2” and so on, and Repeater, Table and Signature buttons use the text the server translates for the site.
 
 ### Fixed
 - Fixed every Dropdown field rendering as a multi-select list, and every File Upload field accepting several files, even when the field allows only one.
+- Fixed Calculations fields never showing their answer, and accepting typing. Calculations fields inside a Group or Repeater are still left empty.
+- Fixed Dropdown fields without a placeholder showing no option, and multi-select Dropdown fields not showing their default options as selected. A Dropdown without an empty option now starts on its first option, as server-rendered forms do.
+- Fixed the Signature pad having no accessible name.
+- Fixed choosing a Radio option in one Repeater row clearing the same field in another row, as every row shared one `name`.
+- Fixed number values, such as a calculated answer, showing as an empty input.
+- Fixed the Signature field causing an unhandled error each time it loaded.
 
 ## 4.0.10 - 2026-11-17
 

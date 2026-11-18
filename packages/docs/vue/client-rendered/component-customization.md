@@ -192,6 +192,8 @@ const SingleLineTextField = defineComponent({
 </template>
 ```
 
+Formie looks for a component under the field's type first, then under the control it renders. Fields without a control of their own, such as Recipients, Entries, Address Country and the parts of a Date field, render as `dropdown`, `radio` or `checkboxes`, so a component registered for `dropdown` renders them too. Element fields like Entries store a list of IDs even when only one can be chosen.
+
 ## Slots
 
 Use `slots` when you want to intercept smaller layout regions without replacing the whole **`Field`** component (the wrapper around each control).

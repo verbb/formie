@@ -481,7 +481,7 @@ return [
   'Clear' => 'Borrar',
   'Clear Formatting' => 'Borrar el formato',
   'Clear selection' => 'Borrar selección',
-  'Clear signature' => 'Firma legible',
+  'Clear signature' => 'Borrar firma',
   'Clerical/Administrative' => 'Administrativo/De oficina',
   'Client Event Defaults' => 'Valores predeterminados de los eventos de los clientes',
   'Client Events' => 'Eventos para clientes',

@@ -5,11 +5,13 @@ export type { CalculationFormula, CalculationOptions, CalculationVariable, Calcu
 export { evaluateConditionDefinition, finalizeConditionEvaluation } from './conditions.js';
 export { buildActionUrl, createRestClientTransport, loadClientFormBootstrap } from './rest.js';
 export { createGraphqlClientTransport, loadGraphqlClientFormBootstrap } from './graphql.js';
-export { allFields, compositePartDefinitions, createRepeaterRowValue, defaultValueForField, displayFieldContent, fieldValueContract, fieldValueStructure, fieldValueAsStrings, findFieldById, findFieldByHandle, isBooleanField, isCompositeField, isEmailField, isFileField, isFieldLabelHidden, isKnownClientFieldType, isMultiValueField, isNumericField, isRepeatableField, repeaterFieldDefinitions, repeaterRowDefinitions, serializeFieldValues, serializeTransportFieldValues, } from './schema.js';
+export { allFields, compositePartDefinitions, createRepeaterRowValue, createTableRowValue, dropdownOptions, fieldOptions, isArrayValuedField, isCalculationField, resolveClientRendererType, tableColumns, defaultValueForField, displayFieldContent, fieldValueContract, fieldValueStructure, fieldValueAsStrings, findFieldById, findFieldByHandle, isBooleanField, isCompositeField, isEmailField, isFileField, isFieldLabelHidden, isKnownClientFieldType, isMultiValueField, isNumericField, isRepeatableField, repeaterFieldDefinitions, repeaterRowDefinitions, serializeFieldValues, serializeTransportFieldValues, } from './schema.js';
+export type { ClientFieldOption, ClientTableColumn } from './schema.js';
+export { deriveCalculationValues, parseRowsExpression } from './client-calculations.js';
 export { countGraphemes, getTextLimitMetrics, getWordCount, normalizeText } from './text.js';
-export { getClientErrorAriaLive, getClientFieldErrorId, getClientFieldIds, getClientFieldLabelTarget, joinIdReferences } from './accessibility.js';
+export { getClientErrorAriaLive, getClientFieldErrorId, getClientFieldIds, getClientFieldLabelTarget, focusClientFormResult, getClientString, isFieldLabelVisuallyHidden, joinIdReferences, VISUALLY_HIDDEN_CSS, VISUALLY_HIDDEN_STYLE, } from './accessibility.js';
 export type { ClientErrorAriaLive, ClientFieldElementIds, ClientFieldLabelTarget } from './accessibility.js';
-export type { ClientFieldDefinition, ClientFieldValueContract, ClientFieldValueStructure, ClientFieldType, ClientFieldValueType, ClientFormDefinition, ClientFormBootstrap, ClientFormSession, KnownClientFieldType, ClientPageDefinition, ClientRowDefinition, ClientFormEventName, ClientFormFieldState, ClientFormInstance, ClientFormPageState, ClientFormState, ClientSubmitAction, ClientSubmitResult, PaymentDecision, ClientTransport, } from './types.js';
+export type { ClientFieldDefinition, ClientFieldValueContract, ClientFieldValueStructure, ClientFieldType, ClientFieldValueType, ClientFormDefinition, ClientFormBootstrap, ClientFormSession, ClientStringKey, KnownClientFieldType, ClientPageDefinition, ClientRowDefinition, ClientFormEventName, ClientFormFieldState, ClientFormInstance, ClientFormPageState, ClientFormState, ClientSubmitAction, ClientSubmitResult, PaymentDecision, ClientTransport, } from './types.js';
 export { parseReference, serializeReference } from './references.js';
 export type { ReferenceExpression } from './references.js';
 export { resolveReference } from './references.js';

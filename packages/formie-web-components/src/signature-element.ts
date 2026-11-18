@@ -53,6 +53,13 @@ export class FormieInternalSignature extends LitElement {
     @property({ type: Boolean })
     disabled = false;
 
+    /** Button text and accessible name for clearing the pad, translated by the server. */
+    @property({ attribute: false })
+    clearLabel = 'Clear';
+
+    @property({ attribute: false })
+    clearAccessibleLabel = 'Clear signature';
+
     @state()
     private loadError: string | null = null;
 
@@ -142,10 +149,12 @@ export class FormieInternalSignature extends LitElement {
 
         canvas.width = width * ratio;
         canvas.height = height * ratio;
+        ctx?.setTransform(1, 0, 0, 1, 0, 0);
         ctx?.scale(ratio, ratio);
         canvas.style.width = `${width}px`;
         canvas.style.height = `${height}px`;
-        this.pad?.fromDataURL?.(this.value || 'data:,');
+        // Resizing clears the canvas, so draw the saved signature again. An empty pad has nothing to draw.
+        this.applySerializedValue();
     }
 
     override updated(changed: Map<string, unknown>): void {
@@ -176,7 +185,8 @@ export class FormieInternalSignature extends LitElement {
         }
 
         try {
-            this.pad.fromDataURL(this.value);
+            // The pad loads the image asynchronously, and invalid saved data leaves it empty but usable.
+            void Promise.resolve(this.pad.fromDataURL(this.value)).catch(() => undefined);
         } catch {
             /* ignore */
         }
@@ -211,8 +221,8 @@ export class FormieInternalSignature extends LitElement {
 
         return html`
             <div class="wrap">
-                <canvas></canvas>
-                <button type="button" ?disabled=${this.disabled} @click=${() => {
+                <canvas role="img" aria-label=${this.field?.label || this.field?.handle || ''}></canvas>
+                <button type="button" aria-label=${this.clearAccessibleLabel} ?disabled=${this.disabled} @click=${() => {
                     this.pad?.clear();
                     this.dispatchEvent(
                         new CustomEvent(FORMIE_CONTROL_VALUE_EVENT, {
@@ -221,7 +231,7 @@ export class FormieInternalSignature extends LitElement {
                             composed: true,
                         }),
                     );
-                }}>Clear</button>
+                }}>${this.clearLabel}</button>
             </div>
         `;
     }

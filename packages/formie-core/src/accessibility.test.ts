@@ -42,7 +42,7 @@ describe('frontend field error accessibility', () => {
         });
     });
 
-    it('labels single controls, names choice groups and skips fields without one control', () => {
+    it('labels single controls, names groups of controls and skips fields without one control', () => {
         const field = (type: string, extra: Partial<ClientFieldDefinition> = {}) => ({
             type,
             input: {},
@@ -61,8 +61,14 @@ describe('frontend field error accessibility', () => {
         expect(getClientFieldLabelTarget(field('name', {
             client: { children: { model: 'fixed-parent' } },
             input: { parts: [{ handle: 'firstName', type: 'single-line-text' }] },
-        } as Partial<ClientFieldDefinition>), 'name')).toBe('none');
-        expect(getClientFieldLabelTarget(field('repeater', { client: { children: { model: 'repeatable-parent' } } } as Partial<ClientFieldDefinition>), 'repeater')).toBe('none');
+        } as Partial<ClientFieldDefinition>), 'name')).toBe('group');
+        expect(getClientFieldLabelTarget(field('group', {
+            client: { children: { model: 'container-parent' } },
+            input: { parts: [{ handle: 'company', type: 'single-line-text' }] },
+        } as Partial<ClientFieldDefinition>), 'group')).toBe('group');
+        expect(getClientFieldLabelTarget(field('repeater', { client: { children: { model: 'repeatable-parent' } } } as Partial<ClientFieldDefinition>), 'repeater')).toBe('group');
+        expect(getClientFieldLabelTarget(field('table'), 'table')).toBe('group');
+        expect(getClientFieldLabelTarget(field('section'), 'section')).toBe('none');
     });
 
     it('joins only the ids that are present', () => {

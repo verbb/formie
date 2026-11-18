@@ -1,4 +1,4 @@
-import { createElement } from 'react';
+import { createElement, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createApp, h } from 'vue';
 import '@verbb/plugin-kit-web/components/alert.js';
@@ -24,7 +24,12 @@ const host = document.querySelector('#host')!;
 const custom = query.get('custom');
 const reactCustom = custom === 'label'
     ? { slots: { label: ({ field, children }: any) => createElement('div', { 'data-slot-field': field?.handle ?? '' }, children) } }
-    : (custom === 'field' ? { components: { Field: ({ field, children }: any) => createElement('div', { 'data-custom-field': field.handle }, field.label ? createElement('label', null, field.label) : null, children) } } : {});
+    : (custom === 'field' ? { components: { Field: ({ field, children }: any) => createElement('div', { 'data-custom-field': field.handle }, field.label ? createElement('label', null, field.label) : null, children) } }
+        // `custom=hooks` renders text fields with a component that keeps its own state, as custom field components do.
+        : (custom === 'hooks' ? { fieldComponents: { 'single-line-text': function HookedText(props: any) {
+            const [edited, setEdited] = useState(false);
+            return createElement('input', { 'aria-label': props.field.label, 'data-custom-field': String(edited), value: typeof props.value === 'string' ? props.value : '', onChange: (event: any) => { setEdited(true); props.setValue(event.target.value); } });
+        } } } : {}));
 const vueCustom = custom === 'label'
     ? { slots: { label: { props: ['slotKey', 'attributes', 'field'], setup: (props: any, { slots }: any) => () => h('div', { 'data-slot-field': props.field?.handle ?? '' }, slots.default?.()) } } }
     : (custom === 'field' ? { components: { Field: { props: ['field', 'errors', 'errorId', 'errorAriaLive'], setup: (props: any, { slots }: any) => () => h('div', { 'data-custom-field': props.field.handle }, [props.field.label ? h('label', props.field.label) : null, slots.default?.()]) } } } : {});

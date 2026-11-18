@@ -7,6 +7,17 @@
 - Client-rendered forms built with `@verbb/formie-vue`, `@verbb/formie-react` or the Formie web components now link each field’s label to its control, so clicking the label focuses it, and describe the control with the field’s instructions. Radio, Checkboxes and Agree fields are grouped and named by the field label, as in server-rendered forms. ([#3140](https://github.com/verbb/formie/issues/3140))
 
 ### Fixed
+- Fixed Address Country, Date dropdown parts, Group, Table, Recipients and Section fields, and Entries, Categories and other element fields, showing “Unsupported field type” in client-rendered forms built with `@verbb/formie-vue`, `@verbb/formie-react` or the Formie web components. A form with a Recipients field couldn’t be submitted.
+- Fixed Calculations fields never showing their answer, and accepting typing, in client-rendered forms built with `@verbb/formie-vue`, `@verbb/formie-react` or the Formie web components. Calculations fields inside a Group or Repeater are still left empty there.
+- Fixed Dropdown fields showing their first option while sending no answer, and multi-select Dropdown fields not showing their default options as selected, in client-rendered forms built with `@verbb/formie-vue`, `@verbb/formie-react` or the Formie web components.
+- Fixed Radio options not working with arrow keys in some browsers in client-rendered forms, and choosing a Radio option in one Repeater row clearing the same field in another row in the Formie web components.
+- Fixed client-rendered forms built with `@verbb/formie-vue`, `@verbb/formie-react` or the Formie web components leaving focus nowhere after a page change or a completed submission, and not announcing form errors or completion messages to screen readers.
+- Fixed Name, Address, Date and Group fields not naming their parts as a group, labels in the **Hidden** position showing, and inputs missing the autocomplete hints that server-rendered forms use, in client-rendered forms built with `@verbb/formie-vue`, `@verbb/formie-react` or the Formie web components.
+- Fixed Repeater **Remove** buttons not saying which row they remove, and Repeater, Table and Signature buttons showing in English, in client-rendered forms built with `@verbb/formie-vue`, `@verbb/formie-react` or the Formie web components. Repeater errors also showed twice with `@verbb/formie-vue` and `@verbb/formie-react`.
+- Fixed Repeater row fields with **Visibility** set to **Hidden** showing in client-rendered forms built with `@verbb/formie-vue`.
+- Fixed custom React field components that use hooks causing React errors when a condition showed or hid their field.
+- Fixed the Signature field in the Formie web components causing an unhandled error each time it loaded.
+- Fixed the Spanish, German, French, Portuguese and Italian translations of **Clear signature**, which read as “legible signature”.
 - Fixed Dropdown fields rendering as a multi-select list, and File Upload fields accepting several files when they allow only one, in client-rendered forms built with the Formie web components.
 - Fixed the Google Sheets integration being unable to load its sheets or add rows, and its **Sheet** setting missing a refresh button. ([#3136](https://github.com/verbb/formie/issues/3136))
 - Fixed the Entries integration ignoring **Default Entry Author** and making user 1 the author of every entry it created. ([#3131](https://github.com/verbb/formie/issues/3131))

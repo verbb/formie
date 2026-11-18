@@ -63,8 +63,127 @@ export function fieldValueStructure(field: ClientFieldDefinition): ClientFieldVa
     return fieldValueContract(field).structure;
 }
 
+// Name, Address and Date have fixed parts, and a Group's parts work the same way in the client.
 export function isCompositeField(field: ClientFieldDefinition): boolean {
-    return fieldValueStructure(field) === 'fixed-parent' && compositePartDefinitions(field).length > 0;
+    const structure = fieldValueStructure(field);
+
+    return (structure === 'fixed-parent' || structure === 'container-parent') && compositePartDefinitions(field).length > 0;
+}
+
+const FIELD_KIND_RENDERERS: Record<string, string> = {
+    text: 'single-line-text',
+    textarea: 'multi-line-text',
+    boolean: 'agree',
+    file: 'file',
+    select: 'dropdown',
+    'radio-group': 'radio',
+    'checkbox-group': 'checkboxes',
+    signature: 'signature',
+    table: 'table',
+};
+
+/**
+ * The default control for a field. Fields without a built-in type, such as Recipients, Entries, Calculations or
+ * Date and Address parts, use the control their field kind describes.
+ */
+export function resolveClientRendererType(field: ClientFieldDefinition): string {
+    if (isKnownClientFieldType(field.type) || field.type === 'table' || field.type === 'section') {
+        return field.type;
+    }
+
+    const fieldKind = typeof field.input.fieldKind === 'string' ? field.input.fieldKind : null;
+
+    // Survey's Likert, Rank, Rating and text display types report a select kind but need their own control.
+    if (field.type === 'survey' && fieldKind !== 'radio-group' && fieldKind !== 'checkbox-group') {
+        return field.type;
+    }
+
+    return (fieldKind && FIELD_KIND_RENDERERS[fieldKind]) || field.type;
+}
+
+export function isCalculationField(field: ClientFieldDefinition): boolean {
+    return field.type === 'calculations';
+}
+
+export type ClientFieldOption = {
+    label: string;
+    value: string;
+    disabled: boolean;
+};
+
+export function fieldOptions(field: ClientFieldDefinition): ClientFieldOption[] {
+    const options = Array.isArray(field.input.options) ? field.input.options as Array<Record<string, unknown>> : [];
+
+    // Option group headings carry their label in `optgroup` and aren't choices.
+    return options.filter((option) => !!option && typeof option === 'object' && !option.optgroup).map((option) => {
+        const value = String(option.value ?? '');
+
+        return { label: String(option.label ?? '') || value, value, disabled: option.disabled === true };
+    });
+}
+
+// Element fields store a list of IDs even when only one can be chosen.
+export function isArrayValuedField(field: ClientFieldDefinition): boolean {
+    return field.input.multiple === true || field.client?.valueType?.kind === 'relationQuery';
+}
+
+/**
+ * Options for a single-choice dropdown, with the placeholder as an empty first option. The server sends the
+ * placeholder option for most dropdowns, but element fields only send the placeholder text.
+ */
+export function dropdownOptions(field: ClientFieldDefinition): ClientFieldOption[] {
+    const options = fieldOptions(field);
+    const placeholder = typeof field.input.placeholder === 'string' ? field.input.placeholder : '';
+
+    if (field.input.multiple === true || !placeholder || options.some((option) => option.value === '')) {
+        return options;
+    }
+
+    return [{ label: placeholder, value: '', disabled: false }, ...options];
+}
+
+export type ClientTableColumn = {
+    id: string;
+    handle: string;
+    heading: string;
+    type: string;
+    options: ClientFieldOption[];
+};
+
+export function tableColumns(field: ClientFieldDefinition): ClientTableColumn[] {
+    const columns = Array.isArray(field.input.columns) ? field.input.columns as Array<Record<string, unknown>> : [];
+
+    return columns.filter((column) => !!column && typeof column === 'object').map((column) => {
+        const id = String(column.id ?? '');
+        const options = Array.isArray(column.options) ? column.options as Array<Record<string, unknown>> : [];
+
+        return {
+            id,
+            handle: String(column.handle || id),
+            heading: String(column.heading ?? ''),
+            type: String(column.type ?? 'singleline'),
+            options: options.map((option) => {
+                const value = String(option.value ?? '');
+
+                return { label: String(option.label ?? '') || value, value, disabled: false };
+            }),
+        };
+    });
+}
+
+export function createTableRowValue(field: ClientFieldDefinition): Record<string, unknown> {
+    return Object.fromEntries(tableColumns(field).filter((column) => column.type !== 'heading').map((column) => {
+        if (column.type === 'checkbox') {
+            return [column.handle, false];
+        }
+
+        // A select cell shows its first option, and the server-rendered table submits it.
+        if ((column.type === 'select' || column.type === 'dropdown') && column.options.length > 0) {
+            return [column.handle, column.options[0].value];
+        }
+
+        return [column.handle, ''];
+    }));
 }
 
 export function isRepeatableField(field: ClientFieldDefinition): boolean {
@@ -76,11 +195,12 @@ export function isFileField(field: ClientFieldDefinition): boolean {
 }
 
 export function isMultiValueField(field: ClientFieldDefinition): boolean {
-    const contract = field.input;
+    const rendererType = resolveClientRendererType(field);
 
     return isFileField(field)
-        || field.type === 'checkboxes'
-        || (field.type === 'dropdown' && contract.multiple === true);
+        || rendererType === 'checkboxes'
+        || (rendererType === 'dropdown' && isArrayValuedField(field))
+        || (rendererType === 'radio' && isArrayValuedField(field));
 }
 
 export function isBooleanField(field: ClientFieldDefinition): boolean {
@@ -131,19 +251,37 @@ export function defaultValueForField(field: ClientFieldDefinition): unknown {
         return options.filter((option) => option.selected === true).map((option) => option.value ?? '');
     }
 
-    if (field.type === 'radio' || field.type === 'dropdown') {
+    const rendererType = resolveClientRendererType(field);
+
+    if (rendererType === 'radio' || rendererType === 'dropdown') {
         const options = Array.isArray(contract.options) ? contract.options as Array<Record<string, unknown>> : [];
 
-        if (field.type === 'dropdown' && contract.multiple === true) {
+        if (rendererType === 'dropdown' && contract.multiple === true) {
             return options
                 .filter((option) => option.selected === true)
                 .map((option) => option.value ?? '');
+        }
+
+        // Element fields keep a list of IDs, even as a single-choice dropdown or radio.
+        if (isArrayValuedField(field)) {
+            const selected = options.filter((option) => option.selected === true).slice(0, 1).map((option) => String(option.value ?? ''));
+
+            return selected.length > 0 ? selected : (Array.isArray(contract.defaultValue) ? contract.defaultValue : []);
         }
 
         const selectedOption = options.find((option) => option.selected === true);
 
         if (selectedOption) {
             return selectedOption.value ?? '';
+        }
+
+        if (rendererType === 'dropdown' && !isArrayValuedField(field) && (contract.defaultValue == null || contract.defaultValue === '')) {
+            // A dropdown without an empty option shows its first option, and the server-rendered form submits it.
+            const shown = dropdownOptions(field).find((option) => !option.disabled);
+
+            if (shown && shown.value !== '' && !dropdownOptions(field).some((option) => option.value === '')) {
+                return shown.value;
+            }
         }
     }
 
@@ -152,9 +290,38 @@ export function defaultValueForField(field: ClientFieldDefinition): unknown {
     }
 
     if (isCompositeField(field)) {
-        return contract.defaultValue && typeof contract.defaultValue === 'object'
-            ? contract.defaultValue
-            : {};
+        const sentValue = contract.defaultValue && typeof contract.defaultValue === 'object' ? contract.defaultValue as Record<string, unknown> : {};
+        const partDefaults = Object.fromEntries(compositePartDefinitions(field).map((part) => [part.handle, defaultValueForField(part)]));
+
+        // Parts the server sent no answer for start from their own defaults, as their controls show.
+        return {
+            ...partDefaults,
+            ...Object.fromEntries(Object.entries(sentValue).filter(([, value]) => value != null)),
+        };
+    }
+
+    if (rendererType === 'table') {
+        const rows = Array.isArray(contract.defaultValue) ? contract.defaultValue : [];
+        const minRows = Number(contract.minRows ?? 0) || 0;
+
+        // Without default rows, the server-rendered table starts with its minimum number of empty rows. Cells a
+        // default row leaves out start as a new row's would, and a select cell without one of its options sends
+        // the first option, as the server-rendered table shows and submits it.
+        const selectColumns = tableColumns(field).filter((column) => (column.type === 'select' || column.type === 'dropdown') && column.options.length > 0);
+
+        return rows.length > 0
+            ? rows.map((row) => {
+                const cells: Record<string, unknown> = { ...createTableRowValue(field), ...(row && typeof row === 'object' ? row as Record<string, unknown> : {}) };
+
+                selectColumns.forEach((column) => {
+                    if (!column.options.some((option) => option.value === String(cells[column.handle] ?? ''))) {
+                        cells[column.handle] = column.options[0].value;
+                    }
+                });
+
+                return cells;
+            })
+            : Array.from({ length: minRows }, () => createTableRowValue(field));
     }
 
     if (isRepeatableField(field)) {
@@ -209,9 +376,9 @@ export function displayFieldContent(field: ClientFieldDefinition): ClientDisplay
     return null;
 }
 
-// A heading's label is its content, and Rich Text and HTML labels are hidden unless the author shows them.
+// A heading's label is its content, a Section is only a divider, and Rich Text and HTML labels are hidden unless the author shows them.
 export function isFieldLabelHidden(field: ClientFieldDefinition): boolean {
-    return field.type === 'heading' || field.input.labelHidden === true;
+    return field.type === 'heading' || field.type === 'section' || field.input.labelHidden === true;
 }
 
 export function createRepeaterRowValue(field: ClientFieldDefinition): Record<string, unknown> {
