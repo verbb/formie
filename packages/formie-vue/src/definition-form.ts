@@ -140,6 +140,7 @@ export type FormieFieldComponentProps = {
 export type FormieSlotComponentProps = {
     slotKey: string;
     attributes?: Record<string, unknown>;
+    field?: ClientFieldDefinition;
 };
 
 export type FormieVueComponents = {
@@ -307,7 +308,7 @@ function isDefaultFieldWrapper(context: FormieDefinitionContextValue): boolean {
     return !context.components.value.Field;
 }
 
-function renderSlotWrapper(context: FormieDefinitionContextValue, slotKey: string, child: VNode | null, attributes?: Record<string, unknown>) {
+function renderSlotWrapper(context: FormieDefinitionContextValue, slotKey: string, child: VNode | null, attributes?: Record<string, unknown>, field?: ClientFieldDefinition) {
     if (!child) {
         return null;
     }
@@ -321,6 +322,7 @@ function renderSlotWrapper(context: FormieDefinitionContextValue, slotKey: strin
     return h(SlotComponent, {
         slotKey,
         attributes,
+        field,
     }, {
         default: () => [child],
     });
@@ -405,21 +407,22 @@ const DefaultField = defineComponent({
                 'data-formie-field-uid': props.field.uid,
                 'data-formie-field-handle': props.field.handle,
                 'data-formie-field-type': props.field.type,
+                'data-formie-field-required': props.field.required ? 'true' : undefined,
             }, [
                 props.field.label && !isFieldLabelHidden(props.field)
-                    ? renderSlotWrapper(context, 'label', h('label', labelAttributes, props.field.label), labelAttributes)
+                    ? renderSlotWrapper(context, 'label', h('label', labelAttributes, props.field.label), labelAttributes, props.field)
                     : null,
                 props.field.instructions
                     ? renderSlotWrapper(context, 'instructions', h('div', {
                         ...instructionsAttributes,
                         innerHTML: props.field.instructions,
-                    }), instructionsAttributes)
+                    }), instructionsAttributes, props.field)
                     : null,
                 renderSlotWrapper(context, 'input', h('div', {
                     class: 'formie-vue-input',
                 }, children), {
                     class: 'formie-vue-input',
-                }),
+                }, props.field),
                 renderSlotWrapper(context, 'errors', h('ul', {
                         id: props.errorId,
                         class: 'formie-vue-field-errors',
@@ -438,7 +441,7 @@ const DefaultField = defineComponent({
                         'data-formie-field-errors': true,
                         'aria-live': props.errorAriaLive === 'off' ? undefined : props.errorAriaLive,
                         'aria-atomic': props.errorAriaLive === 'off' ? undefined : 'true',
-                    }),
+                    }, props.field),
             ]);
         };
     },
@@ -1084,6 +1087,7 @@ function controlAttributes(field: ClientFieldDefinition, labelling: ControlLabel
     return {
         id: labelling.inputId || undefined,
         'aria-label': labelling.labelledByWrapper ? undefined : field.label || field.handle,
+        'aria-required': field.required ? 'true' : undefined,
         'aria-invalid': hasErrors ? 'true' : undefined,
         'aria-errormessage': hasErrors ? labelling.errorId : undefined,
         'aria-describedby': joinIdReferences(instructionsReference(field, labelling), hasErrors && labelling.errorId),
@@ -1095,6 +1099,8 @@ function groupAttributes(field: ClientFieldDefinition, labelling: ControlLabelli
         role,
         'aria-labelledby': labelling.labelledByWrapper ? labelling.labelId : undefined,
         'aria-label': labelling.labelledByWrapper ? undefined : field.label || field.handle,
+        // ARIA supports a required radio group, but not a required group of checkboxes.
+        'aria-required': role === 'radiogroup' && field.required ? 'true' : undefined,
         'aria-describedby': joinIdReferences(instructionsReference(field, labelling)),
     };
 }
@@ -1281,6 +1287,7 @@ const DefaultFieldInput = defineComponent({
                             key: 'input',
                             type: 'checkbox',
                             id: props.inputId || undefined,
+                            'aria-required': props.field.required ? 'true' : undefined,
                             ...errorReferenceAttributes(props.errors, props.errorId),
                             checked: props.value === true,
                             disabled: props.disabled,

@@ -83,6 +83,7 @@ export type FormieSlotComponentProps = {
     slotKey: string;
     children?: ReactNode;
     attributes?: Record<string, unknown>;
+    field?: ClientFieldDefinition;
 };
 export type FormieReactComponents = {
     Form?: (props: FormieFormComponentProps) => ReactNode;

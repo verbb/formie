@@ -135,6 +135,7 @@ export type FormieSlotComponentProps = {
     slotKey: string;
     children?: ReactNode;
     attributes?: Record<string, unknown>;
+    field?: ClientFieldDefinition;
 };
 
 export type FormieReactComponents = {
@@ -227,6 +228,7 @@ function DefaultField({ field, errors, errorId, errorAriaLive, inputId, labelId,
             slotKey,
             children: child,
             attributes,
+            field,
         });
     };
 
@@ -235,6 +237,7 @@ function DefaultField({ field, errors, errorId, errorAriaLive, inputId, labelId,
         'data-formie-field-type': field.type,
         'data-formie-field-uid': field.uid,
         'data-formie-field-handle': field.handle,
+        'data-formie-field-required': field.required ? 'true' : undefined,
     }, [
         field.label && !isFieldLabelHidden(field) ? renderSlot('label', createElement('label', {
             key: 'label',
@@ -394,6 +397,7 @@ function controlAttributes(field: ClientFieldDefinition, labelling: ControlLabel
     return {
         id: labelling.inputId || undefined,
         'aria-label': labelling.labelledByWrapper ? undefined : field.label || field.handle,
+        'aria-required': field.required ? 'true' as const : undefined,
         'aria-invalid': hasErrors ? 'true' as const : undefined,
         'aria-errormessage': hasErrors ? labelling.errorId : undefined,
         'aria-describedby': joinIdReferences(instructionsReference(field, labelling), hasErrors && labelling.errorId),
@@ -405,6 +409,8 @@ function groupAttributes(field: ClientFieldDefinition, labelling: ControlLabelli
         role,
         'aria-labelledby': labelling.labelledByWrapper ? labelling.labelId : undefined,
         'aria-label': labelling.labelledByWrapper ? undefined : field.label || field.handle,
+        // ARIA supports a required radio group, but not a required group of checkboxes.
+        'aria-required': role === 'radiogroup' && field.required ? 'true' as const : undefined,
         'aria-describedby': joinIdReferences(instructionsReference(field, labelling)),
     };
 }
@@ -943,6 +949,7 @@ function defaultFieldRenderer(props: FormieFieldComponentProps, labelledByWrappe
                 key: 'input',
                 type: 'checkbox',
                 id: props.inputId || undefined,
+                'aria-required': field.required ? 'true' : undefined,
                 ...errorReferenceAttributes(props.errors, errorId),
                 checked: value === true,
                 disabled,

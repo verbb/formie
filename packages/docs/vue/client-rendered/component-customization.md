@@ -97,6 +97,19 @@ Each field gets IDs that link its label, instructions and errors to its control.
 
 In the example above, the custom label points at `inputId` and the custom text input uses it as its `id`. Radio, Checkboxes and Agree fields have several controls, so the default controls group them with `role="group"` (`radiogroup` for Radio) and name the group with `aria-labelledby` pointing at `labelId`. When you replace the `Field` component, the default controls also name themselves with `aria-label`, so they stay accessible even if your label doesn't use these IDs.
 
+### Required Fields
+
+A required field's wrapper has `data-formie-field-required="true"`, and its control has `aria-required="true"` so screen readers announce it. For a Radio field, `aria-required` goes on the radio group. A Checkboxes field has no `aria-required`, as ARIA doesn't support it on a group of checkboxes. Formie validates required fields itself, so controls don't get the native `required` attribute, which would show the browser's own validation messages first.
+
+Use the wrapper attribute to add a required marker with CSS alone:
+
+```css
+.formie-vue-field[data-formie-field-required='true'] > .formie-vue-label::after {
+  content: ' *';
+  color: rgb(220 38 38);
+}
+```
+
 ## Top-Level Components
 
 Use `components` when you want to replace the top-level `Form` layout rather than one field type:
@@ -183,7 +196,7 @@ const SingleLineTextField = defineComponent({
 
 Use `slots` when you want to intercept smaller layout regions without replacing the whole **`Field`** component (the wrapper around each control).
 
-This is useful for wrapping labels, instructions, inputs, or error regions in app-specific markup.
+This is useful for wrapping labels, instructions, inputs, or error regions in app-specific markup. Each slot component receives `slotKey`, the `attributes` of the element it wraps, and the `field` it belongs to, so a label slot can check `field.required` to add its own required marker.
 
 ## Composables
 

@@ -785,7 +785,7 @@ function Dt(e, t) {
 }
 function Ot(e, t, n, r, i) {
 	return k`
-        <div class="starter-component-subfield" data-formie-field-type=${e.type} data-formie-field-uid=${e.uid} data-formie-field-handle=${e.handle}>
+        <div class="starter-component-subfield" data-formie-field-type=${e.type} data-formie-field-uid=${e.uid} data-formie-field-handle=${e.handle} data-formie-field-required=${e.required ? "true" : j}>
             ${e.label ? k`<label class="starter-component-subfield-label" id=${n.label} for=${Dt(e, n)}>${e.label}</label>` : j}
             <div class="starter-component-injected-control grid gap-2 text-slate-900">${i}</div>
             <ul id=${n.errors} data-formie-field-errors aria-live=${r === "off" ? j : r} aria-atomic=${r === "off" ? j : "true"} style=${t.length === 0 ? "position: absolute" : j} class="grid gap-1 text-sm text-red-600">
@@ -796,7 +796,7 @@ function Ot(e, t, n, r, i) {
 }
 function kt(e, t, n, r, i) {
 	return k`
-        <div class="starter-component-card" data-formie-field-type=${e.type} data-formie-field-uid=${e.uid} data-formie-field-handle=${e.handle}>
+        <div class="starter-component-card" data-formie-field-type=${e.type} data-formie-field-uid=${e.uid} data-formie-field-handle=${e.handle} data-formie-field-required=${e.required ? "true" : j}>
             ${e.label && !ee(e) ? k`<label class="starter-component-label" id=${n.label} for=${Dt(e, n)}>${e.label}</label>` : j}
             ${e.instructions ? k`<div class="starter-component-help" id=${n.instructions}>${G(e.instructions)}</div>` : j}
             <div class="starter-component-injected-control grid gap-2 text-slate-900">${i}</div>
@@ -821,6 +821,7 @@ function jt(e, t, n, r, i) {
             <textarea
             id=${i.ids.input}
             aria-label=${Y(e, i)}
+            aria-required=${e.required ? "true" : j}
             aria-invalid=${o.length > 0 ? "true" : j}
             aria-errormessage=${o.length > 0 ? s : j}
             aria-describedby=${J(e, i)}
@@ -839,6 +840,7 @@ function jt(e, t, n, r, i) {
             <select
             id=${i.ids.input}
             aria-label=${Y(e, i)}
+            aria-required=${e.required ? "true" : j}
             aria-invalid=${o.length > 0 ? "true" : j}
             aria-errormessage=${o.length > 0 ? s : j}
             aria-describedby=${J(e, i)}
@@ -867,6 +869,7 @@ function jt(e, t, n, r, i) {
         <input
             id=${i.ids.input}
             aria-label=${Y(e, i)}
+            aria-required=${e.required ? "true" : j}
             aria-invalid=${o.length > 0 ? "true" : j}
             aria-errormessage=${o.length > 0 ? s : j}
             aria-describedby=${J(e, i)}
@@ -906,7 +909,7 @@ function Mt(e, t) {
 	if (c === "radio") {
 		let e = Array.isArray(s.options) ? s.options : [];
 		return k`
-            <div class="flex flex-col gap-2" role="radiogroup" aria-labelledby=${u} aria-label=${Y(n, l)} aria-describedby=${f}>
+            <div class="flex flex-col gap-2" role="radiogroup" aria-labelledby=${u} aria-label=${Y(n, l)} aria-required=${n.required ? "true" : j} aria-describedby=${f}>
                 ${e.map((e) => {
 			let i = String(e.value ?? ""), s = a || e.disabled === !0;
 			return k`
@@ -965,6 +968,7 @@ function Mt(e, t) {
                     <input
                         type="checkbox"
                         id=${t.ids.input}
+                        aria-required=${n.required ? "true" : j}
                         aria-invalid=${t.errors.length > 0 ? "true" : j}
                         aria-errormessage=${t.errors.length > 0 ? t.errorId : j}
                         aria-describedby=${t.errors.length > 0 ? t.errorId : j}
@@ -993,6 +997,7 @@ function Nt(e, t, n, r, i) {
                 type="file"
                 id=${i.ids.input}
                 aria-label=${Y(e, i)}
+                aria-required=${e.required ? "true" : j}
                 aria-invalid=${a.length > 0 ? "true" : j}
                 aria-errormessage=${a.length > 0 ? o : j}
                 aria-describedby=${J(e, i)}

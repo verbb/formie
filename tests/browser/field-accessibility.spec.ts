@@ -54,9 +54,44 @@ for (const adapter of ['react', 'vue', 'web-components']) {
         expect(errors).toEqual([]);
     });
 
+    // https://github.com/verbb/formie/issues/3139
+    test(`${adapter}: marks required fields`, async ({ page }) => {
+        const { host, errors } = await openForm(page, adapter);
+        const wrapper = (handle: string) => host.locator(`[data-formie-field-handle="${handle}"]`).first();
+
+        for (const handle of ['visitorName', 'message', 'enquiry', 'contactMethod', 'newsletter']) {
+            await expect(wrapper(handle)).toHaveAttribute('data-formie-field-required', 'true');
+        }
+
+        for (const handle of ['visitorEmail', 'topics']) {
+            await expectNoAttribute(wrapper(handle), 'data-formie-field-required');
+        }
+
+        const name = host.getByRole('textbox', { name: 'Visitor name', exact: true });
+        await expect(name).toHaveAttribute('aria-required', 'true');
+        await expect(host.getByRole('textbox', { name: 'Message', exact: true })).toHaveAttribute('aria-required', 'true');
+        await expect(host.getByLabel('Enquiry', { exact: true })).toHaveAttribute('aria-required', 'true');
+        await expect(host.getByRole('radiogroup', { name: 'Contact method', exact: true })).toHaveAttribute('aria-required', 'true');
+        await expect(host.getByRole('checkbox', { name: 'Yes, send me updates.', exact: true })).toHaveAttribute('aria-required', 'true');
+        await expectNoAttribute(host.getByRole('textbox', { name: 'Visitor email', exact: true }), 'aria-required');
+        await expectNoAttribute(host.getByRole('checkbox', { name: 'News', exact: true }), 'aria-required');
+
+        // Native `required` would show the browser's own validation bubbles ahead of Formie's.
+        await expectNoAttribute(name, 'required');
+        expect(errors).toEqual([]);
+    });
+
     if (adapter === 'web-components') {
         continue;
     }
+
+    test(`${adapter}: passes the field to slot components`, async ({ page }) => {
+        const { host, errors } = await openForm(page, adapter, '&custom=label');
+
+        await expect(host.locator('[data-slot-field="visitorName"]')).toHaveText('Visitor name');
+        await expect(host.getByRole('textbox', { name: 'Visitor name', exact: true })).toBeVisible();
+        expect(errors).toEqual([]);
+    });
 
     test(`${adapter}: keeps control names under a custom Field wrapper`, async ({ page }) => {
         const { host, errors } = await openForm(page, adapter, '&custom=field');

@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Added
+- Added `data-formie-field-required="true"` to the wrapper of a required field and `aria-required="true"` to its control (the radio group for Radio fields), so themes can style required fields and screen readers announce them. ([#3139](https://github.com/verbb/formie/issues/3139))
+- Added `field` to the props passed to slot components, so a custom label can show its own required marker. ([#3139](https://github.com/verbb/formie/issues/3139))
 - Added `inputId`, `labelId` and `instructionsId` to custom `Field` components and field components, so a custom label can point at the field’s control. ([#3140](https://github.com/verbb/formie/issues/3140))
 
 ### Changed

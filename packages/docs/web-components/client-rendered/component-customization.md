@@ -185,6 +185,21 @@ Use **`registerField(tagName)`** when you want one custom element to wrap every 
 
 Formie also sets **`inputId`**, **`labelId`**, **`instructionsId`** and **`errorId`**, the IDs of the field's control, label, instructions and error list. The default field host uses them to link its label to the control with `for` and to describe the control with its instructions. A label inside a shadow root can't point at a control in the light DOM, so when you register a field host the default controls also name themselves with `aria-label`. If your host renders its label in the light DOM, give it `for` set to `inputId`.
 
+### Required Fields
+
+A required field's wrapper has `data-formie-field-required="true"`, and its control has `aria-required="true"` so screen readers announce it. For a Radio field, `aria-required` goes on the radio group. A Checkboxes field has no `aria-required`, as ARIA doesn't support it on a group of checkboxes. Formie validates required fields itself, so controls don't get the native `required` attribute, which would show the browser's own validation messages first.
+
+Use the wrapper attribute to add a required marker with CSS alone:
+
+```css
+.starter-component-card[data-formie-field-required='true'] > .starter-component-label::after {
+  content: ' *';
+  color: rgb(220 38 38);
+}
+```
+
+A custom field host receives the whole `field`, so it can check `field.required` to render its own marker.
+
 ## Field Controls
 
 Use **`registerFieldControl(fieldKey, tagName)`** when you only replace the control for a field type. Formie sets **`field`**, **`value`**, **`errorKey`**, **`errorId`**, **`inputId`**, **`disabled`**, and **`hidden`**, and listens for **`FORMIE_CONTROL_VALUE_EVENT`** with **`detail`** = the next value. Give your input the `inputId` as its `id` so the default field label points at it.

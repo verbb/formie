@@ -122,12 +122,13 @@ function de(e, t, n) {
 function M(e) {
 	return !e.components.value.Field;
 }
-function N(e, t, n, r) {
+function N(e, t, n, r, i) {
 	if (!n) return null;
-	let i = e.slots.value[t];
-	return i ? a(i, {
+	let o = e.slots.value[t];
+	return o ? a(o, {
 		slotKey: t,
-		attributes: r
+		attributes: r,
+		field: i
 	}, { default: () => [n] }) : n;
 }
 var P = i({
@@ -186,14 +187,15 @@ var P = i({
 				class: "formie-vue-field",
 				"data-formie-field-uid": e.field.uid,
 				"data-formie-field-handle": e.field.handle,
-				"data-formie-field-type": e.field.type
+				"data-formie-field-type": e.field.type,
+				"data-formie-field-required": e.field.required ? "true" : void 0
 			}, [
-				e.field.label && !ne(e.field) ? N(n, "label", a("label", i, e.field.label), i) : null,
+				e.field.label && !ne(e.field) ? N(n, "label", a("label", i, e.field.label), i, e.field) : null,
 				e.field.instructions ? N(n, "instructions", a("div", {
 					...o,
 					innerHTML: e.field.instructions
-				}), o) : null,
-				N(n, "input", a("div", { class: "formie-vue-input" }, r), { class: "formie-vue-input" }),
+				}), o, e.field) : null,
+				N(n, "input", a("div", { class: "formie-vue-input" }, r), { class: "formie-vue-input" }, e.field),
 				N(n, "errors", a("ul", {
 					id: e.errorId,
 					class: "formie-vue-field-errors",
@@ -208,7 +210,7 @@ var P = i({
 					"data-formie-field-errors": !0,
 					"aria-live": e.errorAriaLive === "off" ? void 0 : e.errorAriaLive,
 					"aria-atomic": e.errorAriaLive === "off" ? void 0 : "true"
-				})
+				}, e.field)
 			]);
 		};
 	}
@@ -596,6 +598,7 @@ function q(e, t) {
 	return {
 		id: t.inputId || void 0,
 		"aria-label": t.labelledByWrapper ? void 0 : e.label || e.handle,
+		"aria-required": e.required ? "true" : void 0,
 		"aria-invalid": n ? "true" : void 0,
 		"aria-errormessage": n ? t.errorId : void 0,
 		"aria-describedby": w(K(e, t), n && t.errorId)
@@ -606,6 +609,7 @@ function J(e, t, n) {
 		role: n,
 		"aria-labelledby": t.labelledByWrapper ? t.labelId : void 0,
 		"aria-label": t.labelledByWrapper ? void 0 : e.label || e.handle,
+		"aria-required": n === "radiogroup" && e.required ? "true" : void 0,
 		"aria-describedby": w(K(e, t))
 	};
 }
@@ -717,6 +721,7 @@ var me = i({
 					key: "input",
 					type: "checkbox",
 					id: e.inputId || void 0,
+					"aria-required": e.field.required ? "true" : void 0,
 					...W(e.errors, e.errorId),
 					checked: e.value === !0,
 					disabled: e.disabled,

@@ -79,6 +79,7 @@ export type FormieFieldComponentProps = {
 export type FormieSlotComponentProps = {
     slotKey: string;
     attributes?: Record<string, unknown>;
+    field?: ClientFieldDefinition;
 };
 export type FormieVueComponents = {
     Form?: Component;

@@ -19,10 +19,15 @@ const observations: unknown[] = [];
 for (const name of ['formie:browser:module:mount', 'formie:browser:module:error', 'formie:browser:module:delegated']) document.addEventListener(name, (event) => observations.push({ name, ...(event as CustomEvent).detail, target: undefined }));
 (globalThis as any).moduleObservations = observations;
 const host = document.querySelector('#host')!;
-// `custom=field` replaces the whole Field wrapper with one that renders an unlinked label.
+// `custom=label` swaps in a label slot that records the field it was given; `custom=field` replaces the
+// whole Field wrapper with one that renders an unlinked label, as the customisation docs show.
 const custom = query.get('custom');
-const reactCustom = custom === 'field' ? { components: { Field: ({ field, children }: any) => createElement('div', { 'data-custom-field': field.handle }, field.label ? createElement('label', null, field.label) : null, children) } } : {};
-const vueCustom = custom === 'field' ? { components: { Field: { props: ['field', 'errors', 'errorId', 'errorAriaLive'], setup: (props: any, { slots }: any) => () => h('div', { 'data-custom-field': props.field.handle }, [props.field.label ? h('label', props.field.label) : null, slots.default?.()]) } } } : {};
+const reactCustom = custom === 'label'
+    ? { slots: { label: ({ field, children }: any) => createElement('div', { 'data-slot-field': field?.handle ?? '' }, children) } }
+    : (custom === 'field' ? { components: { Field: ({ field, children }: any) => createElement('div', { 'data-custom-field': field.handle }, field.label ? createElement('label', null, field.label) : null, children) } } : {});
+const vueCustom = custom === 'label'
+    ? { slots: { label: { props: ['slotKey', 'attributes', 'field'], setup: (props: any, { slots }: any) => () => h('div', { 'data-slot-field': props.field?.handle ?? '' }, slots.default?.()) } } }
+    : (custom === 'field' ? { components: { Field: { props: ['field', 'errors', 'errorId', 'errorAriaLive'], setup: (props: any, { slots }: any) => () => h('div', { 'data-custom-field': props.field.handle }, [props.field.label ? h('label', props.field.label) : null, slots.default?.()]) } } } : {});
 let teardown: (() => void) | undefined;
 function mount() {
     teardown?.();

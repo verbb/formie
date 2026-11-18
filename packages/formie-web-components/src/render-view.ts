@@ -142,7 +142,7 @@ function labelFor(field: ClientFieldDefinition, ids: ClientFieldElementIds) {
 /** Matches Vue starter name-part layout: one bordered card on the parent, parts inside the grid. */
 function wrapCompositePartField(field: ClientFieldDefinition, errors: string[], ids: ClientFieldElementIds, errorAriaLive: ClientErrorAriaLive, control: TemplateResult): TemplateResult {
     return html`
-        <div class="starter-component-subfield" data-formie-field-type=${field.type} data-formie-field-uid=${field.uid} data-formie-field-handle=${field.handle}>
+        <div class="starter-component-subfield" data-formie-field-type=${field.type} data-formie-field-uid=${field.uid} data-formie-field-handle=${field.handle} data-formie-field-required=${field.required ? 'true' : nothing}>
             ${field.label
                 ? html`<label class="starter-component-subfield-label" id=${ids.label} for=${labelFor(field, ids)}>${field.label}</label>`
                 : nothing}
@@ -156,7 +156,7 @@ function wrapCompositePartField(field: ClientFieldDefinition, errors: string[], 
 
 function wrapDefaultField(field: ClientFieldDefinition, errors: string[], ids: ClientFieldElementIds, errorAriaLive: ClientErrorAriaLive, control: TemplateResult): TemplateResult {
     return html`
-        <div class="starter-component-card" data-formie-field-type=${field.type} data-formie-field-uid=${field.uid} data-formie-field-handle=${field.handle}>
+        <div class="starter-component-card" data-formie-field-type=${field.type} data-formie-field-uid=${field.uid} data-formie-field-handle=${field.handle} data-formie-field-required=${field.required ? 'true' : nothing}>
             ${field.label && !isFieldLabelHidden(field)
                 ? html`<label class="starter-component-label" id=${ids.label} for=${labelFor(field, ids)}>${field.label}</label>`
                 : nothing}
@@ -207,6 +207,7 @@ function renderNestedInput(
             <textarea
             id=${labelling.ids.input}
             aria-label=${ownName(field, labelling)}
+            aria-required=${field.required ? 'true' : nothing}
             aria-invalid=${errors.length > 0 ? "true" : nothing}
             aria-errormessage=${errors.length > 0 ? errorId : nothing}
             aria-describedby=${describedBy(field, labelling)}
@@ -229,6 +230,7 @@ function renderNestedInput(
             <select
             id=${labelling.ids.input}
             aria-label=${ownName(field, labelling)}
+            aria-required=${field.required ? 'true' : nothing}
             aria-invalid=${errors.length > 0 ? "true" : nothing}
             aria-errormessage=${errors.length > 0 ? errorId : nothing}
             aria-describedby=${describedBy(field, labelling)}
@@ -275,6 +277,7 @@ function renderNestedInput(
         <input
             id=${labelling.ids.input}
             aria-label=${ownName(field, labelling)}
+            aria-required=${field.required ? 'true' : nothing}
             aria-invalid=${errors.length > 0 ? "true" : nothing}
             aria-errormessage=${errors.length > 0 ? errorId : nothing}
             aria-describedby=${describedBy(field, labelling)}
@@ -337,7 +340,7 @@ function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps & { 
         const options = Array.isArray(contract.options) ? (contract.options as Array<Record<string, unknown>>) : [];
 
         return html`
-            <div class="flex flex-col gap-2" role="radiogroup" aria-labelledby=${groupLabelledBy} aria-label=${ownName(field, labelling)} aria-describedby=${groupDescribedBy}>
+            <div class="flex flex-col gap-2" role="radiogroup" aria-labelledby=${groupLabelledBy} aria-label=${ownName(field, labelling)} aria-required=${field.required ? 'true' : nothing} aria-describedby=${groupDescribedBy}>
                 ${options.map((option) => {
                     const optionValue = String(option.value ?? '');
                     const optionDisabled = disabled || option.disabled === true;
@@ -410,6 +413,7 @@ function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps & { 
                     <input
                         type="checkbox"
                         id=${props.ids.input}
+                        aria-required=${field.required ? 'true' : nothing}
                         aria-invalid=${props.errors.length > 0 ? 'true' : nothing}
                         aria-errormessage=${props.errors.length > 0 ? props.errorId : nothing}
                         aria-describedby=${props.errors.length > 0 ? props.errorId : nothing}
@@ -477,6 +481,7 @@ function renderFile(
                 type="file"
                 id=${labelling.ids.input}
                 aria-label=${ownName(field, labelling)}
+                aria-required=${field.required ? 'true' : nothing}
                 aria-invalid=${errors.length > 0 ? 'true' : nothing}
                 aria-errormessage=${errors.length > 0 ? errorId : nothing}
                 aria-describedby=${describedBy(field, labelling)}

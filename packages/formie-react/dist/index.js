@@ -57,19 +57,21 @@ function I({ errors: e }) {
 	return e.length === 0 ? null : i("div", { className: "formie-react-errors" }, i("ul", null, e.map((e, t) => i("li", { key: `${e}:${t}` }, e))));
 }
 function L({ field: e, errors: t, errorId: n, errorAriaLive: r, inputId: a, labelId: o, instructionsId: s, children: c }) {
-	let { slots: l } = V(), u = (e, t, n) => {
-		let r = l[e];
-		return r ? i(r, {
-			slotKey: e,
-			children: t,
-			attributes: n
-		}) : t;
+	let { slots: l } = V(), u = (t, n, r) => {
+		let a = l[t];
+		return a ? i(a, {
+			slotKey: t,
+			children: n,
+			attributes: r,
+			field: e
+		}) : n;
 	};
 	return i("div", {
 		className: "formie-react-field",
 		"data-formie-field-type": e.type,
 		"data-formie-field-uid": e.uid,
-		"data-formie-field-handle": e.handle
+		"data-formie-field-handle": e.handle,
+		"data-formie-field-required": e.required ? "true" : void 0
 	}, [
 		e.label && !S(e) ? u("label", i("label", {
 			key: "label",
@@ -173,6 +175,7 @@ function K(e, t) {
 	return {
 		id: t.inputId || void 0,
 		"aria-label": t.labelledByWrapper ? void 0 : e.label || e.handle,
+		"aria-required": e.required ? "true" : void 0,
 		"aria-invalid": n ? "true" : void 0,
 		"aria-errormessage": n ? t.errorId : void 0,
 		"aria-describedby": E(G(e, t), n && t.errorId)
@@ -183,6 +186,7 @@ function q(e, t, n) {
 		role: n,
 		"aria-labelledby": t.labelledByWrapper ? t.labelId : void 0,
 		"aria-label": t.labelledByWrapper ? void 0 : e.label || e.handle,
+		"aria-required": n === "radiogroup" && e.required ? "true" : void 0,
 		"aria-describedby": E(G(e, t))
 	};
 }
@@ -467,6 +471,7 @@ function Y(e, t = !0) {
 			key: "input",
 			type: "checkbox",
 			id: e.inputId || void 0,
+			"aria-required": n.required ? "true" : void 0,
 			...U(e.errors, o),
 			checked: r === !0,
 			disabled: s,
