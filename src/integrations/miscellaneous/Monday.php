@@ -120,7 +120,8 @@ class Monday extends Miscellaneous
         $this->beginPayloadDelivery($submission);
 
         try {
-            $fields = $this->_getBoardSettings()['fields'] ?? [];
+            // Until the board's columns have been fetched, mapped values are sent as they are rather than all being dropped.
+            $fields = ($this->_getBoardSettings()['fields'] ?? []) ?: null;
             $boardValues = $this->getFieldMappingValues($submission, $this->fieldMapping, $fields);
 
             $boardIds = explode(':', $this->boardId);

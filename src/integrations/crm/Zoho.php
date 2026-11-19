@@ -167,7 +167,7 @@ class Zoho extends Crm implements OAuthProviderInterface
 
     public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = null)
     {
-        $fields = is_string($fieldSettings) ? $this->getConfigValue($fieldSettings) : $fieldSettings;
+        $fields = $this->getCachedMappingFields($fieldSettings);
         $fieldValues = parent::getFieldMappingValues($submission, $fieldMapping, $fields);
 
         foreach ($fieldValues as $handle => $value) {

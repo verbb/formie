@@ -139,7 +139,8 @@ class ClickUp extends Miscellaneous
         $this->beginPayloadDelivery($submission);
 
         try {
-            $fields = $this->_getListSettings()['fields'] ?? [];
+            // Until the list's fields have been fetched, mapped values are sent as they are rather than all being dropped.
+            $fields = ($this->_getListSettings()['fields'] ?? []) ?: null;
             $listValues = $this->getFieldMappingValues($submission, $this->fieldMapping, $fields);
 
             $listIds = explode(':', $this->listId);
@@ -223,6 +224,7 @@ class ClickUp extends Miscellaneous
                 if ($id === null || $name === null) {
                     continue;
                 }
+
                 $options[] = ['label' => (string)$name, 'value' => (string)$id];
                 $fields = $list['fields'] ?? $list->fields ?? [];
                 $fieldCollections[] = [
@@ -240,7 +242,9 @@ class ClickUp extends Miscellaneous
                     if ((string)$id !== $selectedListId) {
                         continue;
                     }
+
                     $listFields = $list['fields'] ?? $list->fields ?? [];
+
                     break;
                 }
             }

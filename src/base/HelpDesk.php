@@ -59,8 +59,6 @@ abstract class HelpDesk extends Integration implements DispatchableIntegrationIn
     public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = null)
     {
         // Resolve a cached metadata key when the caller supplies a collection name.
-        $fields = is_string($fieldSettings) ? $this->getConfigValue($fieldSettings) : $fieldSettings;
-
-        return parent::getFieldMappingValues($submission, $fieldMapping, $fields);
+        return parent::getFieldMappingValues($submission, $fieldMapping, $this->getCachedMappingFields($fieldSettings));
     }
 }

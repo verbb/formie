@@ -77,8 +77,9 @@ abstract class EmailMarketing extends Integration implements DispatchableIntegra
 
     public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = null)
     {
-        // A quick shortcut as all email marketing integrations are the same field mapping-wise
-        $fields = $this->_getListSettings()->fields ?? [];
+        // A quick shortcut as all email marketing integrations are the same field mapping-wise. Until the list's
+        // fields have been fetched, mapped values are sent as they are rather than all being dropped.
+        $fields = ($this->_getListSettings()->fields ?? []) ?: null;
 
         return parent::getFieldMappingValues($submission, $fieldMapping, $fields);
     }
@@ -182,6 +183,7 @@ abstract class EmailMarketing extends Integration implements DispatchableIntegra
                 }
 
                 $listFields = is_array($list) ? ($list['fields'] ?? []) : ($list->fields ?? []);
+
                 break;
             }
         }

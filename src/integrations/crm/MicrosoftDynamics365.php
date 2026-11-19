@@ -413,7 +413,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
                 }
 
                 $mapping = $this->_getEntityMapping($entity);
-                $payload = $this->getFieldMappingValues($submission, $mapping, $this->getConfigValue($entity->handle));
+                $payload = $this->getFieldMappingValues($submission, $mapping, $entity->handle);
                 $metadata = $this->_getEntityMetadata($entity);
                 $payload = $this->prepareEntityPayload($entity, $payload, $createdEntities);
                 $endpoint = "{$metadata['entitySetName']}?\$select={$metadata['primaryIdAttribute']}";

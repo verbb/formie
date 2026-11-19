@@ -982,6 +982,22 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $this->callLegacyIntegrationMethod('getFormSettingValue', Integration::class, [$key], fn() => $this->getConfig()->get($key), canonicalMethod: 'getConfigValue');
     }
 
+    /**
+     * The provider's fields, fetched into the config cache, that mapped values are limited to. Until they've been
+     * fetched, mapped values are sent as they are, as Formie 3 did, rather than every value being dropped as undeclared.
+     * A schema a caller passes directly, such as an element's attributes, stays a strict allowlist.
+     */
+    protected function getCachedMappingFields(mixed $fieldSettings): mixed
+    {
+        if (!is_string($fieldSettings)) {
+            return $fieldSettings;
+        }
+
+        $fields = $this->getConfigValue($fieldSettings);
+
+        return $fields === [] ? null : $fields;
+    }
+
     /** @deprecated in 4.0.0. Use getConfigValue(). */
     public function getFormSettingValue(string $key)
     {
