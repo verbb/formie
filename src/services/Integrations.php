@@ -1002,14 +1002,19 @@ class Integrations extends Component
                 }
             }
 
+            $settings = ProjectConfigHelper::unpackAssociativeArrays($settings);
+
+            if ($this->_isConfigCacheStale($integrationRecord, $data['type'], $settings)) {
+                $integrationRecord->cache = [];
+            }
+
             $integrationRecord->name = $data['name'];
             $integrationRecord->handle = $data['handle'];
             $integrationRecord->type = $data['type'];
             $integrationRecord->enabled = $data['enabled'];
             $integrationRecord->sortOrder = $data['sortOrder'];
             $integrationRecord->scope = self::SCOPE_PROJECT;
-            $integrationRecord->settings = ProjectConfigHelper::unpackAssociativeArrays($settings);
-            $integrationRecord->cache = [];
+            $integrationRecord->settings = $settings;
             $integrationRecord->uid = $integrationUid;
 
             // Save the integration
@@ -1674,6 +1679,49 @@ class Integrations extends Component
         $this->_lookupCache?->reset();
     }
 
+    /**
+     * Fields fetched from the provider stay valid until the connection changes, and delivery only sends mapped values
+     * for fields in them. Settings an upgrade adds don't count, so an existing setting has to change for them to go.
+     */
+    private function _isConfigCacheStale(IntegrationRecord $integrationRecord, string $type, array $settings): bool
+    {
+        if ($integrationRecord->getIsNewRecord() || $integrationRecord->type !== $type) {
+            return true;
+        }
+
+        $previous = $integrationRecord->settings;
+
+        if (is_string($previous)) {
+            $previous = Json::decodeIfJson($previous);
+        }
+
+        if (!is_array($previous)) {
+            return false;
+        }
+
+        foreach ($previous as $key => $value) {
+            if (array_key_exists($key, $settings) && $this->_comparableSetting($value) !== $this->_comparableSetting($settings[$key])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // Formie 3 and project config store switches as '1' and '', so compare what a setting means rather than its type.
+    private function _comparableSetting(mixed $value): mixed
+    {
+        if (is_array($value)) {
+            return array_map(fn($item) => $this->_comparableSetting($item), $value);
+        }
+
+        if (is_bool($value)) {
+            return $value ? '1' : '';
+        }
+
+        return is_scalar($value) || $value === null ? (string)$value : Json::encode($value);
+    }
+
     private function _getGqlCaptchaArgumentsCacheKey(Form $form): string
     {
         return $this->_getFormRequestCacheKey($form);
@@ -1761,6 +1809,10 @@ class Integrations extends Component
                 }
             }
 
+            if ($this->_isConfigCacheStale($integrationRecord, get_class($integration), $settings)) {
+                $integrationRecord->cache = [];
+            }
+
             $integrationRecord->name = (string)$integration->name;
             $integrationRecord->handle = (string)$integration->handle;
             $integrationRecord->type = get_class($integration);
@@ -1768,7 +1820,6 @@ class Integrations extends Component
             $integrationRecord->sortOrder = (int)$integration->sortOrder;
             $integrationRecord->scope = self::SCOPE_SITE;
             $integrationRecord->settings = $settings;
-            $integrationRecord->cache = [];
 
             if ($wasTrashed = (bool)$integrationRecord->dateDeleted) {
                 $integrationRecord->restore();
