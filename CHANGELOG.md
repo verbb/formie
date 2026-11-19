@@ -11,6 +11,7 @@
 - Client-rendered forms built with `@verbb/formie-vue`, `@verbb/formie-react` or the Formie web components now link each field’s label to its control, so clicking the label focuses it, and describe the control with the field’s instructions. Radio, Checkboxes and Agree fields are grouped and named by the field label, as in server-rendered forms. ([#3140](https://github.com/verbb/formie/issues/3140))
 
 ### Fixed
+- Fixed Dropdown option labels not being translatable per site in the form builder. Changing an option label while editing another site changed it on every site instead. ([#3145](https://github.com/verbb/formie/issues/3145))
 - Fixed Calculations fields in Repeater rows always showing 0 when their formula used another field from the same Repeater. Each row now uses its own row’s field.
 - Fixed File Upload fields using the Upload Manager showing a smaller size than **Max File Size** or **Min File Size** in their file size errors, such as 4.8 MB for a 5 MB limit. ([#3143](https://github.com/verbb/formie/issues/3143))
 - Fixed Address Country, Date dropdown parts, Group, Table, Recipients and Section fields, and Entries, Categories and other element fields, showing “Unsupported field type” in client-rendered forms built with `@verbb/formie-vue`, `@verbb/formie-react` or the Formie web components. A form with a Recipients field couldn’t be submitted.

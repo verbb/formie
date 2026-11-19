@@ -68,6 +68,48 @@ it('saves explicit translations payload without server-side diffing', function (
     expect($fieldOverride['label'] ?? null)->toBe('Test Field Site 2');
 });
 
+it('shows translated Dropdown option labels in the builder for each site', function (): void {
+    $service = Formie::$plugin->getFormSiteOverrides();
+
+    $form = formie()
+        ->form(['title' => 'Dropdown Option Translations Form'])
+        ->dropdownField('colour', ['label' => 'Colour', 'options' => [
+            ['optgroup' => 'Warm'],
+            ['label' => 'Red', 'value' => 'red'],
+            ['label' => 'Blue', 'value' => 'blue'],
+        ]])
+        ->create();
+
+    $sourceSiteId = $service->getSourceSiteId($form);
+    $canonicalForm = Formie::$plugin->getForms()->getFormById((int)$form->id, $sourceSiteId);
+    $secondarySiteId = current(array_filter(
+        Formie::$plugin->getFormSitePropagation()->resolveSiteIdsForForm($canonicalForm),
+        static fn(int $siteId): bool => $siteId !== $sourceSiteId,
+    ));
+    $field = $canonicalForm->getFieldByHandle('colour');
+
+    expect($secondarySiteId)->not->toBeFalse()
+        ->and($field?->definitionId)->not->toBeEmpty();
+
+    $service->saveTranslationBundle((int)$form->id, (int)$secondarySiteId, [
+        'fieldOverrides' => [
+            (string)$field->definitionId => [
+                'options' => [['value' => 'red', 'label' => 'Rot']],
+            ],
+        ],
+    ]);
+
+    $canonicalBuilder = $canonicalForm->getFormBuilderConfig();
+    $builderOptions = $service->applyToBuilderData($canonicalBuilder, (int)$secondarySiteId)['pages'][0]['rows'][0]['fields'][0]['options'];
+    $applied = $service->applyToForm($canonicalForm, (int)$secondarySiteId, true)->getFieldByHandle('colour');
+
+    expect(array_column($builderOptions, 'label'))->toBe(['Warm', 'Rot', 'Blue'])
+        ->and(array_map(static fn(array $option): ?string => $option['value'] ?? null, $builderOptions))->toBe([null, 'red', 'blue'])
+        ->and(array_column($canonicalBuilder['pages'][0]['rows'][0]['fields'][0]['options'], 'label'))->toBe(['Warm', 'Red', 'Blue'])
+        ->and(array_column($applied->options, 'label'))->toBe(['Rot', 'Blue'])
+        ->and($canonicalForm->getFieldByHandle('colour')->options[1]['label'])->toBe('Red');
+});
+
 it('applies required overrides to the field placement for each site', function (): void {
     $service = Formie::$plugin->getFormSiteOverrides();
 

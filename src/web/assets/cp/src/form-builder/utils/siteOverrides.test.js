@@ -513,6 +513,58 @@ describe('siteOverrides', () => {
         expect(merged.pages[0].rows[0].fields[0].options[1].value).toBe('Option 2 (Site 2)');
     });
 
+    it('translates Dropdown option labels, whose builder rows carry optgroup: false', () => {
+        // Dropdown builder settings mark every row with optgroup, false for options and true for group headings.
+        const canonicalWithDropdown = {
+            ...canonicalData,
+            pages: [
+                {
+                    ...canonicalData.pages[0],
+                    rows: [
+                        {
+                            fields: [
+                                {
+                                    uid: 'dropdown-field',
+                                    fieldId: 601,
+                                    type: 'verbb\\formie\\fields\\Dropdown',
+                                    label: 'Colour',
+                                    handle: 'colour',
+                                    options: [
+                                        { label: 'Warm', value: '', optgroup: true, default: false },
+                                        { label: 'Red', value: 'red', optgroup: false, default: false },
+                                        { label: 'Blue', value: 'blue', optgroup: false, default: false },
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+        };
+        const translated = structuredClone(canonicalWithDropdown);
+        translated.pages[0].rows[0].fields[0].options[1].label = 'Rot';
+
+        const translations = extractSiteTranslationsFromFormData(canonicalWithDropdown, translated);
+        const labels = (data) => {
+            return data.pages[0].rows[0].fields[0].options.map((option) => {
+                return option.label;
+            });
+        };
+
+        expect(translations.fieldOverrides[601].options).toEqual([
+            { value: 'red', label: 'Rot' },
+        ]);
+
+        const stripped = stripTranslatableValuesToCanonical(translated, canonicalWithDropdown);
+
+        expect(labels(stripped)).toEqual(['Warm', 'Red', 'Blue']);
+
+        const merged = mergeSiteOverridesIntoFormData(canonicalWithDropdown, {}, translations.fieldOverrides);
+
+        expect(labels(merged)).toEqual(['Warm', 'Rot', 'Blue']);
+        expect(merged.pages[0].rows[0].fields[0].options[1].value).toBe('red');
+    });
+
     it('strips translatable values back to canonical for save payload', () => {
         const formData = mergeSiteOverridesIntoFormData(canonicalData, {
             title: 'French title',

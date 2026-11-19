@@ -276,10 +276,11 @@ const resolveNotificationOverride = (notificationOverrides = {}, notification) =
     return uid ? notificationOverrides[uid] : null;
 };
 
+// Dropdown builder rows carry `optgroup: false` on options, so only a truthy value marks a heading.
 const isOptionRow = (option) => {
     return option
         && typeof option === 'object'
-        && !Object.prototype.hasOwnProperty.call(option, 'optgroup');
+        && !option.optgroup;
 };
 
 const resolveCanonicalOptionAtIndex = (canonicalOptions = [], index = -1) => {

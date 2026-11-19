@@ -370,6 +370,7 @@ class FormSiteOverrides extends Component
         $notification = clone $notification;
         $overrides = $this->getOverrides((int)$notification->formId, $siteId);
         $this->_applyNotificationOverride($notification, $overrides['notifications'] ?? []);
+
         return $notification;
     }
 
@@ -1203,6 +1204,7 @@ class FormSiteOverrides extends Component
 
     private function _mergeOptionsArray(array $options, array $optionOverrides): array
     {
+        // Builder rows carry `optgroup: false` on options and stored rows omit it, so only a truthy value marks a heading.
         $overridesByCanonicalValue = [];
 
         foreach ($optionOverrides as $option) {
@@ -1220,14 +1222,14 @@ class FormSiteOverrides extends Component
         $legacyOverrides = array_values(array_filter(
             $optionOverrides,
             function($option) use ($options) {
-                if (!is_array($option) || array_key_exists('optgroup', $option)) {
+                if (!is_array($option) || !empty($option['optgroup'])) {
                     return false;
                 }
 
                 $value = (string)($option['value'] ?? '');
 
                 foreach ($options as $canonicalOption) {
-                    if (!is_array($canonicalOption) || array_key_exists('optgroup', $canonicalOption)) {
+                    if (!is_array($canonicalOption) || !empty($canonicalOption['optgroup'])) {
                         continue;
                     }
 
@@ -1241,7 +1243,7 @@ class FormSiteOverrides extends Component
         ));
 
         return array_map(function($option) use ($legacyOverrides, $overridesByCanonicalValue) {
-            if (!is_array($option) || array_key_exists('optgroup', $option)) {
+            if (!is_array($option) || !empty($option['optgroup'])) {
                 return $option;
             }
 
@@ -1278,7 +1280,7 @@ class FormSiteOverrides extends Component
         $canonicalLabel = (string)($option['label'] ?? '');
 
         foreach ($legacyOverrides as $override) {
-            if (!is_array($override) || array_key_exists('optgroup', $override)) {
+            if (!is_array($override) || !empty($override['optgroup'])) {
                 continue;
             }
 
@@ -1371,11 +1373,13 @@ class FormSiteOverrides extends Component
             foreach ($fieldOverride as $key => $value) {
                 if ($key === 'options' && is_array($value) && $value !== []) {
                     $entry['options'] = $value;
+
                     continue;
                 }
 
                 if ($key === 'columns' && is_array($value) && $value !== []) {
                     $entry['columns'] = $value;
+
                     continue;
                 }
 
