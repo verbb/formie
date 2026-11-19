@@ -241,7 +241,9 @@ class Forms extends Component
         } catch (GqlException) {
             return new SchemaSnapshot(new GqlSchema(['scope' => []]));
         }
+
         $key = hash('sha256', Json::encode($schema->scope));
+
         return $this->_gqlSnapshots[$key] ??= new SchemaSnapshot($schema);
     }
 
@@ -425,6 +427,7 @@ class Forms extends Component
             if (array_is_list($content)) {
                 return $content;
             }
+
             return [$content];
         }, $tabs));
 
@@ -891,6 +894,7 @@ class Forms extends Component
 
             $mapping = ReferenceSlot::fromStored($mapping)->toArray();
         }
+
         unset($mapping);
         ksort($policy['updateElementMapping']);
 
@@ -968,6 +972,7 @@ class Forms extends Component
                 $this->_normalizeBuilderRowReferences($page['rows'], $existingReferences, $assignedReferences, $referenceMap, $newFieldCounter);
             }
         }
+
         unset($page);
 
         $bodyParams['pages'] = $pages;
@@ -989,6 +994,7 @@ class Forms extends Component
                     $this->_stripBuilderPrivateKeys($item);
                 }
             }
+
             unset($item);
 
             return;
@@ -1005,6 +1011,7 @@ class Forms extends Component
                 $this->_stripBuilderPrivateKeys($item);
             }
         }
+
         unset($item);
     }
 
@@ -1050,8 +1057,10 @@ class Forms extends Component
                     $this->_normalizeBuilderRowReferences($field['settings']['rows'], $existingReferences, $assignedReferences, $referenceMap, $newFieldCounter);
                 }
             }
+
             unset($field);
         }
+
         unset($row);
     }
 
@@ -1097,6 +1106,7 @@ class Forms extends Component
             $value = preg_replace_callback('/\{field:[^}]+\}/', function(array $matches) use ($referenceMap) {
                 return References::remapFieldReferenceToken($matches[0], $referenceMap);
             }, $value);
+
             return;
         }
 
@@ -1107,6 +1117,7 @@ class Forms extends Component
         foreach ($value as &$nestedValue) {
             $this->_remapBuilderFieldReferenceTokens($nestedValue, $referenceMap);
         }
+
         unset($nestedValue);
     }
 
@@ -1195,7 +1206,9 @@ class Forms extends Component
                     if (isset($this->_getFormLookupCache()->elementsByIdAndSite[$ownerCacheKey])) {
                         $ownerElement = $this->_getFormLookupCache()->elementsByIdAndSite[$ownerCacheKey];
                     } else {
-                        $ownerElement = $this->_getFormUsageElement($ownerId, $element::class, $element->siteId);
+                        // Owners can be a different element type, such as the entry that owns a Content Block.
+                        $ownerType = Craft::$app->getElements()->getElementTypeById($ownerId);
+                        $ownerElement = $ownerType ? $this->_getFormUsageElement($ownerId, $ownerType, $element->siteId) : null;
                         $this->_getFormLookupCache()->elementsByIdAndSite[$ownerCacheKey] = $ownerElement;
                     }
 
@@ -1320,6 +1333,7 @@ class Forms extends Component
 
             if (!$layoutId) {
                 $this->_cacheFormLookup($form);
+
                 continue;
             }
 

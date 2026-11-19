@@ -12,6 +12,7 @@
 
 ### Fixed
 - Fixed Dropdown option labels not being translatable per site in the form builder. Changing an option label while editing another site changed it on every site instead. ([#3145](https://github.com/verbb/formie/issues/3145))
+- Fixed a form’s **Usage** tab and **Usage Count** column leaving out the element that owns a nested element of another type, such as the entry that owns a Content Block selecting the form. ([#3149](https://github.com/verbb/formie/issues/3149))
 - Fixed Address fields using Google Places keeping the previous street in **Address 1** when a suggestion without a street, such as a postcode, was picked after a full address.
 - Fixed Recipients fields that aren’t required showing “Select a valid recipient.” and stopping the submission when left unanswered. This affected the Radio display type and Dropdowns with an empty first option.
 - Fixed Calculations fields in Repeater rows always showing 0 when their formula used another field from the same Repeater. Each row now uses its own row’s field.
