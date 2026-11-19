@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed Brevo multiple-choice contact attributes staying empty, because mapped answers were sent as a comma-separated string instead of a list. Refresh the integration to pick up existing attributes. ([#3147](https://github.com/verbb/formie/issues/3147))
 - Fixed integration settings and other control panel links to the documentation opening missing or Formie 4 pages instead of the Formie 3 guides. ([#3113](https://github.com/verbb/formie/issues/3113))
 
 ## 3.1.51 - 2026-11-10

@@ -101,7 +101,7 @@ class Brevo extends EmailMarketing
                     'updateEnabled' => true,
                 ];
             }
-            
+
             if ($fieldValues) {
                 $payload['attributes'] = $fieldValues;
             }
@@ -128,6 +128,7 @@ class Brevo extends EmailMarketing
 
             if (!$accountId) {
                 Integration::error($this, 'Unable to find “{email}” in response.', true);
+
                 return false;
             }
         } catch (Throwable $e) {
@@ -139,7 +140,7 @@ class Brevo extends EmailMarketing
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
@@ -199,6 +200,7 @@ class Brevo extends EmailMarketing
             'float' => IntegrationField::TYPE_FLOAT,
             'date' => IntegrationField::TYPE_DATETIME,
             'boolean' => IntegrationField::TYPE_BOOLEAN,
+            'multiple-choice' => IntegrationField::TYPE_ARRAY,
         ];
 
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
