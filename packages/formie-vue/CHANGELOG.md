@@ -19,6 +19,7 @@
 - Repeater and Table **Remove** buttons are now named “Remove row 1”, “Remove row 2” and so on, and Repeater, Table and Signature buttons use the text the server translates for the site.
 
 ### Fixed
+- Fixed Payment fields showing “Unsupported field type”. They now show the provider’s own payment form in `.formie-vue-payment`, where the provider’s browser module mounts, for every payment integration. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Fixed Phone fields with **Country Enabled** showing a plain input with no country picker. The number input and a hidden country input are now wrapped in `.formie-vue-phone`, where the Phone country picker attaches, and the chosen country is sent with the number. Typing a number in any Phone field also replaced the answer with the number alone instead of keeping `{ number, country }`. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Fixed Calculations fields never showing their answer, and accepting typing, including in Groups and Repeater rows.
 - Fixed Dropdown fields showing their first option while sending no answer, and multi-select Dropdown fields not showing their default options as selected.

@@ -13,6 +13,7 @@ export declare function isCompositeField(field: ClientFieldDefinition): boolean;
  */
 export declare function resolveClientRendererType(field: ClientFieldDefinition): string;
 export declare function isCalculationField(field: ClientFieldDefinition): boolean;
+export declare function paymentFieldMarkup(field: ClientFieldDefinition): string | null;
 export type PhoneFieldValue = {
     number: string;
     country: string | null;

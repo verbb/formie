@@ -22,6 +22,7 @@ import {
     isCalculationField,
     isFieldLabelVisuallyHidden,
     isPhoneCountryEnabled,
+    paymentFieldMarkup,
     PHONE_COUNTRY_CHANGE_EVENT,
     phoneFieldValue,
     readPhoneFieldControls,
@@ -1534,6 +1535,13 @@ const DefaultFieldInput = defineComponent({
                 return display.kind === 'heading'
                     ? h(display.level, { class: 'formie-vue-heading' }, display.text)
                     : h('div', { class: 'formie-vue-content', innerHTML: display.html });
+            }
+
+            const payment = paymentFieldMarkup(props.field);
+
+            // The payment provider owns this markup, so Vue sets it once and never patches inside it.
+            if (payment !== null) {
+                return h('div', { class: 'formie-vue-payment', innerHTML: payment });
             }
 
             if (!isKnownClientFieldType(rendererType)) {

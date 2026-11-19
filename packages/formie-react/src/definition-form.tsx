@@ -22,6 +22,7 @@ import {
     isCalculationField,
     isFieldLabelVisuallyHidden,
     isPhoneCountryEnabled,
+    paymentFieldMarkup,
     PHONE_COUNTRY_CHANGE_EVENT,
     phoneFieldValue,
     readPhoneFieldControls,
@@ -1219,6 +1220,13 @@ function defaultFieldRenderer(props: FormieFieldComponentProps, labelledByWrappe
         return display.kind === 'heading'
             ? createElement(display.level, { className: 'formie-react-heading' }, display.text)
             : createElement('div', { className: 'formie-react-content', dangerouslySetInnerHTML: { __html: display.html } });
+    }
+
+    const payment = paymentFieldMarkup(field);
+
+    // The payment provider owns this markup. React leaves it alone while the HTML string stays the same.
+    if (payment !== null) {
+        return createElement('div', { className: 'formie-react-payment', dangerouslySetInnerHTML: { __html: payment } });
     }
 
     if (!isKnownClientFieldType(rendererType)) {

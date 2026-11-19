@@ -105,6 +105,12 @@ export function isCalculationField(field: ClientFieldDefinition): boolean {
     return field.type === 'calculations';
 }
 
+// Payment fields show their provider's markup, rendered by the server from the same template as server-rendered forms.
+// The provider's browser module mounts into it and keeps its hidden inputs up to date.
+export function paymentFieldMarkup(field: ClientFieldDefinition): string | null {
+    return field.type === 'payment' && typeof field.input.html === 'string' ? field.input.html : null;
+}
+
 export type PhoneFieldValue = {
     number: string;
     country: string | null;

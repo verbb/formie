@@ -84,3 +84,44 @@ $parity->getFieldByHandle('pCalculations')->formula = RichText::from('{field:' .
 if (!Craft::$app->getElements()->saveElement($parity)) {
     throw new RuntimeException('Cannot save parity fields fixture: ' . json_encode($parity->getErrors()));
 }
+
+// Payment fields for tests/browser/client-payments.spec.ts, using the Stripe integration from browser-fixture.php.
+\verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Parity Stripe', 'handle' => 'parityPayStripe'])
+    ->settings(['disableCaptchas' => true, 'submitMethod' => 'ajax'])
+    ->singleLineTextField('payerName', ['label' => 'Payer name'])
+    ->paymentField('pay', ['label' => 'Pay', 'paymentIntegration' => 'browserStripe', 'paymentIntegrationType' => \verbb\formie\integrations\payments\Stripe::class, 'providerSettings' => ['browserStripe' => [
+        'amountType' => 'fixed', 'amountFixed' => '10', 'currencyType' => 'fixed', 'currencyFixed' => 'USD',
+    ]]])
+    ->create();
+
+// Every other payment provider, with fake credentials. The browser test fakes their SDKs and the server's decisions.
+$paymentProviders = [
+    'PayPal' => ['clientId' => 'parity-client', 'clientSecret' => 'parity-secret'],
+    'Square' => ['applicationId' => 'sandbox-sq0idb-parity', 'accessToken' => 'parity-token', 'locationId' => 'parity-location'],
+    'PayWay' => ['publishableKey' => 'T11111_PUB_parity', 'secretKey' => 'T11111_SEC_parity', 'merchantId' => 'TEST'],
+    'Moneris' => ['storeId' => 'parity-store', 'apiToken' => 'parity-token', 'profileId' => 'parity-profile'],
+    'Opayo' => ['vendorName' => 'parity', 'integrationKey' => 'parity-key', 'integrationPassword' => 'parity-password'],
+    'Eway' => ['apiKey' => 'parity-key', 'apiPassword' => 'parity-password', 'clientSideEncryptionKey' => 'parity-cse'],
+    'Bpoint' => ['username' => 'parity', 'password' => 'parity-password', 'merchantNumber' => '5353109000000000'],
+    'GoCardless' => ['accessToken' => 'parity-token'],
+    'Mollie' => ['apiKey' => 'test_parity'],
+    'Paddle' => ['apiKey' => 'parity-key', 'clientSideToken' => 'test_parity'],
+];
+
+foreach ($paymentProviders as $class => $settings) {
+    $integrationClass = 'verbb\\formie\\integrations\\payments\\' . $class;
+    $handle = 'parity' . $class;
+    $integration = new $integrationClass(array_merge(['name' => 'Parity ' . $class, 'handle' => $handle, 'enabled' => true], $settings));
+
+    if (!\verbb\formie\Formie::$plugin->getIntegrations()->saveIntegration($integration, false)) {
+        throw new RuntimeException('Cannot save parity ' . $class . ' integration.');
+    }
+
+    \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Parity ' . $class, 'handle' => 'parityPay' . $class])
+        ->settings(['disableCaptchas' => true, 'submitMethod' => 'ajax'])
+        ->singleLineTextField('payerName', ['label' => 'Payer name'])
+        ->paymentField('pay', ['label' => 'Pay', 'paymentIntegration' => $handle, 'paymentIntegrationType' => $integrationClass, 'providerSettings' => [$handle => [
+            'amountType' => 'fixed', 'amountFixed' => '10', 'currencyType' => 'fixed', 'currencyFixed' => 'AUD',
+        ]]])
+        ->create();
+}

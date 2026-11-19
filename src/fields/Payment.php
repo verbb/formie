@@ -412,6 +412,8 @@ class Payment extends Field
     {
         return array_merge(parent::defineClientRenderedInput(), [
             'integration' => $this->paymentIntegration,
+            // The provider's own markup, which its browser module mounts into, as in server-rendered forms.
+            'html' => (string)$this->getPaymentHtml(),
         ]);
     }
 

@@ -65,7 +65,21 @@ export async function mountClientRenderedModules(root: Element, instance: Client
                 instance.reset();
             }
         }
-        void host.result({ ok: result.success, outcome: result.outcome, version: result.version, submissionUid: result.submissionUid, errors: result.errors, session: result.session, completion: result.completion, meta: result as unknown as Record<string, unknown> });
+        void host.result({ ok: result.success, outcome: result.outcome, version: result.version, submissionUid: result.submissionUid, errors: result.errors, session: result.session, completion: result.completion, meta: result as unknown as Record<string, unknown> }).then(() => {
+            // Payment providers continue from the server's decision as in server-rendered forms: their module confirms
+            // the payment from an event, or the visitor goes to the provider's checkout. Modules finish their own
+            // after-submit work first, as there, so it can't undo what the event handler sets.
+            const paymentEvent = typeof result.payment?.action?.event === 'string' ? result.payment.action.event : '';
+            if (form && paymentEvent) {
+                form.dispatchEvent(new CustomEvent(paymentEvent, { bubbles: true, detail: { data: result.payment?.action?.payload } }));
+            }
+            const paymentRedirect = result.payment?.action?.type === 'redirect' && typeof result.payment.action.url === 'string' ? result.payment.action.url : null;
+            const checkoutUrl = !result.success && !paymentEvent.startsWith('formie:payment:') ? (paymentRedirect ?? result.redirect?.url ?? null) : null;
+            if (checkoutUrl) {
+                if (result.redirect?.target === 'new-tab') window.open(checkoutUrl, '_blank', 'noopener,noreferrer');
+                else window.location.assign(checkoutUrl);
+            }
+        });
     });
     return { ...host, get instances() { return host.instances; }, get failures() { return host.failures; }, destroy: async() => { unsubscribe(); unsubscribeRequest(); await host.destroy(); } };
 }

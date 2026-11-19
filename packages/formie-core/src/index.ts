@@ -27,6 +27,7 @@ export {
     isArrayValuedField,
     isCalculationField,
     isPhoneCountryEnabled,
+    paymentFieldMarkup,
     PHONE_COUNTRY_CHANGE_EVENT,
     phoneFieldValue,
     readPhoneFieldControls,

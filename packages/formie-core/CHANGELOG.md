@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Added `paymentFieldMarkup()`, which returns the provider markup a client-rendered Payment field shows. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Added `phoneFieldValue()`, `readPhoneFieldControls()`, `isPhoneCountryEnabled()` and `PHONE_COUNTRY_CHANGE_EVENT` for rendering Phone fields and their country picker. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Added `getClientFieldIds()`, `getClientFieldLabelTarget()` and `joinIdReferences()` for linking a field’s label, instructions and errors to its control. ([#3140](https://github.com/verbb/formie/issues/3140))
 - Added `projectElementConditionValues()`, which turns selected element IDs into the titles or URLs a condition compares.

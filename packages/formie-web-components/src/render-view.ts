@@ -13,6 +13,7 @@ import {
     isCalculationField,
     isFieldLabelVisuallyHidden,
     isPhoneCountryEnabled,
+    paymentFieldMarkup,
     PHONE_COUNTRY_CHANGE_EVENT,
     phoneFieldValue,
     readPhoneFieldControls,
@@ -606,6 +607,13 @@ function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps & { 
         return display.kind === 'heading'
             ? staticHtml`<${unsafeStatic(display.level)} class="starter-component-heading">${display.text}</${unsafeStatic(display.level)}>`
             : html`<div class="starter-component-content">${unsafeHTML(display.html)}</div>`;
+    }
+
+    const payment = paymentFieldMarkup(field);
+
+    // The payment provider owns this markup. Lit leaves it alone while the HTML string stays the same.
+    if (payment !== null) {
+        return html`<div class="starter-component-payment">${unsafeHTML(payment)}</div>`;
     }
 
     if (!isKnownClientFieldType(rendererType)) {
