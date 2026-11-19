@@ -8,6 +8,8 @@ use craft\helpers\Json;
 use Tests\Support\WebRequestTestHelper;
 use verbb\formie\Formie;
 use verbb\formie\controllers\ReportsController;
+use verbb\formie\fields\Address;
+use verbb\formie\fields\Name;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\Report;
 use verbb\formie\models\ReportSettings;
@@ -184,6 +186,87 @@ it('keeps requested columns in order and ignores unavailable ones', function ():
 
         expect($export['headers'])->toBe(['Message', 'Title'])
             ->and($export['rows'][0][0])->toBe('Hello');
+    });
+});
+
+function submissionExportParentFieldForm(): array
+{
+    $form = formie()->form()
+        ->nameField('person', ['label' => 'Name', 'useMultipleFields' => true, 'rows' => (new Name())->getSubFields()])
+        ->addressField('address', ['label' => 'Address', 'rows' => (new Address())->getSubFields()])
+        ->nameField('single', ['label' => 'Single name', 'useMultipleFields' => false])
+        ->create();
+    formie()->submission($form)->with([
+        'person' => ['firstName' => 'Jane', 'lastName' => 'Smith'],
+        'address' => ['address1' => '123 Main St', 'city' => '', 'zip' => '0', 'country' => 'CA', 'state' => 'ON'],
+        'single' => 'Alex Chen',
+    ])->save();
+    $labels = array_column(Formie::$plugin->getReportColumns()->getFieldColumnsForFormIds([$form->id], new User(['admin' => true])), 'label', 'handle');
+
+    return [$form, $labels];
+}
+
+it('exports Name and Address subfields as separate columns by default', function (): void {
+    [$form, $labels] = submissionExportParentFieldForm();
+    $parts = ['person.firstName', 'person.lastName', 'address.address1', 'address.city', 'address.zip', 'address.country', 'address.state'];
+
+    asSubmissionExporter(function () use ($form, $labels, $parts): void {
+        $controller = new ReportsController('reports', Formie::$plugin);
+        Craft::$app->getRequest()->setBodyParams(['formIds' => [$form->id]]);
+        $columns = array_column($controller->actionSubmissionExportColumns()->data['columns'], 'enabled', 'handle');
+
+        // Combined columns stay available to tick, with each subfield ticked instead.
+        expect(array_intersect_key($columns, array_flip(['person', 'address', 'single', ...$parts])))->toBe([
+            'person' => false,
+            'person.firstName' => true,
+            'person.lastName' => true,
+            'address' => false,
+            'address.address1' => true,
+            'address.city' => true,
+            'address.zip' => true,
+            'address.country' => true,
+            'address.state' => true,
+            'single' => true,
+        ]);
+
+        $export = submissionExportCsv(['formIds' => [$form->id]]);
+        $row = array_combine($export['headers'], $export['rows'][0]);
+        $expected = ['Jane', 'Smith', '123 Main St', '', '0', 'Canada', 'ON', 'Alex Chen'];
+
+        expect(array_intersect_key($row, array_flip([$labels['person'], $labels['address']])))->toBe([])
+            ->and(array_map(fn(string $handle) => $row[$labels[$handle]] ?? null, [...$parts, 'single']))->toBe($expected);
+    });
+});
+
+it('keeps a shared combined column for forms without subfields', function (): void {
+    [$split] = submissionExportParentFieldForm();
+    $single = formie()->form()->nameField('person', ['label' => 'Name', 'useMultipleFields' => false])->create();
+    formie()->submission($single)->with(['person' => 'Sam Taylor'])->save();
+
+    asSubmissionExporter(function () use ($split, $single): void {
+        $report = Formie::$plugin->getReportExport()->createSubmissionExportReport(['formIds' => [$split->id, $single->id]]);
+        $columns = array_column(Formie::$plugin->getReportExport()->getSubmissionExportColumns($report), 'enabled', 'handle');
+
+        expect($columns['person'])->toBeTrue()
+            ->and($columns['person.firstName'])->toBeTrue()
+            ->and($columns['address'])->toBeFalse()
+            ->and($columns['address.city'])->toBeTrue();
+    });
+});
+
+it('exports requested Name and Address subfield and combined columns', function (): void {
+    [$form, $labels] = submissionExportParentFieldForm();
+
+    asSubmissionExporter(function () use ($form, $labels): void {
+        $export = submissionExportCsv(['formIds' => [$form->id]], [
+            ['type' => 'field', 'handle' => 'address.city', 'enabled' => true],
+            ['type' => 'field', 'handle' => 'person', 'enabled' => true],
+            ['type' => 'field', 'handle' => 'person.firstName', 'enabled' => true],
+            ['type' => 'field', 'handle' => 'address.country', 'enabled' => true],
+        ]);
+
+        expect($export['headers'])->toBe([$labels['address.city'], $labels['person'], $labels['person.firstName'], $labels['address.country']])
+            ->and($export['rows'][0])->toBe(['', 'Jane Smith', 'Jane', 'Canada']);
     });
 });
 

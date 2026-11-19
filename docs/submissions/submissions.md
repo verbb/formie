@@ -30,6 +30,8 @@ Exports with more submissions than the **Report Async Export Row Threshold** set
 
 The dialog can't apply filters from the submissions index's own filter menu, or those of a custom source. It tells you when one is active, so you can narrow the export with its settings instead. Selecting several forms, or **All Forms**, gives you a column for each form's fields, and fields that share a handle share a column.
 
+Name and Address fields export each part, such as **First Name** or **City**, in its own column. Their combined columns are listed too, unticked, if you'd rather have one column for the whole name or address. A combined column stays ticked when another selected form has a field with the same handle and no parts, such as a Name field without **Use Multiple Name Fields**.
+
 To use **Export…**, grant **Export submissions** beneath **Access submissions**. Reports access is not required. The export only includes forms whose submissions the user can view. Users with the Reports section’s **Export submissions** or **Manage reports** permission can also export from the submissions index.
 
 Use [Reports](/reports/reports) when you need the same filters again, summary counts, charts, or [scheduled email delivery](/reports/scheduled-reports).

@@ -183,6 +183,10 @@ class ReportExport extends Component
                 'startBound' => ReportDateBoundHelper::defaultBound(),
                 'endBound' => ReportDateBoundHelper::defaultBound(),
             ],
+            // Offer combined and subfield columns, so each can be chosen in the dialog.
+            'display' => [
+                'compoundFieldColumns' => 'both',
+            ],
             'export' => [
                 'filename' => $form ? '{handle}-submissions-{date}' : 'submissions-{date}',
             ],
@@ -193,14 +197,23 @@ class ReportExport extends Component
 
     /**
      * Keeps requested columns in their requested order, limited to what the report offers
-     * this user. With no request, every column the report enables by default is exported.
+     * this user. With no request, every column the report enables by default is exported,
+     * with fields such as Name and Address split into their subfields.
      */
     public function getSubmissionExportColumns(Report $report, ?array $requestedColumns = null, ?User $user = null): array
     {
         $columns = Formie::$plugin->getReportColumns()->getConfiguredColumns($report, $user);
 
         if ($requestedColumns === null) {
-            return $columns;
+            $split = $this->_getSplitParentFieldHandles($report, $user);
+
+            return array_map(static function(array $column) use ($split): array {
+                if (($column['type'] ?? 'attribute') === 'field' && isset($split[$column['handle']])) {
+                    $column['enabled'] = false;
+                }
+
+                return $column;
+            }, $columns);
         }
 
         $available = [];
@@ -403,6 +416,42 @@ class ReportExport extends Component
 
     // Private Methods
     // =========================================================================
+
+    /**
+     * Forms that share a handle share a column, so a combined column is only left out when
+     * every selected form with that handle has subfield columns to show instead.
+     */
+    private function _getSplitParentFieldHandles(Report $report, ?User $user): array
+    {
+        $split = [];
+        $combined = [];
+        $groups = Formie::$plugin->getReportColumns()->getFieldColumnGroupsForFormIds($report->getSettingsModel()->filters['formIds'] ?? [], $user);
+
+        foreach ($groups as $group) {
+            $handles = array_column($group['columns'], 'handle');
+            $parents = [];
+
+            foreach ($handles as $handle) {
+                if (str_contains($handle, '.')) {
+                    $parents[explode('.', $handle, 2)[0]] = true;
+                }
+            }
+
+            foreach ($handles as $handle) {
+                if (str_contains($handle, '.')) {
+                    continue;
+                }
+
+                if (isset($parents[$handle])) {
+                    $split[$handle] = true;
+                } else {
+                    $combined[$handle] = true;
+                }
+            }
+        }
+
+        return array_diff_key($split, $combined);
+    }
 
     private function _resolveExportFileReport(ReportExportFile $exportFile): ?Report
     {
