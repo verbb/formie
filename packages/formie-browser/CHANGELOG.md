@@ -6,6 +6,7 @@
 - Client-rendered forms now leave Calculations and Table fields to the form state and the framework adapter, instead of running the server-rendered modules on markup they don’t produce.
 
 ### Fixed
+- Fixed the Google Places address module keeping the previous `address1` value when a selected place has no street, such as a postcode.
 - Fixed Calculations fields in Repeater rows always showing 0 when their formula used another field from the same Repeater, such as `{field:items.qty}`. Each row now reads its own row, and row scopes such as `scope:all` still read every row.
 - Fixed Upload Manager file size errors showing a smaller size than the field’s limit, such as 4.8 MB for a 5 MB limit. ([#3143](https://github.com/verbb/formie/issues/3143))
 - Fixed searchable dropdowns showing “No results found” and the **Remove** and clear button titles in English instead of the site’s language. ([#3135](https://github.com/verbb/formie/issues/3135))

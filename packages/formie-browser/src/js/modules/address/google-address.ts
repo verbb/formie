@@ -98,7 +98,7 @@ async function loadGoogleMapsScript(apiKey: string): Promise<GoogleMaps> {
     }
 }
 
-function setFieldValues(
+export function setFieldValues(
     services: AddressHostServices,
     data: {
         address1?: string;
@@ -113,7 +113,7 @@ function setFieldValues(
         services.input.setValue('autoComplete', data.formattedAddress);
     }
 
-    if (data.address1) {
+    if (data.address1 !== undefined) {
         services.input.setValue('address1', data.address1);
     }
 

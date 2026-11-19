@@ -81,8 +81,8 @@ import { hydrateFormieModules, ModuleRegistry, mountClientRenderedModules } from
 import { bindLegacyDomEventCompatibility, resolveLegacyCompatibilityOptions, createFormieClient } from '../../packages/formie-browser/src/index';
 (globalThis as any).legacyModules = { bindLegacyDomEventCompatibility, resolveLegacyCompatibilityOptions, createFormieClient };
 
-import { buildAddressFromComponents } from '../../packages/formie-browser/src/js/modules/address/google-address';
-(globalThis as any).googleAddressBoundary = { buildAddressFromComponents };
+import { buildAddressFromComponents, setFieldValues } from '../../packages/formie-browser/src/js/modules/address/google-address';
+(globalThis as any).googleAddressBoundary = { buildAddressFromComponents, setFieldValues };
 
 import { evaluateCondition } from '../../packages/formie-core/src/index';
 (globalThis as any).conditionBoundary = { evaluateCondition };

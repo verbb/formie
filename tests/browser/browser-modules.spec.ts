@@ -45,6 +45,41 @@ test('Google address parsing preserves provider address-line ordering', async({ 
     });
 });
 
+test('Google address selections without a street clear the previous Address 1', async({ page }) => {
+    await page.goto('/browser-fixture');
+    await page.waitForFunction(() => !!(window as any).googleAddressBoundary);
+    const result = await page.evaluate(() => {
+        const { buildAddressFromComponents, setFieldValues } = (window as any).googleAddressBoundary;
+        const values: Record<string, string> = {};
+        const services = { input: { setValue: (key: string, value: string) => { values[key] = value; } } };
+
+        setFieldValues(services, {
+            ...buildAddressFromComponents({ street_number: '10', route: 'Smith St', locality: 'Collingwood', administrative_area_level_1: 'VIC', postal_code: '3066', country: 'AU' }),
+            formattedAddress: '10 Smith St, Collingwood VIC 3066, Australia',
+        });
+        const street = { ...values };
+
+        setFieldValues(services, {
+            ...buildAddressFromComponents({ locality: 'Sydney', administrative_area_level_1: 'NSW', postal_code: '2000', country: 'AU' }),
+            formattedAddress: 'Sydney NSW 2000, Australia',
+        });
+
+        return { street: street.address1, postcode: { ...values } };
+    });
+
+    expect(result).toEqual({
+        street: '10 Smith St',
+        postcode: {
+            autoComplete: 'Sydney NSW 2000, Australia',
+            address1: '',
+            city: 'Sydney',
+            state: 'NSW',
+            zip: '2000',
+            country: 'AU',
+        },
+    });
+});
+
 test('module occurrences reconcile repeated targets, conditional DOM and failures', async({ page }) => {
     await page.goto('/browser-fixture?adapter=react');
     await page.waitForFunction(() => !!(window as any).browserModules);
