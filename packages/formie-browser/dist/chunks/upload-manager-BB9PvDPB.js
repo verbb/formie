@@ -156,11 +156,11 @@ function D(e) {
 	let t = "";
 	return e.replace(/[^A-Z0-9]/gi, (e) => (t += `-${E(e)}`, "/")) + t;
 }
-function ee(e, t) {
+function O(e, t) {
 	let n = t || "uppy";
 	return typeof e.name == "string" && (n += `-${D(e.name.toLowerCase())}`), e.type !== void 0 && (n += `-${e.type}`), e.meta && typeof e.meta.relativePath == "string" && (n += `-${D(e.meta.relativePath.toLowerCase())}`), e.data?.size !== void 0 && (n += `-${e.data.size}`), e.data.lastModified !== void 0 && (n += `-${e.data.lastModified}`), n;
 }
-function O(e) {
+function ee(e) {
 	return !e.isRemote || !e.remote ? !1 : (/* @__PURE__ */ new Set([
 		"box",
 		"dropbox",
@@ -170,9 +170,9 @@ function O(e) {
 	])).has(e.remote.provider);
 }
 function k(e, t) {
-	if (O(e)) return e.id;
+	if (ee(e)) return e.id;
 	let n = T(e);
-	return ee({
+	return O({
 		...e,
 		type: n
 	}, t);
@@ -198,7 +198,7 @@ function te(e) {
 }
 //#endregion
 //#region ../../node_modules/@uppy/utils/lib/TaskQueue.js
-var N = class {
+var ne = class {
 	#e = [];
 	#t = 0;
 	#n;
@@ -295,7 +295,7 @@ var N = class {
 };
 //#endregion
 //#region ../../node_modules/@uppy/utils/lib/Translator.js
-function ne(e, t, n) {
+function N(e, t, n) {
 	let r = [];
 	return e.forEach((e) => typeof e == "string" ? t[Symbol.split](e).forEach((e, t, i) => {
 		e !== "" && r.push(e), t < i.length - 1 && r.push(n);
@@ -306,7 +306,7 @@ function P(e, t) {
 	if (t == null) return r;
 	for (let e of Object.keys(t)) if (e !== "_") {
 		let i = t[e];
-		typeof i == "string" && (i = n[Symbol.replace](i, "$$$$")), r = ne(r, RegExp(`%\\{${e}\\}`, "g"), i);
+		typeof i == "string" && (i = n[Symbol.replace](i, "$$$$")), r = N(r, RegExp(`%\\{${e}\\}`, "g"), i);
 	}
 	return r;
 }
@@ -396,7 +396,7 @@ var re = (e) => {
 	uninstall() {}
 	update(e) {}
 	afterUpdate() {}
-}, F = class {
+}, oe = class {
 	#e;
 	#t = [];
 	constructor(e) {
@@ -448,15 +448,15 @@ var re = (e) => {
 			this.#e.getFile(e) && t();
 		});
 	}
-}, I = {
+}, F = {
 	debug: () => {},
 	warn: () => {},
 	error: (...e) => console.error(`[Uppy] [${M()}]`, ...e)
-}, L = {
+}, I = {
 	debug: (...e) => console.debug(`[Uppy] [${M()}]`, ...e),
 	warn: (...e) => console.warn(`[Uppy] [${M()}]`, ...e),
 	error: (...e) => console.error(`[Uppy] [${M()}]`, ...e)
-}, oe = /* @__PURE__ */ t(((e, t) => {
+}, L = /* @__PURE__ */ t(((e, t) => {
 	t.exports = function(e) {
 		if (typeof e != "number" || Number.isNaN(e)) throw TypeError(`Expected a number, got ${typeof e}`);
 		let t = e < 0, n = Math.abs(e);
@@ -503,7 +503,7 @@ var re = (e) => {
 		}
 		return t ? i(t.split(";")[0]) : i;
 	};
-})), R = /* @__PURE__ */ e(oe(), 1), le = /* @__PURE__ */ e(ce(), 1), ue = {
+})), R = /* @__PURE__ */ e(L(), 1), le = /* @__PURE__ */ e(ce(), 1), ue = {
 	maxFileSize: null,
 	minFileSize: null,
 	maxTotalFileSize: null,
@@ -988,7 +988,7 @@ var Ie = /* @__PURE__ */ e(Oe(), 1), Le = /* @__PURE__ */ e(ke(), 1), B = {
 			onBeforeFileAdded: (e, t) => !Object.hasOwn(t, e.id),
 			onBeforeUpload: (e) => e,
 			store: new pe(),
-			logger: I,
+			logger: F,
 			infoTimeout: 5e3
 		}, r = {
 			...n,
@@ -1000,7 +1000,7 @@ var Ie = /* @__PURE__ */ e(Oe(), 1), Le = /* @__PURE__ */ e(ke(), 1), B = {
 				...n.restrictions,
 				...t?.restrictions
 			}
-		}, t?.logger && t.debug ? this.log("You are using a custom `logger`, but also set `debug: true`, which uses built-in logger to output logs to console. Ignoring `debug: true` and using your custom `logger`.", "warning") : t?.debug && (this.opts.logger = L), this.log(`Using Core v${e.VERSION}`), this.i18nInit(), this.store = this.opts.store, this.setState({
+		}, t?.logger && t.debug ? this.log("You are using a custom `logger`, but also set `debug: true`, which uses built-in logger to output logs to console. Ignoring `debug: true` and using your custom `logger`.", "warning") : t?.debug && (this.opts.logger = I), this.log(`Using Core v${e.VERSION}`), this.i18nInit(), this.store = this.opts.store, this.setState({
 			...B,
 			plugins: {},
 			files: {},
@@ -1892,7 +1892,7 @@ var Ue = {
 			...Ue,
 			fieldName: t.bundle ? "files[]" : "file",
 			...t
-		}), this.type = "uploader", this.id = this.opts.id || "XHRUpload", this.defaultLocale = Be, this.i18nInit(), this.#t = new N({ concurrency: this.opts.limit }), this.opts.bundle && !this.opts.formData) throw Error("`opts.formData` must be true when `opts.bundle` is enabled.");
+		}), this.type = "uploader", this.id = this.opts.id || "XHRUpload", this.defaultLocale = Be, this.i18nInit(), this.#t = new ne({ concurrency: this.opts.limit }), this.opts.bundle && !this.opts.formData) throw Error("`opts.formData` must be true when `opts.bundle` is enabled.");
 		if (this.opts.bundle && typeof this.opts.headers == "function") throw Error("`opts.headers` can not be a function when the `bundle: true` option is set.");
 		if (t?.allowedMetaFields === void 0 && "metaFields" in this.opts) throw Error("The `metaFields` option has been renamed to `allowedMetaFields`.");
 		this.uploaderEvents = Object.create(null), this.#e = (e) => async (t, n) => {
@@ -1967,7 +1967,7 @@ var Ue = {
 		}), n;
 	}
 	async #n(e) {
-		let t = new F(this.uppy), n = new AbortController();
+		let t = new oe(this.uppy), n = new AbortController();
 		t.onFileRemove(e.id, () => n.abort()), t.onCancelAll(e.id, () => n.abort());
 		try {
 			await this.#t.add(async (t) => {
@@ -2339,20 +2339,24 @@ function Ft(e, t, r) {
 	if (!(a instanceof HTMLElement)) return () => {};
 	let o = i.querySelector(Je), c = i.querySelector(qe), u = i.querySelector(Ye), d = i.querySelector(H);
 	if (!(o instanceof HTMLInputElement) || !(u instanceof HTMLElement)) return () => {};
-	let f = Pt(t, e), m = d instanceof HTMLInputElement ? d : null, h = kt(e), g = ft(e, h), _ = bt(a, r.uploadEndpoint, "data-formie-file-upload-upload-endpoint", "/actions/formie/file-upload/upload"), v = bt(a, r.deleteEndpoint, "data-formie-file-upload-delete-endpoint", "/actions/formie/file-upload/delete"), y = bt(a, r.hydrateEndpoint, "data-formie-file-upload-hydrate-endpoint", "/actions/formie/file-upload/hydrate"), b = r.maxFiles ?? q(a.getAttribute("data-formie-file-limit")), x = r.maxFileSize ?? parseFloat(a.getAttribute("data-formie-size-max-limit") || ""), S = r.minFileSize ?? parseFloat(a.getAttribute("data-formie-size-min-limit") || ""), C = yt(r.accept ?? a.getAttribute("accept") ?? o.accept), w = {};
-	b && (w.maxNumberOfFiles = b), x && (w.maxFileSize = x * 1e3 * 1e3), S && (w.minFileSize = S * 1e3 * 1e3), C && (w.allowedFileTypes = C);
-	let T = new Re({
+	let f = Pt(t, e), m = d instanceof HTMLInputElement ? d : null, h = kt(e), g = ft(e, h), _ = bt(a, r.uploadEndpoint, "data-formie-file-upload-upload-endpoint", "/actions/formie/file-upload/upload"), v = bt(a, r.deleteEndpoint, "data-formie-file-upload-delete-endpoint", "/actions/formie/file-upload/delete"), y = bt(a, r.hydrateEndpoint, "data-formie-file-upload-hydrate-endpoint", "/actions/formie/file-upload/hydrate"), b = r.maxFiles ?? q(a.getAttribute("data-formie-file-limit")), x = r.maxFileSize ?? parseFloat(a.getAttribute("data-formie-size-max-limit") || ""), S = r.minFileSize ?? parseFloat(a.getAttribute("data-formie-size-min-limit") || ""), C = yt(r.accept ?? a.getAttribute("accept") ?? o.accept), w = {}, T = {};
+	b && (w.maxNumberOfFiles = b), x && (w.maxFileSize = x * 1e3 * 1e3, T.exceedsSize = `%{file} exceeds maximum allowed size of ${x} MB`), S && (w.minFileSize = S * 1e3 * 1e3, T.inferiorSize = `This file is smaller than the allowed size of ${S} MB`), C && (w.allowedFileTypes = C);
+	let E = new Re({
 		autoProceed: !0,
-		restrictions: w
-	}), E = document.createElement("div");
-	E.className = "formie-upload-manager-error", E.setAttribute("role", "alert"), E.hidden = !0, i.append(E), T.on("info-visible", () => {
-		let e = T.getState().info.filter((e) => e.type === "error");
-		e.length && (E.textContent = [...new Set(e.map((e) => e.message))].join(" "), E.hidden = !1);
+		restrictions: w,
+		locale: {
+			strings: T,
+			pluralize: (e) => e === 1 ? 0 : 1
+		}
+	}), D = document.createElement("div");
+	D.className = "formie-upload-manager-error", D.setAttribute("role", "alert"), D.hidden = !0, i.append(D), E.on("info-visible", () => {
+		let e = E.getState().info.filter((e) => e.type === "error");
+		e.length && (D.textContent = [...new Set(e.map((e) => e.message))].join(" "), D.hidden = !1);
 	});
-	let D = () => {
-		E.textContent = "", E.hidden = !0;
+	let O = () => {
+		D.textContent = "", D.hidden = !0;
 	}, ee = s(f);
-	T.use(We, {
+	E.use(We, {
 		endpoint: _,
 		fieldName: "file",
 		formData: !0,
@@ -2397,7 +2401,7 @@ function Ft(e, t, r) {
 			});
 		}
 	});
-	let O = {
+	let k = {
 		field: e,
 		dropzone: a,
 		browseInput: o,
@@ -2405,36 +2409,36 @@ function Ft(e, t, r) {
 		fileList: u,
 		anchorInput: g,
 		assetInputName: h,
-		uppy: T,
+		uppy: E,
 		files: []
-	}, k = new AbortController(), A = 0, j = () => b ? Math.max(0, b - At(O)) : null, M = (e) => {
+	}, A = new AbortController(), j = 0, M = () => b ? Math.max(0, b - At(k)) : null, te = (e) => {
 		a.classList.toggle("formie-upload-manager-dropzone-active", e);
-	}, te = (e) => e.assetId !== null && !e.listItem.classList.contains("is-error"), N = () => {
-		let e = O.files.length >= 2;
-		O.files.forEach((t, n) => {
+	}, ne = (e) => e.assetId !== null && !e.listItem.classList.contains("is-error"), N = () => {
+		let e = k.files.length >= 2;
+		k.files.forEach((t, n) => {
 			let r = t.listItem.querySelector(Xe), i = t.listItem.querySelector(Ze), a = t.listItem.querySelector(Qe);
 			if (!(r instanceof HTMLElement)) return;
-			let o = e && te(t);
-			r.hidden = !o, i instanceof HTMLButtonElement && (i.disabled = !o || n === 0), a instanceof HTMLButtonElement && (a.disabled = !o || n >= O.files.length - 1);
+			let o = e && ne(t);
+			r.hidden = !o, i instanceof HTMLButtonElement && (i.disabled = !o || n === 0), a instanceof HTMLButtonElement && (a.disabled = !o || n >= k.files.length - 1);
 		});
-	}, ne = (e, t) => {
-		let n = O.files.indexOf(e), r = n + t;
-		if (n < 0 || r < 0 || r >= O.files.length) return;
-		let i = O.files[r];
-		O.files[n] = i, O.files[r] = e, t === -1 ? i.listItem.before(e.listItem) : i.listItem.after(e.listItem), $(O), N(), p(O.field, "file-upload", "uploaded-assets-reordered", { assets: O.files.filter((e) => e.assetId !== null).map((e) => ({
+	}, P = (e, t) => {
+		let n = k.files.indexOf(e), r = n + t;
+		if (n < 0 || r < 0 || r >= k.files.length) return;
+		let i = k.files[r];
+		k.files[n] = i, k.files[r] = e, t === -1 ? i.listItem.before(e.listItem) : i.listItem.after(e.listItem), $(k), N(), p(k.field, "file-upload", "uploaded-assets-reordered", { assets: k.files.filter((e) => e.assetId !== null).map((e) => ({
 			assetId: e.assetId,
 			filename: e.filename
 		})) });
-	}, P = (e, t, n, r) => {
+	}, re = (e, t, n, r) => {
 		t.addEventListener("click", () => {
-			re(e);
+			ie(e);
 		}), n.addEventListener("click", () => {
-			ne(e, -1);
+			P(e, -1);
 		}), r.addEventListener("click", () => {
-			ne(e, 1);
+			P(e, 1);
 		});
-	}, re = async (t) => {
-		if (t.uppyFileId && T.removeFile(t.uppyFileId), t.assetId && t.deleteToken) {
+	}, ie = async (t) => {
+		if (t.uppyFileId && E.removeFile(t.uppyFileId), t.assetId && t.deleteToken) {
 			let n = new FormData(), r = _t(f, e, a);
 			Object.entries(r).forEach(([e, t]) => {
 				n.append(e, t);
@@ -2452,8 +2456,8 @@ function Ft(e, t, r) {
 				});
 			}
 		}
-		t.listItem.remove(), O.files = O.files.filter((e) => e !== t), $(O), N();
-	}, ie = (t, n, r = null, i = null, a = null, o = null) => {
+		t.listItem.remove(), k.files = k.files.filter((e) => e !== t), $(k), N();
+	}, ae = (t, n, r = null, i = null, a = null, o = null) => {
 		let { listItem: s, removeButton: c, sortUpButton: l, sortDownButton: d } = Ot(e, n);
 		s.classList.add("is-complete"), u.append(s);
 		let f = {
@@ -2466,9 +2470,9 @@ function Ft(e, t, r) {
 			uppyFileId: null,
 			listItem: s
 		};
-		P(f, c, l, d), O.files.push(f), N();
-	}, ae = async () => {
-		let t = ++A, n = mt(e, h);
+		re(f, c, l, d), k.files.push(f), N();
+	}, oe = async () => {
+		let t = ++j, n = mt(e, h);
 		if (!n.length) return;
 		let r = ht(e, h);
 		try {
@@ -2477,18 +2481,18 @@ function Ft(e, t, r) {
 				method: "POST",
 				body: vt(f, e, n, r)
 			});
-			if (t !== A) return;
+			if (t !== j) return;
 			let a = i.assets || [], o = new Map(a.map((e) => [q(e.assetId), e]).filter(([e]) => e !== null));
 			n.forEach((e) => {
-				if (O.files.some((t) => t.assetId === e)) return;
+				if (k.files.some((t) => t.assetId === e)) return;
 				let t = o.get(e);
-				t && ie(e, t.filename || `Asset #${e}`, J(t.uploadToken) || r[e] || null, J(t.deleteToken) || null, J(t.uploadUid) || null, J(t.attachToken) || null);
-			}), $(O), N();
+				t && ae(e, t.filename || `Asset #${e}`, J(t.uploadToken) || r[e] || null, J(t.deleteToken) || null, J(t.uploadUid) || null, J(t.attachToken) || null);
+			}), $(k), N();
 		} catch (e) {
 			K.warn("Failed to hydrate uploaded assets.", { error: e });
 		}
-	}, F = (e) => e && O.files.find((t) => t.uppyFileId === e) || null;
-	T.on("upload-progress", (e, t) => {
+	}, F = (e) => e && k.files.find((t) => t.uppyFileId === e) || null;
+	E.on("upload-progress", (e, t) => {
 		let n = F(e?.id);
 		if (!n) return;
 		let r = t.bytesTotal || 0, i = t.bytesUploaded || 0, a = r > 0 ? Math.round(i / r * 100) : 0;
@@ -2496,32 +2500,32 @@ function Ft(e, t, r) {
 			loaded: i,
 			total: r
 		});
-	}), T.on("upload-retry", (e) => {
+	}), E.on("upload-retry", (e) => {
 		let t = F(e?.id);
 		t && Z(t.listItem, "Retrying…", "retrying");
-	}), T.on("upload-success", (e, t) => {
+	}), E.on("upload-success", (e, t) => {
 		let n = F(e?.id);
 		if (!n) return;
 		let r = n.listItem.querySelector("[data-formie-upload-manager-error]"), i = lt(t?.body) ? t.body : {}, a = q(i.assetId);
 		if (!i.success || !a) {
-			if (Et(n.listItem), Q(O), r instanceof HTMLElement) {
+			if (Et(n.listItem), Q(k), r instanceof HTMLElement) {
 				r.hidden = !1, r.textContent = Ct(null, { message: "Upload failed." });
 				let e = i.errors ? Object.values(i.errors).flat().find(Boolean) : null;
 				e && (r.textContent = e);
 			}
-		} else n.assetId = a, n.uploadToken = J(i.uploadToken) || null, n.deleteToken = J(i.deleteToken) || null, n.uploadUid = J(i.uploadUid) || null, n.attachToken = J(i.attachToken) || null, n.filename = i.filename || n.filename, Tt(n.listItem), $(O), N();
-	}), T.on("upload-error", (e, t, n) => {
+		} else n.assetId = a, n.uploadToken = J(i.uploadToken) || null, n.deleteToken = J(i.deleteToken) || null, n.uploadUid = J(i.uploadUid) || null, n.attachToken = J(i.attachToken) || null, n.filename = i.filename || n.filename, Tt(n.listItem), $(k), N();
+	}), E.on("upload-error", (e, t, n) => {
 		let r = F(e?.id);
 		if (!r) return;
 		let i = r.listItem.querySelector("[data-formie-upload-manager-error]");
-		Et(r.listItem), Q(O), i instanceof HTMLElement && (i.hidden = !1, i.textContent = Ct(n, t));
-	}), T.on("file-added", (t) => {
-		let n = j();
+		Et(r.listItem), Q(k), i instanceof HTMLElement && (i.hidden = !1, i.textContent = Ct(n, t));
+	}), E.on("file-added", (t) => {
+		let n = M();
 		if (n !== null && n <= 0) {
-			T.removeFile(t.id), T.info("File limit reached.", "error", 3e3);
+			E.removeFile(t.id), E.info("File limit reached.", "error", 3e3);
 			return;
 		}
-		T.setFileMeta(t.id, _t(f, e, a));
+		E.setFileMeta(t.id, _t(f, e, a));
 		let { listItem: r, removeButton: i, sortUpButton: o, sortDownButton: s } = Ot(e, t.name || "Upload");
 		u.append(r);
 		let c = {
@@ -2533,62 +2537,62 @@ function Ft(e, t, r) {
 			uppyFileId: t.id,
 			listItem: r
 		};
-		P(c, i, o, s), O.files.push(c), Q(O), N();
+		re(c, i, o, s), k.files.push(c), Q(k), N();
 	});
 	let I = () => {
 		o.click();
 	};
 	c?.addEventListener("click", (e) => {
 		e.preventDefault(), e.stopPropagation(), I();
-	}, { signal: k.signal }), a.addEventListener("click", (e) => {
+	}, { signal: A.signal }), a.addEventListener("click", (e) => {
 		e.target instanceof Element && e.target.closest(qe) || I();
-	}, { signal: k.signal }), a.addEventListener("keydown", (e) => {
+	}, { signal: A.signal }), a.addEventListener("keydown", (e) => {
 		(e.key === "Enter" || e.key === " ") && (e.preventDefault(), I());
-	}, { signal: k.signal }), o.addEventListener("change", () => {
+	}, { signal: A.signal }), o.addEventListener("change", () => {
 		if (!o.files?.length) return;
 		let e = Array.from(o.files);
-		o.value = "", D();
+		o.value = "", O();
 		try {
-			T.addFiles(e.map((e) => ({
+			E.addFiles(e.map((e) => ({
 				name: e.name,
 				type: e.type,
 				data: e
 			})));
 		} catch (e) {
-			e instanceof Error && T.info(e.message, "error", 3e3);
+			e instanceof Error && E.info(e.message, "error", 3e3);
 		}
-	}, { signal: k.signal }), ["dragenter", "dragover"].forEach((e) => {
+	}, { signal: A.signal }), ["dragenter", "dragover"].forEach((e) => {
 		a.addEventListener(e, (e) => {
-			e.preventDefault(), e.stopPropagation(), M(!0);
-		}, { signal: k.signal });
+			e.preventDefault(), e.stopPropagation(), te(!0);
+		}, { signal: A.signal });
 	}), ["dragleave", "drop"].forEach((e) => {
 		a.addEventListener(e, (e) => {
-			e.preventDefault(), e.stopPropagation(), M(!1);
-		}, { signal: k.signal });
+			e.preventDefault(), e.stopPropagation(), te(!1);
+		}, { signal: A.signal });
 	}), a.addEventListener("drop", (e) => {
 		let t = e.dataTransfer;
 		if (!t?.files?.length) return;
 		let n = Array.from(t.files);
-		D();
+		O();
 		try {
-			T.addFiles(n.map((e) => ({
+			E.addFiles(n.map((e) => ({
 				name: e.name,
 				type: e.type,
 				data: e
 			})));
 		} catch (e) {
-			e instanceof Error && T.info(e.message, "error", 3e3);
+			e instanceof Error && E.info(e.message, "error", 3e3);
 		}
-	}, { signal: k.signal });
+	}, { signal: A.signal });
 	let L = () => {
-		A += 1, D(), O.files.forEach((e) => {
+		j += 1, O(), k.files.forEach((e) => {
 			e.listItem.remove();
-		}), O.files = [], T.cancelAll(), $(O);
+		}), k.files = [], E.cancelAll(), $(k);
 	};
-	return f?.addEventListener(tt, L), ae(), () => {
-		A += 1, k.abort(), f?.removeEventListener(tt, L), T.destroy(), E.remove(), O.files.forEach((e) => {
+	return f?.addEventListener(tt, L), oe(), () => {
+		j += 1, A.abort(), f?.removeEventListener(tt, L), E.destroy(), D.remove(), k.files.forEach((e) => {
 			e.listItem.remove();
-		}), O.files = [];
+		}), k.files = [];
 	};
 }
 var It = {

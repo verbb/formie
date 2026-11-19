@@ -1173,7 +1173,7 @@ var en = class {
 	"custom-maps": () => import("./chunks/custom-maps-uV8HdZBv.js").then((e) => e.customMapsModule),
 	"date-picker": () => import("./chunks/date-picker-CGPnDsea.js").then((e) => e.datePickerModule),
 	"file-upload": () => import("./chunks/file-upload-CGdmpGmk.js").then((e) => e.fileUploadModule),
-	"upload-manager": () => import("./chunks/upload-manager-DcUTcwcb.js").then((e) => e.uploadManagerModule),
+	"upload-manager": () => import("./chunks/upload-manager-BB9PvDPB.js").then((e) => e.uploadManagerModule),
 	hidden: () => import("./chunks/hidden-Bc2TpcgF.js").then((e) => e.hiddenModule),
 	"phone-country": () => import("./chunks/phone-country-CuHPOumN.js").then((e) => e.phoneCountryModule),
 	"password-validation": () => import("./chunks/password-validation-C3loo6iA.js").then((e) => e.passwordValidationModule),

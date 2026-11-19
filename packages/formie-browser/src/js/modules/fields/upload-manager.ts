@@ -820,16 +820,22 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
         allowedFileTypes?: string[] | null;
     } = {};
 
+    // Uppy formats size limits in 1024-based units labelled MB, so its messages
+    // show the field's configured (decimal) MB value instead.
+    const strings: Record<string, string> = {};
+
     if (maxFiles) {
         restrictions.maxNumberOfFiles = maxFiles;
     }
 
     if (maxFileSize) {
         restrictions.maxFileSize = maxFileSize * 1000 * 1000;
+        strings.exceedsSize = `%{file} exceeds maximum allowed size of ${maxFileSize} MB`;
     }
 
     if (minFileSize) {
         restrictions.minFileSize = minFileSize * 1000 * 1000;
+        strings.inferiorSize = `This file is smaller than the allowed size of ${minFileSize} MB`;
     }
 
     if (allowedFileTypes) {
@@ -839,6 +845,8 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
     const uppy = new Uppy({
         autoProceed: true,
         restrictions,
+        // Uppy's types require a pluralize rule with any locale, so this repeats its English one.
+        locale: { strings, pluralize: (count: number) => (count === 1 ? 0 : 1) },
     });
 
     const selectionError = document.createElement('div');
