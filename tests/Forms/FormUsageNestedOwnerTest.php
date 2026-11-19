@@ -189,9 +189,9 @@ it('loads nested usage elements and their owners in batches', function(): void {
     $addPages(6);
     [$manyRows, $manyQueries] = $countQueries();
 
-    // Each page adds two rows. Craft still loads each nested entry's owner while populating it,
-    // but Formie no longer loads every related element and owner on its own.
+    // Each page adds two rows. The related elements and their owners load in batches and each nested entry
+    // is created with its owner, so more pages add no element queries.
     expect($fewRows)->toBe(4)
         ->and($manyRows)->toBe(16)
-        ->and($manyQueries - $fewQueries)->toBeLessThanOrEqual(6 * 2);
+        ->and($manyQueries)->toBe($fewQueries);
 });

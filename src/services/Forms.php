@@ -31,8 +31,10 @@ use craft\base\FieldInterface;
 use craft\base\NestedElementInterface;
 use craft\db\Query;
 use craft\elements\User as UserElement;
+use craft\elements\db\ElementQuery;
 use craft\elements\db\ElementQueryInterface;
 use craft\errors\GqlException;
+use craft\events\PopulateElementEvent;
 use craft\helpers\Cp;
 use craft\helpers\Json;
 use craft\helpers\Typecast;
@@ -676,7 +678,11 @@ class Forms extends Component
     }
 
     /**
-     * Loads the related elements, then their owners level by level, with one query for each element type and site.
+     * Loads the related elements and their owners with one query for each element type, site and depth.
+     *
+     * Owners are found from raw rows first, then everything is loaded from the root down, so each nested
+     * element is created with its owner already set. Otherwise Craft queries every nested element's owner
+     * while creating it, because its field layout comes from the owner.
      */
     private function _preloadFormUsageElements(array $relations, array $elementSiteIds): void
     {
@@ -691,48 +697,115 @@ class Forms extends Component
             }
         }
 
-        $elements = $this->_loadFormUsageElements($idsByTypeAndSite);
-
         try {
-            $this->_preloadFormUsageOwners($elements);
+            foreach ($this->_getFormUsageLoadOrder($idsByTypeAndSite) as $level) {
+                $this->_loadFormUsageElements($level);
+            }
         } catch (Throwable) {
-            // Owners that fail to load in bulk are loaded one at a time, which skips any that fail again.
+            // Elements that fail to load in bulk are loaded one at a time, which skips any that fail again.
         }
+
+        $this->_loadFormUsageElements($idsByTypeAndSite);
     }
 
-    private function _preloadFormUsageOwners(array $elements): void
+    /**
+     * Groups the given elements and their uncached owners by depth from their root owner, then by element type and site.
+     */
+    private function _getFormUsageLoadOrder(array $idsByTypeAndSite): array
     {
-        while ($elements) {
-            $ownerIdsBySite = [];
+        $cache = $this->_getFormLookupCache();
+        $nodes = [];
+        $owners = [];
+        $pending = [];
 
-            foreach ($elements as $element) {
-                if ($element instanceof NestedElementInterface && $element->ownerId) {
-                    $ownerIdsBySite[$element->siteId][$element->ownerId] = (int)$element->ownerId;
+        foreach ($idsByTypeAndSite as $elementType => $idsBySite) {
+            foreach ($idsBySite as $siteId => $elementIds) {
+                foreach ($elementIds as $elementId) {
+                    $nodes[$elementId . '_' . $siteId] = [$elementType, $siteId, $elementId];
+                    $pending[$elementType][$siteId][$elementId] = $elementId;
+                    $cache->elementTypesById[$elementId] ??= $elementType;
                 }
             }
+        }
 
-            $this->_cacheElementTypesForFormUsage(array_merge(...array_values(array_map('array_values', $ownerIdsBySite))));
-            $idsByTypeAndSite = [];
+        // Read each level's owner IDs from raw rows, then their types, until no new owners turn up.
+        while ($pending) {
+            $ownerIdsBySite = [];
 
-            foreach ($ownerIdsBySite as $siteId => $ownerIds) {
-                foreach ($ownerIds as $ownerId) {
-                    if ($ownerType = $this->_getFormLookupCache()->elementTypesById[$ownerId] ?? null) {
-                        $idsByTypeAndSite[$ownerType][$siteId][$ownerId] = $ownerId;
+            foreach ($pending as $elementType => $idsBySite) {
+                if (!class_exists($elementType) || !is_subclass_of($elementType, NestedElementInterface::class)) {
+                    continue;
+                }
+
+                foreach ($idsBySite as $siteId => $elementIds) {
+                    $elementIds = array_values(array_filter($elementIds, fn($elementId) => !array_key_exists($elementId . '_' . $siteId, $cache->elementsByIdAndSite)));
+
+                    if (!$elementIds) {
+                        continue;
+                    }
+
+                    $rows = $this->_getFormUsageElementQuery($elementType, $siteId)
+                        ->id($elementIds)
+                        ->asArray()
+                        ->all();
+
+                    foreach ($rows as $row) {
+                        $ownerId = (int)($row['ownerId'] ?? $row['primaryOwnerId'] ?? 0);
+
+                        if ($ownerId) {
+                            $owners[$row['id'] . '_' . $siteId] = $ownerId . '_' . $siteId;
+
+                            if (!isset($nodes[$ownerId . '_' . $siteId]) && !array_key_exists($ownerId . '_' . $siteId, $cache->elementsByIdAndSite)) {
+                                $ownerIdsBySite[$siteId][$ownerId] = $ownerId;
+                            }
+                        }
                     }
                 }
             }
 
-            $elements = $this->_loadFormUsageElements($idsByTypeAndSite);
+            $this->_cacheElementTypesForFormUsage($ownerIdsBySite ? array_merge(...array_values(array_map('array_values', $ownerIdsBySite))) : []);
+            $pending = [];
+
+            foreach ($ownerIdsBySite as $siteId => $ownerIds) {
+                foreach ($ownerIds as $ownerId) {
+                    if ($ownerType = $cache->elementTypesById[$ownerId] ?? null) {
+                        $nodes[$ownerId . '_' . $siteId] = [$ownerType, $siteId, $ownerId];
+                        $pending[$ownerType][$siteId][$ownerId] = $ownerId;
+                    }
+                }
+            }
         }
+
+        // An element's depth is its distance from the root owner, so owners always load before the elements they own.
+        $depths = [];
+        $getDepth = function(string $key, array $path = []) use (&$getDepth, &$depths, $nodes, $owners): int {
+            if (isset($depths[$key])) {
+                return $depths[$key];
+            }
+
+            $ownerKey = $owners[$key] ?? null;
+            $hasOwnerToLoad = $ownerKey && isset($nodes[$ownerKey]) && !isset($path[$ownerKey]);
+
+            return $depths[$key] = $hasOwnerToLoad ? $getDepth($ownerKey, $path + [$key => true]) + 1 : 0;
+        };
+
+        $levels = [];
+
+        foreach ($nodes as $key => [$elementType, $siteId, $elementId]) {
+            $levels[$getDepth($key)][$elementType][$siteId][$elementId] = $elementId;
+        }
+
+        ksort($levels);
+
+        return $levels;
     }
 
     /**
-     * Loads and caches the given elements that aren't cached yet, returning the ones found.
+     * Loads and caches the given elements that aren't cached yet.
      */
-    private function _loadFormUsageElements(array $idsByTypeAndSite): array
+    private function _loadFormUsageElements(array $idsByTypeAndSite): void
     {
         $cache = $this->_getFormLookupCache();
-        $loaded = [];
 
         foreach ($idsByTypeAndSite as $elementType => $idsBySite) {
             if (!class_exists($elementType)) {
@@ -746,20 +819,41 @@ class Forms extends Component
                     continue;
                 }
 
-                $elements = $this->_getFormUsageElementQuery($elementType, $siteId)
+                $query = $this->_getFormUsageElementQuery($elementType, $siteId)
                     ->id($elementIds)
-                    ->indexBy('id')
-                    ->all();
+                    ->indexBy('id');
+
+                if ($query instanceof ElementQuery && is_subclass_of($elementType, NestedElementInterface::class)) {
+                    $query->on(ElementQuery::EVENT_BEFORE_POPULATE_ELEMENT, fn(PopulateElementEvent $event) => $this->_setFormUsageOwner($event));
+                }
+
+                $elements = $query->all();
 
                 foreach ($elementIds as $elementId) {
                     $cache->elementsByIdAndSite[$elementId . '_' . $siteId] = $elements[$elementId] ?? null;
                 }
-
-                array_push($loaded, ...array_values($elements));
             }
         }
+    }
 
-        return $loaded;
+    /**
+     * Gives a nested element its cached owner as it's created, as Craft does for queries limited to one owner.
+     */
+    private function _setFormUsageOwner(PopulateElementEvent $event): void
+    {
+        $primaryOwnerId = $event->row['primaryOwnerId'] ?? null;
+        $siteId = $event->row['siteId'] ?? null;
+
+        if (!$primaryOwnerId || !$siteId || (isset($event->row['ownerId']) && $event->row['ownerId'] != $primaryOwnerId)) {
+            return;
+        }
+
+        $owner = $this->_getFormLookupCache()->elementsByIdAndSite[$primaryOwnerId . '_' . $siteId] ?? null;
+
+        if ($owner) {
+            $event->row['owner'] = $owner;
+            $event->row['primaryOwner'] = $owner;
+        }
     }
 
     private function _getFormUsageElement(int $elementId, string $elementType, int $siteId): ?ElementInterface
