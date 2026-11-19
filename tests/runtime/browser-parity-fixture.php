@@ -1,0 +1,86 @@
+<?php
+// Forms for tests/browser/client-parity.spec.ts: every field type and display variant, filled in the same way in the
+// server-rendered form and each client adapter, so the saved submissions can be compared.
+use verbb\formie\fields;
+use verbb\formie\models\RichText;
+
+\Tests\Support\UploadTestHelper::ensureUploadVolume();
+
+$options = [['label' => 'Alpha', 'value' => 'alpha'], ['label' => 'Beta', 'value' => 'beta'], ['label' => 'Gamma', 'value' => 'gamma']];
+$recipients = [['label' => 'Sales', 'value' => 'sales@example.test'], ['label' => 'Support', 'value' => 'support@example.test']];
+$text = fn(string $handle, string $label) => ['type' => fields\SingleLineText::class, 'handle' => $handle, 'label' => $label];
+
+$factory = \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Parity fields', 'handle' => 'parityFields'])
+    ->settings(['disableCaptchas' => true, 'submitMethod' => 'ajax'])
+    ->singleLineTextField('pSingleLine', ['label' => 'P single line'])
+    ->multiLineTextField('pMultiLine', ['label' => 'P multi line'])
+    ->multiLineTextField('pRichText', ['label' => 'P rich text', 'useRichText' => true])
+    ->emailField('pEmail', ['label' => 'P email'])
+    ->numberField('pNumber', ['label' => 'P number'])
+    ->phoneField('pPhoneCountry', ['label' => 'P phone country', 'countryEnabled' => true, 'countryDefaultValue' => 'AU'])
+    ->phoneField('pPhonePlain', ['label' => 'P phone plain', 'countryEnabled' => false])
+    ->passwordField('pPassword', ['label' => 'P password'])
+    ->hiddenField('pHidden', ['label' => 'P hidden', 'defaultValue' => 'hidden-value'])
+    ->dropdownField('pDropdown', ['label' => 'P dropdown', 'options' => $options])
+    ->dropdownField('pDropdownMulti', ['label' => 'P dropdown multi', 'multi' => true, 'options' => $options])
+    ->dropdownField('pDropdownSearch', ['label' => 'P dropdown searchable', 'useSearchable' => true, 'options' => $options])
+    ->radioField('pRadio', ['label' => 'P radio', 'options' => $options])
+    ->checkboxesField('pCheckboxes', ['label' => 'P checkboxes', 'options' => $options])
+    ->checkboxesField('pCheckboxesToggle', ['label' => 'P checkboxes toggle', 'toggleCheckbox' => 'top', 'toggleCheckboxLabel' => 'Select all', 'options' => $options])
+    ->agreeField('pAgree', ['label' => 'P agree', 'description' => RichText::from('I agree')])
+    ->dateField('pDateCalendar', ['label' => 'P date calendar', 'displayType' => 'calendar'])
+    ->dateField('pDatePicker', ['label' => 'P date picker', 'displayType' => 'datePicker'])
+    ->dateField('pDateDropdowns', ['label' => 'P date dropdowns', 'displayType' => 'dropdowns'])
+    ->dateField('pDateInputs', ['label' => 'P date inputs', 'displayType' => 'inputs'])
+    ->nameField('pNameSingle', ['label' => 'P name single'])
+    ->nameField('pNameMulti', ['label' => 'P name multi', 'useMultipleFields' => true, 'rows' => (new fields\Name(['useMultipleFields' => true]))->getSubFields()])
+    ->addressField('pAddress', ['label' => 'P address', 'rows' => (new fields\Address())->getSubFields()])
+    ->groupField('pGroup', ['label' => 'P group', 'rows' => [['fields' => [$text('pGroupText', 'P group text')]]]])
+    ->repeaterField('pRepeater', ['label' => 'P repeater', 'minRows' => 1, 'rows' => [['fields' => [$text('pRepeaterText', 'P repeater text')]]]])
+    ->tableField('pTable', ['label' => 'P table', 'columns' => [
+        'col1' => ['heading' => 'Col text', 'handle' => 'colText', 'type' => 'singleline'],
+        'col2' => ['heading' => 'Col check', 'handle' => 'colCheck', 'type' => 'checkbox'],
+    ], 'defaults' => [['colText' => 'row one']]])
+    ->signatureField('pSignature', ['label' => 'P signature'])
+    ->fileUploadField('pFileInput', ['label' => 'P file input', 'restrictFiles' => false, 'displayType' => 'fileInput'])
+    ->fileUploadField('pFileManager', ['label' => 'P file manager', 'restrictFiles' => false, 'displayType' => 'uploadManager'])
+    ->numberField('pCalcSource', ['label' => 'P calc source'])
+    ->calculationsField('pCalculations', ['label' => 'P calculations'])
+    ->recipientsField('pRecipientsDropdown', ['label' => 'P recipients dropdown', 'displayType' => 'dropdown', 'options' => $recipients])
+    ->recipientsField('pRecipientsRadio', ['label' => 'P recipients radio', 'displayType' => 'radio', 'options' => $recipients])
+    ->recipientsField('pRecipientsCheckboxes', ['label' => 'P recipients checkboxes', 'displayType' => 'checkboxes', 'options' => $recipients])
+    ->recipientsField('pRecipientsHidden', ['label' => 'P recipients hidden', 'displayType' => 'hidden', 'options' => [['label' => 'Sales', 'value' => 'sales@example.test', 'isDefault' => true]]])
+    ->entriesField('pEntries', ['label' => 'P entries'])
+    ->entriesField('pEntriesCheckboxes', ['label' => 'P entries checkboxes', 'displayType' => 'checkboxes'])
+    ->categoriesField('pCategories', ['label' => 'P categories'])
+    ->tagsField('pTags', ['label' => 'P tags'])
+    ->usersField('pUsers', ['label' => 'P users'])
+    ->headingField('pHeading', ['label' => 'P heading'])
+    ->htmlField('pHtml', ['label' => 'P html', 'htmlContent' => '<p>P html content</p>'])
+    ->sectionField('pSection', ['label' => 'P section'])
+    ->summaryField('pSummary', ['label' => 'P summary']);
+
+foreach (['likert', 'rank', 'rating', 'dropdown', 'radio', 'checkboxes', 'singleLineText', 'multiLineText'] as $display) {
+    $factory->addField(fields\Survey::class, 'pSurvey' . ucfirst($display), [
+        'label' => 'P survey ' . $display, 'displayType' => $display, 'options' => $options,
+    ]);
+}
+
+$factory->addField(fields\Survey::class, 'pSurveyLikertRows', [
+    'label' => 'P survey likert rows', 'displayType' => 'likert', 'options' => $options, 'multipleRowsEnabled' => true,
+    'likertRows' => [['label' => 'Row one', 'value' => 'rowOne'], ['label' => 'Row two', 'value' => 'rowTwo']],
+]);
+
+foreach (['dropdown', 'radio', 'checkboxes'] as $display) {
+    $factory->addField(fields\Quiz::class, 'pQuiz' . ucfirst($display), [
+        'label' => 'P quiz ' . $display, 'displayType' => $display,
+        'options' => [['label' => 'Right', 'value' => 'right', 'isCorrect' => true], ['label' => 'Wrong', 'value' => 'wrong']],
+    ]);
+}
+
+$parity = $factory->create();
+$parity->getFieldByHandle('pCalculations')->formula = RichText::from('{field:' . $parity->getFieldByHandle('pCalcSource')->reference . '} * 2');
+
+if (!Craft::$app->getElements()->saveElement($parity)) {
+    throw new RuntimeException('Cannot save parity fields fixture: ' . json_encode($parity->getErrors()));
+}

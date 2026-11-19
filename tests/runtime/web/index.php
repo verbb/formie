@@ -165,6 +165,13 @@ if ($path === '/browser-rendered-saved') {
     echo json_encode(array_map(fn($row) => ['name' => $row->getFieldValue('visitorName'), 'details' => (string)$row->getFieldValue('details'), 'total' => (string)$row->getFieldValue('total')], $rows));
     exit;
 }
+// Saved answers for tests/browser/client-parity.spec.ts, in the plain data form every field type can produce.
+if ($path === '/browser-parity-saved') {
+    $submission = \verbb\formie\elements\Submission::find()->uid((string)($_GET['uid'] ?? ''))->status(null)->isIncomplete(null)->isSpam(null)->one();
+    header('Content-Type: application/json');
+    echo json_encode($submission ? ['isSpam' => (bool)$submission->isSpam, 'isIncomplete' => (bool)$submission->isIncomplete, 'values' => $submission->getValuesAsData()] : null);
+    exit;
+}
 if ($path === '/browser-fixture') {
     header('Content-Type: text/html; charset=utf-8');
     $browserBundle = $runtime . '/browser/fixture.js';
