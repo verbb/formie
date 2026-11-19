@@ -290,6 +290,7 @@ class Brevo extends EmailMarketing
             'float' => IntegrationField::TYPE_FLOAT,
             'date' => IntegrationField::TYPE_DATETIME,
             'boolean' => IntegrationField::TYPE_BOOLEAN,
+            'multiple-choice' => IntegrationField::TYPE_ARRAY,
         ];
 
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
