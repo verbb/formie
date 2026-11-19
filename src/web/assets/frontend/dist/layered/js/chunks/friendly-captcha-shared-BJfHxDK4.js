@@ -1,0 +1,1 @@
+import{i as e}from"./api-e3xZcRyg.js";import{r as t}from"../formie.js";function n(e){let t=e.tokens.read();return t!==``&&!t.startsWith(`.`)}async function r(r,i=e){let a=Date.now()+Math.max(i,0);for(;!n(r);){if(Date.now()>=a)return!1;await t(120)}return!0}export{r as n,n as t};

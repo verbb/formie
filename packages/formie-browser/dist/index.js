@@ -1154,8 +1154,8 @@ var en = class {
 	"place-kit": () => import("./chunks/place-kit-BUOGAm6N.js").then((e) => e.placeKitModule)
 }, an = {
 	"captcha-eu": () => import("./chunks/captcha-eu-D9AClU5R.js").then((e) => e.captchaEuModule),
-	"friendly-captcha-v1": () => import("./chunks/friendly-captcha-v1-C_cF1WD2.js").then((e) => e.friendlyCaptchaV1Module),
-	"friendly-captcha-v2": () => import("./chunks/friendly-captcha-v2-BenESH-n.js").then((e) => e.friendlyCaptchaV2Module),
+	"friendly-captcha-v1": () => import("./chunks/friendly-captcha-v1-roLHwqvH.js").then((e) => e.friendlyCaptchaV1Module),
+	"friendly-captcha-v2": () => import("./chunks/friendly-captcha-v2-DtaBEiuN.js").then((e) => e.friendlyCaptchaV2Module),
 	hcaptcha: () => import("./chunks/hcaptcha-O_4uECEr.js").then((e) => e.hcaptchaModule),
 	"recaptcha-enterprise": () => import("./chunks/recaptcha-enterprise-BFUGhUaC.js").then((e) => e.recaptchaEnterpriseModule),
 	"recaptcha-v2-checkbox": () => import("./chunks/recaptcha-v2-checkbox-CeRtAdE6.js").then((e) => e.recaptchaV2CheckboxModule),

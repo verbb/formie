@@ -1,4 +1,5 @@
 import { defineCaptchaModule } from '#modules/captchas/api';
+import { hasFriendlyCaptchaSolution, waitForFriendlyCaptchaSolution } from '#modules/captchas/friendly-captcha-shared';
 
 type FriendlyCaptchaSdkModule = typeof import('@friendlycaptcha/sdk');
 type FriendlyCaptchaWidget = import('@friendlycaptcha/sdk').WidgetHandle;
@@ -65,13 +66,13 @@ export const friendlyCaptchaV2Module = defineCaptchaModule<
         return widget;
     },
     challenge: async ({ widget, placeholder, services, stageCtx }) => {
-        // As with v1, start the challenge only if no token is currently present.
-        if (services.tokens.has()) {
+        // As with v1, start the challenge only if there's no solution yet.
+        if (hasFriendlyCaptchaSolution(services)) {
             return;
         }
 
         widget.start();
-        const hasToken = await services.tokens.wait();
+        const hasToken = await waitForFriendlyCaptchaSolution(services);
 
         if (!hasToken) {
             const message = services.errors.getDefaultMessage();

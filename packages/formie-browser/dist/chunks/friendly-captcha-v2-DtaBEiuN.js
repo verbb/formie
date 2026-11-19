@@ -1,6 +1,7 @@
 import { t as e } from "./api-BPtH5RBA.js";
+import { n as t, t as n } from "./friendly-captcha-shared-BVcd0Bak.js";
 //#region src/js/modules/captchas/friendly-captcha-v2.ts
-var t = e({
+var r = e({
 	moduleId: "formie:friendly-captcha-v2",
 	defaultPlaceholderSelector: "[data-friendly-captcha-placeholder]",
 	defaultTokenFieldNames: ["frc-captcha-response"],
@@ -23,10 +24,10 @@ var t = e({
 			e.detail?.error && r.tokens.clear();
 		}), i;
 	},
-	challenge: async ({ widget: e, placeholder: t, services: n, stageCtx: r }) => {
-		if (!n.tokens.has() && (e.start(), !await n.tokens.wait())) {
-			let e = n.errors.getDefaultMessage();
-			n.errors.show(e, t), r.abort(e);
+	challenge: async ({ widget: e, placeholder: r, services: i, stageCtx: a }) => {
+		if (!n(i) && (e.start(), !await t(i))) {
+			let e = i.errors.getDefaultMessage();
+			i.errors.show(e, r), a.abort(e);
 		}
 	},
 	unmount: ({ widget: e, services: t }) => {
@@ -34,4 +35,4 @@ var t = e({
 	}
 });
 //#endregion
-export { t as friendlyCaptchaV2Module };
+export { r as friendlyCaptchaV2Module };

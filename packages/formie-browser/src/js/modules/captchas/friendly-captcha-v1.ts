@@ -1,4 +1,5 @@
 import { defineCaptchaModule } from '#modules/captchas/api';
+import { hasFriendlyCaptchaSolution, waitForFriendlyCaptchaSolution } from '#modules/captchas/friendly-captcha-shared';
 
 type FriendlyChallengeModule = typeof import('friendly-challenge');
 
@@ -55,12 +56,12 @@ export const friendlyCaptchaV1Module = defineCaptchaModule<
     },
     challenge: async({ widget, placeholder, services, stageCtx }) => {
         // FriendlyCaptcha is started programmatically on submit when needed.
-        if (services.tokens.has()) {
+        if (hasFriendlyCaptchaSolution(services)) {
             return;
         }
 
         await widget.start();
-        const hasToken = await services.tokens.wait();
+        const hasToken = await waitForFriendlyCaptchaSolution(services);
 
         if (!hasToken) {
             const message = services.errors.getDefaultMessage();

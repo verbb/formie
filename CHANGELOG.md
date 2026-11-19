@@ -12,6 +12,7 @@
 - A form’s **Usage** tab and **Usage Count** column now load the elements that select the form, and their owners, in batches. Forms selected in Matrix entries or Content Blocks need around 40–60% fewer database queries. ([#3150](https://github.com/verbb/formie/issues/3150))
 
 ### Fixed
+- Fixed forms using Friendly Captcha submitting before the challenge was solved, so the submission failed verification and was treated as spam. The form now starts the challenge on submit and waits for its solution. ([#3151](https://github.com/verbb/formie/issues/3151))
 - Fixed Dropdown option labels not being translatable per site in the form builder. Changing an option label while editing another site changed it on every site instead. ([#3145](https://github.com/verbb/formie/issues/3145))
 - Fixed a form’s **Usage** tab and **Usage Count** column leaving out the element that owns a nested element of another type, such as the entry that owns a Content Block selecting the form. ([#3149](https://github.com/verbb/formie/issues/3149))
 - Fixed Address fields using Google Places keeping the previous street in **Address 1** when a suggestion without a street, such as a postcode, was picked after a full address.
