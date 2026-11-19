@@ -68,6 +68,11 @@ final class ReferenceResolver
                 $value = (new Html2Text((string)$value, ['width' => 0]))->getText();
             }
 
+            // Only HTML content writes links, so everything else, such as integrations and subjects, gets the label.
+            if ($context->outputContext !== ReferenceOutputContext::Html) {
+                $value = ReferenceLink::toText($value);
+            }
+
             return new ResolvedReference($expression, $value, $result->definition, field: $result->field, fieldProjection: $projection);
         } catch (ReferenceException $e) {
             return new ResolvedReference($expression, diagnostic: $e->diagnostic);
@@ -151,6 +156,11 @@ final class ReferenceResolver
                 $blocks[] = (string)$value;
 
                 return $placeholder . array_key_last($blocks) . "\0";
+            }
+
+            // A link is built from escaped parts, so it only needs a text position, such as outside a tag's attributes.
+            if (ReferenceLink::contains($value)) {
+                return $this->_isTextPosition($template, $offset) ? ReferenceLink::toHtml($value) : $this->_encode(ReferenceLink::toText($value), $outputContext);
             }
 
             return $this->_encode($value, $outputContext);

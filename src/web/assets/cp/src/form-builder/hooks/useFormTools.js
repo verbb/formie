@@ -644,6 +644,8 @@ const applyVariableSourceMetadata = (option, source) => {
         shape,
         types,
         ...(source.allowTransforms === false ? { allowTransforms: false } : {}),
+        // Values that only make sense in some editors, such as links in rich text, list where they fit.
+        ...(Array.isArray(source?.meta?.usages) ? { usages: source.meta.usages } : {}),
     };
 };
 

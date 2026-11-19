@@ -48,6 +48,38 @@ describe('field reference options', () => {
     });
 });
 
+describe('element field link options', () => {
+    it('only offer links where the field type says they fit', () => {
+        const values = {
+            pages: [{
+                rows: [{
+                    fields: [{
+                        _id: 'entries-field',
+                        type: 'EntriesField',
+                        reference: 'entries-reference',
+                        handle: 'association',
+                        label: 'Association',
+                    }],
+                }],
+            }],
+        };
+        const getFieldTypeByType = () => ({
+            referenceValues: [
+                { kind: 'primary', label: 'Formatted', types: ['text'] },
+                { kind: 'selector', selector: 'title', label: 'Title', types: ['text'], meta: [] },
+                { kind: 'selector', selector: 'link', label: 'Link', types: ['text'], allowTransforms: false, meta: { usages: ['richText'] } },
+            ],
+        });
+
+        const options = getFieldReferenceOptions(values, { getFieldTypeByType, target: 'variablePicker' });
+        const link = options.find((option) => { return option.value === '{field:entries-reference:link}'; });
+        const title = options.find((option) => { return option.value === '{field:entries-reference:title}'; });
+
+        expect(link).toMatchObject({ label: 'Association: Link', usages: ['richText'], allowTransforms: false });
+        expect(title).not.toHaveProperty('usages');
+    });
+});
+
 describe('integration actions', () => {
     it('refreshes metadata and sends test payloads through distinct endpoints', async() => {
         const calls = [];

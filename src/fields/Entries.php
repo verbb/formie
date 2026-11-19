@@ -6,6 +6,7 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
+use craft\base\ElementInterface;
 use craft\elements\Entry;
 use craft\gql\arguments\elements\Entry as EntryArguments;
 use craft\gql\interfaces\elements\Entry as EntryInterface;
@@ -136,6 +137,19 @@ class Entries extends ElementField
         }
 
         return array_merge($options, ...$extraOptions);
+    }
+
+    protected function defineElementAttributes(): array
+    {
+        return [
+            ...parent::defineElementAttributes(),
+            'slug' => ['label' => Craft::t('app', 'Slug'), 'value' => static fn(ElementInterface $entry): ?string => $entry->slug],
+            'section' => ['label' => Craft::t('app', 'Section'), 'value' => static fn(Entry $entry): ?string => $entry->getSection()?->name],
+            'entryType' => ['label' => Craft::t('app', 'Entry Type'), 'value' => static fn(Entry $entry): string => $entry->getType()->name],
+            'postDate' => ['label' => Craft::t('app', 'Post Date'), 'value' => static fn(Entry $entry): ?string => $entry->postDate ? Craft::$app->getFormatter()->asDate($entry->postDate, 'short') : null],
+            'status' => ['label' => Craft::t('app', 'Status'), 'value' => static fn(Entry $entry): ?string => Entry::statuses()[$entry->getStatus()] ?? $entry->getStatus()],
+            'author' => ['label' => Craft::t('app', 'Author'), 'value' => static fn(Entry $entry): ?string => $entry->getAuthor()?->getName()],
+        ];
     }
 
     public function getSourceOptions(): array

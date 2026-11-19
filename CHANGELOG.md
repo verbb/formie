@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+- Added **Link** and **Control Panel Link** to the notification content variable picker for Entries, Categories, Tags, Users, Products, Variants and File Upload fields. They’re written as the picked element’s label linked to its page. ([#3142](https://github.com/verbb/formie/issues/3142))
+- Added element details to the variable picker for element fields: **ID** for all of them, **Slug**, **Section**, **Entry Type**, **Post Date**, **Status** and **Author** for Entries, **Slug** and **Group** for Categories, **Group** for Tags, and **Name** and **Username** for Users. See [Element Field Tokens](https://verbb.io/craft-plugins/formie/docs/v4/developers/reference-tokens#element-field-tokens).
+
 ### Changed
 - Client-rendered forms built with `@verbb/formie-vue`, `@verbb/formie-react` or the Formie web components now mark required fields with `data-formie-field-required` on the field and `aria-required` on its control, so themes can style them and screen readers announce them. ([#3139](https://github.com/verbb/formie/issues/3139))
 - Client-rendered forms built with `@verbb/formie-vue`, `@verbb/formie-react` or the Formie web components now link each field’s label to its control, so clicking the label focuses it, and describe the control with the field’s instructions. Radio, Checkboxes and Agree fields are grouped and named by the field label, as in server-rendered forms. ([#3140](https://github.com/verbb/formie/issues/3140))

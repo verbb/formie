@@ -326,6 +326,14 @@ class Tags extends ElementField
         return [];
     }
 
+    protected function defineElementAttributes(): array
+    {
+        return [
+            ...parent::defineElementAttributes(),
+            'group' => ['label' => Craft::t('app', 'Group'), 'value' => static fn(Tag $tag): string => $tag->getGroup()->name],
+        ];
+    }
+
     public function getSourceOptions(): array
     {
         $options = parent::getSourceOptions();

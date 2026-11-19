@@ -22,6 +22,7 @@ use verbb\formie\models\SlotTag;
 use verbb\formie\options\ElementOptionSourceHelper;
 use verbb\formie\options\OptionResolvableInterface;
 use verbb\formie\positions\Hidden as HiddenPosition;
+use verbb\formie\references\ReferenceLink;
 use verbb\formie\references\ReferenceType;
 use verbb\formie\theme\context\RenderContext;
 
@@ -878,6 +879,16 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
             return $this->getSafeElementUrl($element, true);
         }
 
+        if ($property === 'link' || $property === 'cpLink') {
+            return new ReferenceLink($this->getElementLabel($element), $this->getSafeElementUrl($element, $property === 'cpLink'));
+        }
+
+        $attributes = $this->defineElementAttributes();
+
+        if (isset($attributes[$property])) {
+            return ($attributes[$property]['value'])($element);
+        }
+
         // Prefer ArrayAccess so custom fields and attributes resolve the Craft way.
         if ($element instanceof ArrayAccess) {
             try {
@@ -1346,11 +1357,45 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
 
     protected function defineReferenceValues(): array
     {
+        $attributes = [];
+
+        foreach ($this->defineElementAttributes() as $key => $attribute) {
+            $attributes[] = FieldReferenceValue::selector($key, $attribute['label'], $attribute['types'] ?? [ReferenceType::Text], supportsFieldSelect: false, supportsBrowser: false);
+        }
+
         return [
             FieldReferenceValue::primary(Craft::t('formie', 'Formatted')),
             FieldReferenceValue::selector('title', Craft::t('formie', 'Title'), supportsFieldSelect: false),
             FieldReferenceValue::selector('url', Craft::t('formie', 'Public URL'), [ReferenceType::Text, ReferenceType::Url], supportsFieldSelect: false),
             FieldReferenceValue::selector('cpUrl', Craft::t('formie', 'Control Panel URL'), [ReferenceType::Text, ReferenceType::Url], supportsFieldSelect: false),
+            ...$this->elementLinkReferenceValues(),
+            ...$attributes,
+        ];
+    }
+
+    /**
+     * Element attributes offered as references, such as `{field:ref:id}`. Only these are readable, never any property.
+     *
+     * @return array<string, array{label: string, value: callable(ElementInterface): mixed, types?: ReferenceType[]}>
+     */
+    protected function defineElementAttributes(): array
+    {
+        return [
+            'id' => ['label' => Craft::t('app', 'ID'), 'value' => static fn(ElementInterface $element): ?int => $element->id, 'types' => [ReferenceType::Number, ReferenceType::Text]],
+        ];
+    }
+
+    /**
+     * Links to the selected elements, written as links in HTML content and as labels anywhere else.
+     * The picker only offers them in rich text, since anywhere else they'd match Formatted.
+     *
+     * @return FieldReferenceValue[]
+     */
+    protected function elementLinkReferenceValues(): array
+    {
+        return [
+            FieldReferenceValue::selector('link', Craft::t('formie', 'Link'), supportsFieldSelect: false, supportsBrowser: false, allowTransforms: false, meta: ['usages' => ['richText']]),
+            FieldReferenceValue::selector('cpLink', Craft::t('formie', 'Control Panel Link'), supportsFieldSelect: false, supportsBrowser: false, allowTransforms: false, meta: ['usages' => ['richText']]),
         ];
     }
 

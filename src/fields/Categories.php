@@ -6,6 +6,7 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
+use craft\base\ElementInterface;
 use craft\elements\Category;
 use craft\elements\db\ElementQueryInterface;
 use craft\gql\arguments\elements\Category as CategoryArguments;
@@ -214,6 +215,15 @@ class Categories extends ElementField
         }
 
         return $query;
+    }
+
+    protected function defineElementAttributes(): array
+    {
+        return [
+            ...parent::defineElementAttributes(),
+            'slug' => ['label' => Craft::t('app', 'Slug'), 'value' => static fn(ElementInterface $category): ?string => $category->slug],
+            'group' => ['label' => Craft::t('app', 'Group'), 'value' => static fn(Category $category): string => $category->getGroup()->name],
+        ];
     }
 
     public function getSourceOptions(): array

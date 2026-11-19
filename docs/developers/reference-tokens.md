@@ -177,6 +177,32 @@ Some fields expose multiple selectors, such as Name, Address, Date/Time and Tabl
 Do not type `{field:myFieldHandle}`. Handles are for templates and `refField()` — stored tokens must use the field reference.
 :::
 
+### Element Field Tokens
+
+Entries, Categories, Tags, Users, Products and Variants fields offer these selectors for the elements a user picks. When several elements are picked, their values are separated with commas. Add `index`, such as `{field:reference:link;index=0}`, to use one element.
+
+| Selector | Value |
+| --- | --- |
+| `title` | The element’s title. |
+| `url` | The element’s public URL. |
+| `cpUrl` | The element’s control panel URL. |
+| `link` | The element’s label linked to its public URL. |
+| `cpLink` | The element’s label linked to its control panel URL. |
+| `id` | The element’s ID. |
+
+The variable picker offers `link` and `cpLink` in notification content, where they’re written as links. Typed anywhere else, such as a subject, they give the label. An element without a URL, such as a user, gives the label without a link. File Upload fields offer `link` and `cpLink` too.
+
+Some element types offer more:
+
+| Field | Selectors |
+| --- | --- |
+| Entries | `slug`, `section`, `entryType`, `postDate`, `status` and `author` (the author’s name) |
+| Categories | `slug` and `group` |
+| Tags | `group` |
+| Users | `name` and `username` |
+
+Other properties of the picked elements, such as a user’s email address, aren’t available as tokens. Use a [custom email template](/guides/email-notifications/building-an-email-notification-template-from-scratch) or a [custom variable](#custom-variables) for those.
+
 ## Custom Variables
 
 Register project-specific variables with namespaced `{custom:vendor/name}` tokens. See [Custom variable sources](/developers/custom-variable-sources).

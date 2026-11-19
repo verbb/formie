@@ -1249,6 +1249,7 @@ class FileUpload extends ElementField
         return [
             FieldReferenceValue::primary(types: [ReferenceType::Text, ReferenceType::Url, ReferenceType::Boolean, ReferenceType::List]),
             FieldReferenceValue::selector('url', Craft::t('formie', 'URL'), [ReferenceType::Text, ReferenceType::Url]),
+            ...$this->elementLinkReferenceValues(),
             FieldReferenceValue::selector('filename', Craft::t('formie', 'Filename')),
             FieldReferenceValue::selector('extension', Craft::t('formie', 'Extension')),
             FieldReferenceValue::selector('size', Craft::t('formie', 'Size'), [ReferenceType::Number, ReferenceType::Text]),

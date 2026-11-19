@@ -116,6 +116,16 @@ class Users extends ElementField
         return $query;
     }
 
+    protected function defineElementAttributes(): array
+    {
+        // Only names, since a user's other details are personal.
+        return [
+            ...parent::defineElementAttributes(),
+            'name' => ['label' => Craft::t('app', 'Name'), 'value' => static fn(User $user): string => $user->getName()],
+            'username' => ['label' => Craft::t('app', 'Username'), 'value' => static fn(User $user): ?string => $user->username],
+        ];
+    }
+
     public function defineLabelSourceOptions(): array
     {
         $options = [
