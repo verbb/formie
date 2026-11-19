@@ -5,6 +5,7 @@ declare(strict_types=1);
 use craft\elements\ContentBlock as ContentBlockElement;
 use craft\elements\Entry;
 use craft\elements\User;
+use craft\elements\db\ElementQuery;
 use craft\fieldlayoutelements\CustomField;
 use craft\fieldlayoutelements\entries\EntryTitleField;
 use craft\fields\ContentBlock;
@@ -17,6 +18,7 @@ use craft\models\Section;
 use craft\models\Section_SiteSettings;
 use verbb\formie\fields\Forms as FormsField;
 use verbb\formie\Formie;
+use yii\base\Event;
 
 beforeEach(function(): void {
     $this->formUsageNestedFixtures = [];
@@ -146,4 +148,50 @@ it('keeps listing the owner entry of a Matrix entry that selects the form', func
         [Entry::class, (int)$entry->id, $fixture['matrix']->handle, 0],
         [Entry::class, (int)$nested->id, $fixture['formsField']->handle, 1],
     ]);
+});
+
+it('loads nested usage elements and their owners in batches', function(): void {
+    $fixture = formUsageNestedFixture();
+    $this->formUsageNestedFixtures[] = &$fixture;
+    $form = formie()->form()->singleLineTextField('name')->create();
+    $handles = $fixture;
+
+    $addPages = function(int $count) use (&$fixture, $form, $handles): void {
+        for ($i = 0; $i < $count; $i++) {
+            formUsageNestedPage($fixture, 'Matrix page ' . $i, [
+                $handles['matrix']->handle => [
+                    'new1' => ['type' => $handles['nestedType']->handle, 'fields' => [$handles['formsField']->handle => [$form->id]]],
+                ],
+            ]);
+        }
+    };
+
+    // Counts the element queries one uncached usage lookup runs.
+    $countQueries = function() use ($form): array {
+        Formie::$plugin->getForms()->invalidateFormCaches();
+        $queries = 0;
+        $handler = static function() use (&$queries): void {
+            $queries++;
+        };
+        Event::on(ElementQuery::class, ElementQuery::EVENT_BEFORE_PREPARE, $handler);
+
+        try {
+            $rows = formUsageNestedRows((int)$form->id);
+        } finally {
+            Event::off(ElementQuery::class, ElementQuery::EVENT_BEFORE_PREPARE, $handler);
+        }
+
+        return [count($rows), $queries];
+    };
+
+    $addPages(2);
+    [$fewRows, $fewQueries] = $countQueries();
+    $addPages(6);
+    [$manyRows, $manyQueries] = $countQueries();
+
+    // Each page adds two rows. Craft still loads each nested entry's owner while populating it,
+    // but Formie no longer loads every related element and owner on its own.
+    expect($fewRows)->toBe(4)
+        ->and($manyRows)->toBe(16)
+        ->and($manyQueries - $fewQueries)->toBeLessThanOrEqual(6 * 2);
 });

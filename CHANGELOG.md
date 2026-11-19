@@ -9,6 +9,7 @@
 ### Changed
 - Client-rendered forms built with `@verbb/formie-vue`, `@verbb/formie-react` or the Formie web components now mark required fields with `data-formie-field-required` on the field and `aria-required` on its control, so themes can style them and screen readers announce them. ([#3139](https://github.com/verbb/formie/issues/3139))
 - Client-rendered forms built with `@verbb/formie-vue`, `@verbb/formie-react` or the Formie web components now link each field’s label to its control, so clicking the label focuses it, and describe the control with the field’s instructions. Radio, Checkboxes and Agree fields are grouped and named by the field label, as in server-rendered forms. ([#3140](https://github.com/verbb/formie/issues/3140))
+- A form’s **Usage** tab and **Usage Count** column now load the elements that select the form, and their owners, in batches. Forms selected in Matrix entries or Content Blocks need around 40–60% fewer database queries. ([#3150](https://github.com/verbb/formie/issues/3150))
 
 ### Fixed
 - Fixed Dropdown option labels not being translatable per site in the form builder. Changing an option label while editing another site changed it on every site instead. ([#3145](https://github.com/verbb/formie/issues/3145))

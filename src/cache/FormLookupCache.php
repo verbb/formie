@@ -13,6 +13,7 @@ class FormLookupCache
     public array $formsByHandle = [];
     public array $formsByUid = [];
     public array $elementsByIdAndSite = [];
+    public array $elementTypesById = [];
     public array $fieldsById = [];
 
 
@@ -28,6 +29,7 @@ class FormLookupCache
         $this->formsByHandle = [];
         $this->formsByUid = [];
         $this->elementsByIdAndSite = [];
+        $this->elementTypesById = [];
         $this->fieldsById = [];
     }
 }

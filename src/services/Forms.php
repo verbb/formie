@@ -31,6 +31,7 @@ use craft\base\FieldInterface;
 use craft\base\NestedElementInterface;
 use craft\db\Query;
 use craft\elements\User as UserElement;
+use craft\elements\db\ElementQueryInterface;
 use craft\errors\GqlException;
 use craft\helpers\Cp;
 use craft\helpers\Json;
@@ -537,28 +538,25 @@ class Forms extends Component
             $query->andWhere(['elements.revisionId' => null]);
         }
 
-        foreach ($query->all() as $info) {
+        $relations = $query->all();
+        $elementSiteIds = $this->_getElementSiteIdsByElementId(array_map(fn($info) => (int)$info['id'], array_filter($relations, fn($info) => $info['siteId'] === null)));
+        $this->_preloadFormUsageElements($relations, $elementSiteIds);
+
+        foreach ($relations as $info) {
             $elementId = (int)$info['id'];
             $elementType = $info['type'];
             $relationSiteId = $info['siteId'] !== null ? (int)$info['siteId'] : null;
             $fieldId = (int)$info['fieldId'];
 
-            if (isset($this->_getFormLookupCache()->fieldsById[$fieldId])) {
+            if (array_key_exists($fieldId, $this->_getFormLookupCache()->fieldsById)) {
                 $field = $this->_getFormLookupCache()->fieldsById[$fieldId];
             } else {
                 $field = Craft::$app->getFields()->getFieldById($fieldId);
                 $this->_getFormLookupCache()->fieldsById[$fieldId] = $field;
             }
 
-            foreach ($this->_resolveFormUsageSiteIds($elementId, $relationSiteId, $elementType) as $siteId) {
-                $cacheKey = $elementId . '_' . $siteId;
-
-                if (isset($this->_getFormLookupCache()->elementsByIdAndSite[$cacheKey])) {
-                    $element = $this->_getFormLookupCache()->elementsByIdAndSite[$cacheKey];
-                } else {
-                    $element = $this->_getFormUsageElement($elementId, $elementType, $siteId);
-                    $this->_getFormLookupCache()->elementsByIdAndSite[$cacheKey] = $element;
-                }
+            foreach ($this->_resolveFormUsageSiteIds($elementId, $relationSiteId, $elementType, $elementSiteIds) as $siteId) {
+                $element = $this->_getFormUsageElement($elementId, $elementType, $siteId);
 
                 if (!$element) {
                     continue;
@@ -646,46 +644,176 @@ class Forms extends Component
     // Private Methods
     // =========================================================================
 
-    private function _resolveFormUsageSiteIds(int $elementId, ?int $relationSiteId, string $elementType): array
+    private function _resolveFormUsageSiteIds(int $elementId, ?int $relationSiteId, string $elementType, array $elementSiteIds): array
     {
         if ($relationSiteId && $this->_getFormUsageElement($elementId, $elementType, $relationSiteId)) {
             return [$relationSiteId];
         }
 
-        return $this->_getElementSiteIds($elementId);
+        return $elementSiteIds[$elementId] ?? $this->_getElementSiteIdsByElementId([$elementId])[$elementId] ?? [];
     }
 
-    private function _getElementSiteIds(int $elementId): array
+    private function _getElementSiteIdsByElementId(array $elementIds): array
     {
-        $siteIds = (new Query())
-            ->select(['siteId'])
-            ->from([Table::ELEMENTS_SITES])
-            ->where(['elementId' => $elementId])
-            ->column();
+        if (!$elementIds) {
+            return [];
+        }
 
-        return array_map('intval', $siteIds);
+        $siteIds = [];
+
+        $rows = (new Query())
+            ->select(['elementId', 'siteId'])
+            ->from([Table::ELEMENTS_SITES])
+            ->where(['elementId' => array_values(array_unique($elementIds))])
+            ->orderBy(['elementId' => SORT_ASC, 'siteId' => SORT_ASC])
+            ->all();
+
+        foreach ($rows as $row) {
+            $siteIds[(int)$row['elementId']][] = (int)$row['siteId'];
+        }
+
+        return $siteIds;
+    }
+
+    /**
+     * Loads the related elements, then their owners level by level, with one query for each element type and site.
+     */
+    private function _preloadFormUsageElements(array $relations, array $elementSiteIds): void
+    {
+        $idsByTypeAndSite = [];
+
+        foreach ($relations as $info) {
+            $elementId = (int)$info['id'];
+            $siteIds = $info['siteId'] !== null ? [(int)$info['siteId']] : ($elementSiteIds[$elementId] ?? []);
+
+            foreach ($siteIds as $siteId) {
+                $idsByTypeAndSite[$info['type']][$siteId][$elementId] = $elementId;
+            }
+        }
+
+        $elements = $this->_loadFormUsageElements($idsByTypeAndSite);
+
+        try {
+            $this->_preloadFormUsageOwners($elements);
+        } catch (Throwable) {
+            // Owners that fail to load in bulk are loaded one at a time, which skips any that fail again.
+        }
+    }
+
+    private function _preloadFormUsageOwners(array $elements): void
+    {
+        while ($elements) {
+            $ownerIdsBySite = [];
+
+            foreach ($elements as $element) {
+                if ($element instanceof NestedElementInterface && $element->ownerId) {
+                    $ownerIdsBySite[$element->siteId][$element->ownerId] = (int)$element->ownerId;
+                }
+            }
+
+            $this->_cacheElementTypesForFormUsage(array_merge(...array_values(array_map('array_values', $ownerIdsBySite))));
+            $idsByTypeAndSite = [];
+
+            foreach ($ownerIdsBySite as $siteId => $ownerIds) {
+                foreach ($ownerIds as $ownerId) {
+                    if ($ownerType = $this->_getFormLookupCache()->elementTypesById[$ownerId] ?? null) {
+                        $idsByTypeAndSite[$ownerType][$siteId][$ownerId] = $ownerId;
+                    }
+                }
+            }
+
+            $elements = $this->_loadFormUsageElements($idsByTypeAndSite);
+        }
+    }
+
+    /**
+     * Loads and caches the given elements that aren't cached yet, returning the ones found.
+     */
+    private function _loadFormUsageElements(array $idsByTypeAndSite): array
+    {
+        $cache = $this->_getFormLookupCache();
+        $loaded = [];
+
+        foreach ($idsByTypeAndSite as $elementType => $idsBySite) {
+            if (!class_exists($elementType)) {
+                continue;
+            }
+
+            foreach ($idsBySite as $siteId => $elementIds) {
+                $elementIds = array_values(array_filter($elementIds, fn($elementId) => !array_key_exists($elementId . '_' . $siteId, $cache->elementsByIdAndSite)));
+
+                if (!$elementIds) {
+                    continue;
+                }
+
+                $elements = $this->_getFormUsageElementQuery($elementType, $siteId)
+                    ->id($elementIds)
+                    ->indexBy('id')
+                    ->all();
+
+                foreach ($elementIds as $elementId) {
+                    $cache->elementsByIdAndSite[$elementId . '_' . $siteId] = $elements[$elementId] ?? null;
+                }
+
+                array_push($loaded, ...array_values($elements));
+            }
+        }
+
+        return $loaded;
     }
 
     private function _getFormUsageElement(int $elementId, string $elementType, int $siteId): ?ElementInterface
     {
-        $elementsService = Craft::$app->getElements();
-        $element = $elementsService->getElementById($elementId, $elementType, $siteId);
+        $cache = $this->_getFormLookupCache();
+        $cacheKey = $elementId . '_' . $siteId;
 
-        if ($element) {
-            return $element;
+        // Missing elements are cached as null, so they aren't queried again.
+        if (array_key_exists($cacheKey, $cache->elementsByIdAndSite)) {
+            return $cache->elementsByIdAndSite[$cacheKey];
         }
 
-        /** @var ElementInterface|null $element */
-        $element = $elementsService->createElementQuery($elementType)
-            ->id($elementId)
+        $element = class_exists($elementType) ? $this->_getFormUsageElementQuery($elementType, $siteId)->id($elementId)->one() : null;
+
+        return $cache->elementsByIdAndSite[$cacheKey] = $element;
+    }
+
+    private function _getFormUsageElementQuery(string $elementType, int $siteId): ElementQueryInterface
+    {
+        // Match Elements::getElementById(), which ignores status and includes drafts and revisions.
+        return Craft::$app->getElements()->createElementQuery($elementType)
             ->siteId($siteId)
             ->status(null)
             ->drafts(null)
             ->provisionalDrafts(null)
-            ->revisions(null)
-            ->one();
+            ->revisions(null);
+    }
 
-        return $element;
+    private function _getElementTypeForFormUsage(int $elementId): ?string
+    {
+        $this->_cacheElementTypesForFormUsage([$elementId]);
+
+        return $this->_getFormLookupCache()->elementTypesById[$elementId];
+    }
+
+    private function _cacheElementTypesForFormUsage(array $elementIds): void
+    {
+        $cache = $this->_getFormLookupCache();
+        $elementIds = array_values(array_unique(array_filter($elementIds, fn($elementId) => !array_key_exists($elementId, $cache->elementTypesById))));
+
+        if (!$elementIds) {
+            return;
+        }
+
+        $types = (new Query())
+            ->select(['type'])
+            ->from([Table::ELEMENTS])
+            ->where(['id' => $elementIds])
+            ->indexBy('id')
+            ->column();
+
+        foreach ($elementIds as $elementId) {
+            $cache->elementTypesById[$elementId] = $types[$elementId] ?? null;
+        }
     }
 
     private function _populateFormFromPost(Form $form, bool $applyDefaultStencil = true, bool $allowNotificationChanges = false, ?array $oldIntegrationPolicySettings = null): Form
@@ -1199,23 +1327,15 @@ class Forms extends Component
 
             if ($element instanceof NestedElementInterface && $element->ownerId) {
                 try {
-                    // Retrieve (or cache) the owner element using per-site cache key.
+                    // Owners can be a different element type, such as the entry that owns a Content Block.
                     $ownerId = $element->ownerId;
-                    $ownerCacheKey = $ownerId . '_' . $element->siteId;
-
-                    if (isset($this->_getFormLookupCache()->elementsByIdAndSite[$ownerCacheKey])) {
-                        $ownerElement = $this->_getFormLookupCache()->elementsByIdAndSite[$ownerCacheKey];
-                    } else {
-                        // Owners can be a different element type, such as the entry that owns a Content Block.
-                        $ownerType = Craft::$app->getElements()->getElementTypeById($ownerId);
-                        $ownerElement = $ownerType ? $this->_getFormUsageElement($ownerId, $ownerType, $element->siteId) : null;
-                        $this->_getFormLookupCache()->elementsByIdAndSite[$ownerCacheKey] = $ownerElement;
-                    }
+                    $ownerType = $this->_getElementTypeForFormUsage($ownerId);
+                    $ownerElement = $ownerType ? $this->_getFormUsageElement($ownerId, $ownerType, $element->siteId) : null;
 
                     // Retrieve (or cache) the owner field using its id.
                     $fieldId = $element->fieldId;
 
-                    if (isset($this->_getFormLookupCache()->fieldsById[$fieldId])) {
+                    if (array_key_exists($fieldId, $this->_getFormLookupCache()->fieldsById)) {
                         $ownerField = $this->_getFormLookupCache()->fieldsById[$fieldId];
                     } else {
                         $ownerField = Craft::$app->getFields()->getFieldById($fieldId);
