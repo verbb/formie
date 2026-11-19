@@ -1,9 +1,18 @@
+import type { AddressHostServices } from '#modules/address/host';
 type GoogleAddressProviderOptions = {
     apiKey?: string;
     geocodeEndpoint?: string;
     options?: Record<string, unknown>;
     countryDefaultValue?: string;
 };
+export declare function setFieldValues(services: AddressHostServices, data: {
+    address1?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+    country?: string;
+    formattedAddress?: string;
+}): void;
 type GooglePostalAddress = {
     addressLines?: unknown[];
 };

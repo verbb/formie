@@ -105,6 +105,49 @@ export function isCalculationField(field: ClientFieldDefinition): boolean {
     return field.type === 'calculations';
 }
 
+export type PhoneFieldValue = {
+    number: string;
+    country: string | null;
+};
+
+/**
+ * The browser module dispatches this from a Phone field's country input when the visitor picks a country,
+ * so client-rendered adapters can store it with the number.
+ */
+export const PHONE_COUNTRY_CHANGE_EVENT = 'formie:field:phone-country:change';
+
+// A Phone answer is a number and a country, whether or not the field shows a country picker.
+export function phoneFieldValue(value: unknown): PhoneFieldValue {
+    if (typeof value === 'string' || typeof value === 'number') {
+        return { number: String(value), country: null };
+    }
+
+    const parts = value && typeof value === 'object' ? value as Record<string, unknown> : {};
+    const country = typeof parts.country === 'string' && parts.country !== '' ? parts.country : null;
+
+    return { number: typeof parts.number === 'string' ? parts.number : '', country };
+}
+
+// The country picker is the `formie:phone-country` browser module, which attaches to the inputs the adapter renders.
+export function isPhoneCountryEnabled(field: ClientFieldDefinition): boolean {
+    return field.type === 'phone' && field.input.countryEnabled === true;
+}
+
+/**
+ * Reads a Phone answer from the number and country inputs inside `container`. Picking a country fires `input` on
+ * the number straight after the country change, before the framework re-renders, so a value from the last render
+ * would put the previous country back.
+ */
+export function readPhoneFieldControls(container: Element | null | undefined, fallback: PhoneFieldValue): PhoneFieldValue {
+    const number = container?.querySelector('input[data-formie-phone-input]');
+    const country = container?.querySelector('input[data-formie-phone-country-input]');
+
+    return {
+        number: number instanceof HTMLInputElement ? number.value : fallback.number,
+        country: country instanceof HTMLInputElement ? country.value || null : fallback.country,
+    };
+}
+
 export type ClientFieldOption = {
     label: string;
     value: string;

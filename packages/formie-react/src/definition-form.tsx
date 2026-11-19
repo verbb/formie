@@ -21,6 +21,10 @@ import {
     isArrayValuedField,
     isCalculationField,
     isFieldLabelVisuallyHidden,
+    isPhoneCountryEnabled,
+    PHONE_COUNTRY_CHANGE_EVENT,
+    phoneFieldValue,
+    readPhoneFieldControls,
     resolveClientRendererType,
     tableColumns,
     VISUALLY_HIDDEN_STYLE,
@@ -43,13 +47,16 @@ import {
     type ClientSubmitResult,
 } from '@verbb/formie-core';
 import {
+    cloneElement,
     createContext,
     createElement,
+    isValidElement,
     useContext,
     useEffect,
     useMemo,
     useRef,
     useState,
+    type ReactElement,
     type ReactNode,
 } from 'react';
 import { stableSerialize } from './stable.js';
@@ -588,6 +595,57 @@ function renderTableCell(column: ReturnType<typeof tableColumns>[number], value:
     });
 }
 
+// Phone answers keep the number and country together. With a country picker, the `formie:phone-country` browser
+// module attaches to the marked inputs and reports the country the visitor picks.
+function PhoneFieldInput({
+    field,
+    value,
+    labelling,
+    disabled,
+    setValue,
+}: Pick<FormieFieldComponentProps, 'field' | 'value' | 'disabled' | 'setValue'> & { labelling: ControlLabelling }) {
+    const container = useRef<HTMLDivElement | null>(null);
+    const latest = useRef({ value, setValue });
+    const countryEnabled = isPhoneCountryEnabled(field);
+    const current = phoneFieldValue(value);
+
+    useEffect(() => {
+        latest.current = { value, setValue };
+    }, [value, setValue]);
+
+    useEffect(() => {
+        const element = container.current;
+
+        if (!element) {
+            return undefined;
+        }
+
+        const onCountryChange = () => {
+            latest.current.setValue(readPhoneFieldControls(element, phoneFieldValue(latest.current.value)));
+        };
+
+        element.addEventListener(PHONE_COUNTRY_CHANGE_EVENT, onCountryChange);
+
+        return () => {
+            element.removeEventListener(PHONE_COUNTRY_CHANGE_EVENT, onCountryChange);
+        };
+    }, [countryEnabled]);
+
+    const input = renderNestedFieldInput(field, current.number, disabled, (number) => {
+        setValue({ ...readPhoneFieldControls(container.current, current), number: String(number ?? '') });
+    }, labelling, 'phone');
+
+    if (!countryEnabled || !isValidElement(input)) {
+        return input;
+    }
+
+    // The picker wraps the number input, so it gets a container of its own that React never adds children to.
+    return createElement('div', { ref: container, className: 'formie-react-phone' },
+        cloneElement(input as ReactElement<Record<string, unknown>>, { 'data-formie-phone-input': 'true' }),
+        createElement('input', { type: 'hidden', value: current.country ?? '', readOnly: true, 'data-formie-phone-country-input': 'true' }),
+    );
+}
+
 function TableFieldInput({
     field,
     value,
@@ -999,6 +1057,16 @@ function defaultFieldRenderer(props: FormieFieldComponentProps, labelledByWrappe
             field,
             value,
             errorKey,
+            labelling,
+            disabled,
+            setValue,
+        });
+    }
+
+    if (rendererType === 'phone') {
+        return createElement(PhoneFieldInput, {
+            field,
+            value,
             labelling,
             disabled,
             setValue,

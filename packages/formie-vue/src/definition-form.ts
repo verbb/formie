@@ -21,6 +21,10 @@ import {
     isArrayValuedField,
     isCalculationField,
     isFieldLabelVisuallyHidden,
+    isPhoneCountryEnabled,
+    PHONE_COUNTRY_CHANGE_EVENT,
+    phoneFieldValue,
+    readPhoneFieldControls,
     resolveClientRendererType,
     tableColumns,
     VISUALLY_HIDDEN_STYLE,
@@ -44,6 +48,7 @@ import {
     type ClientSubmitResult,
 } from '@verbb/formie-core';
 import {
+    cloneVNode,
     computed,
     defineComponent,
     h,
@@ -1235,6 +1240,45 @@ function renderNestedFieldInput(field: ClientFieldDefinition, value: unknown, di
     });
 }
 
+// Phone answers keep the number and country together. With a country picker, the `formie:phone-country` browser
+// module attaches to the marked inputs and reports the country the visitor picks.
+const PhoneFieldInput = defineComponent({
+    name: 'FormieVuePhoneFieldInput',
+    props: fieldComponentProps,
+    setup(props) {
+        const context = useDefinitionContext();
+        const container = ref<HTMLElement | null>(null);
+        const onCountryChange = () => {
+            props.setValue(readPhoneFieldControls(container.value, phoneFieldValue(props.value)));
+        };
+
+        onMounted(() => {
+            container.value?.addEventListener(PHONE_COUNTRY_CHANGE_EVENT, onCountryChange);
+        });
+        onBeforeUnmount(() => {
+            container.value?.removeEventListener(PHONE_COUNTRY_CHANGE_EVENT, onCountryChange);
+        });
+
+        return () => {
+            const labelling = controlLabelling(props, isDefaultFieldWrapper(context));
+            const current = phoneFieldValue(props.value);
+            const input = renderNestedFieldInput(props.field, current.number, props.disabled, (number) => {
+                props.setValue({ ...readPhoneFieldControls(container.value, current), number: String(number ?? '') });
+            }, labelling, 'phone');
+
+            if (!isPhoneCountryEnabled(props.field)) {
+                return input;
+            }
+
+            // The picker wraps the number input, so it gets a container of its own that Vue never adds children to.
+            return h('div', { ref: container, class: 'formie-vue-phone' }, [
+                cloneVNode(input, { 'data-formie-phone-input': 'true' }),
+                h('input', { type: 'hidden', value: current.country ?? '', 'data-formie-phone-country-input': 'true' }),
+            ]);
+        };
+    },
+});
+
 const TableFieldInput = defineComponent({
     name: 'FormieVueTableFieldInput',
     props: fieldComponentProps,
@@ -1366,6 +1410,10 @@ const DefaultFieldInput = defineComponent({
 
             if (rendererType === 'table') {
                 return h(TableFieldInput, props);
+            }
+
+            if (rendererType === 'phone') {
+                return h(PhoneFieldInput, props);
             }
 
             if (rendererType === 'section') {

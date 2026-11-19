@@ -7,6 +7,8 @@ import {
     fieldOptions,
     isCompositeField,
     isMultiValueField,
+    isPhoneCountryEnabled,
+    phoneFieldValue,
     resolveClientRendererType,
     tableColumns,
 } from './schema';
@@ -240,5 +242,20 @@ describe('client calculations', () => {
         expect(deriveCalculationValues(scoped({ scope: 'all' })).values[2]).toBe(10);
         expect(deriveCalculationValues(scoped({ scope: 'rows', rows: '1,3' })).values[2]).toBe(7);
         expect(deriveCalculationValues(scoped({ scope: 'rows', rows: 'even' })).values[2]).toBe(3);
+    });
+});
+
+describe('phone values', () => {
+    it('keeps the number and country together, whatever shape the value arrives in', () => {
+        expect(phoneFieldValue({ number: '0412', country: 'AU' })).toEqual({ number: '0412', country: 'AU' });
+        expect(phoneFieldValue({ number: '0412', country: '' })).toEqual({ number: '0412', country: null });
+        expect(phoneFieldValue('0412')).toEqual({ number: '0412', country: null });
+        expect(phoneFieldValue(null)).toEqual({ number: '', country: null });
+    });
+
+    it('only shows the country picker on Phone fields that enable it', () => {
+        expect(isPhoneCountryEnabled(field('phone', { countryEnabled: true }))).toBe(true);
+        expect(isPhoneCountryEnabled(field('phone', { countryEnabled: false }))).toBe(false);
+        expect(isPhoneCountryEnabled(field('single-line-text', { countryEnabled: true }))).toBe(false);
     });
 });

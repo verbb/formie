@@ -12,6 +12,10 @@ import {
     isArrayValuedField,
     isCalculationField,
     isFieldLabelVisuallyHidden,
+    isPhoneCountryEnabled,
+    PHONE_COUNTRY_CHANGE_EVENT,
+    phoneFieldValue,
+    readPhoneFieldControls,
     tableColumns,
     VISUALLY_HIDDEN_CSS,
     type ClientTableColumn,
@@ -317,6 +321,7 @@ function renderNestedInput(
             autocomplete=${autocomplete(field)}
             class="starter-component-control"
             type=${inputType}
+            data-formie-phone-input=${isPhoneCountryEnabled(field) ? 'true' : nothing}
             .value=${typeof value === 'string' || typeof value === 'number' ? String(value) : ''}
             ?disabled=${disabled}
             ?readonly=${isCalculationField(field)}
@@ -325,6 +330,49 @@ function renderNestedInput(
                 setValue((e.target as HTMLInputElement).value);
             }}
         />
+    `;
+}
+
+// Lit can't bind an event name held in a constant, so each container gets one listener that calls its latest handler.
+const phoneCountryHandlers = new WeakMap<Element, (event: Event) => void>();
+
+function listenForPhoneCountry(handler: (event: Event) => void) {
+    return ref((element) => {
+        if (!element) {
+            return;
+        }
+
+        if (!phoneCountryHandlers.has(element)) {
+            element.addEventListener(PHONE_COUNTRY_CHANGE_EVENT, (event) => phoneCountryHandlers.get(element)?.(event));
+        }
+
+        phoneCountryHandlers.set(element, handler);
+    });
+}
+
+// Phone answers keep the number and country together. With a country picker, the `formie:phone-country` browser
+// module attaches to the marked inputs and reports the country the visitor picks.
+function renderPhone(field: ClientFieldDefinition, value: unknown, disabled: boolean, setValue: (v: unknown) => void, labelling: ControlLabelling): TemplateResult {
+    const current = phoneFieldValue(value);
+    const container = () => document.getElementById(labelling.ids.input)?.closest('.starter-component-phone');
+    const input = renderNestedInput(field, current.number, disabled, (number) => {
+        setValue({ ...readPhoneFieldControls(container(), current), number: String(number ?? '') });
+    }, labelling, 'phone');
+
+    if (!isPhoneCountryEnabled(field)) {
+        return input;
+    }
+
+    const onCountryChange = (event: Event) => {
+        setValue(readPhoneFieldControls(event.currentTarget as Element | null, current));
+    };
+
+    // The picker wraps the number input, so it gets a container of its own that Lit never adds children to.
+    return html`
+        <div class="starter-component-phone" ${listenForPhoneCountry(onCountryChange)}>
+            ${input}
+            <input type="hidden" data-formie-phone-country-input="true" .value=${current.country ?? ''} />
+        </div>
     `;
 }
 
@@ -420,6 +468,10 @@ function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps & { 
 
     if (rendererType === 'table') {
         return renderTable(ctx, field, value, disabled, setValue, labelling);
+    }
+
+    if (rendererType === 'phone') {
+        return renderPhone(field, value, disabled, setValue, labelling);
     }
 
     if (rendererType === 'section') {

@@ -1,3 +1,4 @@
+import { PHONE_COUNTRY_CHANGE_EVENT } from '@verbb/formie-core';
 import intlTelInput from 'intl-tel-input';
 import intlTelInputCss from 'intl-tel-input/styles?inline';
 
@@ -153,8 +154,17 @@ function initPhoneField(phoneInput: PhoneInput, countryInput: HTMLInputElement, 
     const syncCountry = () => {
         const countryData = validator.getSelectedCountryData();
         const isoCode = countryData?.iso2 || '';
+        const country = isoCode.toUpperCase();
+
+        if (countryInput.value === country) {
+            return;
+        }
+
         // Clearing the selection must also clear the submitted country.
-        countryInput.value = isoCode.toUpperCase();
+        countryInput.value = country;
+
+        // Client-rendered adapters keep the country in their own state rather than reading this input.
+        countryInput.dispatchEvent(new CustomEvent(PHONE_COUNTRY_CHANGE_EVENT, { bubbles: true, detail: { country } }));
     };
 
     phoneInput.addEventListener('countrychange', syncCountry);

@@ -99,3 +99,13 @@ foreach (['details' => 'hours', 'items' => 'qty'] as $parentHandle => $sourceHan
 if (!Craft::$app->getElements()->saveElement($nested)) {
     throw new RuntimeException('Cannot save adapter nested calculations fixture.');
 }
+
+// Phone fields with the country picker, at the top level and in Repeater rows, next to one without it.
+\verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Adapter phone', 'handle' => 'adapterPhone'])
+    ->settings(['disableCaptchas' => true, 'submitMethod' => 'ajax'])
+    ->phoneField('mobile', ['label' => 'Mobile', 'countryEnabled' => true, 'countryDefaultValue' => 'AU'])
+    ->phoneField('landline', ['label' => 'Landline', 'countryEnabled' => false])
+    ->repeaterField('contacts', ['label' => 'Contacts', 'minRows' => 1, 'rows' => [['fields' => [
+        ['type' => \verbb\formie\fields\Phone::class, 'handle' => 'contactPhone', 'label' => 'Contact phone', 'countryEnabled' => true, 'countryDefaultValue' => 'AU'],
+    ]]]])
+    ->create();

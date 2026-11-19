@@ -221,6 +221,48 @@ for (const adapter of ['react', 'vue', 'web-components']) {
         await expect(notice).toBeFocused();
         expect(errors).toEqual([]);
     });
+
+    test(`${adapter}: shows the Phone country picker and submits the chosen country`, async ({ page }) => {
+        // The fixture bundle loads the picker's CSS as text, so its flag image URL isn't rewritten as in the package builds.
+        await page.route('**/img/flags*.webp', route => route.fulfill({ status: 200, contentType: 'image/webp', body: '' }));
+        const { host, errors } = await openForm(page, adapter, 'adapterPhone');
+        const mobile = field(page, 'mobile');
+        const rowPhones = host.locator('[data-formie-field-handle="contactPhone"]');
+
+        await expect(mobile.locator('.iti__selected-country')).toBeVisible();
+        await expect(mobile.locator('[data-formie-phone-country-input]')).toHaveValue('AU');
+        await expect(rowPhones.first().locator('.iti__selected-country')).toBeVisible();
+        await expect(field(page, 'landline').locator('.iti')).toHaveCount(0);
+
+        // Rows added and removed after the form loads keep their own picker.
+        await field(page, 'contacts').getByRole('button', { name: 'Add another row' }).click();
+        await expect(rowPhones).toHaveCount(2);
+        await expect(rowPhones.nth(1).locator('.iti__selected-country')).toBeVisible();
+        await rowPhones.nth(1).locator('input[type="tel"]').fill('412345678');
+
+        await mobile.locator('.iti__selected-country').click();
+        await page.locator('.iti__country[data-country-code="nz"]').first().click();
+        await expect(mobile.locator('[data-formie-phone-country-input]')).toHaveValue('NZ');
+        await mobile.locator('input[type="tel"]').fill('211234567');
+        await field(page, 'landline').locator('input[type="tel"]').fill('0400111222');
+
+        const response = page.waitForResponse(response => response.request().method() === 'POST' && /client(%2F|\/)submissions(%2F|\/)submit/.test(response.url()));
+        const values = await submittedValues(page, () => host.locator('button[type="submit"]').click());
+        expect(values.mobile).toEqual({ number: '211234567', country: 'NZ' });
+        expect(values.landline).toMatchObject({ number: '0400111222' });
+        expect(values.contacts).toEqual([
+            { contactPhone: { number: '', country: 'AU' } },
+            { contactPhone: { number: '412345678', country: 'AU' } },
+        ]);
+        expect((await response).status()).toBe(200);
+
+        await field(page, 'contacts').getByRole('button', { name: /^Remove row 1/ }).click();
+        await expect(rowPhones).toHaveCount(1);
+        await expect(rowPhones.first().locator('input[type="tel"]')).toHaveValue('412345678');
+        await page.locator('#unmount').click();
+        await expect(host.locator('.iti')).toHaveCount(0);
+        expect(errors).toEqual([]);
+    });
 }
 
 test('react: renders custom field components as components', async ({ page }) => {

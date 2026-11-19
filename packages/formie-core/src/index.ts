@@ -26,6 +26,10 @@ export {
     fieldOptions,
     isArrayValuedField,
     isCalculationField,
+    isPhoneCountryEnabled,
+    PHONE_COUNTRY_CHANGE_EVENT,
+    phoneFieldValue,
+    readPhoneFieldControls,
     resolveClientRendererType,
     tableColumns,
     defaultValueForField,
@@ -49,7 +53,7 @@ export {
     serializeFieldValues,
     serializeTransportFieldValues,
 } from './schema.js';
-export type { ClientFieldOption, ClientTableColumn } from './schema.js';
+export type { ClientFieldOption, ClientTableColumn, PhoneFieldValue } from './schema.js';
 export { deriveCalculationValues, parseRowsExpression } from './client-calculations.js';
 export { countGraphemes, getTextLimitMetrics, getWordCount, normalizeText } from './text.js';
 export {

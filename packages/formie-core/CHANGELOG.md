@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Added `phoneFieldValue()`, `readPhoneFieldControls()`, `isPhoneCountryEnabled()` and `PHONE_COUNTRY_CHANGE_EVENT` for rendering Phone fields and their country picker. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Added `getClientFieldIds()`, `getClientFieldLabelTarget()` and `joinIdReferences()` for linking a field’s label, instructions and errors to its control. ([#3140](https://github.com/verbb/formie/issues/3140))
 - Added `projectElementConditionValues()`, which turns selected element IDs into the titles or URLs a condition compares.
 - Added `resolveClientRendererType()`, which picks the default control for fields without a built-in type, such as Recipients, Entries, Calculations and Address or Date parts, from their field kind.
@@ -21,6 +22,7 @@
 - `isFieldLabelHidden()` now hides the label of Section fields.
 
 ### Fixed
+- Fixed a required Phone field with a country but no number counting as answered. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Fixed client-rendered conditions on an element field’s **Title** or **Public URL** never matching. ([#3133](https://github.com/verbb/formie/issues/3133))
 
 ## 4.0.10 - 2026-11-17

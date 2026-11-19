@@ -19,6 +19,7 @@ import {
     isRepeatableField,
     findFieldByHandle,
     findFieldById,
+    phoneFieldValue,
     repeaterFieldDefinitions,
 } from './schema.js';
 import type {
@@ -140,6 +141,11 @@ function isEmptyValue(field: ClientFieldDefinition, value: unknown): boolean {
 
     if (isBooleanField(field)) {
         return value !== true;
+    }
+
+    // A selected country on its own isn't an answer.
+    if (field.type === 'phone') {
+        return phoneFieldValue(value).number.trim() === '';
     }
 
     if (isFileField(field) || isRepeatableField(field) || isMultiValueField(field)) {

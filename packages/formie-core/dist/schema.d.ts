@@ -13,6 +13,23 @@ export declare function isCompositeField(field: ClientFieldDefinition): boolean;
  */
 export declare function resolveClientRendererType(field: ClientFieldDefinition): string;
 export declare function isCalculationField(field: ClientFieldDefinition): boolean;
+export type PhoneFieldValue = {
+    number: string;
+    country: string | null;
+};
+/**
+ * The browser module dispatches this from a Phone field's country input when the visitor picks a country,
+ * so client-rendered adapters can store it with the number.
+ */
+export declare const PHONE_COUNTRY_CHANGE_EVENT = "formie:field:phone-country:change";
+export declare function phoneFieldValue(value: unknown): PhoneFieldValue;
+export declare function isPhoneCountryEnabled(field: ClientFieldDefinition): boolean;
+/**
+ * Reads a Phone answer from the number and country inputs inside `container`. Picking a country fires `input` on
+ * the number straight after the country change, before the framework re-renders, so a value from the last render
+ * would put the previous country back.
+ */
+export declare function readPhoneFieldControls(container: Element | null | undefined, fallback: PhoneFieldValue): PhoneFieldValue;
 export type ClientFieldOption = {
     label: string;
     value: string;

@@ -18,6 +18,7 @@
 - Repeater and Table **Remove** buttons are now named “Remove row 1”, “Remove row 2” and so on, and Repeater, Table and Signature buttons use the text the server translates for the site.
 
 ### Fixed
+- Fixed Phone fields with **Country Enabled** showing a plain input with no country picker. The number input and a hidden country input are now wrapped in `.starter-component-phone`, where the Phone country picker attaches, and the chosen country is sent with the number. Typing a number in any Phone field also replaced the answer with the number alone instead of keeping `{ number, country }`. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Fixed every Dropdown field rendering as a multi-select list, and every File Upload field accepting several files, even when the field allows only one.
 - Fixed Calculations fields never showing their answer, and accepting typing, including in Groups and Repeater rows.
 - Fixed Dropdown fields without a placeholder showing no option, and multi-select Dropdown fields not showing their default options as selected. A Dropdown without an empty option now starts on its first option, as server-rendered forms do.

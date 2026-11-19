@@ -469,6 +469,33 @@ describe('createClientFormInstance', () => {
         expect(runtime.getState().errors.form).toEqual([]);
     });
 
+    it('treats a required Phone field with a country and no number as unanswered', async() => {
+        const submit = vi.fn<ClientTransport['submit']>(async() => ({
+            success: true,
+            outcome: 'completed',
+            currentPageId: 'page-1',
+            errors: { form: [], fields: {} },
+            messages: {},
+            session: {},
+        }) as Awaited<ReturnType<ClientTransport['submit']>>);
+        const runtime = createClientFormInstance({
+            envelope: createEnvelope([createTextField('phone', 'phone', {
+                type: 'phone',
+                required: true,
+                input: { kind: 'text', inputType: 'tel', countryEnabled: true, defaultValue: { number: '', country: 'AU' } },
+            })]),
+            transport: createTransport({ submit }),
+        });
+
+        await runtime.submit('submit');
+        expect(submit).not.toHaveBeenCalled();
+        expect(runtime.getState().errors.fields.phone).toHaveLength(1);
+
+        runtime.setValue('phone', { number: '412345678', country: 'AU' });
+        await runtime.submit('submit');
+        expect(submit).toHaveBeenCalledTimes(1);
+    });
+
     it('resets values and navigation back to the initial session state', async() => {
         const runtime = createClientFormInstance({
             envelope: createEnvelope([createTextField('trigger', 'trigger')]),
