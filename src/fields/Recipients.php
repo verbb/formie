@@ -205,7 +205,8 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
                 $selection = reset($selectedRecipients) ?: null;
                 $selectedValue = $selection['value'] ?? null;
                 $option = RecipientOptionSelectionHelper::resolveSelectionOption($selection, $optionsById, $optionsByValue);
-                $valid = $option !== null;
+                // An empty answer isn't an invalid recipient. Required fields are enforced by their own rule.
+                $valid = $selection === null || $option !== null;
                 $label = $selection['label'] ?? ($option['label'] ?? null);
                 $value = new RecipientsFieldValue($selectedValue, $label, $valid, [], $options);
             } elseif ($this->displayType === 'checkboxes') {
