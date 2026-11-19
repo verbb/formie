@@ -32,6 +32,7 @@
 - Fixed users and untitled entries chosen in the form builder, such as the **Default Entry Author**, showing as “Element 10” instead of their name after the form was saved. ([#3131](https://github.com/verbb/formie/issues/3131))
 - Fixed **Custom** missing from the formats of the **Date Format** variable transform, which left no way to use your own date format, such as `d.m.Y`.
 - Fixed variables using the **Date Format** transform showing a “Number Format” badge in the form builder.
+- Fixed **Link to an entry** in the form builder’s rich text settings, such as an Agree field’s **Description**, never adding the link. The link dialog opened behind the field’s settings after choosing the entry. ([#3141](https://github.com/verbb/formie/issues/3141))
 - Fixed notification content and messages adding an empty paragraph before **All Fields**, **All Non Empty Fields**, **All Visible Fields** or a whole Table, Repeater or Payment field when it was on its own line. ([#3142](https://github.com/verbb/formie/issues/3142))
 - Fixed **All Non Empty Fields** leaving out unticked Agree fields. They’re listed with their **Unchecked Value** again, as in Formie 3. ([#3142](https://github.com/verbb/formie/issues/3142))
 - Fixed opening a submission in the control panel creating its File Upload folder when the field’s subpath uses submission values, such as `{submission:id}`, which left an empty folder for every submission opened. ([#3134](https://github.com/verbb/formie/issues/3134))
