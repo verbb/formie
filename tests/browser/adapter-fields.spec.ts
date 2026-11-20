@@ -46,7 +46,7 @@ for (const adapter of ['react', 'vue', 'web-components']) {
         await field(page, 'visitorName').getByRole('textbox').fill('Ada');
         const values = await submittedValues(page, () => host.locator('button[type="submit"]').click());
         expect(String(values.department ?? '')).toMatch(/^recipient:/);
-        expect(values.schedule).toEqual([{ task: 'Plan', done: false, priority: 'low' }]);
+        expect(values.schedule).toEqual([{ task: 'Plan', done: null, priority: 'low' }]);
         expect(errors).toEqual([]);
     });
 
@@ -68,7 +68,7 @@ for (const adapter of ['react', 'vue', 'web-components']) {
         expect(values.featuredEntry).toEqual([entryId]);
         expect((values.birthday as Record<string, unknown>).year).toBe('2001');
         expect(values.details).toEqual({ company: 'Acme' });
-        expect(values.schedule).toEqual([{ task: 'Plan', done: false, priority: 'low' }]);
+        expect(values.schedule).toEqual([{ task: 'Plan', done: null, priority: 'low' }]);
         // The server rejects answers in the wrong shape, such as a bare element ID.
         await expect(host.getByRole('status')).toContainText('Submission saved.');
         expect(errors).toEqual([]);
