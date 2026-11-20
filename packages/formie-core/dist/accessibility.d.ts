@@ -27,6 +27,16 @@ export declare function joinIdReferences(...ids: Array<string | false | null | u
  * fall back to English.
  */
 export declare function getClientString(definition: Pick<ClientFormDefinition, 'settings'> | null | undefined, key: ClientStringKey): string;
+export type ClientFieldLayout = {
+    label: 'above' | 'below' | 'left' | 'right' | 'hidden';
+    instructions: 'above' | 'below';
+    errors: 'above' | 'below';
+};
+/**
+ * Where a field's label, instructions and errors go around its control, as in server-rendered forms. A label on the
+ * left comes before the control and one on the right after it. Older definitions use the defaults.
+ */
+export declare function getClientFieldLayout(field: ClientFieldDefinition): ClientFieldLayout;
 /**
  * A label in the Hidden position still names its control, so it stays in the page for assistive technology.
  */

@@ -69,9 +69,15 @@ trait FieldClientRenderedDefinitionTrait
 
         $contract = $this->_applyClientChildrenDefinition($contract);
 
-        // Client-rendered forms have no template, so send the label position and autocomplete hint it would use.
+        // Client-rendered forms have no template, so send the label, instructions and error positions and autocomplete
+        // hint it would use.
         if (!array_key_exists('labelPosition', $contract) && ($labelPosition = $this->_clientLabelPosition()) !== null) {
             $contract['labelPosition'] = $labelPosition;
+        }
+
+        if (($form = $this->getForm()) !== null) {
+            $contract['instructionsPosition'] ??= $this->_clientPositionName((new FormieVariable())->getInstructionsPosition($this, $form));
+            $contract['errorMessagePosition'] ??= $this->_clientPositionName((new FormieVariable())->getErrorMessagePosition($this, $form));
         }
 
         if (!isset($contract['autocomplete']) && ($autocomplete = $this->_clientAutocomplete()) !== null) {
@@ -98,8 +104,11 @@ trait FieldClientRenderedDefinitionTrait
             return null;
         }
 
-        $position = (new FormieVariable())->getLabelPosition($this, $form);
+        return $this->_clientPositionName((new FormieVariable())->getLabelPosition($this, $form));
+    }
 
+    private function _clientPositionName(mixed $position): ?string
+    {
         return match (true) {
             $position instanceof HiddenPosition => 'hidden',
             $position instanceof BelowInput => 'below',

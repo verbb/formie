@@ -18,6 +18,7 @@
 - Name, Address, Date, Group, Repeater and Table fields now group their controls with `role="group"`, named by the field label.
 - The file list of a File Upload field now uses `starter-component-file-list` instead of the field errors class.
 - Repeater and Table **Remove** buttons are now named “Remove row 1”, “Remove row 2” and so on, and Repeater, Table and Signature buttons use the text the server translates for the site.
+- A field’s label, instructions and errors now go where its **Label Position**, **Instructions Position** and **Error Message Position** put them, as in server-rendered forms. The field wrapper has `data-formie-label-position`, `data-formie-instructions-position` and `data-formie-error-position`, and a label on the left or right sits beside `.starter-component-field-content`, which holds the rest. ([#3146](https://github.com/verbb/formie/issues/3146))
 
 ### Fixed
 - Fixed Address fields with an auto-complete provider stopping the form from being submitted. Each part now carries the `data-formie-address-*` marker providers look for, the auto-complete input renders in `.starter-component-address-autocomplete` with **Use my location** when it’s turned on, and the address the provider fills is saved. ([#3146](https://github.com/verbb/formie/issues/3146))

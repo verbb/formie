@@ -8,6 +8,7 @@ import {
     getClientErrorAriaLive,
     getClientFieldIds,
     getClientFieldLabelTarget,
+    getClientFieldLayout,
     joinIdReferences,
     createGraphqlClientTransport,
     createRestClientTransport,
@@ -290,48 +291,64 @@ function DefaultField({ field, errors, errorId, errorAriaLive, inputId, labelId,
         });
     };
 
+    // The label, instructions and errors go where the field's positions put them, as in server-rendered forms. A
+    // label on the left or right sits beside the rest, so that is grouped for themes to lay out side by side.
+    const layout = getClientFieldLayout(field);
+    const label = field.label && !isFieldLabelHidden(field) ? renderSlot('label', createElement('label', {
+        key: 'label',
+        className: 'formie-react-label',
+        style: isFieldLabelVisuallyHidden(field) ? VISUALLY_HIDDEN_STYLE : undefined,
+        id: labelId || undefined,
+        htmlFor: inputId && getClientFieldLabelTarget(field, resolveFieldRendererType(field)) === 'control' ? inputId : undefined,
+    }, field.label)) : null;
+    const instructions = field.instructions ? renderSlot('instructions', createElement('div', {
+        key: 'instructions',
+        className: 'formie-react-description',
+        id: instructionsId || undefined,
+        dangerouslySetInnerHTML: { __html: field.instructions },
+    })) : null;
+    const input = renderSlot('input', createElement('div', {
+        key: 'input',
+        className: 'formie-react-input',
+    }, children));
+    const errorList = renderSlot('errors', createElement('ul', {
+        key: 'errors',
+        id: errorId,
+        className: 'formie-react-field-errors',
+        style: errors.length === 0 ? { position: 'absolute' } : undefined,
+        'data-formie-field-errors': true,
+        'aria-live': errorAriaLive === 'off' ? undefined : errorAriaLive,
+        'aria-atomic': errorAriaLive === 'off' ? undefined : 'true',
+    }, errors.map((error, index) => {
+        return createElement('li', { key: `${error}:${index}` }, error);
+    })), {
+        id: errorId,
+        style: errors.length === 0 ? { position: 'absolute' } : undefined,
+        'data-formie-field-errors': true,
+        'aria-live': errorAriaLive === 'off' ? undefined : errorAriaLive,
+        'aria-atomic': errorAriaLive === 'off' ? undefined : 'true',
+    });
+    const content = [
+        layout.instructions === 'above' ? instructions : null,
+        layout.errors === 'above' ? errorList : null,
+        input,
+        layout.instructions === 'below' ? instructions : null,
+        layout.errors === 'below' ? errorList : null,
+    ];
+    const body = layout.label === 'left' || layout.label === 'right'
+        ? [createElement('div', { key: 'content', className: 'formie-react-field-content' }, content)]
+        : content;
+
     return createElement('div', {
         className: 'formie-react-field',
         'data-formie-field-type': field.type,
         'data-formie-field-uid': field.uid,
         'data-formie-field-handle': field.handle,
         'data-formie-field-required': field.required ? 'true' : undefined,
-    }, [
-        field.label && !isFieldLabelHidden(field) ? renderSlot('label', createElement('label', {
-            key: 'label',
-            className: 'formie-react-label',
-            style: isFieldLabelVisuallyHidden(field) ? VISUALLY_HIDDEN_STYLE : undefined,
-            id: labelId || undefined,
-            htmlFor: inputId && getClientFieldLabelTarget(field, resolveFieldRendererType(field)) === 'control' ? inputId : undefined,
-        }, field.label)) : null,
-        field.instructions ? renderSlot('instructions', createElement('div', {
-            key: 'instructions',
-            className: 'formie-react-description',
-            id: instructionsId || undefined,
-            dangerouslySetInnerHTML: { __html: field.instructions },
-        })) : null,
-        renderSlot('input', createElement('div', {
-            key: 'input',
-            className: 'formie-react-input',
-        }, children)),
-        renderSlot('errors', createElement('ul', {
-            key: 'errors',
-            id: errorId,
-            className: 'formie-react-field-errors',
-            style: errors.length === 0 ? { position: 'absolute' } : undefined,
-            'data-formie-field-errors': true,
-            'aria-live': errorAriaLive === 'off' ? undefined : errorAriaLive,
-            'aria-atomic': errorAriaLive === 'off' ? undefined : 'true',
-        }, errors.map((error, index) => {
-            return createElement('li', { key: `${error}:${index}` }, error);
-        })), {
-            id: errorId,
-            style: errors.length === 0 ? { position: 'absolute' } : undefined,
-            'data-formie-field-errors': true,
-            'aria-live': errorAriaLive === 'off' ? undefined : errorAriaLive,
-            'aria-atomic': errorAriaLive === 'off' ? undefined : 'true',
-        }),
-    ]);
+        'data-formie-label-position': layout.label,
+        'data-formie-instructions-position': layout.instructions,
+        'data-formie-error-position': layout.errors,
+    }, layout.label === 'below' || layout.label === 'right' ? [...body, label] : [label, ...body]);
 }
 
 function BrowserModuleHost({ children }: { children: ReactNode }) {

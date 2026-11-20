@@ -57,6 +57,7 @@ import {
     getClientErrorAriaLive,
     getClientFieldIds,
     getClientFieldLabelTarget,
+    getClientFieldLayout,
     joinIdReferences,
     isCompositeField,
     isFileField,
@@ -197,35 +198,51 @@ function labelFor(field: ClientFieldDefinition, ids: ClientFieldElementIds) {
     return getClientFieldLabelTarget(field, resolveFieldRendererType(field)) === 'control' ? ids.input : nothing;
 }
 
+// The label, instructions and errors go where the field's positions put them, as in server-rendered forms. A label on
+// the left or right sits beside the rest, so that is grouped for themes to lay out side by side.
+function arrangeField(field: ClientFieldDefinition, label: unknown, instructions: unknown, control: TemplateResult, errorList: TemplateResult) {
+    const layout = getClientFieldLayout(field);
+    const content = [
+        layout.instructions === 'above' ? instructions : nothing,
+        layout.errors === 'above' ? errorList : nothing,
+        control,
+        layout.instructions === 'below' ? instructions : nothing,
+        layout.errors === 'below' ? errorList : nothing,
+    ];
+    const body = layout.label === 'left' || layout.label === 'right' ? html`<div class="starter-component-field-content">${content}</div>` : html`${content}`;
+
+    return { layout, children: layout.label === 'below' || layout.label === 'right' ? html`${body}${label}` : html`${label}${body}` };
+}
+
+function fieldErrorList(errors: string[], ids: ClientFieldElementIds, errorAriaLive: ClientErrorAriaLive): TemplateResult {
+    return html`<ul id=${ids.errors} data-formie-field-errors aria-live=${errorAriaLive === 'off' ? nothing : errorAriaLive} aria-atomic=${errorAriaLive === 'off' ? nothing : 'true'} style=${errors.length === 0 ? 'position: absolute' : nothing} class="grid gap-1 text-sm text-red-600">
+        ${errors.map((err) => html`<li>${err}</li>`)}
+    </ul>`;
+}
+
 /** Matches Vue starter name-part layout: one bordered card on the parent, parts inside the grid. */
 function wrapCompositePartField(field: ClientFieldDefinition, errors: string[], ids: ClientFieldElementIds, errorAriaLive: ClientErrorAriaLive, control: TemplateResult): TemplateResult {
+    const label = field.label && !isFieldLabelHidden(field)
+        ? html`<label class="starter-component-subfield-label" style=${labelStyle(field)} id=${ids.label} for=${labelFor(field, ids)}>${field.label}</label>`
+        : nothing;
+    const { layout, children } = arrangeField(field, label, nothing, html`<div class="starter-component-injected-control grid gap-2 text-slate-900">${control}</div>`, fieldErrorList(errors, ids, errorAriaLive));
+
     return html`
-        <div class="starter-component-subfield" data-formie-field-type=${field.type} data-formie-field-uid=${field.uid} data-formie-field-handle=${field.handle} data-formie-field-required=${field.required ? 'true' : nothing}>
-            ${field.label && !isFieldLabelHidden(field)
-                ? html`<label class="starter-component-subfield-label" style=${labelStyle(field)} id=${ids.label} for=${labelFor(field, ids)}>${field.label}</label>`
-                : nothing}
-            <div class="starter-component-injected-control grid gap-2 text-slate-900">${control}</div>
-            <ul id=${ids.errors} data-formie-field-errors aria-live=${errorAriaLive === 'off' ? nothing : errorAriaLive} aria-atomic=${errorAriaLive === 'off' ? nothing : 'true'} style=${errors.length === 0 ? 'position: absolute' : nothing} class="grid gap-1 text-sm text-red-600">
-                ${errors.map((err) => html`<li>${err}</li>`)}
-            </ul>
-        </div>
+        <div class="starter-component-subfield" data-formie-field-type=${field.type} data-formie-field-uid=${field.uid} data-formie-field-handle=${field.handle} data-formie-field-required=${field.required ? 'true' : nothing} data-formie-label-position=${layout.label} data-formie-instructions-position=${layout.instructions} data-formie-error-position=${layout.errors}>${children}</div>
     `;
 }
 
 function wrapDefaultField(field: ClientFieldDefinition, errors: string[], ids: ClientFieldElementIds, errorAriaLive: ClientErrorAriaLive, control: TemplateResult): TemplateResult {
+    const label = field.label && !isFieldLabelHidden(field)
+        ? html`<label class="starter-component-label" style=${labelStyle(field)} id=${ids.label} for=${labelFor(field, ids)}>${field.label}</label>`
+        : nothing;
+    const instructions = field.instructions
+        ? html`<div class="starter-component-help" id=${ids.instructions}>${unsafeHTML(field.instructions)}</div>`
+        : nothing;
+    const { layout, children } = arrangeField(field, label, instructions, html`<div class="starter-component-injected-control grid gap-2 text-slate-900">${control}</div>`, fieldErrorList(errors, ids, errorAriaLive));
+
     return html`
-        <div class="starter-component-card" data-formie-field-type=${field.type} data-formie-field-uid=${field.uid} data-formie-field-handle=${field.handle} data-formie-field-required=${field.required ? 'true' : nothing}>
-            ${field.label && !isFieldLabelHidden(field)
-                ? html`<label class="starter-component-label" style=${labelStyle(field)} id=${ids.label} for=${labelFor(field, ids)}>${field.label}</label>`
-                : nothing}
-            ${field.instructions
-                ? html`<div class="starter-component-help" id=${ids.instructions}>${unsafeHTML(field.instructions)}</div>`
-                : nothing}
-            <div class="starter-component-injected-control grid gap-2 text-slate-900">${control}</div>
-            <ul id=${ids.errors} data-formie-field-errors aria-live=${errorAriaLive === 'off' ? nothing : errorAriaLive} aria-atomic=${errorAriaLive === 'off' ? nothing : 'true'} style=${errors.length === 0 ? 'position: absolute' : nothing} class="grid gap-1 text-sm text-red-600">
-                ${errors.map((err) => html`<li>${err}</li>`)}
-            </ul>
-        </div>
+        <div class="starter-component-card" data-formie-field-type=${field.type} data-formie-field-uid=${field.uid} data-formie-field-handle=${field.handle} data-formie-field-required=${field.required ? 'true' : nothing} data-formie-label-position=${layout.label} data-formie-instructions-position=${layout.instructions} data-formie-error-position=${layout.errors}>${children}</div>
     `;
 }
 

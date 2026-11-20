@@ -5092,9 +5092,17 @@ function Pn(e, t) {
 	return e?.settings?.strings?.[t] || Nn[t];
 }
 function Fn(e) {
+	let t = e.input.labelPosition;
+	return {
+		label: t === "below" || t === "left" || t === "right" || t === "hidden" ? t : "above",
+		instructions: e.input.instructionsPosition === "below" ? "below" : "above",
+		errors: e.input.errorMessagePosition === "above" ? "above" : "below"
+	};
+}
+function In(e) {
 	return e.input.labelPosition === "hidden";
 }
-var In = {
+var Ln = {
 	position: "absolute",
 	width: "1px",
 	height: "1px",
@@ -5104,13 +5112,13 @@ var In = {
 	clip: "rect(0, 0, 0, 0)",
 	whiteSpace: "nowrap",
 	border: "0"
-}, Ln = "position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0";
-function Rn(e, t) {
+}, Rn = "position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0";
+function zn(e, t) {
 	if (!e) return;
 	let n = e.querySelector("[aria-invalid=\"true\"]"), r = e.querySelector("[data-formie-form-message]"), i = e.querySelector("[data-page-id]"), a = t != null && i?.getAttribute("data-page-id") !== t;
 	(n || r || (a && i ? i.hasAttribute("tabindex") ? i : i.querySelector("input:not([type=\"hidden\"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])") : null))?.focus();
 }
-function zn(e, t) {
+function Bn(e, t) {
 	let n = e.settings.progress, r = e.pages.length;
 	if (!n?.display || r < 2) return null;
 	let i = Math.max(0, e.pages.findIndex((e) => e.id === t)), a = n.calculation === "page-position" ? i + 1 : i;
@@ -5120,12 +5128,12 @@ function zn(e, t) {
 		valuePosition: n.valuePosition || "inside-center"
 	};
 }
-function Bn(e) {
+function Vn(e) {
 	return e.settings.displayCurrentPageTitle === !0;
 }
 //#endregion
 //#region src/text-limit.ts
-function Vn(e) {
+function Hn(e) {
 	let t = e.input.textLimit;
 	if (!t || typeof t != "object") return null;
 	let n = t, r = (e) => typeof e == "number" && e > 0 ? e : null;
@@ -5136,7 +5144,7 @@ function Vn(e) {
 		maxType: n.maxType === "words" ? "words" : "characters"
 	};
 }
-function Hn(e, t, n) {
+function Un(e, t, n) {
 	let r = "", i = 0;
 	for (; i < e.length;) {
 		let a = e[i] === "{" ? e.slice(i).match(/^\{\w+,\s*plural,\s*/) : null;
@@ -5165,19 +5173,19 @@ function Hn(e, t, n) {
 	}
 	return r;
 }
-function Un(e, t, n) {
-	let r = Vn(e);
+function Wn(e, t, n) {
+	let r = Hn(e);
 	if (!r?.max) return null;
 	let i = typeof t == "string" ? t : "", a = r.maxType === "words", o = Rt(i), s = r.max - (a ? o.wordCount : o.graphemeCount), c = (a ? i.trim() === "" : i === "") ? "Allowed" : s < 0 ? "Over" : "Left", l = c === "Allowed" ? r.max : Math.abs(s), u = `textLimit${a ? "Words" : "Characters"}${c}`, d = n?.locale ?? void 0;
 	return {
 		count: l,
-		text: Hn(Pn(n, u), l, d),
+		text: Un(Pn(n, u), l, d),
 		over: c === "Over"
 	};
 }
 //#endregion
 //#region src/references.ts
-var Wn = { username: "user:name" };
+var Gn = { username: "user:name" };
 Object.entries({
 	form: ["name", "handle"],
 	submission: [
@@ -5198,7 +5206,7 @@ Object.entries({
 	]
 }).forEach(([e, t]) => {
 	t.forEach((t) => {
-		Wn[`${e}.${t}`] = `${e}:${t}`;
+		Gn[`${e}.${t}`] = `${e}:${t}`;
 	});
 }), Object.entries({
 	form: ["Name", "Handle"],
@@ -5233,7 +5241,7 @@ Object.entries({
 	]
 }).forEach(([e, t]) => {
 	t.forEach((t) => {
-		Wn[e + t] = `${e}:${t[0].toLowerCase()}${t.slice(1)}`;
+		Gn[e + t] = `${e}:${t[0].toLowerCase()}${t.slice(1)}`;
 	});
 }), Object.entries({
 	dateUs: "m/d/Y",
@@ -5241,9 +5249,9 @@ Object.entries({
 	time12: "h:i a",
 	time24: "H:i"
 }).forEach(([e, t]) => {
-	Wn[e] = `timestamp;transform=format;preset=custom;pattern=${encodeURIComponent(t)}`;
+	Gn[e] = `timestamp;transform=format;preset=custom;pattern=${encodeURIComponent(t)}`;
 });
-function Gn(e) {
+function Kn(e) {
 	let t = {
 		raw: e,
 		target: "",
@@ -5262,7 +5270,7 @@ function Gn(e) {
 	let i = r[1].replace(/^field\./, "field:"), a = i.indexOf("|"), o = a < 0 ? "" : i.slice(a + 1);
 	i = a < 0 ? i : i.slice(0, a);
 	let s = i.indexOf(";"), c = s < 0 ? i : i.slice(0, s);
-	i = (Object.prototype.hasOwnProperty.call(Wn, c) ? Wn[c] : c) + (s < 0 ? "" : i.slice(s));
+	i = (Object.prototype.hasOwnProperty.call(Gn, c) ? Gn[c] : c) + (s < 0 ? "" : i.slice(s));
 	let [l, ...u] = i.split(";"), d = Object.create(null);
 	try {
 		for (let e of u) {
@@ -5300,15 +5308,15 @@ function Gn(e) {
 		return n("invalidEncoding");
 	}
 }
-function Kn(e) {
+function qn(e) {
 	if (!e.isValid || e.version !== 1) throw Error("Cannot serialize an invalid reference expression.");
 	let t = (e) => encodeURIComponent(e).replace(/[!'()*]/g, (e) => `%${e.charCodeAt(0).toString(16).toUpperCase()}`), n = (e) => t(e).replace(/%2F/g, "/"), r = e.target;
 	e.identifier && (r += `:${n(e.identifier)}`), e.selector && (r += `:${n(e.selector).replace(/%3A/g, ":")}`), e.transformerId && (r += `;transform=${t(e.transformerId)}`);
 	for (let [n, i] of Object.entries(e.transformerParams)) r += `;${n}=${t(i)}`;
 	return e.default && (r += `|${t(e.default)}`), `{${r}}`;
 }
-function qn(e, t) {
-	let n = Gn(e);
+function Jn(e, t) {
+	let n = Kn(e);
 	if (!n.isValid) return {
 		expression: n,
 		diagnostic: "invalidExpression"
@@ -5365,4 +5373,4 @@ function qn(e, t) {
 	};
 }
 //#endregion
-export { Ut as BROWSER_MODULE_CONTRACT_VERSION, Gt as CLIENT_FORM_CONTRACT_VERSION, dn as CLIENT_FORM_EVENT_NAMES, je as PHONE_COUNTRY_CHANGE_EVENT, Ln as VISUALLY_HIDDEN_CSS, In as VISUALLY_HIDDEN_STYLE, ue as addressAutocompleteMarkup, le as addressPartMarker, kt as addressStatePart, y as allFields, ve as allOptionsSelected, Wt as assertBrowserModuleManifest, Kt as assertClientFormBootstrap, En as attachPointerReorder, bt as browserRequest, xt as browserRequestHeaders, Vt as browserValueEmpty, hn as buildActionUrl, Et as cachedAddressSubdivisions, _e as checkboxToggle, _t as clientActionAllowed, m as coerceCalculationVariables, lt as combineConditions, L as compositePartDefinitions, at as conditionNumber, It as countGraphemes, un as createClientFormInstance, Tn as createGraphqlClientTransport, W as createRepeaterRowValue, yn as createRestClientTransport, N as createTableRowValue, he as customFieldMarkup, Se as datePickerInputValue, De as datePickerParts, Ce as datePickerValue, Te as dateRangePickerMarkup, Ee as dateRangePickerValue, V as defaultValueForField, Qe as deriveCalculationValues, U as displayFieldContent, k as dropdownOptions, _ as evaluateCalculationExpression, gt as evaluateClientCondition, ct as evaluateCondition, ut as evaluateConditionDefinition, se as fieldContentPath, D as fieldOptions, Vn as fieldTextLimit, G as fieldValueAsStrings, S as fieldValueContract, C as fieldValueStructure, dt as finalizeConditionEvaluation, ee as findFieldByHandle, b as findFieldById, Rn as focusClientFormResult, h as formatCalculationValue, Hn as formatPluralMessage, f as getCalculationFormula, p as getCalculationVariableEntries, Dn as getClientErrorAriaLive, On as getClientFieldErrorId, kn as getClientFieldIds, An as getClientFieldLabelTarget, zn as getClientPageProgress, Pn as getClientString, Rt as getTextLimitMetrics, Lt as getWordCount, T as isAddressAutocompletePart, de as isAddressField, O as isArrayValuedField, Ie as isBooleanField, ae as isCalculationField, w as isCompositeField, xe as isDatePickerField, we as isDateRangePickerField, wt as isDynamicAddressStatePart, Re as isEmailField, ze as isFieldLabelHidden, Fn as isFieldLabelVisuallyHidden, F as isFileField, x as isKnownClientFieldType, I as isMultiValueField, Le as isNumericField, Ne as isPhoneCountryEnabled, P as isRepeatableField, be as isRichTextField, A as isSearchableDropdown, jn as joinIdReferences, Dt as loadAddressSubdivisions, vn as loadClientFormBootstrap, wn as loadGraphqlClientFormBootstrap, Ae as moveListItem, Ft as normalizeText, Gn as parseReference, Ke as parseRowsExpression, me as paymentFieldMarkup, Me as phoneFieldValue, et as projectElementConditionValues, E as readAddressParts, g as readCalculationVariableValue, ge as readCustomFieldControls, Pe as readPhoneFieldControls, pe as readUploadManagerEntries, Bt as registerBrowserValidationRule, z as repeaterFieldDefinitions, R as repeaterRowDefinitions, ie as resolveClientRendererType, qn as resolveReference, j as searchableDropdownMarkup, Fe as searchableDropdownValue, $e as selectConditionRows, te as serializeFieldValues, Kn as serializeReference, Y as serializeTransportFieldValues, Bn as showsClientPageTitle, oe as summaryFieldMarkup, Oe as surveyLikertRows, ke as surveyRankOrder, M as tableColumns, Un as textLimitCounter, ye as toggleAllOptions, fe as uploadManagerMarkup, Ht as validateBrowserValue };
+export { Ut as BROWSER_MODULE_CONTRACT_VERSION, Gt as CLIENT_FORM_CONTRACT_VERSION, dn as CLIENT_FORM_EVENT_NAMES, je as PHONE_COUNTRY_CHANGE_EVENT, Rn as VISUALLY_HIDDEN_CSS, Ln as VISUALLY_HIDDEN_STYLE, ue as addressAutocompleteMarkup, le as addressPartMarker, kt as addressStatePart, y as allFields, ve as allOptionsSelected, Wt as assertBrowserModuleManifest, Kt as assertClientFormBootstrap, En as attachPointerReorder, bt as browserRequest, xt as browserRequestHeaders, Vt as browserValueEmpty, hn as buildActionUrl, Et as cachedAddressSubdivisions, _e as checkboxToggle, _t as clientActionAllowed, m as coerceCalculationVariables, lt as combineConditions, L as compositePartDefinitions, at as conditionNumber, It as countGraphemes, un as createClientFormInstance, Tn as createGraphqlClientTransport, W as createRepeaterRowValue, yn as createRestClientTransport, N as createTableRowValue, he as customFieldMarkup, Se as datePickerInputValue, De as datePickerParts, Ce as datePickerValue, Te as dateRangePickerMarkup, Ee as dateRangePickerValue, V as defaultValueForField, Qe as deriveCalculationValues, U as displayFieldContent, k as dropdownOptions, _ as evaluateCalculationExpression, gt as evaluateClientCondition, ct as evaluateCondition, ut as evaluateConditionDefinition, se as fieldContentPath, D as fieldOptions, Hn as fieldTextLimit, G as fieldValueAsStrings, S as fieldValueContract, C as fieldValueStructure, dt as finalizeConditionEvaluation, ee as findFieldByHandle, b as findFieldById, zn as focusClientFormResult, h as formatCalculationValue, Un as formatPluralMessage, f as getCalculationFormula, p as getCalculationVariableEntries, Dn as getClientErrorAriaLive, On as getClientFieldErrorId, kn as getClientFieldIds, An as getClientFieldLabelTarget, Fn as getClientFieldLayout, Bn as getClientPageProgress, Pn as getClientString, Rt as getTextLimitMetrics, Lt as getWordCount, T as isAddressAutocompletePart, de as isAddressField, O as isArrayValuedField, Ie as isBooleanField, ae as isCalculationField, w as isCompositeField, xe as isDatePickerField, we as isDateRangePickerField, wt as isDynamicAddressStatePart, Re as isEmailField, ze as isFieldLabelHidden, In as isFieldLabelVisuallyHidden, F as isFileField, x as isKnownClientFieldType, I as isMultiValueField, Le as isNumericField, Ne as isPhoneCountryEnabled, P as isRepeatableField, be as isRichTextField, A as isSearchableDropdown, jn as joinIdReferences, Dt as loadAddressSubdivisions, vn as loadClientFormBootstrap, wn as loadGraphqlClientFormBootstrap, Ae as moveListItem, Ft as normalizeText, Kn as parseReference, Ke as parseRowsExpression, me as paymentFieldMarkup, Me as phoneFieldValue, et as projectElementConditionValues, E as readAddressParts, g as readCalculationVariableValue, ge as readCustomFieldControls, Pe as readPhoneFieldControls, pe as readUploadManagerEntries, Bt as registerBrowserValidationRule, z as repeaterFieldDefinitions, R as repeaterRowDefinitions, ie as resolveClientRendererType, Jn as resolveReference, j as searchableDropdownMarkup, Fe as searchableDropdownValue, $e as selectConditionRows, te as serializeFieldValues, qn as serializeReference, Y as serializeTransportFieldValues, Vn as showsClientPageTitle, oe as summaryFieldMarkup, Oe as surveyLikertRows, ke as surveyRankOrder, M as tableColumns, Wn as textLimitCounter, ye as toggleAllOptions, fe as uploadManagerMarkup, Ht as validateBrowserValue };

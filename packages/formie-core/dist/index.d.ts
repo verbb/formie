@@ -14,8 +14,8 @@ export { fieldTextLimit, formatPluralMessage, textLimitCounter } from './text-li
 export { addressStatePart, cachedAddressSubdivisions, isDynamicAddressStatePart, loadAddressSubdivisions } from './address-state.js';
 export type { AddressStatePart, AddressSubdivisions } from './address-state.js';
 export type { ClientTextLimit, TextLimitCounter } from './text-limit.js';
-export { getClientErrorAriaLive, getClientFieldErrorId, getClientFieldIds, getClientFieldLabelTarget, focusClientFormResult, getClientPageProgress, getClientString, showsClientPageTitle, isFieldLabelVisuallyHidden, joinIdReferences, VISUALLY_HIDDEN_CSS, VISUALLY_HIDDEN_STYLE, } from './accessibility.js';
-export type { ClientErrorAriaLive, ClientFieldElementIds, ClientFieldLabelTarget, ClientPageProgress } from './accessibility.js';
+export { getClientErrorAriaLive, getClientFieldErrorId, getClientFieldIds, getClientFieldLabelTarget, getClientFieldLayout, focusClientFormResult, getClientPageProgress, getClientString, showsClientPageTitle, isFieldLabelVisuallyHidden, joinIdReferences, VISUALLY_HIDDEN_CSS, VISUALLY_HIDDEN_STYLE, } from './accessibility.js';
+export type { ClientErrorAriaLive, ClientFieldElementIds, ClientFieldLabelTarget, ClientFieldLayout, ClientPageProgress } from './accessibility.js';
 export type { ClientFieldDefinition, ClientFieldValueContract, ClientFieldValueStructure, ClientFieldType, ClientFieldValueType, ClientFormDefinition, ClientFormBootstrap, ClientFormSession, ClientStringKey, KnownClientFieldType, ClientPageDefinition, ClientRowDefinition, ClientFormEventName, ClientFormFieldState, ClientFormInstance, ClientFormPageState, ClientFormState, ClientSubmitAction, ClientSubmitResult, PaymentDecision, ClientTransport, } from './types.js';
 export { parseReference, serializeReference } from './references.js';
 export type { ReferenceExpression } from './references.js';

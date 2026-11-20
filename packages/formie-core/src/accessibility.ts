@@ -98,6 +98,26 @@ export function getClientString(definition: Pick<ClientFormDefinition, 'settings
     return definition?.settings?.strings?.[key] || CLIENT_STRING_FALLBACKS[key];
 }
 
+export type ClientFieldLayout = {
+    label: 'above' | 'below' | 'left' | 'right' | 'hidden';
+    instructions: 'above' | 'below';
+    errors: 'above' | 'below';
+};
+
+/**
+ * Where a field's label, instructions and errors go around its control, as in server-rendered forms. A label on the
+ * left comes before the control and one on the right after it. Older definitions use the defaults.
+ */
+export function getClientFieldLayout(field: ClientFieldDefinition): ClientFieldLayout {
+    const label = field.input.labelPosition;
+
+    return {
+        label: label === 'below' || label === 'left' || label === 'right' || label === 'hidden' ? label : 'above',
+        instructions: field.input.instructionsPosition === 'below' ? 'below' : 'above',
+        errors: field.input.errorMessagePosition === 'above' ? 'above' : 'below',
+    };
+}
+
 /**
  * A label in the Hidden position still names its control, so it stays in the page for assistive technology.
  */

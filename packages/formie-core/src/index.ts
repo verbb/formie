@@ -95,6 +95,7 @@ export {
     getClientFieldErrorId,
     getClientFieldIds,
     getClientFieldLabelTarget,
+    getClientFieldLayout,
     focusClientFormResult,
     getClientPageProgress,
     getClientString,
@@ -104,7 +105,7 @@ export {
     VISUALLY_HIDDEN_CSS,
     VISUALLY_HIDDEN_STYLE,
 } from './accessibility.js';
-export type { ClientErrorAriaLive, ClientFieldElementIds, ClientFieldLabelTarget, ClientPageProgress } from './accessibility.js';
+export type { ClientErrorAriaLive, ClientFieldElementIds, ClientFieldLabelTarget, ClientFieldLayout, ClientPageProgress } from './accessibility.js';
 
 export type {
     ClientFieldDefinition,

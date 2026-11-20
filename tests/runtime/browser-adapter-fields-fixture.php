@@ -178,3 +178,11 @@ $addressStateRows = static function(array $state, array $country = []): array {
         ['type' => \verbb\formie\fields\CustomField::class, 'handle' => 'profile', 'label' => 'Profile', 'customFieldAdapter' => \verbb\formie\fields\custom\adapters\LinkCustomFieldAdapter::class],
     ]]]])
     ->create();
+
+// Labels, instructions and errors in each position around their control.
+\verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Adapter positions', 'handle' => 'adapterPositions'])
+    ->settings(['disableCaptchas' => true, 'submitMethod' => 'ajax'])
+    ->singleLineTextField('leftLabel', ['label' => 'Left label', 'required' => true, 'instructions' => 'Left instructions', 'labelPosition' => \verbb\formie\positions\LeftInput::class])
+    ->singleLineTextField('rightLabel', ['label' => 'Right label', 'required' => true, 'labelPosition' => \verbb\formie\positions\RightInput::class])
+    ->singleLineTextField('belowLabel', ['label' => 'Below label', 'required' => true, 'instructions' => 'Below instructions', 'labelPosition' => \verbb\formie\positions\BelowInput::class, 'instructionsPosition' => \verbb\formie\positions\BelowInput::class, 'errorMessagePosition' => \verbb\formie\positions\AboveInput::class])
+    ->create();

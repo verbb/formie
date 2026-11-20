@@ -7,6 +7,7 @@ import {
     getClientErrorAriaLive,
     getClientFieldIds,
     getClientFieldLabelTarget,
+    getClientFieldLayout,
     joinIdReferences,
     createGraphqlClientTransport,
     createRepeaterRowValue,
@@ -436,47 +437,63 @@ const DefaultField = defineComponent({
                 id: props.instructionsId || undefined,
             };
 
+            // The label, instructions and errors go where the field's positions put them, as in server-rendered
+            // forms. A label on the left or right sits beside the rest, so that is grouped for themes to lay out.
+            const layout = getClientFieldLayout(props.field);
+            const label = props.field.label && !isFieldLabelHidden(props.field)
+                ? renderSlotWrapper(context, 'label', h('label', labelAttributes, props.field.label), labelAttributes, props.field)
+                : null;
+            const instructions = props.field.instructions
+                ? renderSlotWrapper(context, 'instructions', h('div', {
+                    ...instructionsAttributes,
+                    innerHTML: props.field.instructions,
+                }), instructionsAttributes, props.field)
+                : null;
+            const input = renderSlotWrapper(context, 'input', h('div', {
+                class: 'formie-vue-input',
+            }, children), {
+                class: 'formie-vue-input',
+            }, props.field);
+            const errorList = renderSlotWrapper(context, 'errors', h('ul', {
+                id: props.errorId,
+                class: 'formie-vue-field-errors',
+                style: props.errors.length === 0 ? { position: 'absolute' } : undefined,
+                'data-formie-field-errors': true,
+                'aria-live': props.errorAriaLive === 'off' ? undefined : props.errorAriaLive,
+                'aria-atomic': props.errorAriaLive === 'off' ? undefined : 'true',
+            }, props.errors.map((error, index) => {
+                return h('li', {
+                    key: `${error}:${index}`,
+                }, error);
+            })), {
+                id: props.errorId,
+                class: 'formie-vue-field-errors',
+                style: props.errors.length === 0 ? { position: 'absolute' } : undefined,
+                'data-formie-field-errors': true,
+                'aria-live': props.errorAriaLive === 'off' ? undefined : props.errorAriaLive,
+                'aria-atomic': props.errorAriaLive === 'off' ? undefined : 'true',
+            }, props.field);
+            const content = [
+                layout.instructions === 'above' ? instructions : null,
+                layout.errors === 'above' ? errorList : null,
+                input,
+                layout.instructions === 'below' ? instructions : null,
+                layout.errors === 'below' ? errorList : null,
+            ];
+            const body = layout.label === 'left' || layout.label === 'right'
+                ? [h('div', { class: 'formie-vue-field-content' }, content)]
+                : content;
+
             return h('div', {
                 class: 'formie-vue-field',
                 'data-formie-field-uid': props.field.uid,
                 'data-formie-field-handle': props.field.handle,
                 'data-formie-field-type': props.field.type,
                 'data-formie-field-required': props.field.required ? 'true' : undefined,
-            }, [
-                props.field.label && !isFieldLabelHidden(props.field)
-                    ? renderSlotWrapper(context, 'label', h('label', labelAttributes, props.field.label), labelAttributes, props.field)
-                    : null,
-                props.field.instructions
-                    ? renderSlotWrapper(context, 'instructions', h('div', {
-                        ...instructionsAttributes,
-                        innerHTML: props.field.instructions,
-                    }), instructionsAttributes, props.field)
-                    : null,
-                renderSlotWrapper(context, 'input', h('div', {
-                    class: 'formie-vue-input',
-                }, children), {
-                    class: 'formie-vue-input',
-                }, props.field),
-                renderSlotWrapper(context, 'errors', h('ul', {
-                        id: props.errorId,
-                        class: 'formie-vue-field-errors',
-                        style: props.errors.length === 0 ? { position: 'absolute' } : undefined,
-                        'data-formie-field-errors': true,
-                        'aria-live': props.errorAriaLive === 'off' ? undefined : props.errorAriaLive,
-                        'aria-atomic': props.errorAriaLive === 'off' ? undefined : 'true',
-                    }, props.errors.map((error, index) => {
-                        return h('li', {
-                            key: `${error}:${index}`,
-                        }, error);
-                    })), {
-                        id: props.errorId,
-                        class: 'formie-vue-field-errors',
-                        style: props.errors.length === 0 ? { position: 'absolute' } : undefined,
-                        'data-formie-field-errors': true,
-                        'aria-live': props.errorAriaLive === 'off' ? undefined : props.errorAriaLive,
-                        'aria-atomic': props.errorAriaLive === 'off' ? undefined : 'true',
-                    }, props.field),
-            ]);
+                'data-formie-label-position': layout.label,
+                'data-formie-instructions-position': layout.instructions,
+                'data-formie-error-position': layout.errors,
+            }, layout.label === 'below' || layout.label === 'right' ? [...body, label] : [label, ...body]);
         };
     },
 });
