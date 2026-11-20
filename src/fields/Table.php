@@ -1318,6 +1318,11 @@ class Table extends Field
     private function _normalizeCellValue(string $type, mixed $value, bool $fromRequest): mixed
     {
         switch ($type) {
+            case 'checkbox':
+                // A form post sends "1" for a checked box and nothing otherwise. Client-rendered forms and the API
+                // can send booleans, which are stored the same way so every submission reads alike.
+                return in_array($value, [true, 1, '1', 'on', 'true'], true) ? '1' : null;
+
             case 'color':
                 if ($value instanceof ColorFieldValue) {
                     return $value;

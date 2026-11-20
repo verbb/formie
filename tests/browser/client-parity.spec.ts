@@ -213,7 +213,6 @@ const KNOWN_GAPS: Record<string, string> = {
     pRichText: 'The rich text editor isn’t attached; a plain textarea is shown.',
     pDropdownSearch: 'The searchable dropdown isn’t attached; a native select is shown.',
     pDatePicker: 'The date picker isn’t attached; native date and time inputs are shown.',
-    pTable: 'Checkbox cells save true instead of the "1" server-rendered forms save.',
     pSignature: 'The server-rendered signature pad doesn’t save the drawn signature in this fixture, so the baseline is empty.',
 };
 
