@@ -109,3 +109,12 @@ if (!Craft::$app->getElements()->saveElement($nested)) {
         ['type' => \verbb\formie\fields\Phone::class, 'handle' => 'contactPhone', 'label' => 'Contact phone', 'countryEnabled' => true, 'countryDefaultValue' => 'AU'],
     ]]]])
     ->create();
+
+// Hidden fields filled from the visitor's browser, and a Password field with requirements.
+\verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Adapter browser values', 'handle' => 'adapterBrowserValues'])
+    ->settings(['disableCaptchas' => true, 'submitMethod' => 'ajax'])
+    ->hiddenField('fromCookie', ['label' => 'From cookie', 'valueSource' => 'cookie', 'cookieName' => 'parity_cookie'])
+    ->hiddenField('fromQuery', ['label' => 'From query', 'valueSource' => 'query', 'queryParameter' => 'ref'])
+    ->hiddenField('fromPage', ['label' => 'From page', 'valueSource' => 'currentUrl'])
+    ->passwordField('secret', ['label' => 'Secret', 'passwordMinLength' => 8, 'passwordRequireUppercase' => true, 'passwordRequireSpecialCharacter' => true])
+    ->create();

@@ -32,6 +32,7 @@
 - `isFieldLabelHidden()` now hides the label of Section fields.
 
 ### Fixed
+- Fixed Hidden fields with a cookie, query parameter, current URL or referring URL value source not reading it from the visitor’s page in `defaultValueForField()`. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Fixed labels pointing at a control that doesn’t exist for Survey Likert, Rank and Rating fields, and Payment and Summary fields, in `getClientFieldLabelTarget()`. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Fixed a required Likert scale with multiple rows counting as answered once one row was. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Fixed a required Phone field with a country but no number counting as answered. ([#3146](https://github.com/verbb/formie/issues/3146))

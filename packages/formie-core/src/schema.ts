@@ -578,8 +578,48 @@ export function repeaterFieldDefinitions(field: ClientFieldDefinition): ClientFi
     return repeaterRowDefinitions(field).flatMap((row) => row.fields);
 }
 
+// Hidden fields can take their value from a cookie or the visitor's page, which only the browser can read here.
+// A missing cookie or parameter keeps the field's default, as in server-rendered forms.
+function hiddenSourceValue(field: ClientFieldDefinition): string | null {
+    const { valueSource, cookieName, queryParameter } = field.input;
+
+    if (valueSource === 'cookie' && typeof cookieName === 'string' && cookieName && typeof document !== 'undefined') {
+        const cookie = document.cookie.split('; ').find((entry) => entry.startsWith(`${cookieName}=`));
+
+        return cookie === undefined ? null : decodeURIComponent(cookie.slice(cookieName.length + 1));
+    }
+
+    if (typeof window === 'undefined') {
+        return null;
+    }
+
+    // The server would see its own load request here, not the visitor's page, so these come from the page.
+    if (valueSource === 'query' && typeof queryParameter === 'string' && queryParameter) {
+        return new URLSearchParams(window.location.search).get(queryParameter);
+    }
+
+    if (valueSource === 'currentUrl') {
+        return window.location.href;
+    }
+
+    if (valueSource === 'currentUrlNoQueryString') {
+        return `${window.location.origin}${window.location.pathname}`;
+    }
+
+    if (valueSource === 'referUrl') {
+        return document.referrer || null;
+    }
+
+    return null;
+}
+
 export function defaultValueForField(field: ClientFieldDefinition): unknown {
     const contract = field.input;
+    const sourced = hiddenSourceValue(field);
+
+    if (sourced !== null) {
+        return sourced;
+    }
 
     if (field.type === 'checkboxes') {
         const options = Array.isArray(contract.options) ? contract.options as Array<Record<string, unknown>> : [];

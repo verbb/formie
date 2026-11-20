@@ -282,6 +282,44 @@ for (const adapter of ['react', 'vue', 'web-components']) {
         expect(errors).toEqual([]);
     });
 
+    test(`${adapter}: fills Hidden fields from the visitor's browser and checks password requirements`, async ({ page, context }) => {
+        await context.addCookies([{ name: 'parity_cookie', value: 'cookie value', url: test.info().project.use.baseURL! }]);
+        const errors: string[] = [];
+        page.on('pageerror', error => errors.push(error.message));
+        await page.goto(`/browser-fixture?adapter=${adapter}&form=adapterBrowserValues&ref=campaign-7`);
+        const host = page.locator('#host');
+        await expect(host.locator('button[type="submit"]')).toBeVisible();
+        const secret = field(page, 'secret').locator('input[type="password"]');
+        // The requirements are checked in the browser, so nothing reaches the server until they're met.
+        let submits = 0;
+        page.on('request', request => {
+            if (request.method() === 'POST' && /submissions(%2F|\/)submit/.test(request.url())) submits++;
+        });
+
+        await secret.fill('short');
+        await host.locator('button[type="submit"]').click();
+        await expect(field(page, 'secret')).toContainText('Secret must be no less than 8 characters.');
+        await secret.fill('longenough');
+        await host.locator('button[type="submit"]').click();
+        await expect(field(page, 'secret')).toContainText('Secret must contain at least one uppercase letter.');
+        await secret.fill('Longenough');
+        await host.locator('button[type="submit"]').click();
+        await expect(field(page, 'secret')).toContainText('Secret must contain at least one special character.');
+        expect(submits).toBe(0);
+        await secret.fill('Longenough!');
+
+        await page.waitForTimeout(3000);
+        const response = page.waitForResponse(r => r.request().method() === 'POST' && /client(%2F|\/)submissions(%2F|\/)submit/.test(r.url()));
+        await host.locator('button[type="submit"]').click();
+        const uid = (await (await response).json()).submissionUid;
+        const saved = await (await page.request.get(`/browser-parity-saved?uid=${uid}`)).json();
+
+        expect(saved.values.fromCookie).toBe('cookie value');
+        expect(saved.values.fromQuery).toBe('campaign-7');
+        expect(saved.values.fromPage).toBe(page.url());
+        expect(errors).toEqual([]);
+    });
+
     test(`${adapter}: shows the Phone country picker and submits the chosen country`, async ({ page }) => {
         // The fixture bundle loads the picker's CSS as text, so its flag image URL isn't rewritten as in the package builds.
         await page.route('**/img/flags*.webp', route => route.fulfill({ status: 200, contentType: 'image/webp', body: '' }));
