@@ -266,7 +266,6 @@ const STEPS: Step[] = [
 // Fields that don't match the server-rendered form yet, with why. Fixing one makes its test fail until it's removed
 // here, so this list can only shrink. The plan is in the private Formie context (plans/client-rendered-parity.md).
 const KNOWN_GAPS: Record<string, string> = {
-    pSignature: 'The server-rendered signature pad doesn’t save the drawn signature in this fixture, so the baseline is empty.',
 };
 
 type Run = { saved: Saved | null; problems: string[]; errors: string[] };
@@ -284,6 +283,12 @@ async function fillAndSubmit(page: Page, surface: Surface): Promise<Run> {
     await page.route('**/img/flags*.webp', (route) => route.fulfill({ status: 200, contentType: 'image/webp', body: '' }));
     await page.goto(surfaceUrl(surface, FORM));
     await expect(page.locator('#host button[type="submit"]').last()).toBeVisible({ timeout: 20000 });
+
+    // This page has no theme stylesheet to size the server-rendered signature pad, and without one it keeps growing
+    // and clears what's drawn. A theme gives it a height, so the baseline does too.
+    if (surface === 'server') {
+        await page.addStyleTag({ content: '.formie-signature-pad canvas { height: 150px !important; }' });
+    }
     // Server-rendered enhancements load their libraries after the markup, so let every surface settle the same way.
     await page.waitForTimeout(1500);
 
