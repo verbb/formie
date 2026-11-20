@@ -17,6 +17,9 @@ import {
     searchableDropdownMarkup,
     searchableDropdownValue,
     isDatePickerField,
+    isDateRangePickerField,
+    dateRangePickerMarkup,
+    dateRangePickerValue,
     datePickerInputValue,
     datePickerValue,
     isRichTextField,
@@ -625,6 +628,21 @@ function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps & { 
     };
     const groupLabelledBy = labelling.labelledByWrapper ? props.ids.label : nothing;
     const groupDescribedBy = joinIdReferences(instructionsReference(field, labelling)) ?? nothing;
+
+    // The range picker fills a start and an end input and fires `input`, when the wrapper reads both. Its markup only
+    // depends on the definition, so Lit leaves it alone.
+    if (isDateRangePickerField(field)) {
+        return html`
+            <div class="starter-component-date-range-picker" @input=${(e: Event) => setValue(dateRangePickerValue(e.currentTarget as HTMLElement))}>
+                <div>${unsafeHTML(dateRangePickerMarkup(field, {
+                    id: labelling.ids.input,
+                    'aria-label': labelling.labelledByWrapper ? undefined : field.label || field.handle,
+                    'aria-required': field.required ? 'true' : undefined,
+                    placeholder: typeof contract.placeholder === 'string' ? contract.placeholder : undefined,
+                }))}</div>
+            </div>
+        `;
+    }
 
     // The date picker turns its input hidden and adds its own visible input next to it, so the input gets a container
     // of its own. It fires `input` with the picked date and time, which the wrapper stores as the answer.

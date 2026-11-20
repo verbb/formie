@@ -36,6 +36,12 @@ export declare function datePickerInputValue(value: unknown): string;
 export declare function datePickerValue(inputValue: string): {
     datetime: string;
 };
+export declare function isDateRangePickerField(field: ClientFieldDefinition): boolean;
+export declare function dateRangePickerMarkup(field: ClientFieldDefinition, attributes: Record<string, string | boolean | null | undefined>): string;
+export declare function dateRangePickerValue(container: Element): {
+    startDatetime: string;
+    endDatetime: string;
+};
 export declare function datePickerParts(value: unknown): Record<string, string>;
 export type SurveyLikertRow = {
     label: string;

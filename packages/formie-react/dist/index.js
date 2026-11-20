@@ -1,6 +1,6 @@
 import { FORMIE_HTML_EVENT_NAMES as e, createFormieClient as t, mountClientRenderedModules as n } from "@verbb/formie-browser";
 import { cloneElement as r, createContext as i, createElement as a, isValidElement as o, useContext as s, useEffect as c, useMemo as l, useRef as u, useState as d } from "react";
-import { CLIENT_FORM_EVENT_NAMES as f, PHONE_COUNTRY_CHANGE_EVENT as p, VISUALLY_HIDDEN_STYLE as m, allOptionsSelected as h, attachPointerReorder as g, checkboxToggle as _, clientActionAllowed as v, compositePartDefinitions as y, createClientFormInstance as b, createGraphqlClientTransport as x, createRepeaterRowValue as S, createRestClientTransport as C, createTableRowValue as w, datePickerInputValue as T, datePickerValue as E, displayFieldContent as D, dropdownOptions as O, fieldContentPath as k, fieldOptions as A, focusClientFormResult as j, getClientErrorAriaLive as M, getClientFieldIds as N, getClientFieldLabelTarget as P, getClientPageProgress as F, getClientString as I, isArrayValuedField as L, isCalculationField as R, isCompositeField as z, isDatePickerField as B, isFieldLabelHidden as V, isFieldLabelVisuallyHidden as H, isFileField as U, isKnownClientFieldType as ee, isPhoneCountryEnabled as te, isRepeatableField as ne, isRichTextField as re, isSearchableDropdown as ie, joinIdReferences as ae, loadClientFormBootstrap as oe, loadGraphqlClientFormBootstrap as se, moveListItem as ce, paymentFieldMarkup as le, phoneFieldValue as ue, readPhoneFieldControls as de, readUploadManagerEntries as fe, repeaterRowDefinitions as pe, resolveClientRendererType as me, searchableDropdownMarkup as he, searchableDropdownValue as ge, showsClientPageTitle as _e, summaryFieldMarkup as ve, surveyLikertRows as ye, surveyRankOrder as be, tableColumns as xe, toggleAllOptions as Se, uploadManagerMarkup as Ce } from "@verbb/formie-core";
+import { CLIENT_FORM_EVENT_NAMES as f, PHONE_COUNTRY_CHANGE_EVENT as p, VISUALLY_HIDDEN_STYLE as m, allOptionsSelected as h, attachPointerReorder as g, checkboxToggle as _, clientActionAllowed as v, compositePartDefinitions as y, createClientFormInstance as b, createGraphqlClientTransport as x, createRepeaterRowValue as S, createRestClientTransport as C, createTableRowValue as w, datePickerInputValue as T, datePickerValue as E, dateRangePickerMarkup as D, dateRangePickerValue as O, displayFieldContent as k, dropdownOptions as A, fieldContentPath as j, fieldOptions as M, focusClientFormResult as N, getClientErrorAriaLive as P, getClientFieldIds as F, getClientFieldLabelTarget as I, getClientPageProgress as L, getClientString as R, isArrayValuedField as z, isCalculationField as B, isCompositeField as V, isDatePickerField as H, isDateRangePickerField as U, isFieldLabelHidden as ee, isFieldLabelVisuallyHidden as te, isFileField as ne, isKnownClientFieldType as re, isPhoneCountryEnabled as ie, isRepeatableField as ae, isRichTextField as oe, isSearchableDropdown as se, joinIdReferences as ce, loadClientFormBootstrap as le, loadGraphqlClientFormBootstrap as ue, moveListItem as de, paymentFieldMarkup as fe, phoneFieldValue as pe, readPhoneFieldControls as me, readUploadManagerEntries as he, repeaterRowDefinitions as ge, resolveClientRendererType as _e, searchableDropdownMarkup as ve, searchableDropdownValue as ye, showsClientPageTitle as be, summaryFieldMarkup as xe, surveyLikertRows as Se, surveyRankOrder as Ce, tableColumns as we, toggleAllOptions as Te, uploadManagerMarkup as Ee } from "@verbb/formie-core";
 //#region src/stable.ts
 function W(e, t) {
 	if (e == null) return String(e);
@@ -23,18 +23,18 @@ function G(e) {
 }
 //#endregion
 //#region src/definition-form.tsx
-var we = i(null);
-function Te(e) {
+var De = i(null);
+function Oe(e) {
 	return "definition" in e;
 }
-async function Ee(e) {
-	return Te(e) ? e.definition : e.transport === "graphql" ? se({
+async function ke(e) {
+	return Oe(e) ? e.definition : e.transport === "graphql" ? ue({
 		endpoint: e.endpoint,
 		profile: e.profile,
 		formHandle: e.formHandle,
 		siteId: e.siteId,
 		query: e.query
-	}) : oe({
+	}) : le({
 		endpoint: e.endpoint,
 		profile: e.profile,
 		formHandle: e.formHandle,
@@ -42,8 +42,8 @@ async function Ee(e) {
 		query: e.query
 	});
 }
-function De(e) {
-	let t = Te(e) ? e.transport : {
+function Ae(e) {
+	let t = Oe(e) ? e.transport : {
 		type: e.transport,
 		endpoint: e.endpoint,
 		profile: e.profile,
@@ -53,7 +53,7 @@ function De(e) {
 	};
 	return t.type === "graphql" ? x(t) : C(t);
 }
-function Oe({ errors: e }) {
+function je({ errors: e }) {
 	return e.length === 0 ? null : a("div", {
 		className: "formie-react-errors",
 		role: "alert",
@@ -61,7 +61,7 @@ function Oe({ errors: e }) {
 		"data-formie-form-message": !0
 	}, a("ul", null, e.map((e, t) => a("li", { key: `${e}:${t}` }, e))));
 }
-function ke({ field: e, errors: t, errorId: n, errorAriaLive: r, inputId: i, labelId: o, instructionsId: s, children: c }) {
+function Me({ field: e, errors: t, errorId: n, errorAriaLive: r, inputId: i, labelId: o, instructionsId: s, children: c }) {
 	let { slots: l } = K(), u = (t, n, r) => {
 		let i = l[t];
 		return i ? a(i, {
@@ -78,12 +78,12 @@ function ke({ field: e, errors: t, errorId: n, errorAriaLive: r, inputId: i, lab
 		"data-formie-field-handle": e.handle,
 		"data-formie-field-required": e.required ? "true" : void 0
 	}, [
-		e.label && !V(e) ? u("label", a("label", {
+		e.label && !ee(e) ? u("label", a("label", {
 			key: "label",
 			className: "formie-react-label",
-			style: H(e) ? m : void 0,
+			style: te(e) ? m : void 0,
 			id: o || void 0,
-			htmlFor: i && P(e, q(e)) === "control" ? i : void 0
+			htmlFor: i && I(e, q(e)) === "control" ? i : void 0
 		}, e.label)) : null,
 		e.instructions ? u("instructions", a("div", {
 			key: "instructions",
@@ -112,7 +112,7 @@ function ke({ field: e, errors: t, errorId: n, errorAriaLive: r, inputId: i, lab
 		})
 	]);
 }
-function Ae({ children: e }) {
+function Ne({ children: e }) {
 	let { instance: t } = K(), r = u(null);
 	return c(() => {
 		let e = !1, i;
@@ -125,10 +125,10 @@ function Ae({ children: e }) {
 		};
 	}, [t]), a("div", { ref: r }, e);
 }
-function je({ definition: e, session: t, state: n, children: r, className: i, onSubmit: o }) {
+function Pe({ definition: e, session: t, state: n, children: r, className: i, onSubmit: o }) {
 	let s = u(null), l = u(n.currentPageId), d = u(n.lastSubmitResult);
 	return c(() => {
-		n.lastSubmitResult && n.lastSubmitResult !== d.current && j(s.current, l.current), d.current = n.lastSubmitResult, l.current = n.currentPageId;
+		n.lastSubmitResult && n.lastSubmitResult !== d.current && N(s.current, l.current), d.current = n.lastSubmitResult, l.current = n.currentPageId;
 	}, [n.lastSubmitResult, n.currentPageId]), a("form", {
 		ref: s,
 		className: i,
@@ -139,8 +139,8 @@ function je({ definition: e, session: t, state: n, children: r, className: i, on
 		"data-formie-render-id": t.tokens.render
 	}, r);
 }
-function Me({ page: e, state: t, children: n }) {
-	let r = _e(t.definition) && !!e.label, i = `formie-${t.session.tokens.render || t.session.id}-page-${e.id}-title`;
+function Fe({ page: e, state: t, children: n }) {
+	let r = be(t.definition) && !!e.label, i = `formie-${t.session.tokens.render || t.session.id}-page-${e.id}-title`;
 	return a("section", {
 		"data-page-id": e.id,
 		"data-formie-page-id": e.id,
@@ -153,8 +153,8 @@ function Me({ page: e, state: t, children: n }) {
 		className: "formie-react-page-title"
 	}, e.label) : null, n);
 }
-function Ne(e) {
-	let t = F(e.definition, e.currentPageId);
+function Ie(e) {
+	let t = L(e.definition, e.currentPageId);
 	if (!t) return null;
 	let n = a("span", {
 		key: "value",
@@ -177,7 +177,7 @@ function Ne(e) {
 			key: "track",
 			className: "formie-react-progress-track",
 			role: "progressbar",
-			"aria-label": I(e.definition, "progress"),
+			"aria-label": R(e.definition, "progress"),
 			"aria-valuenow": t.percent,
 			"aria-valuemin": 0,
 			"aria-valuemax": 100
@@ -189,12 +189,12 @@ function Ne(e) {
 	]);
 }
 function K() {
-	let e = s(we);
+	let e = s(De);
 	if (!e) throw Error("Formie definition hooks must be used within a client-rendered <FormieClientForm />.");
 	return e;
 }
 function q(e) {
-	return me(e);
+	return _e(e);
 }
 function J(e, t) {
 	return e.length > 0 ? {
@@ -203,7 +203,7 @@ function J(e, t) {
 		"aria-describedby": t
 	} : {};
 }
-function Pe(e, t) {
+function Le(e, t) {
 	return {
 		errors: e.errors,
 		errorId: e.errorId,
@@ -213,7 +213,7 @@ function Pe(e, t) {
 		labelledByWrapper: t && !!e.field.label
 	};
 }
-function Fe(e, t) {
+function Re(e, t) {
 	return t.labelledByWrapper && e.instructions ? t.instructionsId : null;
 }
 function Y(e, t) {
@@ -224,11 +224,11 @@ function Y(e, t) {
 		"aria-required": e.required ? "true" : void 0,
 		"aria-invalid": n ? "true" : void 0,
 		"aria-errormessage": n ? t.errorId : void 0,
-		"aria-describedby": ae(Fe(e, t), n && t.errorId),
+		"aria-describedby": ce(Re(e, t), n && t.errorId),
 		autoComplete: typeof e.input.autocomplete == "string" ? e.input.autocomplete : void 0
 	};
 }
-function Ie(e, t) {
+function ze(e, t) {
 	return {
 		role: "img",
 		"aria-labelledby": t.labelledByWrapper ? t.labelId : void 0,
@@ -241,12 +241,12 @@ function X(e, t, n) {
 		"aria-labelledby": t.labelledByWrapper ? t.labelId : void 0,
 		"aria-label": t.labelledByWrapper ? void 0 : e.label || e.handle,
 		"aria-required": n === "radiogroup" && e.required ? "true" : void 0,
-		"aria-describedby": ae(Fe(e, t))
+		"aria-describedby": ce(Re(e, t))
 	};
 }
 function Z(e, t, n, r, i, o = q(e)) {
 	let s = e.input;
-	if (o === "multi-line-text" && re(e)) return a("div", {
+	if (o === "multi-line-text" && oe(e)) return a("div", {
 		className: "formie-react-rich-text",
 		onInput: (e) => {
 			e.target instanceof HTMLTextAreaElement && r(e.target.value);
@@ -274,18 +274,18 @@ function Z(e, t, n, r, i, o = q(e)) {
 			r(t.value);
 		}
 	});
-	if (o === "dropdown" && ie(e)) return a("div", {
+	if (o === "dropdown" && se(e)) return a("div", {
 		className: "formie-react-combobox",
 		onInput: (t) => {
-			t.target instanceof HTMLSelectElement && r(ge(e, t.target));
+			t.target instanceof HTMLSelectElement && r(ye(e, t.target));
 		}
-	}, a("div", { dangerouslySetInnerHTML: { __html: he(e, {
+	}, a("div", { dangerouslySetInnerHTML: { __html: ve(e, {
 		id: i.inputId || void 0,
 		"aria-required": e.required ? "true" : void 0,
 		disabled: n
 	}) } }));
 	if (o === "dropdown") {
-		let o = s.multiple === !0, c = L(e), l = (Array.isArray(t) ? t : t == null ? [] : [t]).map((e) => String(e)), u = o ? A(e) : O(e), d = l[0] ?? "", f = !o && d === "" && !u.some((e) => e.value === "");
+		let o = s.multiple === !0, c = z(e), l = (Array.isArray(t) ? t : t == null ? [] : [t]).map((e) => String(e)), u = o ? M(e) : A(e), d = l[0] ?? "", f = !o && d === "" && !u.some((e) => e.value === "");
 		return a("select", {
 			...Y(e, i),
 			value: o ? l : d,
@@ -312,7 +312,7 @@ function Z(e, t, n, r, i, o = q(e)) {
 		type: c,
 		value: typeof t == "string" || typeof t == "number" ? String(t) : "",
 		disabled: n,
-		readOnly: R(e) || void 0,
+		readOnly: B(e) || void 0,
 		placeholder: typeof s.placeholder == "string" ? s.placeholder : void 0,
 		onChange: (e) => {
 			let t = e.target;
@@ -320,7 +320,7 @@ function Z(e, t, n, r, i, o = q(e)) {
 		}
 	});
 }
-function Le(e, t, n, r) {
+function Be(e, t, n, r) {
 	if (e.type === "heading") return a("span", null, typeof t == "string" ? t : "");
 	if (e.type === "checkbox") return a("input", {
 		type: "checkbox",
@@ -367,11 +367,11 @@ function Le(e, t, n, r) {
 		onChange: (e) => r(e.target.value)
 	});
 }
-function Re({ field: e, value: t, labelling: n, disabled: i, setValue: s }) {
+function Ve({ field: e, value: t, labelling: n, disabled: i, setValue: s }) {
 	let l = u(null), d = u({
 		value: t,
 		setValue: s
-	}), f = te(e), m = ue(t);
+	}), f = ie(e), m = pe(t);
 	c(() => {
 		d.current = {
 			value: t,
@@ -381,7 +381,7 @@ function Re({ field: e, value: t, labelling: n, disabled: i, setValue: s }) {
 		let e = l.current;
 		if (!e) return;
 		let t = () => {
-			d.current.setValue(de(e, ue(d.current.value)));
+			d.current.setValue(me(e, pe(d.current.value)));
 		};
 		return e.addEventListener(p, t), () => {
 			e.removeEventListener(p, t);
@@ -389,7 +389,7 @@ function Re({ field: e, value: t, labelling: n, disabled: i, setValue: s }) {
 	}, [f]);
 	let h = Z(e, m.number, i, (e) => {
 		s({
-			...de(l.current, m),
+			...me(l.current, m),
 			number: String(e ?? "")
 		});
 	}, n, "phone");
@@ -403,8 +403,8 @@ function Re({ field: e, value: t, labelling: n, disabled: i, setValue: s }) {
 		"data-formie-phone-country-input": "true"
 	}));
 }
-function ze({ field: e, value: t, disabled: n, setValue: r, labelling: i, inputId: o, errors: s, errorId: c }) {
-	let l = A(e), u = ye(e), d = u.length > 0, f = d && t && typeof t == "object" ? t : {}, p = o || `${e.id}-likert`;
+function He({ field: e, value: t, disabled: n, setValue: r, labelling: i, inputId: o, errors: s, errorId: c }) {
+	let l = M(e), u = Se(e), d = u.length > 0, f = d && t && typeof t == "object" ? t : {}, p = o || `${e.id}-likert`;
 	return a("div", {
 		className: "formie-react-likert",
 		...X(e, i, "group")
@@ -435,12 +435,12 @@ function ze({ field: e, value: t, disabled: n, setValue: r, labelling: i, inputI
 		}))));
 	}))));
 }
-function Be({ field: e, value: t, disabled: n, setValue: r, labelling: i }) {
+function Ue({ field: e, value: t, disabled: n, setValue: r, labelling: i }) {
 	let { state: o } = K(), s = u(null), l = u({
 		field: e,
 		value: t,
 		setValue: r
-	}), d = Object.fromEntries(A(e).map((e) => [e.value, e.label])), f = be(e, t);
+	}), d = Object.fromEntries(M(e).map((e) => [e.value, e.label])), f = Ce(e, t);
 	c(() => {
 		l.current = {
 			field: e,
@@ -454,10 +454,10 @@ function Be({ field: e, value: t, disabled: n, setValue: r, labelling: i }) {
 	]), c(() => {
 		if (s.current) return g(s.current, "li", (e, t) => {
 			let { field: n, value: r, setValue: i } = l.current;
-			i(ce(be(n, r), e, t));
+			i(de(Ce(n, r), e, t));
 		});
 	}, []);
-	let p = (e, t) => r(ce(f, e, t));
+	let p = (e, t) => r(de(f, e, t));
 	return a("ol", {
 		ref: s,
 		className: "formie-react-rank",
@@ -465,16 +465,16 @@ function Be({ field: e, value: t, disabled: n, setValue: r, labelling: i }) {
 	}, f.map((e, t) => a("li", { key: e }, a("span", null, d[e] ?? e), a("button", {
 		type: "button",
 		disabled: n || t === 0,
-		"aria-label": `${I(o.definition, "moveUp")}: ${d[e] ?? e}`,
+		"aria-label": `${R(o.definition, "moveUp")}: ${d[e] ?? e}`,
 		onClick: () => p(t, t - 1)
-	}, I(o.definition, "moveUp")), a("button", {
+	}, R(o.definition, "moveUp")), a("button", {
 		type: "button",
 		disabled: n || t === f.length - 1,
-		"aria-label": `${I(o.definition, "moveDown")}: ${d[e] ?? e}`,
+		"aria-label": `${R(o.definition, "moveDown")}: ${d[e] ?? e}`,
 		onClick: () => p(t, t + 1)
-	}, I(o.definition, "moveDown")))));
+	}, R(o.definition, "moveDown")))));
 }
-var Ve = {
+var We = {
 	position: "absolute",
 	inset: 0,
 	width: "100%",
@@ -483,8 +483,8 @@ var Ve = {
 	opacity: 0,
 	cursor: "pointer"
 };
-function He({ field: e, value: t, disabled: n, setValue: r, labelling: i, inputId: o, errors: s, errorId: c }) {
-	let l = A(e), u = t == null ? "" : String(t), d = l.findIndex((e) => e.value === u), f = typeof e.input.starColor == "string" && e.input.starColor ? e.input.starColor : void 0;
+function Ge({ field: e, value: t, disabled: n, setValue: r, labelling: i, inputId: o, errors: s, errorId: c }) {
+	let l = M(e), u = t == null ? "" : String(t), d = l.findIndex((e) => e.value === u), f = typeof e.input.starColor == "string" && e.input.starColor ? e.input.starColor : void 0;
 	return a("div", {
 		className: "formie-react-rating",
 		style: f ? { color: f } : void 0,
@@ -502,7 +502,7 @@ function He({ field: e, value: t, disabled: n, setValue: r, labelling: i, inputI
 		value: t.value,
 		checked: u === t.value,
 		disabled: n || t.disabled,
-		style: Ve,
+		style: We,
 		...J(s, c),
 		onChange: () => r(t.value),
 		onClick: () => {
@@ -510,22 +510,22 @@ function He({ field: e, value: t, disabled: n, setValue: r, labelling: i, inputI
 		}
 	}), a("span", { "aria-hidden": "true" }, i <= d ? "★" : "☆"), a("span", { style: m }, t.label))));
 }
-function Ue({ field: e }) {
+function Ke({ field: e }) {
 	let { state: t } = K();
 	return a("div", {
 		className: "formie-react-summary",
-		dangerouslySetInnerHTML: { __html: ve(e, t.lastSubmitResult) ?? "" }
+		dangerouslySetInnerHTML: { __html: xe(e, t.lastSubmitResult) ?? "" }
 	});
 }
-function We(e) {
+function qe(e) {
 	let t = (e) => e.replace(/[&"<>]/g, (e) => `&#${e.charCodeAt(0)};`);
 	return Object.entries(e).filter(([, e]) => e !== void 0 && e !== !1).map(([e, n]) => {
 		let r = e === "autoComplete" ? "autocomplete" : e;
 		return n === !0 ? r : `${r}="${t(String(n))}"`;
 	}).join(" ");
 }
-function Ge({ field: e, value: t, disabled: n, setValue: r, labelling: i }) {
-	let [o] = d(() => `<input ${We({
+function Je({ field: e, value: t, disabled: n, setValue: r, labelling: i }) {
+	let [o] = d(() => `<input ${qe({
 		type: "text",
 		...Y(e, i),
 		"data-formie-date-datepicker-input": "true",
@@ -541,16 +541,16 @@ function Ge({ field: e, value: t, disabled: n, setValue: r, labelling: i }) {
 		}
 	}, a("div", { dangerouslySetInnerHTML: { __html: o } }));
 }
-function Ke({ markup: e, errorKey: t, setValue: n }) {
+function Ye({ markup: e, errorKey: t, setValue: n }) {
 	let { state: r } = K();
 	return a("div", {
 		className: "formie-react-upload-manager",
-		"data-formie-upload-field-handle": k(r.definition, t),
-		onInput: (e) => n(fe(e.currentTarget))
+		"data-formie-upload-field-handle": j(r.definition, t),
+		onInput: (e) => n(he(e.currentTarget))
 	}, a("div", { dangerouslySetInnerHTML: { __html: e } }));
 }
-function qe({ field: e, value: t, labelling: n, disabled: r, setValue: i }) {
-	let { state: o } = K(), s = xe(e), c = Array.isArray(t) ? t : [], l = e.input, u = l.static === !0 || l.staticRows === !0, d = Number(l.minRows ?? 0) || 0, f = Number(l.maxRows ?? 0) || 0, p = !r && !u && (f <= 0 || c.length < f), m = (e, t, n) => {
+function Xe({ field: e, value: t, labelling: n, disabled: r, setValue: i }) {
+	let { state: o } = K(), s = we(e), c = Array.isArray(t) ? t : [], l = e.input, u = l.static === !0 || l.staticRows === !0, d = Number(l.minRows ?? 0) || 0, f = Number(l.maxRows ?? 0) || 0, p = !r && !u && (f <= 0 || c.length < f), m = (e, t, n) => {
 		i(c.map((r, i) => i === e ? {
 			...r,
 			[t]: n
@@ -562,24 +562,24 @@ function qe({ field: e, value: t, labelling: n, disabled: r, setValue: i }) {
 	}, [a("table", { key: "table" }, [a("thead", { key: "head" }, a("tr", null, [...s.map((e) => a("th", {
 		key: e.id,
 		scope: "col"
-	}, e.heading)), u ? null : a("td", { key: "actions" })])), a("tbody", { key: "body" }, c.map((e, t) => a("tr", { key: t }, [...s.map((n) => a("td", { key: n.id }, Le(n, e[n.handle], r, (e) => m(t, n.handle, e)))), u ? null : a("td", { key: "actions" }, a("button", {
+	}, e.heading)), u ? null : a("td", { key: "actions" })])), a("tbody", { key: "body" }, c.map((e, t) => a("tr", { key: t }, [...s.map((n) => a("td", { key: n.id }, Be(n, e[n.handle], r, (e) => m(t, n.handle, e)))), u ? null : a("td", { key: "actions" }, a("button", {
 		type: "button",
 		disabled: r || c.length <= d,
-		"aria-label": `${I(o.definition, "removeRow")} ${t + 1}`,
+		"aria-label": `${R(o.definition, "removeRow")} ${t + 1}`,
 		onClick: () => i(c.filter((e, n) => n !== t))
-	}, I(o.definition, "remove")))])))]), u ? null : a("button", {
+	}, R(o.definition, "remove")))])))]), u ? null : a("button", {
 		key: "add",
 		type: "button",
 		disabled: !p,
 		onClick: () => i([...c, w(e)])
-	}, String(l.addRowLabel || I(o.definition, "addRow")))]);
+	}, String(l.addRowLabel || R(o.definition, "addRow")))]);
 }
-function Je(e, t, n) {
+function Ze(e, t, n) {
 	let r = new Set(e.moduleRefs || []);
 	return t.modules.entries.find((e) => r.has(e.key) && e.moduleId === n) || null;
 }
-function Ye({ field: e, value: t, labelling: n, disabled: r, setValue: i }) {
-	let { state: o } = K(), s = u(null), l = u(null), [f, p] = d(null), m = Je(e, o.definition, "formie:signature")?.config, h = typeof m?.backgroundColor == "string" ? String(m.backgroundColor) : "#ffffff", g = typeof m?.penColor == "string" ? String(m.penColor) : "#000000", _ = Number(m?.penWeight ?? 2) || 2, v = typeof t == "string" ? t : "";
+function Qe({ field: e, value: t, labelling: n, disabled: r, setValue: i }) {
+	let { state: o } = K(), s = u(null), l = u(null), [f, p] = d(null), m = Ze(e, o.definition, "formie:signature")?.config, h = typeof m?.backgroundColor == "string" ? String(m.backgroundColor) : "#ffffff", g = typeof m?.penColor == "string" ? String(m.penColor) : "#000000", _ = Number(m?.penWeight ?? 2) || 2, v = typeof t == "string" ? t : "";
 	return c(() => {
 		let e = !1, t = () => void 0, n = () => void 0;
 		return (async () => {
@@ -627,26 +627,26 @@ function Ye({ field: e, value: t, labelling: n, disabled: r, setValue: i }) {
 			key: "canvas",
 			ref: s,
 			"data-formie-signature-canvas": !0,
-			...Ie(e, n),
+			...ze(e, n),
 			style: r ? { pointerEvents: "none" } : void 0
 		}),
 		a("button", {
 			key: "clear",
 			type: "button",
 			disabled: r,
-			"aria-label": I(o.definition, "clearSignature"),
+			"aria-label": R(o.definition, "clearSignature"),
 			"data-formie-signature-clear": !0,
 			onClick: () => {
 				l.current?.clear(), i("");
 			}
-		}, I(o.definition, "clear")),
+		}, R(o.definition, "clear")),
 		f ? a("div", {
 			key: "error",
 			className: "formie-react-unsupported"
 		}, f) : null
 	]);
 }
-function Xe({ field: e, value: t, errorKey: n, labelling: r, disabled: i, setValue: o }) {
+function $e({ field: e, value: t, errorKey: n, labelling: r, disabled: i, setValue: o }) {
 	let { state: s } = K(), c = y(e), l = t && typeof t == "object" ? t : {};
 	return c.length === 0 ? a("div", { className: "formie-react-unsupported" }, `Unsupported field type: ${e.type}`) : a("div", {
 		className: "formie-react-name-grid",
@@ -669,7 +669,7 @@ function Xe({ field: e, value: t, errorKey: n, labelling: r, disabled: i, setVal
 		});
 	}));
 }
-function Ze({ field: e, value: t, labelling: n, disabled: r, setValue: i }) {
+function et({ field: e, value: t, labelling: n, disabled: r, setValue: i }) {
 	let o = e.input, s = Array.isArray(t) ? t : [], c = o.multiple === !0, l = s.map((e, t) => e && typeof e == "object" && "name" in e && typeof e.name == "string" ? e.name : e && typeof e == "object" && "filename" in e && typeof e.filename == "string" ? e.filename : e && typeof e == "object" && "assetId" in e && typeof e.assetId == "number" ? `Asset #${e.assetId}` : `File ${t + 1}`);
 	return a("div", { className: "formie-react-file" }, [a("input", {
 		key: "input",
@@ -686,8 +686,8 @@ function Ze({ field: e, value: t, labelling: n, disabled: r, setValue: i }) {
 		className: "formie-react-file-list"
 	}, l.map((e, t) => a("li", { key: `${e}:${t}` }, e))) : null]);
 }
-function Qe({ field: e, value: t, errorKey: n, labelling: r, disabled: i, setValue: o }) {
-	let { state: s } = K(), c = pe(e), l = Array.isArray(t) ? t : [], u = e.input, d = Number(u.minRows ?? 0) || 0, f = Number(u.maxRows ?? 0) || 0, p = !i && (f <= 0 || l.length < f);
+function tt({ field: e, value: t, errorKey: n, labelling: r, disabled: i, setValue: o }) {
+	let { state: s } = K(), c = ge(e), l = Array.isArray(t) ? t : [], u = e.input, d = Number(u.minRows ?? 0) || 0, f = Number(u.maxRows ?? 0) || 0, p = !i && (f <= 0 || l.length < f);
 	return c.length === 0 ? a("div", { className: "formie-react-unsupported" }, "Unsupported repeater field.") : a("div", {
 		className: "formie-react-repeater",
 		"data-formie-repeater-container": !0,
@@ -698,7 +698,7 @@ function Qe({ field: e, value: t, errorKey: n, labelling: r, disabled: i, setVal
 			key: u,
 			className: "formie-react-repeater-item",
 			"data-formie-repeater-item": !0
-		}, [...c.map((e, s) => a(et, {
+		}, [...c.map((e, s) => a(rt, {
 			key: `${u}:${s}`,
 			row: e,
 			rowIndex: s,
@@ -715,12 +715,12 @@ function Qe({ field: e, value: t, errorKey: n, labelling: r, disabled: i, setVal
 			key: "remove",
 			type: "button",
 			disabled: i || d > 0 && l.length <= d,
-			"aria-label": `${I(s.definition, "removeRow")} ${r + 1}`,
+			"aria-label": `${R(s.definition, "removeRow")} ${r + 1}`,
 			"data-formie-repeater-remove": !0,
 			onClick: () => {
 				o(l.filter((e, t) => t !== r));
 			}
-		}, I(s.definition, "remove"))]);
+		}, R(s.definition, "remove"))]);
 	}), a("button", {
 		key: "add",
 		type: "button",
@@ -729,18 +729,27 @@ function Qe({ field: e, value: t, errorKey: n, labelling: r, disabled: i, setVal
 		onClick: () => {
 			o([...l, S(e)]);
 		}
-	}, String(u.addRowLabel || I(s.definition, "addRow")))]);
+	}, String(u.addRowLabel || R(s.definition, "addRow")))]);
 }
 function Q(e, t = !0) {
-	let { field: n, value: r, errorKey: i, errorId: o, disabled: s, setValue: c } = e, l = n.input, u = q(n), d = Pe(e, t);
-	if (B(n)) return a(Ge, {
+	let { field: n, value: r, errorKey: i, errorId: o, disabled: s, setValue: c } = e, l = n.input, u = q(n), d = Le(e, t);
+	if (U(n)) return a("div", {
+		className: "formie-react-date-range-picker",
+		onInput: (e) => c(O(e.currentTarget))
+	}, a("div", { dangerouslySetInnerHTML: { __html: D(n, {
+		id: d.inputId || void 0,
+		"aria-label": d.labelledByWrapper ? void 0 : n.label || n.handle,
+		"aria-required": n.required ? "true" : void 0,
+		placeholder: typeof l.placeholder == "string" ? l.placeholder : void 0
+	}) } }));
+	if (H(n)) return a(Je, {
 		field: n,
 		value: r,
 		disabled: s,
 		setValue: c,
 		labelling: d
 	});
-	if (z(n)) return a(Xe, {
+	if (V(n)) return a($e, {
 		field: n,
 		value: r,
 		errorKey: i,
@@ -748,7 +757,7 @@ function Q(e, t = !0) {
 		disabled: s,
 		setValue: c
 	});
-	if (ne(n)) return a(Qe, {
+	if (ae(n)) return a(tt, {
 		field: n,
 		value: r,
 		errorKey: i,
@@ -756,26 +765,26 @@ function Q(e, t = !0) {
 		disabled: s,
 		setValue: c
 	});
-	if (u === "phone") return a(Re, {
+	if (u === "phone") return a(Ve, {
 		field: n,
 		value: r,
 		labelling: d,
 		disabled: s,
 		setValue: c
 	});
-	if (u === "survey-likert") return a(ze, {
+	if (u === "survey-likert") return a(He, {
 		...e,
 		labelling: d
 	});
-	if (u === "survey-rank") return a(Be, {
+	if (u === "survey-rank") return a(Ue, {
 		...e,
 		labelling: d
 	});
-	if (u === "survey-rating") return a(He, {
+	if (u === "survey-rating") return a(Ge, {
 		...e,
 		labelling: d
 	});
-	if (u === "table") return a(qe, {
+	if (u === "table") return a(Xe, {
 		field: n,
 		value: r,
 		labelling: d,
@@ -783,20 +792,20 @@ function Q(e, t = !0) {
 		setValue: c
 	});
 	if (u === "section") return a("hr", { className: "formie-react-section" });
-	let f = Ce(n);
-	if (f !== null) return a(Ke, {
+	let f = Ee(n);
+	if (f !== null) return a(Ye, {
 		markup: f,
 		errorKey: i,
 		setValue: c
 	});
-	if (U(n)) return a(Ze, {
+	if (ne(n)) return a(et, {
 		field: n,
 		value: r,
 		labelling: d,
 		disabled: s,
 		setValue: c
 	});
-	if (u === "signature") return a(Ye, {
+	if (u === "signature") return a(Qe, {
 		field: n,
 		value: r,
 		labelling: d,
@@ -805,7 +814,7 @@ function Q(e, t = !0) {
 	});
 	if (u === "multi-line-text" || u === "dropdown") return Z(n, r, s, c, d, u);
 	if (u === "radio") {
-		let t = A(n), i = L(n), l = Array.isArray(r) ? String(r[0] ?? "") : r == null ? "" : String(r);
+		let t = M(n), i = z(n), l = Array.isArray(r) ? String(r[0] ?? "") : r == null ? "" : String(r);
 		return a("div", {
 			className: "formie-react-choices",
 			...X(n, d, "radiogroup")
@@ -826,14 +835,14 @@ function Q(e, t = !0) {
 		}));
 	}
 	if (u === "checkboxes") {
-		let t = A(n), i = Array.isArray(r) ? r.map((e) => String(e)) : [], l = _(n), u = l ? a("label", {
+		let t = M(n), i = Array.isArray(r) ? r.map((e) => String(e)) : [], l = _(n), u = l ? a("label", {
 			key: "toggle",
 			className: "formie-react-checkbox-toggle"
 		}, a("input", {
 			type: "checkbox",
 			checked: h(n, i),
 			disabled: s,
-			onChange: (e) => c(Se(n, i, e.target.checked))
+			onChange: (e) => c(Te(n, i, e.target.checked))
 		}), a("span", null, l.label)) : null;
 		return a("div", {
 			className: "formie-react-choices",
@@ -875,14 +884,14 @@ function Q(e, t = !0) {
 			dangerouslySetInnerHTML: { __html: t }
 		}) : a("span", { key: "description" }, n.label)]));
 	}
-	let p = D(n);
+	let p = k(n);
 	if (p) return p.kind === "heading" ? a(p.level, { className: "formie-react-heading" }, p.text) : a("div", {
 		className: "formie-react-content",
 		dangerouslySetInnerHTML: { __html: p.html }
 	});
-	if (n.type === "summary") return a(Ue, { field: n });
-	let m = le(n);
-	return m === null ? ee(u) ? Z(n, r, s, c, d, u) : a("div", { className: "formie-react-unsupported" }, `Unsupported field type: ${String(n.meta?.fieldType ?? n.type)}`) : a("div", {
+	if (n.type === "summary") return a(Ke, { field: n });
+	let m = fe(n);
+	return m === null ? re(u) ? Z(n, r, s, c, d, u) : a("div", { className: "formie-react-unsupported" }, `Unsupported field type: ${String(n.meta?.fieldType ?? n.type)}`) : a("div", {
 		className: "formie-react-payment",
 		dangerouslySetInnerHTML: { __html: m }
 	});
@@ -890,7 +899,7 @@ function Q(e, t = !0) {
 function $({ field: e, value: t, errors: n, errorKey: r, disabled: i, setValue: o }) {
 	let { components: s, fieldComponents: c, state: l } = K(), u = l.fieldStates[r]?.hidden === !0;
 	if (u) return null;
-	let d = q(e), f = c[e.type] || c[d] || Q, p = s.Field || ke, m = N(l.session, r), h = m.errors, g = M(l.definition), _ = {
+	let d = q(e), f = c[e.type] || c[d] || Q, p = s.Field || Me, m = F(l.session, r), h = m.errors, g = P(l.definition), _ = {
 		field: e,
 		value: t,
 		errors: n,
@@ -915,7 +924,7 @@ function $({ field: e, value: t, errors: n, errorKey: r, disabled: i, setValue: 
 		children: f === Q ? Q(_, !s.Field) : a(f, _)
 	});
 }
-function $e({ field: e }) {
+function nt({ field: e }) {
 	let { state: t, instance: n } = K(), r = t.fieldStates[e.id];
 	return a($, {
 		field: e,
@@ -928,10 +937,10 @@ function $e({ field: e }) {
 		}
 	});
 }
-function et({ row: e, rowIndex: t, values: n, errorPrefix: r, disabled: i, setFieldValue: o }) {
+function rt({ row: e, rowIndex: t, values: n, errorPrefix: r, disabled: i, setFieldValue: o }) {
 	let { state: s } = K();
 	return a("div", { className: "formie-react-row" }, e.fields.map((e, c) => {
-		if (!n || !o) return a($e, {
+		if (!n || !o) return a(nt, {
 			key: e.id || `${t}:${c}`,
 			field: e
 		});
@@ -949,7 +958,7 @@ function et({ row: e, rowIndex: t, values: n, errorPrefix: r, disabled: i, setFi
 		});
 	}));
 }
-function tt() {
+function it() {
 	let { state: e, instance: t } = K(), n = e.definition.pages.find((t) => t.id === e.currentPageId);
 	if (!n) return null;
 	let r = [];
@@ -967,8 +976,8 @@ function tt() {
 		disabled: !v(e)
 	}, n.actions.primary.label)), a("div", { className: "formie-page-actions" }, r);
 }
-function nt({ className: e }) {
-	let { instance: t, state: n, components: r } = K(), i = r.Form || je, o = r.Page || Me, s = r.ErrorSummary || Oe, c = n.definition.pages.find((e) => e.id === n.currentPageId && n.pageStates[e.id]?.hidden !== !0) || n.definition.pages.find((e) => n.pageStates[e.id]?.hidden !== !0) || n.definition.pages[0], l = n.lastSubmitResult?.messages.error, u = !!l && !n.errors.form.includes(l), d = !(n.lastSubmitResult?.completion?.behavior === "message" && n.lastSubmitResult.completion.hideForm), f = d ? F(n.definition, n.currentPageId)?.position : void 0;
+function at({ className: e }) {
+	let { instance: t, state: n, components: r } = K(), i = r.Form || Pe, o = r.Page || Fe, s = r.ErrorSummary || je, c = n.definition.pages.find((e) => e.id === n.currentPageId && n.pageStates[e.id]?.hidden !== !0) || n.definition.pages.find((e) => n.pageStates[e.id]?.hidden !== !0) || n.definition.pages[0], l = n.lastSubmitResult?.messages.error, u = !!l && !n.errors.form.includes(l), d = !(n.lastSubmitResult?.completion?.behavior === "message" && n.lastSubmitResult.completion.hideForm), f = d ? L(n.definition, n.currentPageId)?.position : void 0;
 	return c ? a(i, {
 		definition: n.definition,
 		session: n.session,
@@ -995,25 +1004,25 @@ function nt({ className: e }) {
 				tabIndex: -1,
 				"data-formie-form-message": !0
 			}, l) : null,
-			f === "start" ? Ne(n) : null,
+			f === "start" ? Ie(n) : null,
 			d ? a(o, {
 				key: c.id,
 				page: c,
 				state: n,
-				children: [...c.rows.map((e, t) => a(et, {
+				children: [...c.rows.map((e, t) => a(rt, {
 					key: `${c.id}:${t}`,
 					row: e,
 					rowIndex: t
-				})), a(tt, { key: "actions" })]
+				})), a(it, { key: "actions" })]
 			}) : null,
-			f === "end" ? Ne(n) : null
+			f === "end" ? Ie(n) : null
 		]
 	}) : null;
 }
-function rt(e, t, ...n) {
+function ot(e, t, ...n) {
 	e?.(...n), t && t !== e && t(...n);
 }
-function it({ source: e, components: t = {}, fieldComponents: n = {}, slots: r = {}, className: i, onMount: o, onReady: s, onUnmount: p, onResult: m, onSuccess: h, onError: g, onSubmitResult: _, onSubmitSuccess: v, onSubmitError: y, onEvent: x }) {
+function st({ source: e, components: t = {}, fieldComponents: n = {}, slots: r = {}, className: i, onMount: o, onReady: s, onUnmount: p, onResult: m, onSuccess: h, onError: g, onSubmitResult: _, onSubmitSuccess: v, onSubmitError: y, onEvent: x }) {
 	let [S, C] = d(null), [w, T] = d(null), [E, D] = d(null), O = u(o), k = u(s), A = u(p), j = u(m), M = u(h), N = u(g), P = u(_), F = u(v), I = u(y), L = u(x), R = l(() => G(e), [e]), z = u(e);
 	c(() => {
 		O.current = o;
@@ -1041,7 +1050,7 @@ function it({ source: e, components: t = {}, fieldComponents: n = {}, slots: r =
 		let e = !1, t = () => void 0;
 		return (async () => {
 			try {
-				let n = await Ee(z.current), r = De(z.current), i = b({
+				let n = await ke(z.current), r = Ae(z.current), i = b({
 					envelope: n,
 					transport: r
 				});
@@ -1056,7 +1065,7 @@ function it({ source: e, components: t = {}, fieldComponents: n = {}, slots: r =
 					}),
 					i.on("formie:submit:result", (e) => {
 						let t = e;
-						rt(P.current, j.current, t), t.success ? rt(F.current, M.current, t) : rt(I.current, N.current, t);
+						ot(P.current, j.current, t), t.success ? ot(F.current, M.current, t) : ot(I.current, N.current, t);
 					}),
 					...f.map((e) => i.on(e, (t) => {
 						L.current?.({
@@ -1088,12 +1097,12 @@ function it({ source: e, components: t = {}, fieldComponents: n = {}, slots: r =
 		r,
 		w
 	]);
-	return E ? a("div", { className: "formie-react-error" }, E.message) : B ? a(we.Provider, {
+	return E ? a("div", { className: "formie-react-error" }, E.message) : B ? a(De.Provider, {
 		value: B,
-		children: a(Ae, { children: a(nt, { className: i }) })
+		children: a(Ne, { children: a(at, { className: i }) })
 	}) : a("div", { className: "formie-react-loading" }, "Loading form...");
 }
-function at() {
+function ct() {
 	let e = K();
 	return {
 		definition: e.state.definition,
@@ -1102,7 +1111,7 @@ function at() {
 		instance: e.instance
 	};
 }
-function ot(e) {
+function lt(e) {
 	let t = K(), n = t.state.definition.pages.flatMap((e) => e.rows).flatMap((e) => e.fields).find((t) => t.id === e);
 	return {
 		field: n,
@@ -1115,7 +1124,7 @@ function ot(e) {
 		}
 	};
 }
-function st(e) {
+function ut(e) {
 	let t = K();
 	return {
 		page: t.state.definition.pages.find((t) => t.id === e) || null,
@@ -1123,33 +1132,33 @@ function st(e) {
 		hidden: t.state.pageStates[e]?.hidden === !0
 	};
 }
-function ct() {
+function dt() {
 	return K().instance;
 }
-function lt(e) {
+function ft(e) {
 	return K().slots[e] || null;
 }
 //#endregion
 //#region src/index.ts
-function ut(e) {
+function pt(e) {
 	return !!e && "payload" in e;
 }
-function dt(e) {
+function mt(e) {
 	return "success" in e ? e.success : e.ok;
 }
-function ft(e, t, ...n) {
+function ht(e, t, ...n) {
 	e?.(...n), t && t !== e && t(...n);
 }
-function pt(e) {
+function gt(e) {
 	let t = e.transport;
-	if (!t && !ut(e.source)) throw Error("`transport` is required for <FormieForm />.");
+	if (!t && !pt(e.source)) throw Error("`transport` is required for <FormieForm />.");
 	return {
 		mode: "server-rendered",
 		transport: t,
 		profile: e.profile,
 		endpoint: e.endpoint,
 		formHandle: e.formHandle,
-		payload: ut(e.source) ? e.source.payload : void 0,
+		payload: pt(e.source) ? e.source.payload : void 0,
 		staticCache: e.staticCache,
 		refreshTokens: e.refreshTokens,
 		locale: e.locale,
@@ -1159,7 +1168,7 @@ function pt(e) {
 		themeConfig: e.themeConfig
 	};
 }
-function mt(e) {
+function _t(e) {
 	if (e.source) return e.source;
 	let t = e.transport, n = e.endpoint, r = e.formHandle;
 	if (t !== "rest" && t !== "graphql") throw Error("React client-rendered forms require `transport=\"rest\"` or `transport=\"graphql\"`.");
@@ -1172,8 +1181,8 @@ function mt(e) {
 		profile: e.profile
 	};
 }
-function ht({ source: n, transport: r, profile: i, endpoint: o, formHandle: s, staticCache: d, refreshTokens: f, locale: p, siteId: m, autoVisible: h, theme: g, themeConfig: _, className: v, onMount: y, onReady: b, onUnmount: x, onResult: S, onSuccess: C, onError: w, onSubmitResult: T, onSubmitSuccess: E, onSubmitError: D, onEvent: O }) {
-	let k = u(null), A = u(null), j = u(y), M = u(b), N = u(x), P = u(S), F = u(C), I = u(w), L = u(T), R = u(E), z = u(D), B = u(O), V = l(() => pt({
+function vt({ source: n, transport: r, profile: i, endpoint: o, formHandle: s, staticCache: d, refreshTokens: f, locale: p, siteId: m, autoVisible: h, theme: g, themeConfig: _, className: v, onMount: y, onReady: b, onUnmount: x, onResult: S, onSuccess: C, onError: w, onSubmitResult: T, onSubmitSuccess: E, onSubmitError: D, onEvent: O }) {
+	let k = u(null), A = u(null), j = u(y), M = u(b), N = u(x), P = u(S), F = u(C), I = u(w), L = u(T), R = u(E), z = u(D), B = u(O), V = l(() => gt({
 		transport: r,
 		profile: i,
 		endpoint: o,
@@ -1222,7 +1231,7 @@ function ht({ source: n, transport: r, profile: i, endpoint: o, formHandle: s, s
 		return n.mount(t, U.current).then((t) => {
 			r || (j.current?.(t), M.current?.(t), i.push(t.on("formie:submit:result", (e) => {
 				let t = e;
-				ft(L.current, P.current, t), dt(t) ? ft(R.current, F.current, t) : ft(z.current, I.current, t);
+				ht(L.current, P.current, t), mt(t) ? ht(R.current, F.current, t) : ht(z.current, I.current, t);
 			})), e.forEach((e) => {
 				i.push(t.on(e, (t) => {
 					B.current?.({
@@ -1241,8 +1250,8 @@ function ht({ source: n, transport: r, profile: i, endpoint: o, formHandle: s, s
 		className: v
 	});
 }
-function gt({ source: e, transport: t, profile: n, endpoint: r, formHandle: i, staticCache: o, refreshTokens: s, locale: c, siteId: l, autoVisible: u, theme: d, themeConfig: f, className: p, onMount: m, onReady: h, onUnmount: g, onResult: _, onSuccess: v, onError: y, onSubmitResult: b, onSubmitSuccess: x, onSubmitError: S, onEvent: C }) {
-	return a(ht, {
+function yt({ source: e, transport: t, profile: n, endpoint: r, formHandle: i, staticCache: o, refreshTokens: s, locale: c, siteId: l, autoVisible: u, theme: d, themeConfig: f, className: p, onMount: m, onReady: h, onUnmount: g, onResult: _, onSuccess: v, onError: y, onSubmitResult: b, onSubmitSuccess: x, onSubmitError: S, onEvent: C }) {
+	return a(vt, {
 		source: e,
 		transport: t,
 		profile: n,
@@ -1268,9 +1277,9 @@ function gt({ source: e, transport: t, profile: n, endpoint: r, formHandle: i, s
 		onEvent: C
 	});
 }
-function _t({ source: e, transport: t, profile: n, endpoint: r, formHandle: i, siteId: o, components: s, fieldComponents: c, slots: l, className: u, onMount: d, onReady: f, onUnmount: p, onResult: m, onSuccess: h, onError: g, onSubmitResult: _, onSubmitSuccess: v, onSubmitError: y, onEvent: b }) {
-	return a(it, {
-		source: mt({
+function bt({ source: e, transport: t, profile: n, endpoint: r, formHandle: i, siteId: o, components: s, fieldComponents: c, slots: l, className: u, onMount: d, onReady: f, onUnmount: p, onResult: m, onSuccess: h, onError: g, onSubmitResult: _, onSubmitSuccess: v, onSubmitError: y, onEvent: b }) {
+	return a(st, {
+		source: _t({
 			source: e,
 			transport: t,
 			profile: n,
@@ -1308,11 +1317,11 @@ function _t({ source: e, transport: t, profile: n, endpoint: r, formHandle: i, s
 		onEvent: b
 	});
 }
-function vt() {
+function xt() {
 	return l(() => t(), []);
 }
-function yt(e) {
-	let t = u(null), n = vt(), r = l(() => G(e), [e]), i = u(e), [a, o] = d(null), [s, f] = d(null);
+function St(e) {
+	let t = u(null), n = xt(), r = l(() => G(e), [e]), i = u(e), [a, o] = d(null), [s, f] = d(null);
 	return c(() => {
 		i.current = e;
 	}, [e, r]), c(() => {
@@ -1346,4 +1355,4 @@ function yt(e) {
 	};
 }
 //#endregion
-export { _t as FormieClientForm, gt as FormieForm, at as useFormie, vt as useFormieClient, ot as useFormieField, yt as useFormieHtml, ct as useFormieInstance, st as useFormiePage, lt as useFormieSlot };
+export { bt as FormieClientForm, yt as FormieForm, ct as useFormie, xt as useFormieClient, lt as useFormieField, St as useFormieHtml, dt as useFormieInstance, ut as useFormiePage, ft as useFormieSlot };

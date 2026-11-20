@@ -13,6 +13,7 @@ import {
     isBooleanField,
     isCompositeField,
     isDatePickerField,
+    isDateRangePickerField,
     isEmailField,
     isFileField,
     isMultiValueField,
@@ -167,6 +168,13 @@ function isEmptyValue(field: ClientFieldDefinition, value: unknown): boolean {
         return typeof answer !== 'string' || answer.trim() === '';
     }
 
+    // A range is answered once it has both ends.
+    if (isDateRangePickerField(field)) {
+        const range = value && typeof value === 'object' ? value as Record<string, unknown> : {};
+
+        return [range.startDatetime, range.endDatetime].some((end) => typeof end !== 'string' || end.trim() === '');
+    }
+
     if (isCompositeField(field) && value && typeof value === 'object') {
         // Unchecked parts and empty lists, such as a Group's Agree or Checkboxes field, don't count as an answer.
         return Object.values(value as Record<string, unknown>).every((item) => {
@@ -210,7 +218,7 @@ function validateFieldValue(
     }
 
     // A date picker is one control, so its answer is checked as a whole, as in server-rendered forms.
-    if (isDatePickerField(field)) {
+    if (isDatePickerField(field) || isDateRangePickerField(field)) {
         return;
     }
 

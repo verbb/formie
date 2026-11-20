@@ -32,6 +32,7 @@ $factory = \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Pari
     ->agreeField('pAgree', ['label' => 'P agree', 'description' => RichText::from('I agree')])
     ->dateField('pDateCalendar', ['label' => 'P date calendar', 'displayType' => 'calendar'])
     ->dateField('pDatePicker', ['label' => 'P date picker', 'displayType' => 'datePicker'])
+    ->dateField('pDateRange', ['label' => 'P date range', 'displayType' => 'datePicker', 'collectMode' => 'range', 'includeTime' => false])
     ->dateField('pDateDropdowns', ['label' => 'P date dropdowns', 'displayType' => 'dropdowns'])
     ->dateField('pDateInputs', ['label' => 'P date inputs', 'displayType' => 'inputs'])
     ->nameField('pNameSingle', ['label' => 'P name single'])

@@ -116,6 +116,15 @@ const STEPS: Step[] = [
         },
     },
     {
+        handle: 'pDateRange',
+        fill: async (f, page) => {
+            await f.locator('input.flatpickr-input:not([type="hidden"])').first().click();
+            const days = page.locator('.flatpickr-calendar.open .flatpickr-day:not(.prevMonthDay):not(.nextMonthDay)');
+            await days.filter({ hasText: /^10$/ }).first().click();
+            await days.filter({ hasText: /^20$/ }).first().click();
+        },
+    },
+    {
         handle: 'pDateDropdowns',
         fill: async (f) => {
             const selects = f.getByRole('combobox');
@@ -343,6 +352,10 @@ test.describe('client-rendered parity', () => {
         expect(run.saved?.isSpam).toBe(false);
         expect(run.errors).toEqual([]);
         baseline = normalized(run.saved!.values);
+
+        // Matching an empty answer proves nothing, so every field the drivers fill must have saved something.
+        const unsaved = STEPS.filter((step) => step.fill && !present(baseline![step.handle])).map((step) => step.handle);
+        expect(unsaved, 'filled fields the server-rendered form saved nothing for').toEqual([]);
     });
 
     for (const surface of ['vue', 'react', 'web-components'] as const) {

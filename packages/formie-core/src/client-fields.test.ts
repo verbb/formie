@@ -12,6 +12,7 @@ import {
     datePickerInputValue,
     datePickerValue,
     datePickerParts,
+    dateRangePickerMarkup,
     isDatePickerField,
     checkboxToggle,
     allOptionsSelected,
@@ -322,6 +323,13 @@ describe('date pickers', () => {
         expect(datePickerInputValue({ datetime: '2026-11-15 12:00:00' })).toBe('2026-11-15 12:00:00');
         expect(datePickerInputValue({ date: '2026-11-15', time: '09:30' })).toBe('2026-11-15 09:30');
         expect(datePickerInputValue(null)).toBe('');
+    });
+
+    it('builds the range picker from the definition, with its saved ends', () => {
+        const range = field('date', { displayType: 'datePicker', collectMode: 'range', defaultValue: { startDatetime: '2026-11-10 00:00:00', endDatetime: '2026-11-20 00:00:00' } });
+
+        expect(dateRangePickerMarkup(range, { id: 'stay' }))
+            .toBe('<input type="hidden" value="2026-11-10 00:00:00" data-formie-date-range-start-input><input type="hidden" value="2026-11-20 00:00:00" data-formie-date-range-end-input><input type="text" id="stay" data-formie-date-datepicker-input data-formie-date-range-input>');
     });
 
     it('splits a picked value into the parts conditions compare', () => {

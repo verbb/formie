@@ -559,6 +559,28 @@ describe('createClientFormInstance', () => {
         expect(submit).toHaveBeenCalledTimes(1);
     });
 
+    it('treats a required date range as unanswered until it has both ends', async() => {
+        const submit = vi.fn<ClientTransport['submit']>(async() => ({
+            success: true, outcome: 'completed', currentPageId: 'page-1', errors: { form: [], fields: {} }, messages: {}, session: {},
+        }) as Awaited<ReturnType<ClientTransport['submit']>>);
+        const runtime = createClientFormInstance({
+            envelope: createEnvelope([createTextField('stay', 'stay', {
+                type: 'date',
+                required: true,
+                input: { kind: 'date', fieldKind: 'date', displayType: 'datePicker', collectMode: 'range', defaultValue: null },
+            })]),
+            transport: createTransport({ submit }),
+        });
+
+        runtime.setValue('stay', { startDatetime: '2026-11-10 00:00:00', endDatetime: '' });
+        await runtime.submit('submit');
+        expect(submit).not.toHaveBeenCalled();
+
+        runtime.setValue('stay', { startDatetime: '2026-11-10 00:00:00', endDatetime: '2026-11-20 00:00:00' });
+        await runtime.submit('submit');
+        expect(submit).toHaveBeenCalledTimes(1);
+    });
+
     it('resets values and navigation back to the initial session state', async() => {
         const runtime = createClientFormInstance({
             envelope: createEnvelope([createTextField('trigger', 'trigger')]),

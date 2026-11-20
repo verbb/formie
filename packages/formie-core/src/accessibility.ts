@@ -1,4 +1,4 @@
-import { displayFieldContent, isCompositeField, isRepeatableField, isDatePickerField } from './schema.js';
+import { displayFieldContent, isCompositeField, isRepeatableField, isDatePickerField, isDateRangePickerField } from './schema.js';
 import type { ClientFieldDefinition, ClientFormDefinition, ClientFormSession, ClientStringKey } from './types.js';
 
 export type ClientErrorAriaLive = 'polite' | 'assertive' | 'off';
@@ -45,7 +45,7 @@ export function getClientFieldLabelTarget(field: ClientFieldDefinition, renderer
     }
 
     // A date picker is one control, even though its answer has parts.
-    if (isDatePickerField(field)) {
+    if (isDatePickerField(field) || isDateRangePickerField(field)) {
         return 'control';
     }
 

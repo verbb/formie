@@ -227,6 +227,39 @@ export function datePickerValue(inputValue: string): { datetime: string } {
     return { datetime: inputValue.trim() };
 }
 
+// Date ranges shown as a date picker use the same module on one input, which fills a start and an end input. The answer
+// is `{ startDatetime, endDatetime }`, as server-rendered range pickers post it.
+export function isDateRangePickerField(field: ClientFieldDefinition): boolean {
+    return field.type === 'date' && field.input.displayType === 'datePicker' && field.input.collectMode === 'range';
+}
+
+// The range picker's markup, built from the definition alone so it stays the same between renders. Adapters set it as
+// HTML, because the picker turns the visible input hidden and adds its own.
+export function dateRangePickerMarkup(field: ClientFieldDefinition, attributes: Record<string, string | boolean | null | undefined>): string {
+    const escape = (text: string) => text.replace(/[&"<>]/g, (character) => `&#${character.charCodeAt(0)};`);
+    const initial = field.input.defaultValue && typeof field.input.defaultValue === 'object' ? field.input.defaultValue as Record<string, unknown> : {};
+    const boundary = (side: 'start' | 'end') => {
+        const datetime = initial[`${side}Datetime`];
+        return typeof datetime === 'string' ? datetime : [initial[`${side}Date`], initial[`${side}Time`]].filter((part) => typeof part === 'string' && part !== '').join(' ');
+    };
+    const attributeHtml = Object.entries({ type: 'text', ...attributes, 'data-formie-date-datepicker-input': true, 'data-formie-date-range-input': true })
+        .filter(([, value]) => value !== undefined && value !== null && value !== false)
+        .map(([name, value]) => (value === true ? name : `${name}="${escape(String(value))}"`))
+        .join(' ');
+
+    return `<input type="hidden" value="${escape(boundary('start'))}" data-formie-date-range-start-input><input type="hidden" value="${escape(boundary('end'))}" data-formie-date-range-end-input><input ${attributeHtml}>`;
+}
+
+// The range answer, from the start and end inputs the picker fills.
+export function dateRangePickerValue(container: Element): { startDatetime: string; endDatetime: string } {
+    const read = (selector: string) => {
+        const input = container.querySelector(selector);
+        return input instanceof HTMLInputElement ? input.value.trim() : '';
+    };
+
+    return { startDatetime: read('[data-formie-date-range-start-input]'), endDatetime: read('[data-formie-date-range-end-input]') };
+}
+
 // Conditions compare dates by their parts, so a picked `datetime` is split into them.
 export function datePickerParts(value: unknown): Record<string, string> {
     const match = datePickerInputValue(value).match(/^(\d{4})-(\d{2})-(\d{2})(?: (\d{2}):(\d{2})(?::(\d{2}))?)?$/);

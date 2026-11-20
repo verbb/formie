@@ -26,6 +26,9 @@ import {
     searchableDropdownMarkup,
     searchableDropdownValue,
     isDatePickerField,
+    isDateRangePickerField,
+    dateRangePickerMarkup,
+    dateRangePickerValue,
     datePickerInputValue,
     datePickerValue,
     isRichTextField,
@@ -1617,6 +1620,19 @@ const DefaultFieldInput = defineComponent({
             const contract = props.field.input;
             const rendererType = resolveFieldRendererType(props.field);
             const labelling = controlLabelling(props, isDefaultFieldWrapper(context));
+
+            // The range picker fills a start and an end input and fires `input`, when the wrapper reads both.
+            if (isDateRangePickerField(props.field)) {
+                return h('div', {
+                    class: 'formie-vue-date-range-picker',
+                    onInput: (event: Event) => props.setValue(dateRangePickerValue(event.currentTarget as HTMLElement)),
+                }, h('div', { innerHTML: dateRangePickerMarkup(props.field, {
+                    id: labelling.inputId || undefined,
+                    'aria-label': labelling.labelledByWrapper ? undefined : props.field.label || props.field.handle,
+                    'aria-required': props.field.required ? 'true' : undefined,
+                    placeholder: typeof contract.placeholder === 'string' ? contract.placeholder : undefined,
+                }) }));
+            }
 
             if (isDatePickerField(props.field)) {
                 return h(DatePickerFieldInput, props);

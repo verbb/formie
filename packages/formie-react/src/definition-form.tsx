@@ -26,6 +26,9 @@ import {
     searchableDropdownMarkup,
     searchableDropdownValue,
     isDatePickerField,
+    isDateRangePickerField,
+    dateRangePickerMarkup,
+    dateRangePickerValue,
     datePickerInputValue,
     datePickerValue,
     isRichTextField,
@@ -1259,6 +1262,20 @@ function defaultFieldRenderer(props: FormieFieldComponentProps, labelledByWrappe
     const contract = field.input;
     const rendererType = resolveFieldRendererType(field);
     const labelling = controlLabelling(props, labelledByWrapper);
+
+    // The range picker fills a start and an end input and fires `input`, when the wrapper reads both. Its markup only
+    // depends on the definition, so React leaves it alone.
+    if (isDateRangePickerField(field)) {
+        return createElement('div', {
+            className: 'formie-react-date-range-picker',
+            onInput: (event: { currentTarget: HTMLElement }) => setValue(dateRangePickerValue(event.currentTarget)),
+        }, createElement('div', { dangerouslySetInnerHTML: { __html: dateRangePickerMarkup(field, {
+            id: labelling.inputId || undefined,
+            'aria-label': labelling.labelledByWrapper ? undefined : field.label || field.handle,
+            'aria-required': field.required ? 'true' : undefined,
+            placeholder: typeof contract.placeholder === 'string' ? contract.placeholder : undefined,
+        }) } }));
+    }
 
     if (isDatePickerField(field)) {
         return createElement(DatePickerFieldInput, { field, value, disabled, setValue, labelling });
