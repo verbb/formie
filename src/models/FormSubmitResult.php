@@ -13,6 +13,7 @@ class FormSubmitResult extends FormPayload
     public static function rejection(int $status): self
     {
         $message = $status === 429 ? Craft::t('formie', 'Please retry shortly.') : Craft::t('formie', 'Unable to perform the action.');
+
         return new self(['httpStatus' => $status, 'outcome' => 'rejected', 'errors' => ['form' => [$message], 'fields' => []], 'messages' => ['notice' => null, 'error' => $message]]);
     }
 
@@ -46,4 +47,5 @@ class FormSubmitResult extends FormPayload
     public ?array $redirect = null;
     public array $clientEvents = [];
     public ?array $payment = null;
+    public array $summaryTokens = [];
 }

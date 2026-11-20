@@ -27,6 +27,7 @@ import {
     surveyRankOrder,
     attachPointerReorder,
     paymentFieldMarkup,
+    summaryFieldMarkup,
     PHONE_COUNTRY_CHANGE_EVENT,
     phoneFieldValue,
     readPhoneFieldControls,
@@ -764,6 +765,14 @@ function SurveyRatingFieldInput({ field, value, disabled, setValue, labelling, i
     )));
 }
 
+// The summary module replaces the markup inside this container with the server's summary. React leaves it alone
+// while the HTML string, which only changes with the token, stays the same.
+function SummaryFieldInput({ field }: Pick<FormieFieldComponentProps, 'field'>) {
+    const { state } = useDefinitionContext();
+
+    return createElement('div', { className: 'formie-react-summary', dangerouslySetInnerHTML: { __html: summaryFieldMarkup(field, state.lastSubmitResult) ?? '' } });
+}
+
 function TableFieldInput({
     field,
     value,
@@ -1349,6 +1358,10 @@ function defaultFieldRenderer(props: FormieFieldComponentProps, labelledByWrappe
         return display.kind === 'heading'
             ? createElement(display.level, { className: 'formie-react-heading' }, display.text)
             : createElement('div', { className: 'formie-react-content', dangerouslySetInnerHTML: { __html: display.html } });
+    }
+
+    if (field.type === 'summary') {
+        return createElement(SummaryFieldInput, { field });
     }
 
     const payment = paymentFieldMarkup(field);

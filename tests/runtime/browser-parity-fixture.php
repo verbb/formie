@@ -125,3 +125,14 @@ foreach ($paymentProviders as $class => $settings) {
         ]]])
         ->create();
 }
+
+// A Summary field after one page of answers, for the summary parity test.
+\verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Parity summary', 'handle' => 'paritySummary'])
+    ->settings(['disableCaptchas' => true, 'submitMethod' => 'ajax'])
+    ->multiPage(2)->onPage(1)
+    ->singleLineTextField('visitorName', ['label' => 'Visitor name'])
+    ->emailField('visitorEmail', ['label' => 'Visitor email'])
+    ->dropdownField('topic', ['label' => 'Topic', 'options' => [['label' => 'Sales', 'value' => 'sales'], ['label' => 'Support', 'value' => 'support']]])
+    ->onPage(2)
+    ->summaryField('review', ['label' => 'Review'])
+    ->create();

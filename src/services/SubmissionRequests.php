@@ -988,6 +988,8 @@ class SubmissionRequests extends Component
             'completion' => $response->outcome->data['completion'] ?? null,
             'redirect' => $response->outcome->data['redirect'] ?? null,
             'clientEvents' => $clientEvents,
+            // Field-scoped access for Summary fields, as server-rendered responses issue after an accepted save.
+            'summaryTokens' => $response->getSummaryTokens(),
         ], $this->_resolvePaymentSubmitResultFields($response), $savePayload));
     }
 

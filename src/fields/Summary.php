@@ -13,6 +13,7 @@ use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
+use craft\helpers\UrlHelper;
 use craft\base\ElementInterface;
 
 class Summary extends CosmeticField
@@ -226,6 +227,8 @@ class Summary extends CosmeticField
             'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED],
             'config' => [
                 'fieldId' => (string)$this->id,
+                // Client-rendered forms can be on another site, so they can't post back to their own page.
+                'summaryUrl' => UrlHelper::actionUrl('formie/fields/get-summary-html'),
             ],
         ]);
 

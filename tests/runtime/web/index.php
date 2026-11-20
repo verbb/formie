@@ -172,7 +172,8 @@ if ($path === '/browser-parity-saved') {
     echo json_encode($submission ? ['isSpam' => (bool)$submission->isSpam, 'isIncomplete' => (bool)$submission->isIncomplete, 'values' => $submission->getValuesAsData()] : null);
     exit;
 }
-if ($path === '/browser-fixture') {
+// Posts back to the page, such as a server-rendered Summary refresh, are Craft action requests as on a real site.
+if ($path === '/browser-fixture' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     header('Content-Type: text/html; charset=utf-8');
     $browserBundle = $runtime . '/browser/fixture.js';
     $browserBundleVersion = is_file($browserBundle) ? (string)filemtime($browserBundle) : 'missing';

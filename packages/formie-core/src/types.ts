@@ -193,6 +193,7 @@ export type ClientSubmitResult = {
     quizResult?: Record<string, unknown> | null;
     clientEvents?: Array<Record<string, unknown>>;
     payment?: PaymentDecision | null;
+    summaryTokens?: Record<string, string> | null;
 };
 
 export type PaymentDecision = {

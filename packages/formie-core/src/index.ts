@@ -31,6 +31,7 @@ export {
     surveyLikertRows,
     surveyRankOrder,
     paymentFieldMarkup,
+    summaryFieldMarkup,
     PHONE_COUNTRY_CHANGE_EVENT,
     phoneFieldValue,
     readPhoneFieldControls,

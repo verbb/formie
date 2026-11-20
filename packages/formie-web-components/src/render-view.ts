@@ -18,6 +18,7 @@ import {
     surveyRankOrder,
     attachPointerReorder,
     paymentFieldMarkup,
+    summaryFieldMarkup,
     PHONE_COUNTRY_CHANGE_EVENT,
     phoneFieldValue,
     readPhoneFieldControls,
@@ -735,6 +736,14 @@ function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps & { 
         return display.kind === 'heading'
             ? staticHtml`<${unsafeStatic(display.level)} class="starter-component-heading">${display.text}</${unsafeStatic(display.level)}>`
             : html`<div class="starter-component-content">${unsafeHTML(display.html)}</div>`;
+    }
+
+    const summary = summaryFieldMarkup(field, ctx.state.lastSubmitResult);
+
+    // The summary module replaces the markup inside this container with the server's summary. Lit leaves it alone
+    // while the HTML string, which only changes with the token, stays the same.
+    if (summary !== null) {
+        return html`<div class="starter-component-summary">${unsafeHTML(summary)}</div>`;
     }
 
     const payment = paymentFieldMarkup(field);

@@ -4,6 +4,7 @@ import type {
     ClientFormDefinition,
     ClientRowDefinition,
     ClientFormBootstrap,
+    ClientSubmitResult,
     KnownClientFieldType,
 } from './types.js';
 
@@ -116,6 +117,20 @@ export function resolveClientRendererType(field: ClientFieldDefinition): string 
 
 export function isCalculationField(field: ClientFieldDefinition): boolean {
     return field.type === 'calculations';
+}
+
+// Summary fields show the visitor's saved answers, which the `formie:summary` browser module fetches from the server
+// and draws inside this markup. The token from the latest accepted save says which answers it may show, and the
+// module refreshes it from later submit results. Before a save there's nothing to show, as in server-rendered forms.
+export function summaryFieldMarkup(field: ClientFieldDefinition, lastSubmitResult: ClientSubmitResult | null | undefined): string | null {
+    if (field.type !== 'summary') {
+        return null;
+    }
+
+    const token = lastSubmitResult?.summaryTokens?.[field.uid];
+    const attribute = typeof token === 'string' && token ? ` data-formie-summary-token="${token.replace(/[&"<>]/g, (character) => `&#${character.charCodeAt(0)};`)}"` : '';
+
+    return `<div data-formie-summary-container${attribute}><div data-formie-summary-blocks></div></div>`;
 }
 
 // Payment fields show their provider's markup, rendered by the server from the same template as server-rendered forms.

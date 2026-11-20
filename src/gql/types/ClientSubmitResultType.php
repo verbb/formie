@@ -73,6 +73,11 @@ class ClientSubmitResultType extends ObjectType
                     'name' => 'clientEvents',
                     'type' => ArrayType::getType(),
                 ],
+                'summaryTokens' => [
+                    'name' => 'summaryTokens',
+                    'type' => ArrayType::getType(),
+                    'description' => 'Access tokens for Summary fields, by field UID, issued after an accepted save.',
+                ],
                 'payment' => [
                     'name' => 'payment',
                     'type' => Json::getType(),

@@ -27,6 +27,7 @@ import {
     surveyRankOrder,
     attachPointerReorder,
     paymentFieldMarkup,
+    summaryFieldMarkup,
     PHONE_COUNTRY_CHANGE_EVENT,
     phoneFieldValue,
     readPhoneFieldControls,
@@ -1417,6 +1418,18 @@ const SurveyRatingFieldInput = defineComponent({
     },
 });
 
+// The summary module replaces the markup inside this container with the server's summary, so Vue sets it as HTML and
+// only resets it when the token changes.
+const SummaryFieldInput = defineComponent({
+    name: 'FormieVueSummaryFieldInput',
+    props: fieldComponentProps,
+    setup(props) {
+        const context = useDefinitionContext();
+
+        return () => h('div', { class: 'formie-vue-summary', innerHTML: summaryFieldMarkup(props.field, context.state.value?.lastSubmitResult) ?? '' });
+    },
+});
+
 const TableFieldInput = defineComponent({
     name: 'FormieVueTableFieldInput',
     props: fieldComponentProps,
@@ -1684,6 +1697,10 @@ const DefaultFieldInput = defineComponent({
                 return display.kind === 'heading'
                     ? h(display.level, { class: 'formie-vue-heading' }, display.text)
                     : h('div', { class: 'formie-vue-content', innerHTML: display.html });
+            }
+
+            if (props.field.type === 'summary') {
+                return h(SummaryFieldInput, props);
             }
 
             const payment = paymentFieldMarkup(props.field);

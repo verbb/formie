@@ -1,41 +1,41 @@
 import { FORMIE_HTML_EVENT_NAMES as e, createFormieClient as t, createFormieClient as n, mountClientRenderedModules as r } from "@verbb/formie-browser";
-import { CLIENT_FORM_EVENT_NAMES as i, PHONE_COUNTRY_CHANGE_EVENT as a, VISUALLY_HIDDEN_CSS as o, attachPointerReorder as s, clientActionAllowed as c, compositePartDefinitions as l, createClientFormInstance as u, createGraphqlClientTransport as d, createRepeaterRowValue as f, createRestClientTransport as p, createTableRowValue as m, displayFieldContent as h, dropdownOptions as g, fieldOptions as _, fieldValueStructure as ee, focusClientFormResult as te, getClientErrorAriaLive as ne, getClientFieldIds as re, getClientFieldLabelTarget as ie, getClientPageProgress as ae, getClientString as v, isArrayValuedField as oe, isCalculationField as se, isCompositeField as ce, isFieldLabelHidden as le, isFieldLabelVisuallyHidden as ue, isFileField as de, isKnownClientFieldType as fe, isPhoneCountryEnabled as pe, isRepeatableField as me, joinIdReferences as he, loadClientFormBootstrap as ge, loadGraphqlClientFormBootstrap as _e, moveListItem as ve, paymentFieldMarkup as ye, phoneFieldValue as be, readPhoneFieldControls as xe, repeaterRowDefinitions as Se, resolveClientRendererType as Ce, showsClientPageTitle as we, surveyLikertRows as Te, surveyRankOrder as Ee, tableColumns as De } from "@verbb/formie-core";
+import { CLIENT_FORM_EVENT_NAMES as i, PHONE_COUNTRY_CHANGE_EVENT as a, VISUALLY_HIDDEN_CSS as o, attachPointerReorder as s, clientActionAllowed as c, compositePartDefinitions as l, createClientFormInstance as u, createGraphqlClientTransport as d, createRepeaterRowValue as f, createRestClientTransport as p, createTableRowValue as m, displayFieldContent as h, dropdownOptions as g, fieldOptions as _, fieldValueStructure as ee, focusClientFormResult as te, getClientErrorAriaLive as ne, getClientFieldIds as re, getClientFieldLabelTarget as ie, getClientPageProgress as ae, getClientString as v, isArrayValuedField as oe, isCalculationField as se, isCompositeField as ce, isFieldLabelHidden as le, isFieldLabelVisuallyHidden as ue, isFileField as de, isKnownClientFieldType as fe, isPhoneCountryEnabled as pe, isRepeatableField as me, joinIdReferences as he, loadClientFormBootstrap as ge, loadGraphqlClientFormBootstrap as _e, moveListItem as ve, paymentFieldMarkup as ye, phoneFieldValue as be, readPhoneFieldControls as xe, repeaterRowDefinitions as Se, resolveClientRendererType as Ce, showsClientPageTitle as we, summaryFieldMarkup as Te, surveyLikertRows as Ee, surveyRankOrder as De, tableColumns as Oe } from "@verbb/formie-core";
 //#region ../../node_modules/@lit/reactive-element/css-tag.js
-var y = globalThis, Oe = y.ShadowRoot && (y.ShadyCSS === void 0 || y.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, ke = Symbol(), Ae = /* @__PURE__ */ new WeakMap(), je = class {
+var ke = globalThis, Ae = ke.ShadowRoot && (ke.ShadyCSS === void 0 || ke.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, je = Symbol(), Me = /* @__PURE__ */ new WeakMap(), Ne = class {
 	constructor(e, t, n) {
-		if (this._$cssResult$ = !0, n !== ke) throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
+		if (this._$cssResult$ = !0, n !== je) throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
 		this.cssText = e, this.t = t;
 	}
 	get styleSheet() {
 		let e = this.o, t = this.t;
-		if (Oe && e === void 0) {
+		if (Ae && e === void 0) {
 			let n = t !== void 0 && t.length === 1;
-			n && (e = Ae.get(t)), e === void 0 && ((this.o = e = new CSSStyleSheet()).replaceSync(this.cssText), n && Ae.set(t, e));
+			n && (e = Me.get(t)), e === void 0 && ((this.o = e = new CSSStyleSheet()).replaceSync(this.cssText), n && Me.set(t, e));
 		}
 		return e;
 	}
 	toString() {
 		return this.cssText;
 	}
-}, Me = (e) => new je(typeof e == "string" ? e : e + "", void 0, ke), Ne = (e, ...t) => new je(e.length === 1 ? e[0] : t.reduce((t, n, r) => t + ((e) => {
+}, Pe = (e) => new Ne(typeof e == "string" ? e : e + "", void 0, je), Fe = (e, ...t) => new Ne(e.length === 1 ? e[0] : t.reduce((t, n, r) => t + ((e) => {
 	if (!0 === e._$cssResult$) return e.cssText;
 	if (typeof e == "number") return e;
 	throw Error("Value passed to 'css' function must be a 'css' function result: " + e + ". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.");
-})(n) + e[r + 1], e[0]), e, ke), Pe = (e, t) => {
-	if (Oe) e.adoptedStyleSheets = t.map((e) => e instanceof CSSStyleSheet ? e : e.styleSheet);
+})(n) + e[r + 1], e[0]), e, je), Ie = (e, t) => {
+	if (Ae) e.adoptedStyleSheets = t.map((e) => e instanceof CSSStyleSheet ? e : e.styleSheet);
 	else for (let n of t) {
-		let t = document.createElement("style"), r = y.litNonce;
+		let t = document.createElement("style"), r = ke.litNonce;
 		r !== void 0 && t.setAttribute("nonce", r), t.textContent = n.cssText, e.appendChild(t);
 	}
-}, Fe = Oe ? (e) => e : (e) => e instanceof CSSStyleSheet ? ((e) => {
+}, Le = Ae ? (e) => e : (e) => e instanceof CSSStyleSheet ? ((e) => {
 	let t = "";
 	for (let n of e.cssRules) t += n.cssText;
-	return Me(t);
-})(e) : e, { is: Ie, defineProperty: Le, getOwnPropertyDescriptor: Re, getOwnPropertyNames: ze, getOwnPropertySymbols: Be, getPrototypeOf: Ve } = Object, b = globalThis, He = b.trustedTypes, Ue = He ? He.emptyScript : "", We = b.reactiveElementPolyfillSupport, x = (e, t) => e, S = {
+	return Pe(t);
+})(e) : e, { is: Re, defineProperty: ze, getOwnPropertyDescriptor: Be, getOwnPropertyNames: Ve, getOwnPropertySymbols: He, getPrototypeOf: Ue } = Object, We = globalThis, Ge = We.trustedTypes, Ke = Ge ? Ge.emptyScript : "", qe = We.reactiveElementPolyfillSupport, y = (e, t) => e, b = {
 	toAttribute(e, t) {
 		switch (t) {
 			case Boolean:
-				e = e ? Ue : null;
+				e = e ? Ke : null;
 				break;
 			case Object:
 			case Array: e = e == null ? e : JSON.stringify(e);
@@ -60,30 +60,30 @@ var y = globalThis, Oe = y.ShadowRoot && (y.ShadyCSS === void 0 || y.ShadyCSS.na
 		}
 		return n;
 	}
-}, Ge = (e, t) => !Ie(e, t), Ke = {
+}, Je = (e, t) => !Re(e, t), Ye = {
 	attribute: !0,
 	type: String,
-	converter: S,
+	converter: b,
 	reflect: !1,
 	useDefault: !1,
-	hasChanged: Ge
+	hasChanged: Je
 };
-Symbol.metadata ??= Symbol("metadata"), b.litPropertyMetadata ??= /* @__PURE__ */ new WeakMap();
-var C = class extends HTMLElement {
+Symbol.metadata ??= Symbol("metadata"), We.litPropertyMetadata ??= /* @__PURE__ */ new WeakMap();
+var x = class extends HTMLElement {
 	static addInitializer(e) {
 		this._$Ei(), (this.l ??= []).push(e);
 	}
 	static get observedAttributes() {
 		return this.finalize(), this._$Eh && [...this._$Eh.keys()];
 	}
-	static createProperty(e, t = Ke) {
+	static createProperty(e, t = Ye) {
 		if (t.state && (t.attribute = !1), this._$Ei(), this.prototype.hasOwnProperty(e) && ((t = Object.create(t)).wrapped = !0), this.elementProperties.set(e, t), !t.noAccessor) {
 			let n = Symbol(), r = this.getPropertyDescriptor(e, n, t);
-			r !== void 0 && Le(this.prototype, e, r);
+			r !== void 0 && ze(this.prototype, e, r);
 		}
 	}
 	static getPropertyDescriptor(e, t, n) {
-		let { get: r, set: i } = Re(this.prototype, e) ?? {
+		let { get: r, set: i } = Be(this.prototype, e) ?? {
 			get() {
 				return this[t];
 			},
@@ -102,17 +102,17 @@ var C = class extends HTMLElement {
 		};
 	}
 	static getPropertyOptions(e) {
-		return this.elementProperties.get(e) ?? Ke;
+		return this.elementProperties.get(e) ?? Ye;
 	}
 	static _$Ei() {
-		if (this.hasOwnProperty(x("elementProperties"))) return;
-		let e = Ve(this);
+		if (this.hasOwnProperty(y("elementProperties"))) return;
+		let e = Ue(this);
 		e.finalize(), e.l !== void 0 && (this.l = [...e.l]), this.elementProperties = new Map(e.elementProperties);
 	}
 	static finalize() {
-		if (this.hasOwnProperty(x("finalized"))) return;
-		if (this.finalized = !0, this._$Ei(), this.hasOwnProperty(x("properties"))) {
-			let e = this.properties, t = [...ze(e), ...Be(e)];
+		if (this.hasOwnProperty(y("finalized"))) return;
+		if (this.finalized = !0, this._$Ei(), this.hasOwnProperty(y("properties"))) {
+			let e = this.properties, t = [...Ve(e), ...He(e)];
 			for (let n of t) this.createProperty(n, e[n]);
 		}
 		let e = this[Symbol.metadata];
@@ -131,8 +131,8 @@ var C = class extends HTMLElement {
 		let t = [];
 		if (Array.isArray(e)) {
 			let n = new Set(e.flat(1 / 0).reverse());
-			for (let e of n) t.unshift(Fe(e));
-		} else e !== void 0 && t.push(Fe(e));
+			for (let e of n) t.unshift(Le(e));
+		} else e !== void 0 && t.push(Le(e));
 		return t;
 	}
 	static _$Eu(e, t) {
@@ -158,7 +158,7 @@ var C = class extends HTMLElement {
 	}
 	createRenderRoot() {
 		let e = this.shadowRoot ?? this.attachShadow(this.constructor.shadowRootOptions);
-		return Pe(e, this.constructor.elementStyles), e;
+		return Ie(e, this.constructor.elementStyles), e;
 	}
 	connectedCallback() {
 		this.renderRoot ??= this.createRenderRoot(), this.enableUpdating(!0), this._$EO?.forEach((e) => e.hostConnected?.());
@@ -173,14 +173,14 @@ var C = class extends HTMLElement {
 	_$ET(e, t) {
 		let n = this.constructor.elementProperties.get(e), r = this.constructor._$Eu(e, n);
 		if (r !== void 0 && !0 === n.reflect) {
-			let i = (n.converter?.toAttribute === void 0 ? S : n.converter).toAttribute(t, n.type);
+			let i = (n.converter?.toAttribute === void 0 ? b : n.converter).toAttribute(t, n.type);
 			this._$Em = e, i == null ? this.removeAttribute(r) : this.setAttribute(r, i), this._$Em = null;
 		}
 	}
 	_$AK(e, t) {
 		let n = this.constructor, r = n._$Eh.get(e);
 		if (r !== void 0 && this._$Em !== r) {
-			let e = n.getPropertyOptions(r), i = typeof e.converter == "function" ? { fromAttribute: e.converter } : e.converter?.fromAttribute === void 0 ? S : e.converter;
+			let e = n.getPropertyOptions(r), i = typeof e.converter == "function" ? { fromAttribute: e.converter } : e.converter?.fromAttribute === void 0 ? b : e.converter;
 			this._$Em = r;
 			let a = i.fromAttribute(t, e.type);
 			this[r] = a ?? this._$Ej?.get(r) ?? a, this._$Em = null;
@@ -189,7 +189,7 @@ var C = class extends HTMLElement {
 	requestUpdate(e, t, n, r = !1, i) {
 		if (e !== void 0) {
 			let a = this.constructor;
-			if (!1 === r && (i = this[e]), n ??= a.getPropertyOptions(e), !((n.hasChanged ?? Ge)(i, t) || n.useDefault && n.reflect && i === this._$Ej?.get(e) && !this.hasAttribute(a._$Eu(e, n)))) return;
+			if (!1 === r && (i = this[e]), n ??= a.getPropertyOptions(e), !((n.hasChanged ?? Je)(i, t) || n.useDefault && n.reflect && i === this._$Ej?.get(e) && !this.hasAttribute(a._$Eu(e, n)))) return;
 			this.C(e, t, n);
 		}
 		!1 === this.isUpdatePending && (this._$ES = this._$EP());
@@ -253,89 +253,89 @@ var C = class extends HTMLElement {
 	updated(e) {}
 	firstUpdated(e) {}
 };
-C.elementStyles = [], C.shadowRootOptions = { mode: "open" }, C[x("elementProperties")] = /* @__PURE__ */ new Map(), C[x("finalized")] = /* @__PURE__ */ new Map(), We?.({ ReactiveElement: C }), (b.reactiveElementVersions ??= []).push("2.1.2");
+x.elementStyles = [], x.shadowRootOptions = { mode: "open" }, x[y("elementProperties")] = /* @__PURE__ */ new Map(), x[y("finalized")] = /* @__PURE__ */ new Map(), qe?.({ ReactiveElement: x }), (We.reactiveElementVersions ??= []).push("2.1.2");
 //#endregion
 //#region ../../node_modules/lit-html/lit-html.js
-var qe = globalThis, Je = (e) => e, w = qe.trustedTypes, Ye = w ? w.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, Xe = "$lit$", T = `lit$${Math.random().toFixed(9).slice(2)}$`, Ze = "?" + T, Qe = `<${Ze}>`, E = document, D = () => E.createComment(""), O = (e) => e === null || typeof e != "object" && typeof e != "function", $e = Array.isArray, et = (e) => $e(e) || typeof e?.[Symbol.iterator] == "function", tt = "[ 	\n\f\r]", k = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, nt = /-->/g, rt = />/g, A = RegExp(`>|${tt}(?:([^\\s"'>=/]+)(${tt}*=${tt}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`, "g"), it = /'/g, at = /"/g, ot = /^(?:script|style|textarea|title)$/i, j = ((e) => (t, ...n) => ({
+var Xe = globalThis, Ze = (e) => e, S = Xe.trustedTypes, Qe = S ? S.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, $e = "$lit$", C = `lit$${Math.random().toFixed(9).slice(2)}$`, et = "?" + C, tt = `<${et}>`, w = document, T = () => w.createComment(""), E = (e) => e === null || typeof e != "object" && typeof e != "function", nt = Array.isArray, rt = (e) => nt(e) || typeof e?.[Symbol.iterator] == "function", it = "[ 	\n\f\r]", D = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, at = /-->/g, ot = />/g, O = RegExp(`>|${it}(?:([^\\s"'>=/]+)(${it}*=${it}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`, "g"), st = /'/g, ct = /"/g, lt = /^(?:script|style|textarea|title)$/i, k = ((e) => (t, ...n) => ({
 	_$litType$: e,
 	strings: t,
 	values: n
-}))(1), M = Symbol.for("lit-noChange"), N = Symbol.for("lit-nothing"), st = /* @__PURE__ */ new WeakMap(), P = E.createTreeWalker(E, 129);
-function ct(e, t) {
-	if (!$e(e) || !e.hasOwnProperty("raw")) throw Error("invalid template strings array");
-	return Ye === void 0 ? t : Ye.createHTML(t);
+}))(1), A = Symbol.for("lit-noChange"), j = Symbol.for("lit-nothing"), ut = /* @__PURE__ */ new WeakMap(), M = w.createTreeWalker(w, 129);
+function dt(e, t) {
+	if (!nt(e) || !e.hasOwnProperty("raw")) throw Error("invalid template strings array");
+	return Qe === void 0 ? t : Qe.createHTML(t);
 }
-var lt = (e, t) => {
-	let n = e.length - 1, r = [], i, a = t === 2 ? "<svg>" : t === 3 ? "<math>" : "", o = k;
+var ft = (e, t) => {
+	let n = e.length - 1, r = [], i, a = t === 2 ? "<svg>" : t === 3 ? "<math>" : "", o = D;
 	for (let t = 0; t < n; t++) {
 		let n = e[t], s, c, l = -1, u = 0;
-		for (; u < n.length && (o.lastIndex = u, c = o.exec(n), c !== null);) u = o.lastIndex, o === k ? c[1] === "!--" ? o = nt : c[1] === void 0 ? c[2] === void 0 ? c[3] !== void 0 && (o = A) : (ot.test(c[2]) && (i = RegExp("</" + c[2], "g")), o = A) : o = rt : o === A ? c[0] === ">" ? (o = i ?? k, l = -1) : c[1] === void 0 ? l = -2 : (l = o.lastIndex - c[2].length, s = c[1], o = c[3] === void 0 ? A : c[3] === "\"" ? at : it) : o === at || o === it ? o = A : o === nt || o === rt ? o = k : (o = A, i = void 0);
-		let d = o === A && e[t + 1].startsWith("/>") ? " " : "";
-		a += o === k ? n + Qe : l >= 0 ? (r.push(s), n.slice(0, l) + Xe + n.slice(l) + T + d) : n + T + (l === -2 ? t : d);
+		for (; u < n.length && (o.lastIndex = u, c = o.exec(n), c !== null);) u = o.lastIndex, o === D ? c[1] === "!--" ? o = at : c[1] === void 0 ? c[2] === void 0 ? c[3] !== void 0 && (o = O) : (lt.test(c[2]) && (i = RegExp("</" + c[2], "g")), o = O) : o = ot : o === O ? c[0] === ">" ? (o = i ?? D, l = -1) : c[1] === void 0 ? l = -2 : (l = o.lastIndex - c[2].length, s = c[1], o = c[3] === void 0 ? O : c[3] === "\"" ? ct : st) : o === ct || o === st ? o = O : o === at || o === ot ? o = D : (o = O, i = void 0);
+		let d = o === O && e[t + 1].startsWith("/>") ? " " : "";
+		a += o === D ? n + tt : l >= 0 ? (r.push(s), n.slice(0, l) + $e + n.slice(l) + C + d) : n + C + (l === -2 ? t : d);
 	}
-	return [ct(e, a + (e[n] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), r];
-}, ut = class e {
+	return [dt(e, a + (e[n] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), r];
+}, pt = class e {
 	constructor({ strings: t, _$litType$: n }, r) {
 		let i;
 		this.parts = [];
-		let a = 0, o = 0, s = t.length - 1, c = this.parts, [l, u] = lt(t, n);
-		if (this.el = e.createElement(l, r), P.currentNode = this.el.content, n === 2 || n === 3) {
+		let a = 0, o = 0, s = t.length - 1, c = this.parts, [l, u] = ft(t, n);
+		if (this.el = e.createElement(l, r), M.currentNode = this.el.content, n === 2 || n === 3) {
 			let e = this.el.content.firstChild;
 			e.replaceWith(...e.childNodes);
 		}
-		for (; (i = P.nextNode()) !== null && c.length < s;) {
+		for (; (i = M.nextNode()) !== null && c.length < s;) {
 			if (i.nodeType === 1) {
-				if (i.hasAttributes()) for (let e of i.getAttributeNames()) if (e.endsWith(Xe)) {
-					let t = u[o++], n = i.getAttribute(e).split(T), r = /([.?@])?(.*)/.exec(t);
+				if (i.hasAttributes()) for (let e of i.getAttributeNames()) if (e.endsWith($e)) {
+					let t = u[o++], n = i.getAttribute(e).split(C), r = /([.?@])?(.*)/.exec(t);
 					c.push({
 						type: 1,
 						index: a,
 						name: r[2],
 						strings: n,
-						ctor: r[1] === "." ? ft : r[1] === "?" ? pt : r[1] === "@" ? mt : L
+						ctor: r[1] === "." ? gt : r[1] === "?" ? _t : r[1] === "@" ? vt : P
 					}), i.removeAttribute(e);
-				} else e.startsWith(T) && (c.push({
+				} else e.startsWith(C) && (c.push({
 					type: 6,
 					index: a
 				}), i.removeAttribute(e));
-				if (ot.test(i.tagName)) {
-					let e = i.textContent.split(T), t = e.length - 1;
+				if (lt.test(i.tagName)) {
+					let e = i.textContent.split(C), t = e.length - 1;
 					if (t > 0) {
-						i.textContent = w ? w.emptyScript : "";
-						for (let n = 0; n < t; n++) i.append(e[n], D()), P.nextNode(), c.push({
+						i.textContent = S ? S.emptyScript : "";
+						for (let n = 0; n < t; n++) i.append(e[n], T()), M.nextNode(), c.push({
 							type: 2,
 							index: ++a
 						});
-						i.append(e[t], D());
+						i.append(e[t], T());
 					}
 				}
 			} else if (i.nodeType === 8) {
-				if (i.data === Ze) c.push({
+				if (i.data === et) c.push({
 					type: 2,
 					index: a
 				});
 				else {
 					let e = -1;
-					for (; (e = i.data.indexOf(T, e + 1)) !== -1;) c.push({
+					for (; (e = i.data.indexOf(C, e + 1)) !== -1;) c.push({
 						type: 7,
 						index: a
-					}), e += T.length - 1;
+					}), e += C.length - 1;
 				}
 			}
 			a++;
 		}
 	}
 	static createElement(e, t) {
-		let n = E.createElement("template");
+		let n = w.createElement("template");
 		return n.innerHTML = e, n;
 	}
 };
-function F(e, t, n = e, r) {
-	if (t === M) return t;
-	let i = r === void 0 ? n._$Cl : n._$Co?.[r], a = O(t) ? void 0 : t._$litDirective$;
-	return i?.constructor !== a && (i?._$AO?.(!1), a === void 0 ? i = void 0 : (i = new a(e), i._$AT(e, n, r)), r === void 0 ? n._$Cl = i : (n._$Co ??= [])[r] = i), i !== void 0 && (t = F(e, i._$AS(e, t.values), i, r)), t;
+function N(e, t, n = e, r) {
+	if (t === A) return t;
+	let i = r === void 0 ? n._$Cl : n._$Co?.[r], a = E(t) ? void 0 : t._$litDirective$;
+	return i?.constructor !== a && (i?._$AO?.(!1), a === void 0 ? i = void 0 : (i = new a(e), i._$AT(e, n, r)), r === void 0 ? n._$Cl = i : (n._$Co ??= [])[r] = i), i !== void 0 && (t = N(e, i._$AS(e, t.values), i, r)), t;
 }
-var dt = class {
+var mt = class {
 	constructor(e, t) {
 		this._$AV = [], this._$AN = void 0, this._$AD = e, this._$AM = t;
 	}
@@ -346,28 +346,28 @@ var dt = class {
 		return this._$AM._$AU;
 	}
 	u(e) {
-		let { el: { content: t }, parts: n } = this._$AD, r = (e?.creationScope ?? E).importNode(t, !0);
-		P.currentNode = r;
-		let i = P.nextNode(), a = 0, o = 0, s = n[0];
+		let { el: { content: t }, parts: n } = this._$AD, r = (e?.creationScope ?? w).importNode(t, !0);
+		M.currentNode = r;
+		let i = M.nextNode(), a = 0, o = 0, s = n[0];
 		for (; s !== void 0;) {
 			if (a === s.index) {
 				let t;
-				s.type === 2 ? t = new I(i, i.nextSibling, this, e) : s.type === 1 ? t = new s.ctor(i, s.name, s.strings, this, e) : s.type === 6 && (t = new ht(i, this, e)), this._$AV.push(t), s = n[++o];
+				s.type === 2 ? t = new ht(i, i.nextSibling, this, e) : s.type === 1 ? t = new s.ctor(i, s.name, s.strings, this, e) : s.type === 6 && (t = new yt(i, this, e)), this._$AV.push(t), s = n[++o];
 			}
-			a !== s?.index && (i = P.nextNode(), a++);
+			a !== s?.index && (i = M.nextNode(), a++);
 		}
-		return P.currentNode = E, r;
+		return M.currentNode = w, r;
 	}
 	p(e) {
 		let t = 0;
 		for (let n of this._$AV) n !== void 0 && (n.strings === void 0 ? n._$AI(e[t]) : (n._$AI(e, n, t), t += n.strings.length - 2)), t++;
 	}
-}, I = class e {
+}, ht = class e {
 	get _$AU() {
 		return this._$AM?._$AU ?? this._$Cv;
 	}
 	constructor(e, t, n, r) {
-		this.type = 2, this._$AH = N, this._$AN = void 0, this._$AA = e, this._$AB = t, this._$AM = n, this.options = r, this._$Cv = r?.isConnected ?? !0;
+		this.type = 2, this._$AH = j, this._$AN = void 0, this._$AA = e, this._$AB = t, this._$AM = n, this.options = r, this._$Cv = r?.isConnected ?? !0;
 	}
 	get parentNode() {
 		let e = this._$AA.parentNode, t = this._$AM;
@@ -380,7 +380,7 @@ var dt = class {
 		return this._$AB;
 	}
 	_$AI(e, t = this) {
-		e = F(this, e, t), O(e) ? e === N || e == null || e === "" ? (this._$AH !== N && this._$AR(), this._$AH = N) : e !== this._$AH && e !== M && this._(e) : e._$litType$ === void 0 ? e.nodeType === void 0 ? et(e) ? this.k(e) : this._(e) : this.T(e) : this.$(e);
+		e = N(this, e, t), E(e) ? e === j || e == null || e === "" ? (this._$AH !== j && this._$AR(), this._$AH = j) : e !== this._$AH && e !== A && this._(e) : e._$litType$ === void 0 ? e.nodeType === void 0 ? rt(e) ? this.k(e) : this._(e) : this.T(e) : this.$(e);
 	}
 	O(e) {
 		return this._$AA.parentNode.insertBefore(e, this._$AB);
@@ -389,36 +389,36 @@ var dt = class {
 		this._$AH !== e && (this._$AR(), this._$AH = this.O(e));
 	}
 	_(e) {
-		this._$AH !== N && O(this._$AH) ? this._$AA.nextSibling.data = e : this.T(E.createTextNode(e)), this._$AH = e;
+		this._$AH !== j && E(this._$AH) ? this._$AA.nextSibling.data = e : this.T(w.createTextNode(e)), this._$AH = e;
 	}
 	$(e) {
-		let { values: t, _$litType$: n } = e, r = typeof n == "number" ? this._$AC(e) : (n.el === void 0 && (n.el = ut.createElement(ct(n.h, n.h[0]), this.options)), n);
+		let { values: t, _$litType$: n } = e, r = typeof n == "number" ? this._$AC(e) : (n.el === void 0 && (n.el = pt.createElement(dt(n.h, n.h[0]), this.options)), n);
 		if (this._$AH?._$AD === r) this._$AH.p(t);
 		else {
-			let e = new dt(r, this), n = e.u(this.options);
+			let e = new mt(r, this), n = e.u(this.options);
 			e.p(t), this.T(n), this._$AH = e;
 		}
 	}
 	_$AC(e) {
-		let t = st.get(e.strings);
-		return t === void 0 && st.set(e.strings, t = new ut(e)), t;
+		let t = ut.get(e.strings);
+		return t === void 0 && ut.set(e.strings, t = new pt(e)), t;
 	}
 	k(t) {
-		$e(this._$AH) || (this._$AH = [], this._$AR());
+		nt(this._$AH) || (this._$AH = [], this._$AR());
 		let n = this._$AH, r, i = 0;
-		for (let a of t) i === n.length ? n.push(r = new e(this.O(D()), this.O(D()), this, this.options)) : r = n[i], r._$AI(a), i++;
+		for (let a of t) i === n.length ? n.push(r = new e(this.O(T()), this.O(T()), this, this.options)) : r = n[i], r._$AI(a), i++;
 		i < n.length && (this._$AR(r && r._$AB.nextSibling, i), n.length = i);
 	}
 	_$AR(e = this._$AA.nextSibling, t) {
 		for (this._$AP?.(!1, !0, t); e !== this._$AB;) {
-			let t = Je(e).nextSibling;
-			Je(e).remove(), e = t;
+			let t = Ze(e).nextSibling;
+			Ze(e).remove(), e = t;
 		}
 	}
 	setConnected(e) {
 		this._$AM === void 0 && (this._$Cv = e, this._$AP?.(e));
 	}
-}, L = class {
+}, P = class {
 	get tagName() {
 		return this.element.tagName;
 	}
@@ -426,47 +426,47 @@ var dt = class {
 		return this._$AM._$AU;
 	}
 	constructor(e, t, n, r, i) {
-		this.type = 1, this._$AH = N, this._$AN = void 0, this.element = e, this.name = t, this._$AM = r, this.options = i, n.length > 2 || n[0] !== "" || n[1] !== "" ? (this._$AH = Array(n.length - 1).fill(/* @__PURE__ */ new String()), this.strings = n) : this._$AH = N;
+		this.type = 1, this._$AH = j, this._$AN = void 0, this.element = e, this.name = t, this._$AM = r, this.options = i, n.length > 2 || n[0] !== "" || n[1] !== "" ? (this._$AH = Array(n.length - 1).fill(/* @__PURE__ */ new String()), this.strings = n) : this._$AH = j;
 	}
 	_$AI(e, t = this, n, r) {
 		let i = this.strings, a = !1;
-		if (i === void 0) e = F(this, e, t, 0), a = !O(e) || e !== this._$AH && e !== M, a && (this._$AH = e);
+		if (i === void 0) e = N(this, e, t, 0), a = !E(e) || e !== this._$AH && e !== A, a && (this._$AH = e);
 		else {
 			let r = e, o, s;
-			for (e = i[0], o = 0; o < i.length - 1; o++) s = F(this, r[n + o], t, o), s === M && (s = this._$AH[o]), a ||= !O(s) || s !== this._$AH[o], s === N ? e = N : e !== N && (e += (s ?? "") + i[o + 1]), this._$AH[o] = s;
+			for (e = i[0], o = 0; o < i.length - 1; o++) s = N(this, r[n + o], t, o), s === A && (s = this._$AH[o]), a ||= !E(s) || s !== this._$AH[o], s === j ? e = j : e !== j && (e += (s ?? "") + i[o + 1]), this._$AH[o] = s;
 		}
 		a && !r && this.j(e);
 	}
 	j(e) {
-		e === N ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, e ?? "");
+		e === j ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, e ?? "");
 	}
-}, ft = class extends L {
+}, gt = class extends P {
 	constructor() {
 		super(...arguments), this.type = 3;
 	}
 	j(e) {
-		this.element[this.name] = e === N ? void 0 : e;
+		this.element[this.name] = e === j ? void 0 : e;
 	}
-}, pt = class extends L {
+}, _t = class extends P {
 	constructor() {
 		super(...arguments), this.type = 4;
 	}
 	j(e) {
-		this.element.toggleAttribute(this.name, !!e && e !== N);
+		this.element.toggleAttribute(this.name, !!e && e !== j);
 	}
-}, mt = class extends L {
+}, vt = class extends P {
 	constructor(e, t, n, r, i) {
 		super(e, t, n, r, i), this.type = 5;
 	}
 	_$AI(e, t = this) {
-		if ((e = F(this, e, t, 0) ?? N) === M) return;
-		let n = this._$AH, r = e === N && n !== N || e.capture !== n.capture || e.once !== n.once || e.passive !== n.passive, i = e !== N && (n === N || r);
+		if ((e = N(this, e, t, 0) ?? j) === A) return;
+		let n = this._$AH, r = e === j && n !== j || e.capture !== n.capture || e.once !== n.once || e.passive !== n.passive, i = e !== j && (n === j || r);
 		r && this.element.removeEventListener(this.name, this, n), i && this.element.addEventListener(this.name, this, e), this._$AH = e;
 	}
 	handleEvent(e) {
 		typeof this._$AH == "function" ? this._$AH.call(this.options?.host ?? this.element, e) : this._$AH.handleEvent(e);
 	}
-}, ht = class {
+}, yt = class {
 	constructor(e, t, n) {
 		this.element = e, this.type = 6, this._$AN = void 0, this._$AM = t, this.options = n;
 	}
@@ -474,33 +474,33 @@ var dt = class {
 		return this._$AM._$AU;
 	}
 	_$AI(e) {
-		F(this, e);
+		N(this, e);
 	}
-}, gt = {
-	M: Xe,
-	P: T,
-	A: Ze,
+}, bt = {
+	M: $e,
+	P: C,
+	A: et,
 	C: 1,
-	L: lt,
-	R: dt,
-	D: et,
-	V: F,
-	I,
-	H: L,
-	N: pt,
-	U: mt,
-	B: ft,
-	F: ht
-}, _t = qe.litHtmlPolyfillSupport;
-_t?.(ut, I), (qe.litHtmlVersions ??= []).push("3.3.3");
-var vt = (e, t, n) => {
+	L: ft,
+	R: mt,
+	D: rt,
+	V: N,
+	I: ht,
+	H: P,
+	N: _t,
+	U: vt,
+	B: gt,
+	F: yt
+}, xt = Xe.litHtmlPolyfillSupport;
+xt?.(pt, ht), (Xe.litHtmlVersions ??= []).push("3.3.3");
+var St = (e, t, n) => {
 	let r = n?.renderBefore ?? t, i = r._$litPart$;
 	if (i === void 0) {
 		let e = n?.renderBefore ?? null;
-		r._$litPart$ = i = new I(t.insertBefore(D(), e), e, void 0, n ?? {});
+		r._$litPart$ = i = new ht(t.insertBefore(T(), e), e, void 0, n ?? {});
 	}
 	return i._$AI(e), i;
-}, yt = globalThis, R = class extends C {
+}, Ct = globalThis, F = class extends x {
 	constructor() {
 		super(...arguments), this.renderOptions = { host: this }, this._$Do = void 0;
 	}
@@ -510,7 +510,7 @@ var vt = (e, t, n) => {
 	}
 	update(e) {
 		let t = this.render();
-		this.hasUpdated || (this.renderOptions.isConnected = this.isConnected), super.update(e), this._$Do = vt(t, this.renderRoot, this.renderOptions);
+		this.hasUpdated || (this.renderOptions.isConnected = this.isConnected), super.update(e), this._$Do = St(t, this.renderRoot, this.renderOptions);
 	}
 	connectedCallback() {
 		super.connectedCallback(), this._$Do?.setConnected(!0);
@@ -519,37 +519,37 @@ var vt = (e, t, n) => {
 		super.disconnectedCallback(), this._$Do?.setConnected(!1);
 	}
 	render() {
-		return M;
+		return A;
 	}
 };
-R._$litElement$ = !0, R.finalized = !0, yt.litElementHydrateSupport?.({ LitElement: R });
-var bt = yt.litElementPolyfillSupport;
-bt?.({ LitElement: R }), (yt.litElementVersions ??= []).push("4.2.2");
+F._$litElement$ = !0, F.finalized = !0, Ct.litElementHydrateSupport?.({ LitElement: F });
+var wt = Ct.litElementPolyfillSupport;
+wt?.({ LitElement: F }), (Ct.litElementVersions ??= []).push("4.2.2");
 //#endregion
 //#region ../../node_modules/lit-html/static.js
-var xt = Symbol.for(""), St = (e) => {
-	if (e?.r === xt) return e?._$litStatic$;
-}, Ct = (e) => ({
+var Tt = Symbol.for(""), Et = (e) => {
+	if (e?.r === Tt) return e?._$litStatic$;
+}, Dt = (e) => ({
 	_$litStatic$: e,
-	r: xt
-}), wt = /* @__PURE__ */ new Map(), z = ((e) => (t, ...n) => {
+	r: Tt
+}), Ot = /* @__PURE__ */ new Map(), I = ((e) => (t, ...n) => {
 	let r = n.length, i, a, o = [], s = [], c, l = 0, u = !1;
 	for (; l < r;) {
-		for (c = t[l]; l < r && (a = n[l], (i = St(a)) !== void 0);) c += i + t[++l], u = !0;
+		for (c = t[l]; l < r && (a = n[l], (i = Et(a)) !== void 0);) c += i + t[++l], u = !0;
 		l !== r && s.push(a), o.push(c), l++;
 	}
 	if (l === r && o.push(t[r]), u) {
 		let e = o.join("$$lit$$");
-		(t = wt.get(e)) === void 0 && (o.raw = o, wt.set(e, t = o)), n = s;
+		(t = Ot.get(e)) === void 0 && (o.raw = o, Ot.set(e, t = o)), n = s;
 	}
 	return e(t, ...n);
-})(j), Tt = {
+})(k), kt = {
 	attribute: !0,
 	type: String,
-	converter: S,
+	converter: b,
 	reflect: !1,
-	hasChanged: Ge
-}, Et = (e = Tt, t, n) => {
+	hasChanged: Je
+}, At = (e = kt, t, n) => {
 	let { kind: r, metadata: i } = n, a = globalThis.litPropertyMetadata.get(i);
 	if (a === void 0 && globalThis.litPropertyMetadata.set(i, a = /* @__PURE__ */ new Map()), r === "setter" && ((e = Object.create(e)).wrapped = !0), a.set(n.name, e), r === "accessor") {
 		let { name: r } = n;
@@ -572,16 +572,16 @@ var xt = Symbol.for(""), St = (e) => {
 	}
 	throw Error("Unsupported decorator location: " + r);
 };
-function B(e) {
-	return (t, n) => typeof n == "object" ? Et(e, t, n) : ((e, t, n) => {
+function L(e) {
+	return (t, n) => typeof n == "object" ? At(e, t, n) : ((e, t, n) => {
 		let r = t.hasOwnProperty(n);
 		return t.constructor.createProperty(n, e), r ? Object.getOwnPropertyDescriptor(t, n) : void 0;
 	})(e, t, n);
 }
 //#endregion
 //#region ../../node_modules/@lit/reactive-element/decorators/state.js
-function Dt(e) {
-	return B({
+function R(e) {
+	return L({
 		...e,
 		state: !0,
 		attribute: !1
@@ -589,39 +589,39 @@ function Dt(e) {
 }
 //#endregion
 //#region src/registry.ts
-var Ot = /^[a-z][a-z0-9]*(-[a-z0-9]+)+$/;
-function V(e) {
-	if (!Ot.test(e)) throw Error(`[Formie WC] Invalid custom element tag "${e}". Use lowercase hyphenated names (e.g. my-text-field).`);
+var jt = /^[a-z][a-z0-9]*(-[a-z0-9]+)+$/;
+function z(e) {
+	if (!jt.test(e)) throw Error(`[Formie WC] Invalid custom element tag "${e}". Use lowercase hyphenated names (e.g. my-text-field).`);
 }
-var kt = class e {
+var Mt = class e {
 	constructor() {
 		this.fieldControls = {}, this.fieldTag = null, this.regions = {};
 	}
 	registerFieldControl(e, t) {
-		return V(t), this.fieldControls[e] = t, this;
+		return z(t), this.fieldControls[e] = t, this;
 	}
 	registerField(e) {
-		return V(e), this.fieldTag = e, this;
+		return z(e), this.fieldTag = e, this;
 	}
 	registerRegion(e, t) {
-		return V(t), this.regions[e] = t, this;
+		return z(t), this.regions[e] = t, this;
 	}
 	clone() {
 		let t = new e();
 		return t.fieldControls = { ...this.fieldControls }, t.fieldTag = this.fieldTag, t.regions = { ...this.regions }, t;
 	}
-}, At = new kt();
-function jt() {
-	return At;
+}, Nt = new Mt();
+function Pt() {
+	return Nt;
 }
-function Mt() {
-	return new kt();
+function Ft() {
+	return new Mt();
 }
 //#endregion
 //#region ../../node_modules/lit-html/directive-helpers.js
-var { I: Nt } = gt, Pt = (e) => e, Ft = (e) => e.strings === void 0, It = () => document.createComment(""), H = (e, t, n) => {
+var { I: It } = bt, Lt = (e) => e, Rt = (e) => e.strings === void 0, zt = () => document.createComment(""), B = (e, t, n) => {
 	let r = e._$AA.parentNode, i = t === void 0 ? e._$AB : t._$AA;
-	if (n === void 0) n = new Nt(r.insertBefore(It(), i), r.insertBefore(It(), i), e, e.options);
+	if (n === void 0) n = new It(r.insertBefore(zt(), i), r.insertBefore(zt(), i), e, e.options);
 	else {
 		let t = n._$AB.nextSibling, a = n._$AM, o = a !== e;
 		if (o) {
@@ -631,25 +631,25 @@ var { I: Nt } = gt, Pt = (e) => e, Ft = (e) => e.strings === void 0, It = () => 
 		if (t !== i || o) {
 			let e = n._$AA;
 			for (; e !== t;) {
-				let t = Pt(e).nextSibling;
-				Pt(r).insertBefore(e, i), e = t;
+				let t = Lt(e).nextSibling;
+				Lt(r).insertBefore(e, i), e = t;
 			}
 		}
 	}
 	return n;
-}, U = (e, t, n = e) => (e._$AI(t, n), e), Lt = {}, Rt = (e, t = Lt) => e._$AH = t, zt = (e) => e._$AH, Bt = (e) => {
+}, V = (e, t, n = e) => (e._$AI(t, n), e), Bt = {}, Vt = (e, t = Bt) => e._$AH = t, Ht = (e) => e._$AH, Ut = (e) => {
 	e._$AR(), e._$AA.remove();
-}, Vt = {
+}, Wt = {
 	ATTRIBUTE: 1,
 	CHILD: 2,
 	PROPERTY: 3,
 	BOOLEAN_ATTRIBUTE: 4,
 	EVENT: 5,
 	ELEMENT: 6
-}, Ht = (e) => (...t) => ({
+}, Gt = (e) => (...t) => ({
 	_$litDirective$: e,
 	values: t
-}), Ut = class {
+}), Kt = class {
 	constructor(e) {}
 	get _$AU() {
 		return this._$AM._$AU;
@@ -663,51 +663,51 @@ var { I: Nt } = gt, Pt = (e) => e, Ft = (e) => e.strings === void 0, It = () => 
 	update(e, t) {
 		return this.render(...t);
 	}
-}, W = (e, t) => {
+}, H = (e, t) => {
 	let n = e._$AN;
 	if (n === void 0) return !1;
-	for (let e of n) e._$AO?.(t, !1), W(e, t);
+	for (let e of n) e._$AO?.(t, !1), H(e, t);
 	return !0;
-}, Wt = (e) => {
+}, U = (e) => {
 	let t, n;
 	do {
 		if ((t = e._$AM) === void 0) break;
 		n = t._$AN, n.delete(e), e = t;
 	} while (n?.size === 0);
-}, Gt = (e) => {
+}, qt = (e) => {
 	for (let t; t = e._$AM; e = t) {
 		let n = t._$AN;
 		if (n === void 0) t._$AN = n = /* @__PURE__ */ new Set();
 		else if (n.has(e)) break;
-		n.add(e), Jt(t);
+		n.add(e), Xt(t);
 	}
 };
-function Kt(e) {
-	this._$AN === void 0 ? this._$AM = e : (Wt(this), this._$AM = e, Gt(this));
+function Jt(e) {
+	this._$AN === void 0 ? this._$AM = e : (U(this), this._$AM = e, qt(this));
 }
-function qt(e, t = !1, n = 0) {
+function Yt(e, t = !1, n = 0) {
 	let r = this._$AH, i = this._$AN;
 	if (i !== void 0 && i.size !== 0) {
 		if (t) {
-			if (Array.isArray(r)) for (let e = n; e < r.length; e++) W(r[e], !1), Wt(r[e]);
-			else r != null && (W(r, !1), Wt(r));
-		} else W(this, e);
+			if (Array.isArray(r)) for (let e = n; e < r.length; e++) H(r[e], !1), U(r[e]);
+			else r != null && (H(r, !1), U(r));
+		} else H(this, e);
 	}
 }
-var Jt = (e) => {
-	e.type == Vt.CHILD && (e._$AP ??= qt, e._$AQ ??= Kt);
-}, Yt = class extends Ut {
+var Xt = (e) => {
+	e.type == Wt.CHILD && (e._$AP ??= Yt, e._$AQ ??= Jt);
+}, Zt = class extends Kt {
 	constructor() {
 		super(...arguments), this._$AN = void 0;
 	}
 	_$AT(e, t, n) {
-		super._$AT(e, t, n), Gt(this), this.isConnected = e._$AU;
+		super._$AT(e, t, n), qt(this), this.isConnected = e._$AU;
 	}
 	_$AO(e, t = !0) {
-		e !== this.isConnected && (this.isConnected = e, e ? this.reconnected?.() : this.disconnected?.()), t && (W(this, e), Wt(this));
+		e !== this.isConnected && (this.isConnected = e, e ? this.reconnected?.() : this.disconnected?.()), t && (H(this, e), U(this));
 	}
 	setValue(e) {
-		if (Ft(this._$Ct)) this._$Ct._$AI(e, this);
+		if (Rt(this._$Ct)) this._$Ct._$AI(e, this);
 		else {
 			let t = [...this._$Ct._$AH];
 			t[this._$Ci] = e, this._$Ct._$AI(t, this, 0);
@@ -715,24 +715,24 @@ var Jt = (e) => {
 	}
 	disconnected() {}
 	reconnected() {}
-}, Xt = /* @__PURE__ */ new WeakMap(), Zt = Ht(class extends Yt {
+}, Qt = /* @__PURE__ */ new WeakMap(), $t = Gt(class extends Zt {
 	render(e) {
-		return N;
+		return j;
 	}
 	update(e, [t]) {
 		let n = t !== this.G;
-		return n && this.rt(void 0), (n || this.lt !== this.ct) && (this.G = t, this.ht = e.options?.host, this.rt(this.ct = e.element)), N;
+		return n && this.rt(void 0), (n || this.lt !== this.ct) && (this.G = t, this.ht = e.options?.host, this.rt(this.ct = e.element)), j;
 	}
 	rt(e) {
 		if (this.G !== void 0) {
 			if (this.isConnected || (e = void 0), typeof this.G == "function") {
-				let t = this.ht ?? globalThis, n = Xt.get(t);
-				n === void 0 && (n = /* @__PURE__ */ new WeakMap(), Xt.set(t, n)), n.get(this.G) !== void 0 && this.G.call(this.ht, void 0), n.set(this.G, e), e !== void 0 && this.G.call(this.ht, e);
+				let t = this.ht ?? globalThis, n = Qt.get(t);
+				n === void 0 && (n = /* @__PURE__ */ new WeakMap(), Qt.set(t, n)), n.get(this.G) !== void 0 && this.G.call(this.ht, void 0), n.set(this.G, e), e !== void 0 && this.G.call(this.ht, e);
 			} else this.G.value = e;
 		}
 	}
 	get lt() {
-		return typeof this.G == "function" ? Xt.get(this.ht ?? globalThis)?.get(this.G) : this.G?.value;
+		return typeof this.G == "function" ? Qt.get(this.ht ?? globalThis)?.get(this.G) : this.G?.value;
 	}
 	disconnected() {
 		this.lt === this.ct && this.rt(void 0);
@@ -740,13 +740,13 @@ var Jt = (e) => {
 	reconnected() {
 		this.rt(this.ct);
 	}
-}), Qt = (e, t, n) => {
+}), en = (e, t, n) => {
 	let r = /* @__PURE__ */ new Map();
 	for (let i = t; i <= n; i++) r.set(e[i], i);
 	return r;
-}, $t = Ht(class extends Ut {
+}, tn = Gt(class extends Kt {
 	constructor(e) {
-		if (super(e), e.type !== Vt.CHILD) throw Error("repeat() can only be used in text expressions");
+		if (super(e), e.type !== Wt.CHILD) throw Error("repeat() can only be used in text expressions");
 	}
 	dt(e, t, n) {
 		let r;
@@ -762,42 +762,42 @@ var Jt = (e) => {
 		return this.dt(e, t, n).values;
 	}
 	update(e, [t, n, r]) {
-		let i = zt(e), { values: a, keys: o } = this.dt(t, n, r);
+		let i = Ht(e), { values: a, keys: o } = this.dt(t, n, r);
 		if (!Array.isArray(i)) return this.ut = o, a;
 		let s = this.ut ??= [], c = [], l, u, d = 0, f = i.length - 1, p = 0, m = a.length - 1;
 		for (; d <= f && p <= m;) if (i[d] === null) d++;
 		else if (i[f] === null) f--;
-		else if (s[d] === o[p]) c[p] = U(i[d], a[p]), d++, p++;
-		else if (s[f] === o[m]) c[m] = U(i[f], a[m]), f--, m--;
-		else if (s[d] === o[m]) c[m] = U(i[d], a[m]), H(e, c[m + 1], i[d]), d++, m--;
-		else if (s[f] === o[p]) c[p] = U(i[f], a[p]), H(e, i[d], i[f]), f--, p++;
-		else if (l === void 0 && (l = Qt(o, p, m), u = Qt(s, d, f)), l.has(s[d])) {
+		else if (s[d] === o[p]) c[p] = V(i[d], a[p]), d++, p++;
+		else if (s[f] === o[m]) c[m] = V(i[f], a[m]), f--, m--;
+		else if (s[d] === o[m]) c[m] = V(i[d], a[m]), B(e, c[m + 1], i[d]), d++, m--;
+		else if (s[f] === o[p]) c[p] = V(i[f], a[p]), B(e, i[d], i[f]), f--, p++;
+		else if (l === void 0 && (l = en(o, p, m), u = en(s, d, f)), l.has(s[d])) {
 			if (l.has(s[f])) {
 				let t = u.get(o[p]), n = t === void 0 ? null : i[t];
 				if (n === null) {
-					let t = H(e, i[d]);
-					U(t, a[p]), c[p] = t;
-				} else c[p] = U(n, a[p]), H(e, i[d], n), i[t] = null;
+					let t = B(e, i[d]);
+					V(t, a[p]), c[p] = t;
+				} else c[p] = V(n, a[p]), B(e, i[d], n), i[t] = null;
 				p++;
-			} else Bt(i[f]), f--;
-		} else Bt(i[d]), d++;
+			} else Ut(i[f]), f--;
+		} else Ut(i[d]), d++;
 		for (; p <= m;) {
-			let t = H(e, c[m + 1]);
-			U(t, a[p]), c[p++] = t;
+			let t = B(e, c[m + 1]);
+			V(t, a[p]), c[p++] = t;
 		}
 		for (; d <= f;) {
 			let e = i[d++];
-			e !== null && Bt(e);
+			e !== null && Ut(e);
 		}
-		return this.ut = o, Rt(e, c), M;
+		return this.ut = o, Vt(e, c), A;
 	}
-}), en = class extends Ut {
+}), nn = class extends Kt {
 	constructor(e) {
-		if (super(e), this.it = N, e.type !== Vt.CHILD) throw Error(this.constructor.directiveName + "() can only be used in child bindings");
+		if (super(e), this.it = j, e.type !== Wt.CHILD) throw Error(this.constructor.directiveName + "() can only be used in child bindings");
 	}
 	render(e) {
-		if (e === N || e == null) return this._t = void 0, this.it = e;
-		if (e === M) return e;
+		if (e === j || e == null) return this._t = void 0, this.it = e;
+		if (e === A) return e;
 		if (typeof e != "string") throw Error(this.constructor.directiveName + "() called with a non-string value");
 		if (e === this.it) return this._t;
 		this.it = e;
@@ -809,98 +809,98 @@ var Jt = (e) => {
 		};
 	}
 };
-en.directiveName = "unsafeHTML", en.resultType = 1;
-var G = Ht(en);
+nn.directiveName = "unsafeHTML", nn.resultType = 1;
+var W = Gt(nn);
 //#endregion
 //#region src/field-utils.ts
-function tn(e) {
+function rn(e) {
 	return !!e && typeof e == "object" && "id" in e && "handle" in e && "type" in e;
 }
-function K(e) {
+function G(e) {
 	return Ce(e);
 }
 //#endregion
 //#region src/types.ts
-var q = "formie-control-value-change";
+var K = "formie-control-value-change";
 //#endregion
 //#region src/render-view.ts
-function nn(e) {
-	return V(e), Ct(e);
+function an(e) {
+	return z(e), Dt(e);
 }
-function rn(e, t, n, r, i, a, o, s, c, l, u) {
+function on(e, t, n, r, i, a, o, s, c, l, u) {
 	if (!e || !(e instanceof HTMLElement)) return;
 	let d = t.toLowerCase(), f = e.firstElementChild;
-	(!f || f.tagName.toLowerCase() !== d) && (e.replaceChildren(), f = document.createElement(t), f.addEventListener(q, (e) => {
+	(!f || f.tagName.toLowerCase() !== d) && (e.replaceChildren(), f = document.createElement(t), f.addEventListener(K, (e) => {
 		u(e.detail);
 	}), e.append(f)), f.field = n, f.value = r, f.errorKey = i, f.errors = a, f.errorId = o.errors, f.inputId = o.input, f.labelId = o.label, f.instructionsId = o.instructions, f.errorAriaLive = s, f.disabled = c, f.hidden = l;
 }
-function an(e, t, n, r, i, a, o, s, c, l, u) {
-	return j`<div
+function sn(e, t, n, r, i, a, o, s, c, l, u) {
+	return k`<div
         class="starter-core-registry-host min-w-0"
-        ${Zt((e) => {
-		rn(e, t, n, r, i, a, o, s, c, l, u);
+        ${$t((e) => {
+		on(e, t, n, r, i, a, o, s, c, l, u);
 	})}
     ></div>`;
 }
-function on(e, t, n, r, i, a, o = "default") {
-	if (o === "compositePart") return ln(t, n, r, i, a);
+function cn(e, t, n, r, i, a, o = "default") {
+	if (o === "compositePart") return dn(t, n, r, i, a);
 	let s = e.registry.fieldTag;
-	if (!s) return un(t, n, r, i, a);
-	let c = nn(s);
-	return z`<${c} .field=${t} .errors=${n} .errorId=${r.errors} .inputId=${r.input} .labelId=${r.label} .instructionsId=${r.instructions} .errorAriaLive=${i}>${a}</${c}>`;
+	if (!s) return fn(t, n, r, i, a);
+	let c = an(s);
+	return I`<${c} .field=${t} .errors=${n} .errorId=${r.errors} .inputId=${r.input} .labelId=${r.label} .instructionsId=${r.instructions} .errorAriaLive=${i}>${a}</${c}>`;
 }
-function sn(e) {
-	return ue(e) ? o : N;
+function ln(e) {
+	return ue(e) ? o : j;
 }
-function cn(e, t) {
-	return ie(e, K(e)) === "control" ? t.input : N;
+function un(e, t) {
+	return ie(e, G(e)) === "control" ? t.input : j;
 }
-function ln(e, t, n, r, i) {
-	return j`
-        <div class="starter-component-subfield" data-formie-field-type=${e.type} data-formie-field-uid=${e.uid} data-formie-field-handle=${e.handle} data-formie-field-required=${e.required ? "true" : N}>
-            ${e.label && !le(e) ? j`<label class="starter-component-subfield-label" style=${sn(e)} id=${n.label} for=${cn(e, n)}>${e.label}</label>` : N}
+function dn(e, t, n, r, i) {
+	return k`
+        <div class="starter-component-subfield" data-formie-field-type=${e.type} data-formie-field-uid=${e.uid} data-formie-field-handle=${e.handle} data-formie-field-required=${e.required ? "true" : j}>
+            ${e.label && !le(e) ? k`<label class="starter-component-subfield-label" style=${ln(e)} id=${n.label} for=${un(e, n)}>${e.label}</label>` : j}
             <div class="starter-component-injected-control grid gap-2 text-slate-900">${i}</div>
-            <ul id=${n.errors} data-formie-field-errors aria-live=${r === "off" ? N : r} aria-atomic=${r === "off" ? N : "true"} style=${t.length === 0 ? "position: absolute" : N} class="grid gap-1 text-sm text-red-600">
-                ${t.map((e) => j`<li>${e}</li>`)}
+            <ul id=${n.errors} data-formie-field-errors aria-live=${r === "off" ? j : r} aria-atomic=${r === "off" ? j : "true"} style=${t.length === 0 ? "position: absolute" : j} class="grid gap-1 text-sm text-red-600">
+                ${t.map((e) => k`<li>${e}</li>`)}
             </ul>
         </div>
     `;
 }
-function un(e, t, n, r, i) {
-	return j`
-        <div class="starter-component-card" data-formie-field-type=${e.type} data-formie-field-uid=${e.uid} data-formie-field-handle=${e.handle} data-formie-field-required=${e.required ? "true" : N}>
-            ${e.label && !le(e) ? j`<label class="starter-component-label" style=${sn(e)} id=${n.label} for=${cn(e, n)}>${e.label}</label>` : N}
-            ${e.instructions ? j`<div class="starter-component-help" id=${n.instructions}>${G(e.instructions)}</div>` : N}
+function fn(e, t, n, r, i) {
+	return k`
+        <div class="starter-component-card" data-formie-field-type=${e.type} data-formie-field-uid=${e.uid} data-formie-field-handle=${e.handle} data-formie-field-required=${e.required ? "true" : j}>
+            ${e.label && !le(e) ? k`<label class="starter-component-label" style=${ln(e)} id=${n.label} for=${un(e, n)}>${e.label}</label>` : j}
+            ${e.instructions ? k`<div class="starter-component-help" id=${n.instructions}>${W(e.instructions)}</div>` : j}
             <div class="starter-component-injected-control grid gap-2 text-slate-900">${i}</div>
-            <ul id=${n.errors} data-formie-field-errors aria-live=${r === "off" ? N : r} aria-atomic=${r === "off" ? N : "true"} style=${t.length === 0 ? "position: absolute" : N} class="grid gap-1 text-sm text-red-600">
-                ${t.map((e) => j`<li>${e}</li>`)}
+            <ul id=${n.errors} data-formie-field-errors aria-live=${r === "off" ? j : r} aria-atomic=${r === "off" ? j : "true"} style=${t.length === 0 ? "position: absolute" : j} class="grid gap-1 text-sm text-red-600">
+                ${t.map((e) => k`<li>${e}</li>`)}
             </ul>
         </div>
     `;
 }
-function dn(e, t) {
+function pn(e, t) {
 	return t.labelledByWrapper && e.instructions ? t.ids.instructions : null;
 }
-function fn(e, t) {
-	return he(dn(e, t), t.errors.length > 0 && t.ids.errors) ?? N;
+function q(e, t) {
+	return he(pn(e, t), t.errors.length > 0 && t.ids.errors) ?? j;
 }
 function J(e, t) {
-	return t.labelledByWrapper ? N : e.label || e.handle;
+	return t.labelledByWrapper ? j : e.label || e.handle;
 }
-function pn(e) {
-	return typeof e.input.autocomplete == "string" ? e.input.autocomplete : N;
+function mn(e) {
+	return typeof e.input.autocomplete == "string" ? e.input.autocomplete : j;
 }
-function mn(e, t, n, r, i, a = K(e)) {
+function hn(e, t, n, r, i, a = G(e)) {
 	let o = e.input, s = i.errors, c = i.ids.errors;
-	if (a === "multi-line-text") return j`
+	if (a === "multi-line-text") return k`
             <textarea
             id=${i.ids.input}
             aria-label=${J(e, i)}
-            aria-required=${e.required ? "true" : N}
-            aria-invalid=${s.length > 0 ? "true" : N}
-            aria-errormessage=${s.length > 0 ? c : N}
-            aria-describedby=${fn(e, i)}
-            autocomplete=${pn(e)}
+            aria-required=${e.required ? "true" : j}
+            aria-invalid=${s.length > 0 ? "true" : j}
+            aria-errormessage=${s.length > 0 ? c : j}
+            aria-describedby=${q(e, i)}
+            autocomplete=${mn(e)}
                 class="starter-component-control"
                 .value=${typeof t == "string" ? t : ""}
                 ?disabled=${n}
@@ -912,15 +912,15 @@ function mn(e, t, n, r, i, a = K(e)) {
         `;
 	if (a === "dropdown") {
 		let a = o.multiple === !0, l = oe(e), u = (Array.isArray(t) ? t : t == null ? [] : [t]).map((e) => String(e)), d = a ? _(e) : g(e), f = u[0] ?? "", p = !a && f === "" && !d.some((e) => e.value === "");
-		return j`
+		return k`
             <select
             id=${i.ids.input}
             aria-label=${J(e, i)}
-            aria-required=${e.required ? "true" : N}
-            aria-invalid=${s.length > 0 ? "true" : N}
-            aria-errormessage=${s.length > 0 ? c : N}
-            aria-describedby=${fn(e, i)}
-            autocomplete=${pn(e)}
+            aria-required=${e.required ? "true" : j}
+            aria-invalid=${s.length > 0 ? "true" : j}
+            aria-errormessage=${s.length > 0 ? c : j}
+            aria-describedby=${q(e, i)}
+            autocomplete=${mn(e)}
                 class="starter-component-control"
                 ?disabled=${n}
                 ?multiple=${a}
@@ -929,8 +929,8 @@ function mn(e, t, n, r, i, a = K(e)) {
 			r(a ? Array.from(t.selectedOptions).map((e) => e.value) : l ? t.value === "" ? [] : [t.value] : t.value);
 		}}
             >
-                ${p ? j`<option value="" disabled hidden .selected=${!0}></option>` : N}
-                ${d.map((e) => j`
+                ${p ? k`<option value="" disabled hidden .selected=${!0}></option>` : j}
+                ${d.map((e) => k`
                         <option
                             value=${e.value}
                             ?disabled=${e.disabled}
@@ -943,18 +943,18 @@ function mn(e, t, n, r, i, a = K(e)) {
         `;
 	}
 	let l = typeof o.inputType == "string" ? o.inputType : e.type === "email" ? "email" : e.type === "phone" ? "tel" : e.type === "number" ? "number" : "text";
-	return j`
+	return k`
         <input
             id=${i.ids.input}
             aria-label=${J(e, i)}
-            aria-required=${e.required ? "true" : N}
-            aria-invalid=${s.length > 0 ? "true" : N}
-            aria-errormessage=${s.length > 0 ? c : N}
-            aria-describedby=${fn(e, i)}
-            autocomplete=${pn(e)}
+            aria-required=${e.required ? "true" : j}
+            aria-invalid=${s.length > 0 ? "true" : j}
+            aria-errormessage=${s.length > 0 ? c : j}
+            aria-describedby=${q(e, i)}
+            autocomplete=${mn(e)}
             class="starter-component-control"
             type=${l}
-            data-formie-phone-input=${pe(e) ? "true" : N}
+            data-formie-phone-input=${pe(e) ? "true" : j}
             .value=${typeof t == "string" || typeof t == "number" ? String(t) : ""}
             ?disabled=${n}
             ?readonly=${se(e)}
@@ -965,21 +965,21 @@ function mn(e, t, n, r, i, a = K(e)) {
         />
     `;
 }
-var hn = /* @__PURE__ */ new WeakMap();
-function gn(e) {
-	return Zt((t) => {
-		t && (hn.has(t) || t.addEventListener(a, (e) => hn.get(t)?.(e)), hn.set(t, e));
+var gn = /* @__PURE__ */ new WeakMap();
+function _n(e) {
+	return $t((t) => {
+		t && (gn.has(t) || t.addEventListener(a, (e) => gn.get(t)?.(e)), gn.set(t, e));
 	});
 }
-function _n(e, t, n, r, i) {
-	let a = be(t), o = () => document.getElementById(i.ids.input)?.closest(".starter-component-phone"), s = mn(e, a.number, n, (e) => {
+function vn(e, t, n, r, i) {
+	let a = be(t), o = () => document.getElementById(i.ids.input)?.closest(".starter-component-phone"), s = hn(e, a.number, n, (e) => {
 		r({
 			...xe(o(), a),
 			number: String(e ?? "")
 		});
 	}, i, "phone");
-	return pe(e) ? j`
-        <div class="starter-component-phone" ${gn((e) => {
+	return pe(e) ? k`
+        <div class="starter-component-phone" ${_n((e) => {
 		r(xe(e.currentTarget, a));
 	})}>
             ${s}
@@ -987,29 +987,29 @@ function _n(e, t, n, r, i) {
         </div>
     ` : s;
 }
-function vn(e, t, n, r, i, a) {
-	let o = _(e), s = Te(e), c = s.length > 0, l = c && t && typeof t == "object" ? t : {}, u = i.ids.input, d = Y(e, i), f = i.errors.length > 0;
-	return j`
+function yn(e, t, n, r, i, a) {
+	let o = _(e), s = Ee(e), c = s.length > 0, l = c && t && typeof t == "object" ? t : {}, u = i.ids.input, d = Y(e, i), f = i.errors.length > 0;
+	return k`
         <div class="starter-component-likert" role="group" aria-labelledby=${d.labelledBy} aria-label=${d.label} aria-describedby=${d.describedBy}>
             <table>
-                <thead><tr><td></td>${o.map((e, t) => j`<th id=${`${u}-col-${t}`} scope="col">${e.label}</th>`)}</tr></thead>
+                <thead><tr><td></td>${o.map((e, t) => k`<th id=${`${u}-col-${t}`} scope="col">${e.label}</th>`)}</tr></thead>
                 <tbody>
                     ${(c ? s : [{
 		label: "",
 		value: ""
 	}]).map((e, i) => {
 		let s = c ? String(l[e.value] ?? "") : t == null ? "" : String(t), d = `${u}-row-${i}`;
-		return j`<tr>
-                            ${c ? j`<th id=${d} scope="row">${e.label}</th>` : j`<td></td>`}
-                            ${o.map((t, o) => j`<td><input
+		return k`<tr>
+                            ${c ? k`<th id=${d} scope="row">${e.label}</th>` : k`<td></td>`}
+                            ${o.map((t, o) => k`<td><input
                                 type="radio"
                                 name=${`${u}-${i}`}
                                 value=${t.value}
                                 .checked=${s === t.value}
                                 ?disabled=${n || t.disabled}
                                 aria-labelledby=${c ? `${u}-col-${o} ${d}` : `${u}-col-${o}`}
-                                aria-invalid=${f ? "true" : N}
-                                aria-errormessage=${f ? a : N}
+                                aria-invalid=${f ? "true" : j}
+                                aria-errormessage=${f ? a : j}
                                 @change=${() => r(c ? {
 			...l,
 			[e.value]: t.value
@@ -1022,17 +1022,17 @@ function vn(e, t, n, r, i, a) {
         </div>
     `;
 }
-var yn = /* @__PURE__ */ new WeakMap();
-function bn(e) {
-	return Zt((t) => {
-		t && (yn.has(t) || s(t, "li", (e, n) => yn.get(t)?.(e, n)), yn.set(t, e));
+var bn = /* @__PURE__ */ new WeakMap();
+function xn(e) {
+	return $t((t) => {
+		t && (bn.has(t) || s(t, "li", (e, n) => bn.get(t)?.(e, n)), bn.set(t, e));
 	});
 }
-function xn(e, t, n, r, i, a) {
-	let o = e.state.definition, s = Object.fromEntries(_(t).map((e) => [e.value, e.label])), c = Ee(t, n), l = Y(t, a), u = (e, t) => i(ve(c, e, t));
-	return j`
-        <ol class="starter-component-rank" role="group" aria-labelledby=${l.labelledBy} aria-label=${l.label} aria-describedby=${l.describedBy} ${bn(u)}>
-            ${$t(c, (e) => e, (e, t) => j`<li>
+function Sn(e, t, n, r, i, a) {
+	let o = e.state.definition, s = Object.fromEntries(_(t).map((e) => [e.value, e.label])), c = De(t, n), l = Y(t, a), u = (e, t) => i(ve(c, e, t));
+	return k`
+        <ol class="starter-component-rank" role="group" aria-labelledby=${l.labelledBy} aria-label=${l.label} aria-describedby=${l.describedBy} ${xn(u)}>
+            ${tn(c, (e) => e, (e, t) => k`<li>
                 <span>${s[e] ?? e}</span>
                 <button type="button" ?disabled=${r || t === 0} aria-label=${`${v(o, "moveUp")}: ${s[e] ?? e}`} @click=${() => u(t, t - 1)}>${v(o, "moveUp")}</button>
                 <button type="button" ?disabled=${r || t === c.length - 1} aria-label=${`${v(o, "moveDown")}: ${s[e] ?? e}`} @click=${() => u(t, t + 1)}>${v(o, "moveDown")}</button>
@@ -1040,11 +1040,11 @@ function xn(e, t, n, r, i, a) {
         </ol>
     `;
 }
-function Sn(e, t, n, r, i, a) {
-	let s = _(e), c = t == null ? "" : String(t), l = s.findIndex((e) => e.value === c), u = typeof e.input.starColor == "string" && e.input.starColor ? `color: ${e.input.starColor}` : N, d = Y(e, i), f = i.errors.length > 0;
-	return j`
+function Cn(e, t, n, r, i, a) {
+	let s = _(e), c = t == null ? "" : String(t), l = s.findIndex((e) => e.value === c), u = typeof e.input.starColor == "string" && e.input.starColor ? `color: ${e.input.starColor}` : j, d = Y(e, i), f = i.errors.length > 0;
+	return k`
         <div class="starter-component-rating" style=${u} role="radiogroup" aria-labelledby=${d.labelledBy} aria-label=${d.label} aria-describedby=${d.describedBy}>
-            ${s.map((e, t) => j`<label style="position: relative; display: inline-block" data-formie-rating-filled=${t <= l ? "true" : N}>
+            ${s.map((e, t) => k`<label style="position: relative; display: inline-block" data-formie-rating-filled=${t <= l ? "true" : j}>
                 <input
                     type="radio"
                     name=${i.ids.input}
@@ -1052,8 +1052,8 @@ function Sn(e, t, n, r, i, a) {
                     .checked=${c === e.value}
                     ?disabled=${n || e.disabled}
                     style="position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer"
-                    aria-invalid=${f ? "true" : N}
-                    aria-errormessage=${f ? a : N}
+                    aria-invalid=${f ? "true" : j}
+                    aria-errormessage=${f ? a : j}
                     @change=${() => r(e.value)}
                     @click=${() => {
 		c === e.value && r(null);
@@ -1065,18 +1065,18 @@ function Sn(e, t, n, r, i, a) {
         </div>
     `;
 }
-function Cn(e, t, n, r) {
-	if (e.type === "heading") return j`<span>${typeof t == "string" ? t : ""}</span>`;
-	if (e.type === "checkbox") return j`<input type="checkbox" aria-label=${e.heading} .checked=${t === !0 || t === "1" || t === 1} ?disabled=${n} @change=${(e) => r(e.target.checked)} />`;
-	if (e.type === "multiline") return j`<textarea aria-label=${e.heading} .value=${typeof t == "string" ? t : ""} ?disabled=${n} @input=${(e) => r(e.target.value)}></textarea>`;
+function wn(e, t, n, r) {
+	if (e.type === "heading") return k`<span>${typeof t == "string" ? t : ""}</span>`;
+	if (e.type === "checkbox") return k`<input type="checkbox" aria-label=${e.heading} .checked=${t === !0 || t === "1" || t === 1} ?disabled=${n} @change=${(e) => r(e.target.checked)} />`;
+	if (e.type === "multiline") return k`<textarea aria-label=${e.heading} .value=${typeof t == "string" ? t : ""} ?disabled=${n} @input=${(e) => r(e.target.value)}></textarea>`;
 	if (e.type === "select" || e.type === "dropdown") {
 		let i = t == null ? "" : String(t);
-		return j`<select aria-label=${e.heading} ?disabled=${n} @change=${(e) => r(e.target.value)}>
-            ${e.options.some((e) => e.value === i) ? N : j`<option value=${i} disabled hidden .selected=${!0}></option>`}
-            ${e.options.map((e) => j`<option value=${e.value} .selected=${e.value === i}>${e.label}</option>`)}
+		return k`<select aria-label=${e.heading} ?disabled=${n} @change=${(e) => r(e.target.value)}>
+            ${e.options.some((e) => e.value === i) ? j : k`<option value=${i} disabled hidden .selected=${!0}></option>`}
+            ${e.options.map((e) => k`<option value=${e.value} .selected=${e.value === i}>${e.label}</option>`)}
         </select>`;
 	}
-	return j`<input type=${{
+	return k`<input type=${{
 		number: "number",
 		email: "email",
 		url: "url",
@@ -1085,27 +1085,27 @@ function Cn(e, t, n, r) {
 		color: "color"
 	}[e.type] ?? "text"} aria-label=${e.heading} .value=${typeof t == "string" || typeof t == "number" ? String(t) : ""} ?disabled=${n} @input=${(e) => r(e.target.value)} />`;
 }
-function wn(e, t, n, r, i, a) {
-	let o = De(t), s = Array.isArray(n) ? n : [], c = t.input, l = c.static === !0 || c.staticRows === !0, u = Number(c.minRows ?? 0) || 0, d = Number(c.maxRows ?? 0) || 0, f = !r && !l && (d <= 0 || s.length < d), p = e.state.definition, h = (e, t, n) => {
+function Tn(e, t, n, r, i, a) {
+	let o = Oe(t), s = Array.isArray(n) ? n : [], c = t.input, l = c.static === !0 || c.staticRows === !0, u = Number(c.minRows ?? 0) || 0, d = Number(c.maxRows ?? 0) || 0, f = !r && !l && (d <= 0 || s.length < d), p = e.state.definition, h = (e, t, n) => {
 		i(s.map((r, i) => i === e ? {
 			...r,
 			[t]: n
 		} : r));
 	};
-	return j`
-        <div class="grid gap-2" role="group" aria-labelledby=${a.labelledByWrapper ? a.ids.label : N} aria-label=${J(t, a)}>
+	return k`
+        <div class="grid gap-2" role="group" aria-labelledby=${a.labelledByWrapper ? a.ids.label : j} aria-label=${J(t, a)}>
             <table>
                 <thead>
                     <tr>
-                        ${o.map((e) => j`<th scope="col">${e.heading}</th>`)}
-                        ${l ? N : j`<td></td>`}
+                        ${o.map((e) => k`<th scope="col">${e.heading}</th>`)}
+                        ${l ? j : k`<td></td>`}
                     </tr>
                 </thead>
                 <tbody>
-                    ${s.map((e, t) => j`
+                    ${s.map((e, t) => k`
                         <tr>
-                            ${o.map((n) => j`<td>${Cn(n, e[n.handle], r, (e) => h(t, n.handle, e))}</td>`)}
-                            ${l ? N : j`<td>
+                            ${o.map((n) => k`<td>${wn(n, e[n.handle], r, (e) => h(t, n.handle, e))}</td>`)}
+                            ${l ? j : k`<td>
                                 <button type="button" aria-label=${`${v(p, "removeRow")} ${t + 1}`} ?disabled=${r || s.length <= u} @click=${() => i(s.filter((e, n) => n !== t))}>
                                     ${v(p, "remove")}
                                 </button>
@@ -1114,31 +1114,31 @@ function wn(e, t, n, r, i, a) {
                     `)}
                 </tbody>
             </table>
-            ${l ? N : j`<button type="button" ?disabled=${!f} @click=${() => i([...s, m(t)])}>
+            ${l ? j : k`<button type="button" ?disabled=${!f} @click=${() => i([...s, m(t)])}>
                 ${String(c.addRowLabel || v(p, "addRow"))}
             </button>`}
         </div>
     `;
 }
-function Tn(e, t) {
-	let { field: n, value: r, errorKey: i, disabled: a, setValue: o } = t, s = n.input, c = K(n), l = {
+function En(e, t) {
+	let { field: n, value: r, errorKey: i, disabled: a, setValue: o } = t, s = n.input, c = G(n), l = {
 		errors: t.errors,
 		ids: t.ids,
 		labelledByWrapper: t.labelledByWrapper && !!n.label
-	}, u = l.labelledByWrapper ? t.ids.label : N, d = he(dn(n, l)) ?? N;
-	if (ce(n)) return Dn(e, t, l);
-	if (me(n)) return On(e, t, l);
-	if (c === "table") return wn(e, n, r, a, o, l);
-	if (c === "phone") return _n(n, r, a, o, l);
-	if (c === "survey-likert") return vn(n, r, a, o, l, l.ids.errors);
-	if (c === "survey-rank") return xn(e, n, r, a, o, l);
-	if (c === "survey-rating") return Sn(n, r, a, o, l, l.ids.errors);
-	if (c === "section") return j`<hr class="starter-component-section" />`;
-	if (de(n)) return En(n, r, a, o, l);
-	if (c === "signature") return j`<formie-internal-signature
-            aria-invalid=${t.errors.length > 0 ? "true" : N}
-            aria-errormessage=${t.errors.length > 0 ? t.errorId : N}
-            aria-describedby=${t.errors.length > 0 ? t.errorId : N}
+	}, u = l.labelledByWrapper ? t.ids.label : j, d = he(pn(n, l)) ?? j;
+	if (ce(n)) return On(e, t, l);
+	if (me(n)) return kn(e, t, l);
+	if (c === "table") return Tn(e, n, r, a, o, l);
+	if (c === "phone") return vn(n, r, a, o, l);
+	if (c === "survey-likert") return yn(n, r, a, o, l, l.ids.errors);
+	if (c === "survey-rank") return Sn(e, n, r, a, o, l);
+	if (c === "survey-rating") return Cn(n, r, a, o, l, l.ids.errors);
+	if (c === "section") return k`<hr class="starter-component-section" />`;
+	if (de(n)) return Dn(n, r, a, o, l);
+	if (c === "signature") return k`<formie-internal-signature
+            aria-invalid=${t.errors.length > 0 ? "true" : j}
+            aria-errormessage=${t.errors.length > 0 ? t.errorId : j}
+            aria-describedby=${t.errors.length > 0 ? t.errorId : j}
             .clearLabel=${v(e.state.definition, "clear")}
             .clearAccessibleLabel=${v(e.state.definition, "clearSignature")}
             .field=${n}
@@ -1149,20 +1149,20 @@ function Tn(e, t) {
 		o(e.detail);
 	}}
         ></formie-internal-signature>`;
-	if (c === "multi-line-text" || c === "dropdown") return mn(n, r, a, o, l, c);
+	if (c === "multi-line-text" || c === "dropdown") return hn(n, r, a, o, l, c);
 	if (c === "radio") {
 		let e = _(n), i = oe(n), s = Array.isArray(r) ? String(r[0] ?? "") : r == null ? "" : String(r);
-		return j`
-            <div class="flex flex-col gap-2" role="radiogroup" aria-labelledby=${u} aria-label=${J(n, l)} aria-required=${n.required ? "true" : N} aria-describedby=${d}>
+		return k`
+            <div class="flex flex-col gap-2" role="radiogroup" aria-labelledby=${u} aria-label=${J(n, l)} aria-required=${n.required ? "true" : j} aria-describedby=${d}>
                 ${e.map((e) => {
 			let n = e.value, r = a || e.disabled;
-			return j`
+			return k`
                         <label class="flex items-center gap-2 text-sm text-slate-800">
                             <input
                                 type="radio"
-                                aria-invalid=${t.errors.length > 0 ? "true" : N}
-                                aria-errormessage=${t.errors.length > 0 ? t.errorId : N}
-                                aria-describedby=${t.errors.length > 0 ? t.errorId : N}
+                                aria-invalid=${t.errors.length > 0 ? "true" : j}
+                                aria-errormessage=${t.errors.length > 0 ? t.errorId : j}
+                                aria-describedby=${t.errors.length > 0 ? t.errorId : j}
                                 name=${t.ids.input}
                                 value=${n}
                                 .checked=${s === n}
@@ -1180,17 +1180,17 @@ function Tn(e, t) {
 	}
 	if (c === "checkboxes") {
 		let e = _(n), i = Array.isArray(r) ? r.map((e) => String(e)) : [];
-		return j`
+		return k`
             <div class="flex flex-col gap-2" role="group" aria-labelledby=${u} aria-label=${J(n, l)} aria-describedby=${d}>
                 ${e.map((e) => {
 			let n = e.value, r = i.includes(n), s = a || e.disabled;
-			return j`
+			return k`
                         <label class="flex items-center gap-2 text-sm text-slate-800">
                             <input
                                 type="checkbox"
-                                aria-invalid=${t.errors.length > 0 ? "true" : N}
-                                aria-errormessage=${t.errors.length > 0 ? t.errorId : N}
-                                aria-describedby=${t.errors.length > 0 ? t.errorId : N}
+                                aria-invalid=${t.errors.length > 0 ? "true" : j}
+                                aria-errormessage=${t.errors.length > 0 ? t.errorId : j}
+                                aria-describedby=${t.errors.length > 0 ? t.errorId : j}
                                 .checked=${r}
                                 ?disabled=${s}
                                 @change=${() => {
@@ -1207,47 +1207,49 @@ function Tn(e, t) {
 	}
 	if (c === "agree") {
 		let e = typeof s.descriptionHtml == "string" ? s.descriptionHtml : null;
-		return j`
+		return k`
             <div role="group" aria-labelledby=${u} aria-label=${J(n, l)} aria-describedby=${d}>
                 <label class="flex items-start gap-2 text-sm text-slate-800">
                     <input
                         type="checkbox"
                         id=${t.ids.input}
-                        aria-required=${n.required ? "true" : N}
-                        aria-invalid=${t.errors.length > 0 ? "true" : N}
-                        aria-errormessage=${t.errors.length > 0 ? t.errorId : N}
-                        aria-describedby=${t.errors.length > 0 ? t.errorId : N}
+                        aria-required=${n.required ? "true" : j}
+                        aria-invalid=${t.errors.length > 0 ? "true" : j}
+                        aria-errormessage=${t.errors.length > 0 ? t.errorId : j}
+                        aria-describedby=${t.errors.length > 0 ? t.errorId : j}
                         .checked=${r === !0}
                         ?disabled=${a}
                         @change=${(e) => {
 			o(e.target.checked);
 		}}
                     />
-                    <span>${e ? G(e) : n.label ?? ""}</span>
+                    <span>${e ? W(e) : n.label ?? ""}</span>
                 </label>
             </div>
         `;
 	}
 	let f = h(n);
-	if (f) return f.kind === "heading" ? z`<${Ct(f.level)} class="starter-component-heading">${f.text}</${Ct(f.level)}>` : j`<div class="starter-component-content">${G(f.html)}</div>`;
-	let p = ye(n);
-	return p === null ? fe(c) ? mn(n, r, a, o, l, c) : j`<div class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+	if (f) return f.kind === "heading" ? I`<${Dt(f.level)} class="starter-component-heading">${f.text}</${Dt(f.level)}>` : k`<div class="starter-component-content">${W(f.html)}</div>`;
+	let p = Te(n, e.state.lastSubmitResult);
+	if (p !== null) return k`<div class="starter-component-summary">${W(p)}</div>`;
+	let m = ye(n);
+	return m === null ? fe(c) ? hn(n, r, a, o, l, c) : k`<div class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
             Unknown field type:
             ${String(n.meta?.fieldType ?? n.type)}
-        </div>` : j`<div class="starter-component-payment">${G(p)}</div>`;
+        </div>` : k`<div class="starter-component-payment">${W(m)}</div>`;
 }
-function En(e, t, n, r, i) {
+function Dn(e, t, n, r, i) {
 	let a = i.errors, o = i.ids.errors, s = e.input, c = Array.isArray(t) ? t : [], l = s.multiple === !0, u = c.map((e, t) => e && typeof e == "object" && "name" in e && typeof e.name == "string" ? e.name : e && typeof e == "object" && "filename" in e && typeof e.filename == "string" ? e.filename : e && typeof e == "object" && "assetId" in e && typeof e.assetId == "number" ? `Asset #${e.assetId}` : `File ${t + 1}`);
-	return j`
+	return k`
         <div class="grid gap-2">
             <input
                 type="file"
                 id=${i.ids.input}
                 aria-label=${J(e, i)}
-                aria-required=${e.required ? "true" : N}
-                aria-invalid=${a.length > 0 ? "true" : N}
-                aria-errormessage=${a.length > 0 ? o : N}
-                aria-describedby=${fn(e, i)}
+                aria-required=${e.required ? "true" : j}
+                aria-invalid=${a.length > 0 ? "true" : j}
+                aria-errormessage=${a.length > 0 ? o : j}
+                aria-describedby=${q(e, i)}
                 class="starter-component-control"
                 ?disabled=${n}
                 ?multiple=${l}
@@ -1256,28 +1258,28 @@ function En(e, t, n, r, i) {
 		r(Array.from(t.files || []));
 	}}
             />
-            ${u.length > 0 ? j`<ul class="starter-component-file-list grid gap-1 text-sm text-slate-600">
-                      ${u.map((e) => j`<li>${e}</li>`)}
-                  </ul>` : N}
+            ${u.length > 0 ? k`<ul class="starter-component-file-list grid gap-1 text-sm text-slate-600">
+                      ${u.map((e) => k`<li>${e}</li>`)}
+                  </ul>` : j}
         </div>
     `;
 }
 function Y(e, t) {
 	return {
-		labelledBy: t.labelledByWrapper ? t.ids.label : N,
+		labelledBy: t.labelledByWrapper ? t.ids.label : j,
 		label: J(e, t),
-		describedBy: he(dn(e, t)) ?? N
+		describedBy: he(pn(e, t)) ?? j
 	};
 }
-function Dn(e, t, n) {
+function On(e, t, n) {
 	let { field: r, value: i, errorKey: a, disabled: o, setValue: s } = t, c = l(r), u = i && typeof i == "object" ? i : {};
-	if (c.length === 0) return j`<div class="text-sm text-amber-800">Composite field has no parts.</div>`;
+	if (c.length === 0) return k`<div class="text-sm text-amber-800">Composite field has no parts.</div>`;
 	let d = Y(r, n);
-	return j`
+	return k`
         <div class="starter-component-name-grid" role="group" aria-labelledby=${d.labelledBy} aria-label=${d.label} aria-describedby=${d.describedBy}>
             ${c.filter((e) => e.meta?.hidden !== !0).map((t) => {
 		let n = `${a}.${t.handle}`;
-		return kn(e, {
+		return An(e, {
 			field: t,
 			value: u[t.handle],
 			errors: e.state.errors.fields[n] || [],
@@ -1294,15 +1296,15 @@ function Dn(e, t, n) {
         </div>
     `;
 }
-function On(e, t, n) {
+function kn(e, t, n) {
 	let { field: r, value: i, errorKey: a, disabled: o, setValue: s } = t, c = Se(r), l = Array.isArray(i) ? i : [], u = r.input, d = Number(u.minRows ?? 0) || 0, p = Number(u.maxRows ?? 0) || 0, m = !o && (p <= 0 || l.length < p);
-	if (c.length === 0) return j`<div class="text-sm text-amber-800">Repeater has no row layout.</div>`;
+	if (c.length === 0) return k`<div class="text-sm text-amber-800">Repeater has no row layout.</div>`;
 	let h = Y(r, n), g = e.state.definition;
-	return j`
+	return k`
         <div class="grid gap-4" data-formie-repeater-container role="group" aria-labelledby=${h.labelledBy} aria-label=${h.label} aria-describedby=${h.describedBy}>
-            ${l.map((t, n) => j`
+            ${l.map((t, n) => k`
                     <div class="rounded-xl border border-slate-200 p-4" data-formie-repeater-item>
-                        ${c.map((r, i) => An(e, r, t, `${a}.${n}`, o, (e, t) => {
+                        ${c.map((r, i) => jn(e, r, t, `${a}.${n}`, o, (e, t) => {
 		let r = l.map((r, i) => i === n ? {
 			...r,
 			[e.handle]: t
@@ -1336,13 +1338,13 @@ function On(e, t, n) {
         </div>
     `;
 }
-function kn(e, t, n = "default") {
+function An(e, t, n = "default") {
 	let { field: r, value: i, errors: a, errorKey: o, disabled: s, setValue: c } = t, l = e.state.fieldStates[o]?.hidden === !0;
-	if (l) return j``;
-	let u = K(r), d = re(e.state.session, o), f = d.errors, p = ne(e.state.definition), m = e.registry.fieldControls[r.type] || e.registry.fieldControls[u] || null, h = (t) => {
+	if (l) return k``;
+	let u = G(r), d = re(e.state.session, o), f = d.errors, p = ne(e.state.definition), m = e.registry.fieldControls[r.type] || e.registry.fieldControls[u] || null, h = (t) => {
 		c(t), e.host.requestUpdate();
 	};
-	return on(e, r, a, d, p, m ? an(e, m, r, i, o, a, d, p, s, l, h) : Tn(e, {
+	return cn(e, r, a, d, p, m ? sn(e, m, r, i, o, a, d, p, s, l, h) : En(e, {
 		...t,
 		errorId: f,
 		errorAriaLive: p,
@@ -1351,12 +1353,12 @@ function kn(e, t, n = "default") {
 		setValue: h
 	}), n);
 }
-function An(e, t, n, r, i, a) {
-	return j`
+function jn(e, t, n, r, i, a) {
+	return k`
         <div class="starter-core-row grid gap-4">
             ${t.fields.map((t) => {
 		let o = `${r}.${t.handle}`;
-		return kn(e, {
+		return An(e, {
 			field: t,
 			value: n[t.handle],
 			errors: e.state.errors.fields[o] || [],
@@ -1370,10 +1372,10 @@ function An(e, t, n, r, i, a) {
         </div>
     `;
 }
-function jn(e, t) {
-	return j`
+function Mn(e, t) {
+	return k`
         <div class="starter-core-row grid gap-4">
-            ${t.fields.map((t) => kn(e, {
+            ${t.fields.map((t) => An(e, {
 		field: t,
 		value: e.state.values[t.id],
 		errors: e.state.errors.fields[t.id] || [],
@@ -1386,21 +1388,21 @@ function jn(e, t) {
         </div>
     `;
 }
-function Mn(e) {
+function Nn(e) {
 	let t = e.state.definition.pages.find((t) => t.id === e.state.currentPageId);
-	if (!t) return j``;
+	if (!t) return k``;
 	let n = e.registry.regions.pageActions;
 	if (n) {
-		let r = nn(n);
-		return z`<${r}
+		let r = an(n);
+		return I`<${r}
             .page=${t}
             .state=${e.state}
             .instance=${e.instance}
         ></${r}>`;
 	}
-	return j`
+	return k`
         <div class="formie-page-actions">
-            ${t.actions.secondary.map((t) => j`
+            ${t.actions.secondary.map((t) => k`
             <button
                 type="button"
                 @click=${async (n) => {
@@ -1415,24 +1417,24 @@ function Mn(e) {
         </div>
     `;
 }
-function Nn(e) {
+function Pn(e) {
 	let t = e.state.definition.pages.find((t) => t.id === e.state.currentPageId && e.state.pageStates[t.id]?.hidden !== !0) || e.state.definition.pages.find((t) => e.state.pageStates[t.id]?.hidden !== !0) || e.state.definition.pages[0];
-	if (!t) return j``;
-	let n = e.state.errors.form, r = e.state.lastSubmitResult?.messages.error, i = e.state.lastSubmitResult?.messages.notice, a = !!r && !n.includes(r), o = !(e.state.lastSubmitResult?.completion?.behavior === "message" && e.state.lastSubmitResult.completion.hideForm), s = ae(e.state.definition, e.state.currentPageId)?.position, c = j`
-        ${n.length > 0 ? j`<div class="starter-core-msg starter-core-msg-error mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert" tabindex="-1" data-formie-form-message>
+	if (!t) return k``;
+	let n = e.state.errors.form, r = e.state.lastSubmitResult?.messages.error, i = e.state.lastSubmitResult?.messages.notice, a = !!r && !n.includes(r), o = !(e.state.lastSubmitResult?.completion?.behavior === "message" && e.state.lastSubmitResult.completion.hideForm), s = ae(e.state.definition, e.state.currentPageId)?.position, c = k`
+        ${n.length > 0 ? k`<div class="starter-core-msg starter-core-msg-error mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert" tabindex="-1" data-formie-form-message>
                   <ul class="list-inside list-disc">
-                      ${n.map((e) => j`<li>${e}</li>`)}
+                      ${n.map((e) => k`<li>${e}</li>`)}
                   </ul>
-              </div>` : N}
-        ${i ? j`<div class="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800" role="status" tabindex="-1" data-formie-form-message>
-                  ${G(i)}
-              </div>` : N}
-        ${a ? j`<div class="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert" tabindex="-1" data-formie-form-message>${r}</div>` : N}
-        ${o && s === "start" ? Fn(e) : N}
-        ${o ? Pn(e, t) : N}
-        ${o && s === "end" ? Fn(e) : N}
+              </div>` : j}
+        ${i ? k`<div class="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800" role="status" tabindex="-1" data-formie-form-message>
+                  ${W(i)}
+              </div>` : j}
+        ${a ? k`<div class="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert" tabindex="-1" data-formie-form-message>${r}</div>` : j}
+        ${o && s === "start" ? In(e) : j}
+        ${o ? Fn(e, t) : j}
+        ${o && s === "end" ? In(e) : j}
     `, l = e.state.session.tokens.render ?? "";
-	return j`
+	return k`
         <form
             class=${e.formClass || "starter-component-form starter-core-preview text-slate-900"}
             data-formie-definition=${e.state.definition.handle}
@@ -1447,48 +1449,48 @@ function Nn(e) {
         </form>
     `;
 }
-function Pn(e, t) {
-	let n = e.registry.regions.page, r = j`
+function Fn(e, t) {
+	let n = e.registry.regions.page, r = k`
         <div class="starter-core-fields grid gap-4">
-            ${t.rows.map((t) => jn(e, t))}
+            ${t.rows.map((t) => Mn(e, t))}
         </div>
-        ${Mn(e)}
+        ${Nn(e)}
     `;
 	if (n) {
-		let i = nn(n);
-		return z`<${i} .page=${t} .state=${e.state}>${r}</${i}>`;
+		let i = an(n);
+		return I`<${i} .page=${t} .state=${e.state}>${r}</${i}>`;
 	}
 	let i = we(e.state.definition) && !!t.label, a = `formie-${e.state.session.tokens.render || e.state.session.id}-page-${t.id}-title`;
-	return j`
-        <section data-page-id=${t.id} class="starter-core-page space-y-4" tabindex="-1" aria-labelledby=${i ? a : N} aria-label=${!i && e.state.definition.pages.length > 1 && t.label ? t.label : N}>
-            ${i ? j`<h3 id=${a} class="starter-core-page-title">${t.label}</h3>` : N}
+	return k`
+        <section data-page-id=${t.id} class="starter-core-page space-y-4" tabindex="-1" aria-labelledby=${i ? a : j} aria-label=${!i && e.state.definition.pages.length > 1 && t.label ? t.label : j}>
+            ${i ? k`<h3 id=${a} class="starter-core-page-title">${t.label}</h3>` : j}
             ${r}
         </section>
     `;
 }
-function Fn(e) {
+function In(e) {
 	let t = ae(e.state.definition, e.state.currentPageId);
-	if (!t) return j``;
-	let n = j`<span class="starter-core-progress-value text-xs font-semibold" aria-hidden="true">${t.percent}%</span>`, r = ![
+	if (!t) return k``;
+	let n = k`<span class="starter-core-progress-value text-xs font-semibold" aria-hidden="true">${t.percent}%</span>`, r = ![
 		"left",
 		"right",
 		"hidden"
 	].includes(t.valuePosition), i = t.percent <= 0 ? "start" : t.percent >= 100 ? "end" : "middle";
-	return j`
+	return k`
         <div class="starter-core-progress mb-4 flex items-center gap-2" data-formie-progress-position=${t.position} data-formie-progress-value-position=${t.valuePosition} data-formie-progress-state=${i}>
-            ${t.valuePosition === "left" ? n : N}
+            ${t.valuePosition === "left" ? n : j}
             <div class="starter-core-progress-track h-4 flex-1 overflow-hidden rounded-full bg-slate-200" role="progressbar" aria-label=${v(e.state.definition, "progress")} aria-valuenow=${t.percent} aria-valuemin="0" aria-valuemax="100">
-                <div class="starter-core-progress-bar flex h-full items-center justify-center rounded-full bg-slate-900 text-white" style=${`width: ${t.percent}%`}>${r ? n : N}</div>
+                <div class="starter-core-progress-bar flex h-full items-center justify-center rounded-full bg-slate-900 text-white" style=${`width: ${t.percent}%`}>${r ? n : j}</div>
             </div>
-            ${t.valuePosition === "right" ? n : N}
+            ${t.valuePosition === "right" ? n : j}
         </div>
     `;
 }
-function In(e = "Loading form…") {
-	return j`<div class="mt-3 text-sm text-slate-500">${e}</div>`;
+function Ln(e = "Loading form…") {
+	return k`<div class="mt-3 text-sm text-slate-500">${e}</div>`;
 }
-function Ln(e) {
-	return j`<div class="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">${e}</div>`;
+function Rn(e) {
+	return k`<div class="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">${e}</div>`;
 }
 //#endregion
 //#region \0@oxc-project+runtime@0.154.0/helpers/esm/decorate.js
@@ -1500,10 +1502,10 @@ function X(e, t, n, r) {
 }
 //#endregion
 //#region src/formie-client-form.ts
-function Rn(e) {
-	return V(e), Ct(e);
+function zn(e) {
+	return z(e), Dt(e);
 }
-var Z = class extends R {
+var Z = class extends F {
 	constructor(...e) {
 		super(...e), this.endpoint = "", this.profile = "same-origin-browser", this.formHandle = "", this.transport = "rest", this.fetchCredentials = "same-origin", this.query = {}, this.formClass = "", this.loadingMessage = "Loading form…", this.loadError = null, this.booting = !1, this.snapshot = null, this.instance = null, this.unsubscribers = [], this.loadGeneration = 0;
 	}
@@ -1534,7 +1536,7 @@ var Z = class extends R {
 		await this.bootstrap(!0);
 	}
 	get resolvedRegistry() {
-		return this.registry ?? jt();
+		return this.registry ?? Pt();
 	}
 	teardown() {
 		this.moduleHost?.destroy(), this.moduleHost = void 0;
@@ -1593,20 +1595,20 @@ var Z = class extends R {
 		if (this.loadError) {
 			let t = e.regions.errorSummary;
 			if (t) {
-				let e = Rn(t);
-				return z`<${e} .errors=${[this.loadError]} .kind=${"load"}></${e}>`;
+				let e = zn(t);
+				return I`<${e} .errors=${[this.loadError]} .kind=${"load"}></${e}>`;
 			}
-			return Ln(this.loadError);
+			return Rn(this.loadError);
 		}
 		if (this.booting || !this.snapshot || !this.instance) {
 			let t = e.regions.loading;
 			if (t) {
-				let e = Rn(t);
-				return z`<${e} .message=${this.loadingMessage}></${e}>`;
+				let e = zn(t);
+				return I`<${e} .message=${this.loadingMessage}></${e}>`;
 			}
-			return In(this.loadingMessage);
+			return Ln(this.loadingMessage);
 		}
-		return Nn({
+		return Pn({
 			registry: e,
 			state: this.snapshot,
 			instance: this.instance,
@@ -1615,13 +1617,13 @@ var Z = class extends R {
 		});
 	}
 };
-X([B({ type: String })], Z.prototype, "endpoint", void 0), X([B({
+X([L({ type: String })], Z.prototype, "endpoint", void 0), X([L({
 	type: String,
 	attribute: "request-profile"
-})], Z.prototype, "profile", void 0), X([B({
+})], Z.prototype, "profile", void 0), X([L({
 	type: String,
 	attribute: "form-handle"
-})], Z.prototype, "formHandle", void 0), X([B({
+})], Z.prototype, "formHandle", void 0), X([L({
 	type: Number,
 	attribute: "site-id",
 	converter: { fromAttribute(e) {
@@ -1629,26 +1631,26 @@ X([B({ type: String })], Z.prototype, "endpoint", void 0), X([B({
 		let t = Number(e);
 		return Number.isFinite(t) ? t : void 0;
 	} }
-})], Z.prototype, "siteId", void 0), X([B({
+})], Z.prototype, "siteId", void 0), X([L({
 	attribute: "transport",
 	converter: { fromAttribute(e) {
 		return (e ?? "rest").toLowerCase() === "graphql" ? "graphql" : "rest";
 	} }
-})], Z.prototype, "transport", void 0), X([B({
+})], Z.prototype, "transport", void 0), X([L({
 	attribute: "fetch-credentials",
 	converter: { fromAttribute(e) {
 		return e === "omit" || e === "same-origin" || e === "include" ? e : "same-origin";
 	} }
-})], Z.prototype, "fetchCredentials", void 0), X([B({ attribute: !1 })], Z.prototype, "query", void 0), X([B({
+})], Z.prototype, "fetchCredentials", void 0), X([L({ attribute: !1 })], Z.prototype, "query", void 0), X([L({
 	type: String,
 	attribute: "form-class"
-})], Z.prototype, "formClass", void 0), X([B({
+})], Z.prototype, "formClass", void 0), X([L({
 	type: String,
 	attribute: "loading-message"
-})], Z.prototype, "loadingMessage", void 0), X([B({ attribute: !1 })], Z.prototype, "registry", void 0), X([Dt()], Z.prototype, "loadError", void 0), X([Dt()], Z.prototype, "booting", void 0), X([Dt()], Z.prototype, "snapshot", void 0);
+})], Z.prototype, "loadingMessage", void 0), X([L({ attribute: !1 })], Z.prototype, "registry", void 0), X([R()], Z.prototype, "loadError", void 0), X([R()], Z.prototype, "booting", void 0), X([R()], Z.prototype, "snapshot", void 0);
 //#endregion
 //#region src/form-element.ts
-function zn(e) {
+function Bn(e) {
 	if (e == null || e === "") return !1;
 	let t = e.toLowerCase();
 	return t === "true" || t === "1";
@@ -1656,13 +1658,13 @@ function zn(e) {
 function Q(e, t, n) {
 	typeof n == "string" && n.length > 0 ? e.setAttribute(t, n) : e.removeAttribute(t);
 }
-function Bn(e, t, n) {
+function Vn(e, t, n) {
 	n === !0 ? e.setAttribute(t, "true") : e.removeAttribute(t);
 }
-function Vn(e, t) {
+function Hn(e, t) {
 	if (t) return t.startsWith("http") ? t : `${e}${t}`;
 }
-var Hn = class extends HTMLElement {
+var Un = class extends HTMLElement {
 	static get observedAttributes() {
 		return [
 			"mode",
@@ -1742,16 +1744,16 @@ var Hn = class extends HTMLElement {
 		this.optionState.endpoint = e, Q(this, "endpoint", e), this.scheduleMount();
 	}
 	get staticCache() {
-		return this.optionState.staticCache ?? (this.hasAttribute("static-cache") ? zn(this.getAttribute("static-cache")) : void 0);
+		return this.optionState.staticCache ?? (this.hasAttribute("static-cache") ? Bn(this.getAttribute("static-cache")) : void 0);
 	}
 	set staticCache(e) {
-		this.optionState.staticCache = e, Bn(this, "static-cache", e), this.scheduleMount();
+		this.optionState.staticCache = e, Vn(this, "static-cache", e), this.scheduleMount();
 	}
 	get refreshTokens() {
-		return this.optionState.refreshTokens ?? (this.hasAttribute("refresh-tokens") ? zn(this.getAttribute("refresh-tokens")) : void 0);
+		return this.optionState.refreshTokens ?? (this.hasAttribute("refresh-tokens") ? Bn(this.getAttribute("refresh-tokens")) : void 0);
 	}
 	set refreshTokens(e) {
-		this.optionState.refreshTokens = e, Bn(this, "refresh-tokens", e), this.scheduleMount();
+		this.optionState.refreshTokens = e, Vn(this, "refresh-tokens", e), this.scheduleMount();
 	}
 	get locale() {
 		let e = this.getAttribute("locale");
@@ -1767,10 +1769,10 @@ var Hn = class extends HTMLElement {
 		this.optionState.siteId = e, Q(this, "site-id", typeof e == "number" ? String(e) : void 0), this.scheduleMount();
 	}
 	get autoVisible() {
-		return this.optionState.autoVisible ?? (this.hasAttribute("auto-visible") ? zn(this.getAttribute("auto-visible")) : void 0);
+		return this.optionState.autoVisible ?? (this.hasAttribute("auto-visible") ? Bn(this.getAttribute("auto-visible")) : void 0);
 	}
 	set autoVisible(e) {
-		this.optionState.autoVisible = e, Bn(this, "auto-visible", e), this.scheduleMount();
+		this.optionState.autoVisible = e, Vn(this, "auto-visible", e), this.scheduleMount();
 	}
 	get mode() {
 		let e = this.getAttribute("mode");
@@ -1786,7 +1788,7 @@ var Hn = class extends HTMLElement {
 		return this.ensureInitialized(), this.mountedInstance ? this.mountedInstance.submit(e) : null;
 	}
 	buildOptions() {
-		let e = this.baseUrl || "", t = this.transport, n = t === "graphql" ? "/api" : "/actions/formie/server/forms/render", r = Vn(e, this.endpoint || n), i = this.staticCache, a = this.refreshTokens;
+		let e = this.baseUrl || "", t = this.transport, n = t === "graphql" ? "/api" : "/actions/formie/server/forms/render", r = Hn(e, this.endpoint || n), i = this.staticCache, a = this.refreshTokens;
 		return {
 			profile: this.optionState.profile ?? this.getAttribute("request-profile") ?? "same-origin-browser",
 			mode: this.mode,
@@ -1838,7 +1840,7 @@ var Hn = class extends HTMLElement {
 			composed: !0
 		}));
 	}
-}, $ = class extends R {
+}, $ = class extends F {
 	constructor(...e) {
 		super(...e), this.modules = {
 			contractVersion: 2,
@@ -1852,7 +1854,7 @@ var Hn = class extends HTMLElement {
 		};
 	}
 	static {
-		this.styles = Ne`
+		this.styles = Fe`
         :host {
             display: block;
         }
@@ -1928,22 +1930,22 @@ var Hn = class extends HTMLElement {
 		}
 	}
 	emitValue() {
-		!this.pad || this.pad.isEmpty() ? this.dispatchEvent(new CustomEvent(q, {
+		!this.pad || this.pad.isEmpty() ? this.dispatchEvent(new CustomEvent(K, {
 			detail: "",
 			bubbles: !0,
 			composed: !0
-		})) : this.dispatchEvent(new CustomEvent(q, {
+		})) : this.dispatchEvent(new CustomEvent(K, {
 			detail: this.pad.toDataURL(),
 			bubbles: !0,
 			composed: !0
 		}));
 	}
 	render() {
-		return this.loadError ? j`<div class="err">${this.loadError}</div>` : j`
+		return this.loadError ? k`<div class="err">${this.loadError}</div>` : k`
             <div class="wrap">
                 <canvas role="img" aria-label=${this.field?.label || this.field?.handle || ""}></canvas>
                 <button type="button" aria-label=${this.clearAccessibleLabel} ?disabled=${this.disabled} @click=${() => {
-			this.pad?.clear(), this.dispatchEvent(new CustomEvent(q, {
+			this.pad?.clear(), this.dispatchEvent(new CustomEvent(K, {
 				detail: "",
 				bubbles: !0,
 				composed: !0
@@ -1953,12 +1955,12 @@ var Hn = class extends HTMLElement {
         `;
 	}
 };
-X([B({ attribute: !1 })], $.prototype, "field", void 0), X([B({ attribute: !1 })], $.prototype, "modules", void 0), X([B({ type: String })], $.prototype, "value", void 0), X([B({ type: Boolean })], $.prototype, "disabled", void 0), X([B({ attribute: !1 })], $.prototype, "clearLabel", void 0), X([B({ attribute: !1 })], $.prototype, "clearAccessibleLabel", void 0), X([Dt()], $.prototype, "loadError", void 0);
+X([L({ attribute: !1 })], $.prototype, "field", void 0), X([L({ attribute: !1 })], $.prototype, "modules", void 0), X([L({ type: String })], $.prototype, "value", void 0), X([L({ type: Boolean })], $.prototype, "disabled", void 0), X([L({ attribute: !1 })], $.prototype, "clearLabel", void 0), X([L({ attribute: !1 })], $.prototype, "clearAccessibleLabel", void 0), X([R()], $.prototype, "loadError", void 0);
 //#endregion
 //#region src/index.ts
-var Un = !1;
-function Wn() {
-	Un || (Un = !0, customElements.get("formie-form") || customElements.define("formie-form", Hn), customElements.get("formie-internal-signature") || customElements.define("formie-internal-signature", $), customElements.get("formie-client-form") || customElements.define("formie-client-form", Z));
+var Wn = !1;
+function Gn() {
+	Wn || (Wn = !0, customElements.get("formie-form") || customElements.define("formie-form", Un), customElements.get("formie-internal-signature") || customElements.define("formie-internal-signature", $), customElements.get("formie-client-form") || customElements.define("formie-client-form", Z));
 }
 //#endregion
-export { q as FORMIE_CONTROL_VALUE_EVENT, Z as FormieClientFormElement, Hn as FormieFormElement, $ as FormieInternalSignature, kt as FormieRegistry, V as assertValidCustomElementName, t as createFormieClient, Mt as createFormieRegistry, jt as getFormieRegistry, tn as isFieldDefinition, Wn as registerFormieWebComponents, Ln as renderErrorView, Nn as renderFormView, In as renderLoadingView, K as resolveFieldRendererType };
+export { K as FORMIE_CONTROL_VALUE_EVENT, Z as FormieClientFormElement, Un as FormieFormElement, $ as FormieInternalSignature, Mt as FormieRegistry, z as assertValidCustomElementName, t as createFormieClient, Ft as createFormieRegistry, Pt as getFormieRegistry, rn as isFieldDefinition, Gn as registerFormieWebComponents, Rn as renderErrorView, Pn as renderFormView, Ln as renderLoadingView, G as resolveFieldRendererType };

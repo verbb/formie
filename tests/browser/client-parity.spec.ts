@@ -317,3 +317,37 @@ test.describe('client-rendered parity', () => {
         });
     }
 });
+
+// Summary fields show the answers saved so far, fetched from the server once a page is submitted.
+test.describe('client-rendered summary', () => {
+    async function summaryText(page: Page, surface: Surface): Promise<string> {
+        await page.goto(surfaceUrl(surface, 'paritySummary'));
+        await page.locator('#host [data-formie-field-handle="visitorName"] input').fill('Ada Lovelace');
+        await page.locator('#host [data-formie-field-handle="visitorEmail"] input').fill('ada@example.test');
+        await page.locator('#host [data-formie-field-handle="topic"] select').selectOption('support');
+        // Faster submissions look accepted but are kept as spam, and spam never grants summary access.
+        await page.waitForTimeout(3500);
+        await page.locator('#host button[type="submit"]').last().click();
+        const blocks = page.locator('#host [data-formie-field-handle="review"] [data-formie-summary-blocks]');
+        await expect(blocks).toContainText('Ada Lovelace', { timeout: 15000 });
+
+        return (await blocks.innerText()).replace(/\s+/g, ' ').trim();
+    }
+
+    test('shows the same summary as the server-rendered form', async ({ browser }) => {
+        test.setTimeout(120000);
+        const texts: Record<string, string> = {};
+
+        for (const surface of ['server', 'vue', 'react', 'web-components'] as const) {
+            const page = await browser.newPage({ ignoreHTTPSErrors: true, baseURL: test.info().project.use.baseURL });
+            texts[surface] = await summaryText(page, surface);
+            await page.close();
+        }
+
+        expect(texts.server).toContain('Support');
+
+        for (const surface of ['vue', 'react', 'web-components'] as const) {
+            expect(texts[surface], surface).toBe(texts.server);
+        }
+    });
+});

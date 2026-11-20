@@ -51,6 +51,7 @@ const CLIENT_SUBMIT_RESULT_SELECTION = `
     messages
     clientEvents
     payment
+    summaryTokens
     session {
         ${CLIENT_SESSION_SELECTION}
     }

@@ -8,6 +8,7 @@ import { toggleThemeClasses } from '#theme/theme-classes';
 import { debounce } from '#utils/async';
 import { createDebug } from '#utils/debug';
 import { requestText } from '#utils/http';
+import { getFormBrowserRequestOptions } from '#utils/request-profile';
 
 const BLOCKS_SELECTOR = '[data-formie-summary-blocks]';
 const CONTAINER_SELECTOR = '[data-formie-summary-container]';
@@ -21,8 +22,10 @@ type SummaryRequestState = {
     accessToken: string | null;
 };
 
-function getSummaryRequestUrl(): string {
-    const url = new URL(window.location.href);
+// Server-rendered forms post back to their own page, which Craft routes by the `action` parameter. Client-rendered
+// forms are often on another site, so they post to the action URL the server sends in the module config.
+function getSummaryRequestUrl(summaryUrl: string | null): string {
+    const url = new URL(summaryUrl || window.location.href);
     url.hash = '';
 
     return url.toString();
@@ -39,7 +42,7 @@ function getSummaryRequestState(field: HTMLElement): SummaryRequestState {
     };
 }
 
-async function requestSummaryHtml(form: HTMLFormElement, state: SummaryRequestState, signal?: AbortSignal): Promise<string> {
+async function requestSummaryHtml(form: HTMLFormElement, state: SummaryRequestState, summaryUrl: string | null, signal?: AbortSignal): Promise<string> {
     if (!state.accessToken) {
         throw new Error('Summary field requires an access token.');
     }
@@ -50,7 +53,9 @@ async function requestSummaryHtml(form: HTMLFormElement, state: SummaryRequestSt
     formData.set('action', SUMMARY_ACTION);
     formData.set('accessToken', state.accessToken);
 
-    return requestText(getSummaryRequestUrl(), {
+    return requestText(getSummaryRequestUrl(summaryUrl), {
+        // The same request profile as the form's submissions, so cross-origin forms send cookies the same way.
+        ...getFormBrowserRequestOptions(form),
         method: 'POST',
         body: formData,
         signal,
@@ -60,7 +65,7 @@ async function requestSummaryHtml(form: HTMLFormElement, state: SummaryRequestSt
     });
 }
 
-function initSummaryField(field: HTMLElement, root: Element): () => void {
+function initSummaryField(field: HTMLElement, root: Element, summaryUrl: string | null): () => void {
     const form = field.closest('form');
 
     if (!(form instanceof HTMLFormElement)) {
@@ -139,7 +144,7 @@ function initSummaryField(field: HTMLElement, root: Element): () => void {
         setLoadingState(true);
 
         try {
-            const html = await requestSummaryHtml(form, state, activeRequest.signal);
+            const html = await requestSummaryHtml(form, state, summaryUrl, activeRequest.signal);
 
             if (currentRequestVersion !== requestVersion) {
                 return;
@@ -304,8 +309,10 @@ export const summaryModule: BrowserModuleDefinition = {
         return !!ctx.target.querySelector(BLOCKS_SELECTOR);
     },
     setup: async(ctx) => {
+        const options = (ctx.options || {}) as { summaryUrl?: unknown };
+        const summaryUrl = ctx.surface === 'client-rendered' && typeof options.summaryUrl === 'string' ? options.summaryUrl : null;
         const cleanups = getModuleFieldContainers(ctx).map((field) => {
-            return initSummaryField(field, ctx.root);
+            return initSummaryField(field, ctx.root, summaryUrl);
         });
         debug.log('Module setup.', { fieldCount: cleanups.length });
 
