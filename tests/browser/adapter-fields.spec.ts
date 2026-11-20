@@ -222,6 +222,21 @@ for (const adapter of ['react', 'vue', 'web-components']) {
         expect(errors).toEqual([]);
     });
 
+    test(`${adapter}: edits rich text in the editor, named by the field label`, async ({ page }) => {
+        // The form's Phone field loads the picker's flag image, which the fixture bundle doesn't rewrite.
+        await page.route('**/img/flags*.webp', route => route.fulfill({ status: 200, contentType: 'image/webp', body: '' }));
+        const { host, errors } = await openForm(page, adapter, 'parityFields');
+        const editor = field(page, 'pRichText').getByRole('textbox', { name: 'P rich text' });
+
+        await expect(editor).toHaveAttribute('contenteditable', 'true');
+        await editor.click();
+        await editor.pressSequentially('Hello');
+
+        const values = await submittedValues(page, () => host.locator('button[type="submit"]').last().click());
+        expect(values.pRichText).toBe('<p>Hello</p>');
+        expect(errors).toEqual([]);
+    });
+
     test(`${adapter}: reorders Rank with its buttons and clears a Rating chosen again`, async ({ page }) => {
         // The form's Phone field loads the picker's flag image, which the fixture bundle doesn't rewrite.
         await page.route('**/img/flags*.webp', route => route.fulfill({ status: 200, contentType: 'image/webp', body: '' }));

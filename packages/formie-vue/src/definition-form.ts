@@ -22,6 +22,7 @@ import {
     isCalculationField,
     isFieldLabelVisuallyHidden,
     isPhoneCountryEnabled,
+    isRichTextField,
     checkboxToggle,
     allOptionsSelected,
     toggleAllOptions,
@@ -1170,6 +1171,29 @@ function groupAttributes(field: ClientFieldDefinition, labelling: ControlLabelli
 
 function renderNestedFieldInput(field: ClientFieldDefinition, value: unknown, disabled: boolean, setValue: (value: unknown) => void, labelling: ControlLabelling, rendererType = resolveFieldRendererType(field)) {
     const contract = field.input;
+
+    if (rendererType === 'multi-line-text' && isRichTextField(field)) {
+        // The editor builds itself inside the empty container and writes its HTML into the hidden textarea, then fires
+        // `input`, which the wrapper reads, as in server-rendered forms. Vue never adds children to the container.
+        return h('div', {
+            class: 'formie-vue-rich-text',
+            onInput: (event: Event) => {
+                const target = event.target;
+                if (target instanceof HTMLTextAreaElement) setValue(target.value);
+            },
+        }, [
+            h('div', { key: 'editor', 'data-formie-rich-text': 'true' }),
+            h('textarea', {
+                key: 'input',
+                ...controlAttributes(field, labelling),
+                'data-formie-multi-line-text-input': 'true',
+                style: { display: 'none' },
+                value: typeof value === 'string' ? value : '',
+                disabled,
+                placeholder: typeof contract.placeholder === 'string' ? contract.placeholder : undefined,
+            }),
+        ]);
+    }
 
     if (rendererType === 'multi-line-text') {
         return h('textarea', {

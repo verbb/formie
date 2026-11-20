@@ -446,7 +446,10 @@ class MultiLineText extends Field implements SortableFieldInterface, Previewable
 
     protected function defineClientRenderedInput(): array
     {
-        return array_merge(parent::defineClientRenderedInput(), $this->getTextLimitClientRenderedInput());
+        return array_merge(parent::defineClientRenderedInput(), $this->getTextLimitClientRenderedInput(), [
+            // The rich text editor is the `formie:rich-text` browser module, which attaches to the adapter's markup.
+            'useRichText' => $this->useRichText,
+        ]);
     }
 
     protected function defineBrowserModules(): array

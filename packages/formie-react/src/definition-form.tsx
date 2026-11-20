@@ -22,6 +22,7 @@ import {
     isCalculationField,
     isFieldLabelVisuallyHidden,
     isPhoneCountryEnabled,
+    isRichTextField,
     checkboxToggle,
     allOptionsSelected,
     toggleAllOptions,
@@ -484,6 +485,29 @@ function groupAttributes(field: ClientFieldDefinition, labelling: ControlLabelli
 
 function renderNestedFieldInput(field: ClientFieldDefinition, value: unknown, disabled: boolean, setValue: (value: unknown) => void, labelling: ControlLabelling, rendererType = resolveFieldRendererType(field)): ReactNode {
     const contract = field.input;
+
+    if (rendererType === 'multi-line-text' && isRichTextField(field)) {
+        // The editor builds itself inside the empty container and writes its HTML into the hidden textarea, then fires
+        // `input`. React's onInput sees every native input event, unlike onChange, so the wrapper reads it from there.
+        return createElement('div', {
+            className: 'formie-react-rich-text',
+            onInput: (event: { target: EventTarget }) => {
+                if (event.target instanceof HTMLTextAreaElement) setValue(event.target.value);
+            },
+        },
+            createElement('div', { key: 'editor', 'data-formie-rich-text': 'true' }),
+            createElement('textarea', {
+                key: 'input',
+                ...controlAttributes(field, labelling),
+                'data-formie-multi-line-text-input': 'true',
+                style: { display: 'none' },
+                value: typeof value === 'string' ? value : '',
+                readOnly: true,
+                disabled,
+                placeholder: typeof contract.placeholder === 'string' ? contract.placeholder : undefined,
+            }),
+        );
+    }
 
     if (rendererType === 'multi-line-text') {
         return createElement('textarea', {

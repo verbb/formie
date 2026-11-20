@@ -27,6 +27,7 @@ export {
     isArrayValuedField,
     isCalculationField,
     isPhoneCountryEnabled,
+    isRichTextField,
     checkboxToggle,
     allOptionsSelected,
     toggleAllOptions,

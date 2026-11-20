@@ -161,6 +161,11 @@ export function toggleAllOptions(field: ClientFieldDefinition, selected: string[
     return options.filter((option) => (option.disabled ? selected.includes(option.value) : checked)).map((option) => option.value);
 }
 
+// Rich text Multi-line Text fields show the `formie:rich-text` editor, which writes its HTML into the field's textarea.
+export function isRichTextField(field: ClientFieldDefinition): boolean {
+    return field.input.useRichText === true;
+}
+
 export type SurveyLikertRow = {
     label: string;
     value: string;

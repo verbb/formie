@@ -13,6 +13,7 @@ import {
     isCalculationField,
     isFieldLabelVisuallyHidden,
     isPhoneCountryEnabled,
+    isRichTextField,
     checkboxToggle,
     allOptionsSelected,
     toggleAllOptions,
@@ -239,6 +240,31 @@ function renderNestedInput(
     const contract = field.input;
     const errors = labelling.errors;
     const errorId = labelling.ids.errors;
+
+    if (rendererType === 'multi-line-text' && isRichTextField(field)) {
+        // The editor builds itself inside the empty container and writes its HTML into the hidden textarea, then fires
+        // `input`, which the wrapper reads, as in server-rendered forms. Lit never adds children to the container.
+        return html`
+            <div class="starter-component-rich-text" @input=${(e: Event) => {
+                if (e.target instanceof HTMLTextAreaElement) setValue(e.target.value);
+            }}>
+                <div data-formie-rich-text></div>
+                <textarea
+                    id=${labelling.ids.input}
+                    data-formie-multi-line-text-input
+                    style="display: none"
+                    aria-label=${ownName(field, labelling)}
+                    aria-required=${field.required ? 'true' : nothing}
+                    aria-invalid=${errors.length > 0 ? "true" : nothing}
+                    aria-errormessage=${errors.length > 0 ? errorId : nothing}
+                    aria-describedby=${describedBy(field, labelling)}
+                    .value=${typeof value === 'string' ? value : ''}
+                    ?disabled=${disabled}
+                    placeholder=${typeof contract.placeholder === 'string' ? contract.placeholder : ''}
+                ></textarea>
+            </div>
+        `;
+    }
 
     if (rendererType === 'multi-line-text') {
         return html`

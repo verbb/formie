@@ -18,6 +18,7 @@
 - Repeater and Table **Remove** buttons are now named “Remove row 1”, “Remove row 2” and so on, and Repeater, Table and Signature buttons use the text the server translates for the site.
 
 ### Fixed
+- Fixed Multi-line Text fields with **Use Rich Text** showing a plain textarea. They now render the editor container and hidden textarea the rich text editor attaches to, in `.starter-component-rich-text`, and save its HTML. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Fixed Checkboxes fields not showing their “Select all” checkbox (`.starter-component-checkbox-toggle`). It chooses or clears every option that isn’t disabled, and shows as checked once they’re all chosen. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Fixed Summary fields showing “Unsupported field type”. They now show the answers saved so far in `.starter-component-summary` once a page is submitted. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Fixed Survey fields with the Likert, Rank, Rating, Dropdown, Single-line Text or Multi-line Text display types showing “Unsupported field type”. Likert renders as a table of radios (`.starter-component-likert`), Rank as a list reordered by dragging or with **Move up** and **Move down** buttons (`.starter-component-rank`), and Rating as a radio group of stars that clears when the chosen star is clicked again (`.starter-component-rating`). ([#3146](https://github.com/verbb/formie/issues/3146))

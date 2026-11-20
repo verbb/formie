@@ -21,6 +21,7 @@ export declare function checkboxToggle(field: ClientFieldDefinition): {
 } | null;
 export declare function allOptionsSelected(field: ClientFieldDefinition, selected: string[]): boolean;
 export declare function toggleAllOptions(field: ClientFieldDefinition, selected: string[], checked: boolean): string[];
+export declare function isRichTextField(field: ClientFieldDefinition): boolean;
 export type SurveyLikertRow = {
     label: string;
     value: string;
