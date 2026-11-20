@@ -7,7 +7,7 @@ require_once __DIR__ . '/Support/submission-workflow.php';
 
 pest()
     ->extend(Tests\General\TestCase::class)
-    ->in('Fields', 'Forms', 'Submissions', 'Queries', 'Integrations', 'Performance', 'Migrations', 'Frontend', 'Security', 'Theme', 'Services', 'Helpers', 'Notifications', 'Reports', 'Prosemirror', 'Payments', 'Cleanup', 'Models');
+    ->in('Fields', 'Forms', 'Submissions', 'Queries', 'Integrations', 'Performance', 'Migrations', 'Frontend', 'Security', 'Theme', 'Services', 'Helpers', 'Notifications', 'References', 'Reports', 'Prosemirror', 'Payments', 'Cleanup', 'Models');
 
 pest()->in('Unit');
 
