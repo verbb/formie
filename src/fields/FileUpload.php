@@ -1202,6 +1202,31 @@ class FileUpload extends ElementField
             'restrictFiles' => (bool)$this->restrictFiles,
             'minFileSize' => $this->minFileSize !== null ? (float)$this->minFileSize : null,
             'maxFileSize' => $this->maxFileSize !== null ? (float)$this->maxFileSize : null,
+            // The Upload Manager's own markup, which its browser module drives, as in server-rendered forms.
+            'html' => $this->_getClientUploadManagerHtml(),
+        ]);
+    }
+
+    private function _getClientUploadManagerHtml(): ?string
+    {
+        if ($this->displayType !== 'uploadManager' || !($form = $this->getForm())) {
+            return null;
+        }
+
+        // The same template as server-rendered forms, without the element query their input variables prepare, so a
+        // client definition never queries assets. A new client-rendered form has no uploads to show.
+        return $form->renderTemplate($this->defineInputTemplatePath(), [
+            'form' => $form,
+            'name' => $this->handle,
+            'value' => null,
+            'field' => $this,
+            'errors' => [],
+            'submission' => null,
+            'includeScriptsInline' => false,
+            'templateVars' => [],
+            'inputName' => null,
+            'fieldLabelPrefix' => null,
+            'fieldLabelSuffix' => null,
         ]);
     }
 

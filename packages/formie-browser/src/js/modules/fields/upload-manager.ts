@@ -115,8 +115,12 @@ function toTrimmedString(value: unknown): string {
     return typeof value === 'string' ? value.trim() : '';
 }
 
+// Client-rendered forms name a field in a Repeater row or Group by its own handle, so their Upload Manager carries the
+// path the server knows it by.
 function getFieldHandle(field: HTMLElement): string {
-    return field.getAttribute('data-formie-field-handle')?.trim() || '';
+    return field.querySelector('[data-formie-upload-field-handle]')?.getAttribute('data-formie-upload-field-handle')?.trim()
+        || field.getAttribute('data-formie-field-handle')?.trim()
+        || '';
 }
 
 function getFormHandle(form: HTMLFormElement | null): string {

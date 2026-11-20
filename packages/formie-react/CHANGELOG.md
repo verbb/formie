@@ -19,6 +19,7 @@
 - Repeater and Table **Remove** buttons are now named “Remove row 1”, “Remove row 2” and so on, and Repeater, Table and Signature buttons use the text the server translates for the site.
 
 ### Fixed
+- Fixed File Upload fields with the **Upload Manager (Advanced)** display type showing a plain file input. They now show the Upload Manager in `.formie-react-upload-manager`, which uploads each file as soon as it’s chosen and submits the finished uploads. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Fixed Dropdown, Recipients and element fields with **Use Searchable Dropdown** showing a plain select. They now render the select the searchable dropdown attaches to, in `.formie-react-combobox`. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Fixed Date fields with the **Calendar (Advanced)** display type showing separate date and time inputs. They now render the input the date picker attaches to, in `.formie-react-date-picker`, and the field label names it. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Fixed Multi-line Text fields with **Use Rich Text Field** showing a plain textarea. They now render the editor container and hidden textarea the rich text editor attaches to, in `.formie-react-rich-text`, and save its HTML. ([#3146](https://github.com/verbb/formie/issues/3146))

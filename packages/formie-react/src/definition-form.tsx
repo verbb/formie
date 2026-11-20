@@ -37,6 +37,9 @@ import {
     surveyRankOrder,
     attachPointerReorder,
     paymentFieldMarkup,
+    uploadManagerMarkup,
+    fieldContentPath,
+    readUploadManagerEntries,
     summaryFieldMarkup,
     PHONE_COUNTRY_CHANGE_EVENT,
     phoneFieldValue,
@@ -850,6 +853,18 @@ function DatePickerFieldInput({ field, value, disabled, setValue, labelling }: P
     }, createElement('div', { dangerouslySetInnerHTML: { __html: markup } }));
 }
 
+// The Upload Manager owns this markup, which React leaves alone while it stays the same. It updates its status input
+// after each upload or removal and fires `input`, when the wrapper reads the finished uploads from its hidden inputs.
+function UploadManagerFieldInput({ markup, errorKey, setValue }: { markup: string; errorKey: string; setValue: (value: unknown) => void }) {
+    const { state } = useDefinitionContext();
+
+    return createElement('div', {
+        className: 'formie-react-upload-manager',
+        'data-formie-upload-field-handle': fieldContentPath(state.definition, errorKey),
+        onInput: (event: { currentTarget: HTMLElement }) => setValue(readUploadManagerEntries(event.currentTarget)),
+    }, createElement('div', { dangerouslySetInnerHTML: { __html: markup } }));
+}
+
 function TableFieldInput({
     field,
     value,
@@ -1305,6 +1320,12 @@ function defaultFieldRenderer(props: FormieFieldComponentProps, labelledByWrappe
 
     if (rendererType === 'section') {
         return createElement('hr', { className: 'formie-react-section' });
+    }
+
+    const uploadManager = uploadManagerMarkup(field);
+
+    if (uploadManager !== null) {
+        return createElement(UploadManagerFieldInput, { markup: uploadManager, errorKey, setValue });
     }
 
     if (isFileField(field)) {

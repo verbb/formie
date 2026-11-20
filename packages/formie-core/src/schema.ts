@@ -133,6 +133,42 @@ export function summaryFieldMarkup(field: ClientFieldDefinition, lastSubmitResul
     return `<div data-formie-summary-container${attribute}><div data-formie-summary-blocks></div></div>`;
 }
 
+// The path the server knows an answer by, such as `items.0.file`, from an adapter's error key, which starts with the
+// top-level field's ID and adds row indexes and handles below it.
+export function fieldContentPath(definition: Pick<ClientFormDefinition, 'pages'>, errorKey: string): string {
+    const [root, ...rest] = errorKey.split('.');
+    const field = findFieldById(definition as ClientFormDefinition, root);
+
+    return [field?.handle ?? root, ...rest].join('.');
+}
+
+// File Upload fields using the Upload Manager show its markup from the server, which the `formie:upload-manager`
+// browser module drives: it uploads each file straight away and keeps hidden inputs with the uploads' references.
+export function uploadManagerMarkup(field: ClientFieldDefinition): string | null {
+    return isFileField(field) && field.input.displayType === 'uploadManager' && typeof field.input.html === 'string' ? field.input.html : null;
+}
+
+// The uploads the Upload Manager has finished, from its hidden inputs, in the shape a File Upload answer submits.
+export type UploadManagerEntry = { uploadUid: string; attachToken: string } | { assetId: number };
+
+export function readUploadManagerEntries(container: Element): UploadManagerEntry[] {
+    const entries = new Map<number, Record<string, string>>();
+
+    container.querySelectorAll<HTMLInputElement>('input[type="hidden"][name]').forEach((input) => {
+        const match = input.name.match(/\[(\d+)\]\[(uploadUid|attachToken|assetId)\]$/);
+
+        if (match) {
+            entries.set(Number(match[1]), { ...entries.get(Number(match[1])), [match[2]]: input.value });
+        }
+    });
+
+    return [...entries.entries()].sort(([a], [b]) => a - b).flatMap(([, entry]): UploadManagerEntry[] => {
+        if (entry.uploadUid && entry.attachToken) return [{ uploadUid: entry.uploadUid, attachToken: entry.attachToken }];
+        if (entry.assetId && /^\d+$/.test(entry.assetId)) return [{ assetId: Number(entry.assetId) }];
+        return [];
+    });
+}
+
 // Payment fields show their provider's markup, rendered by the server from the same template as server-rendered forms.
 // The provider's browser module mounts into it and keeps its hidden inputs up to date.
 export function paymentFieldMarkup(field: ClientFieldDefinition): string | null {

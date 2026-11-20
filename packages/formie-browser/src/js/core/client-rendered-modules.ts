@@ -10,7 +10,6 @@ const nativeModuleDelegations: Record<string, { kind: BrowserModuleKind; reason:
     repeater: { kind: 'field', reason: 'The adapter owns row markup and core owns row values.' },
     signature: { kind: 'field', reason: 'The adapter owns its signature control and cleanup.' },
     'file-upload': { kind: 'field', reason: 'The shared transport stages selected files and submits attachment capabilities.' },
-    'upload-manager': { kind: 'field', reason: 'Native file selection uses the shared staged upload transport.' },
     'checkbox-radio': { kind: 'field', reason: 'Framework controls own checked state.' },
     'text-limit': { kind: 'field', reason: 'Core validation enforces the structured minimum and maximum rules.' },
     calculations: { kind: 'field', reason: 'Core works out calculated answers from the form values.' },
@@ -40,7 +39,17 @@ export async function mountClientRenderedModules(root: Element, instance: Client
         setFormBrowserRequestOptions(form, instance.getBrowserRequestOptions());
         form.action = state.definition.submission.endpoint;
         if (state.session.tokens.csrf) form.setAttribute('data-formie-csrf-param', state.session.tokens.csrf.name);
-        for (const [name, value] of Object.entries({ handle: state.definition.handle, ...(state.session.tokens.csrf ? { [state.session.tokens.csrf.name]: state.session.tokens.csrf.value } : {}) })) {
+        // Modules that talk to Formie themselves, such as the Upload Manager, read the form's handle, CSRF token and
+        // upload context from hidden inputs, as server-rendered forms provide them.
+        const tokens = state.session.tokens as Record<string, unknown>;
+        const continuation = (state.session.continuation ?? {}) as Record<string, unknown>;
+        const context = Object.fromEntries(Object.entries({
+            renderId: tokens.render,
+            uploadCreateToken: tokens.uploadCreate,
+            draftContext: continuation.draftContext,
+            draftContextToken: continuation.draftContextToken,
+        }).filter((entry): entry is [string, string] => typeof entry[1] === 'string' && entry[1] !== ''));
+        for (const [name, value] of Object.entries({ handle: state.definition.handle, ...context, ...(state.session.tokens.csrf ? { [state.session.tokens.csrf.name]: state.session.tokens.csrf.value } : {}) })) {
             let input = form.querySelector<HTMLInputElement>(`input[type="hidden"][name="${CSS.escape(name)}"]`);
             if (!input) { input = document.createElement('input'); input.type = 'hidden'; input.name = name; form.append(input); }
             input.value = value;

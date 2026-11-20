@@ -28,6 +28,9 @@ import {
     surveyRankOrder,
     attachPointerReorder,
     paymentFieldMarkup,
+    uploadManagerMarkup,
+    fieldContentPath,
+    readUploadManagerEntries,
     summaryFieldMarkup,
     PHONE_COUNTRY_CHANGE_EVENT,
     phoneFieldValue,
@@ -678,6 +681,16 @@ function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps & { 
 
     if (rendererType === 'section') {
         return html`<hr class="starter-component-section" />`;
+    }
+
+    const uploadManager = uploadManagerMarkup(field);
+
+    // The Upload Manager owns this markup, which Lit leaves alone while it stays the same. It updates its status input
+    // after each upload or removal and fires `input`, when the wrapper reads the finished uploads from its hidden inputs.
+    if (uploadManager !== null) {
+        return html`<div class="starter-component-upload-manager" data-formie-upload-field-handle=${fieldContentPath(ctx.state.definition, errorKey)} @input=${(e: Event) => setValue(readUploadManagerEntries(e.currentTarget as HTMLElement))}>
+            <div>${unsafeHTML(uploadManager)}</div>
+        </div>`;
     }
 
     if (isFileField(field)) {

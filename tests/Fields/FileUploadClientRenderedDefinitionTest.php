@@ -215,3 +215,23 @@ it('omits unrelated assets from public client bootstrap responses', function (st
         UploadTestHelper::resetAssetFolderCaches();
     }
 })->with(['graphql', 'rest'])->with(['fileInput', 'uploadManager']);
+
+it('sends the Upload Manager markup for its browser module, and nothing for the simple file input', function (): void {
+    $location = 'volume:' . UploadTestHelper::ensureUploadVolume()->uid;
+    $form = formie()->form()
+        ->fileUploadField('manager', ['displayType' => 'uploadManager', 'restrictFiles' => false, 'uploadLocationSource' => $location])
+        ->fileUploadField('simple', ['displayType' => 'fileInput', 'restrictFiles' => false, 'uploadLocationSource' => $location])
+        ->create();
+
+    try {
+        $manager = $form->getFieldByHandle('manager')->getClientRenderedInput();
+        $simple = $form->getFieldByHandle('simple')->getClientRenderedInput();
+
+        expect($manager['html'])->toContain('data-formie-upload-manager-root')
+            ->and($manager['html'])->toContain('data-formie-file-upload-anchor')
+            ->and($manager['html'])->not->toContain('uploadUid')
+            ->and($simple['html'])->toBeNull();
+    } finally {
+        Craft::$app->getElements()->deleteElement($form, true);
+    }
+});

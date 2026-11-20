@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Added `uploadManagerMarkup()`, `readUploadManagerEntries()` and `fieldContentPath()` for File Upload fields using the Upload Manager. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Added `isSearchableDropdown()`, `searchableDropdownMarkup()` and `searchableDropdownValue()` for fields with **Use Searchable Dropdown**. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Added `isDatePickerField()`, `datePickerInputValue()`, `datePickerValue()` and `datePickerParts()`, and the client definition’s `input.displayType` for Date fields. A date picker’s answer is `{ datetime }`, as server-rendered date pickers post it, and conditions compare it by its parts. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Added `isRichTextField()` and the client definition’s `input.useRichText`. ([#3146](https://github.com/verbb/formie/issues/3146))

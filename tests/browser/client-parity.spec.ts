@@ -84,9 +84,11 @@ const STEPS: Step[] = [
     },
     {
         handle: 'pEntriesSearch',
+        // The test runtime's entries have no title, so their options have no text to click. Enter picks the first.
         fill: async (f, page) => {
             await f.locator('.ts-control').first().click();
-            await page.locator('.ts-dropdown:visible .option').first().click();
+            await expect(page.locator('.ts-dropdown:visible .option').first()).toBeAttached();
+            await page.keyboard.press('Enter');
         },
     },
     { handle: 'pRadio', fill: (f) => f.getByRole('radio', { name: 'Beta' }).check() },
@@ -150,6 +152,19 @@ const STEPS: Step[] = [
     },
     { handle: 'pGroup', fill: (f) => f.getByRole('textbox').first().fill('In a group') },
     { handle: 'pRepeater', fill: (f) => f.getByRole('textbox').first().fill('In a row') },
+    {
+        handle: 'pRepeaterUpload',
+        // Each row's Upload Manager keeps its own uploads.
+        fill: async (f) => {
+            const rows = f.locator('[data-formie-field-handle$="pRowFile"]');
+            await rows.nth(0).locator('input[type="file"]').first().setInputFiles({ ...upload, name: 'row-one.txt' });
+            await expect(rows.nth(0).locator('[data-formie-upload-manager-list]')).toContainText('row-one');
+            await rows.nth(1).locator('input[type="file"]').first().setInputFiles({ ...upload, name: 'row-two.txt' });
+            await expect(rows.nth(1).locator('[data-formie-upload-manager-list]')).toContainText('row-two');
+            await expect(rows.nth(0).locator('[data-formie-upload-manager-list]')).not.toContainText('row-two');
+        },
+        normalize: (value) => (Array.isArray(value) ? value : []).map((row) => fileNames((row as Record<string, unknown>)?.pRowFile)),
+    },
     { handle: 'pTable', fill: (f) => f.getByRole('checkbox').first().check() },
     {
         handle: 'pSignature',
@@ -168,7 +183,16 @@ const STEPS: Step[] = [
         normalize: present,
     },
     { handle: 'pFileInput', fill: (f) => f.locator('input[type="file"]').first().setInputFiles(upload), normalize: fileNames },
-    { handle: 'pFileManager', fill: (f) => f.locator('input[type="file"]').first().setInputFiles(upload), normalize: fileNames },
+    {
+        handle: 'pFileManager',
+        // The Upload Manager uploads straight away and lists the file, with its upload reference in a hidden input.
+        fill: async (f) => {
+            await f.locator('input[type="file"]').first().setInputFiles(upload);
+            await expect(f.locator('[data-formie-upload-manager-list]')).toContainText('parity');
+            await expect(f.locator('input[type="hidden"][name$="[uploadUid]"]')).toHaveCount(1);
+        },
+        normalize: fileNames,
+    },
     { handle: 'pCalcSource', fill: (f) => f.getByRole('spinbutton').first().fill('4') },
     { handle: 'pCalculations' },
     { handle: 'pRecipientsDropdown', fill: (f) => pickOption(f, 'Support') },

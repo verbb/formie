@@ -37,6 +37,9 @@ import {
     surveyRankOrder,
     attachPointerReorder,
     paymentFieldMarkup,
+    uploadManagerMarkup,
+    fieldContentPath,
+    readUploadManagerEntries,
     summaryFieldMarkup,
     PHONE_COUNTRY_CHANGE_EVENT,
     phoneFieldValue,
@@ -1625,6 +1628,18 @@ const DefaultFieldInput = defineComponent({
 
             if (isRepeatableField(props.field)) {
                 return h(RepeaterFieldInput, props);
+            }
+
+            const uploadManager = uploadManagerMarkup(props.field);
+
+            // The Upload Manager owns this markup, so Vue sets it once. It updates its status input after each upload or
+            // removal and fires `input`, when the wrapper reads the finished uploads from its hidden inputs.
+            if (uploadManager !== null) {
+                return h('div', {
+                    class: 'formie-vue-upload-manager',
+                    'data-formie-upload-field-handle': context.state.value ? fieldContentPath(context.state.value.definition, props.errorKey) : props.field.handle,
+                    onInput: (event: Event) => props.setValue(readUploadManagerEntries(event.currentTarget as HTMLElement)),
+                }, h('div', { innerHTML: uploadManager }));
             }
 
             if (isFileField(props.field)) {

@@ -14,6 +14,15 @@ export declare function isCompositeField(field: ClientFieldDefinition): boolean;
 export declare function resolveClientRendererType(field: ClientFieldDefinition): string;
 export declare function isCalculationField(field: ClientFieldDefinition): boolean;
 export declare function summaryFieldMarkup(field: ClientFieldDefinition, lastSubmitResult: ClientSubmitResult | null | undefined): string | null;
+export declare function fieldContentPath(definition: Pick<ClientFormDefinition, 'pages'>, errorKey: string): string;
+export declare function uploadManagerMarkup(field: ClientFieldDefinition): string | null;
+export type UploadManagerEntry = {
+    uploadUid: string;
+    attachToken: string;
+} | {
+    assetId: number;
+};
+export declare function readUploadManagerEntries(container: Element): UploadManagerEntry[];
 export declare function paymentFieldMarkup(field: ClientFieldDefinition): string | null;
 export declare function checkboxToggle(field: ClientFieldDefinition): {
     position: 'top' | 'bottom';
