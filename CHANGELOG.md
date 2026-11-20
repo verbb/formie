@@ -34,6 +34,7 @@
 - Fixed Repeater row fields with **Visibility** set to **Hidden** showing in client-rendered forms built with `@verbb/formie-vue`.
 - Fixed custom React field components that use hooks causing React errors when a condition showed or hid their field.
 - Fixed the Signature field in the Formie web components causing an unhandled error each time it loaded.
+- Fixed the German and Italian translations of **Move down**, and the Italian translation of **Move up**, which read as scrolling instead of moving an item.
 - Fixed the Spanish, German, French, Portuguese and Italian translations of **Clear signature**, which read as “legible signature”.
 - Fixed around 200 messages in the German, Spanish, French, Italian and Portuguese translations showing placeholders such as `{Datum}`, or the whole message pattern, instead of their values. These include character limits on text fields, minimum and maximum option errors, and subscription intervals. ([#3144](https://github.com/verbb/formie/pull/3144))
 - Fixed Dropdown fields rendering as a multi-select list, and File Upload fields accepting several files when they allow only one, in client-rendered forms built with the Formie web components.
