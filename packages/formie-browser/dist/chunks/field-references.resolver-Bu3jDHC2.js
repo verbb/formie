@@ -1,8 +1,8 @@
-import { i as e, r as t } from "./dist-BsY_Ph6R.js";
+import { i as e, r as t } from "./dist-B4m_9Rxd.js";
 import { n, r, t as i } from "./field-references.keys-58ZSTrCW.js";
 //#region src/js/utils/field-references.parser.ts
-function a(e) {
-	let n = String(e || "").trim(), i = t(n), a = n.startsWith("{"), o = i.isValid && i.target === "field";
+function a(t) {
+	let n = String(t || "").trim(), i = e(n), a = n.startsWith("{"), o = i.isValid && i.target === "field";
 	return {
 		raw: n,
 		target: o ? "field" : "",
@@ -55,7 +55,7 @@ function u(e, t) {
 	return e.get(r(t)) || null;
 }
 function d(n, r, i) {
-	let a = n.trim().startsWith("{") ? n : `{field:${encodeURIComponent(r)}}`, o = t(a), s = `field:${o.identifier}`, c = o.selector ? `${s}:${o.selector}` : s, l = e(a, {
+	let a = n.trim().startsWith("{") ? n : `{field:${encodeURIComponent(r)}}`, o = e(a), s = `field:${o.identifier}`, c = o.selector ? `${s}:${o.selector}` : s, l = t(a, {
 		definitions: { [s]: {
 			id: s,
 			selectors: o.selector ? [o.selector] : [],

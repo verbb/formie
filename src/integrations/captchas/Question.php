@@ -9,6 +9,8 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldSlotTagEvent;
 use verbb\formie\fields\SingleLineText;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\BrowserModule;
+use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\FieldLayoutPage;
 
 use Craft;
@@ -77,6 +79,30 @@ class Question extends Captcha
             'errors' => $submission?->getErrors(self::CAPTCHA_PARAM) ?? [],
             'questionIndex' => $questionIndex,
             'answerValue' => is_array($payload) ? (string)($payload['answer'] ?? '') : '',
+        ]);
+    }
+
+    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModule
+    {
+        $questions = $this->_getConfiguredQuestions();
+
+        // Server-rendered forms show the question from the form template, so only client-rendered forms need this.
+        if (!$context->form || !$questions) {
+            return null;
+        }
+
+        // The module posts the index back with the answer, so it's chosen here rather than from the request.
+        $index = random_int(0, count($questions) - 1);
+
+        return new BrowserModule([
+            'moduleId' => 'formie:question-captcha',
+            'surfaces' => [BrowserModule::SURFACE_CLIENT_RENDERED],
+            'config' => [
+                'handle' => $this->handle,
+                'question' => (string)($questions[$index]['question'] ?? ''),
+                'index' => $index,
+                'requiredMessage' => Craft::t('formie', 'Please answer the security question.'),
+            ],
         ]);
     }
 

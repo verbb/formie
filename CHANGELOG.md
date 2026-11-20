@@ -71,6 +71,7 @@
 - Fixed Address fields with **Input Mode** set to **Dropdown when available** showing a plain text input for **State / Province** in client-rendered forms built with `@verbb/formie-vue`, `@verbb/formie-react` or the Formie web components. It now lists the chosen country’s subdivisions, takes the name the country uses for them, such as Prefecture, and hides for countries that don’t use them, as in server-rendered forms. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Fixed Custom fields wrapping a Craft Link field, or a Maps or Google Maps field, showing a single text input in client-rendered forms built with `@verbb/formie-vue`, `@verbb/formie-react` or the Formie web components. They now show the link type, label and advanced options, or the map and its search, and save the same answer as server-rendered forms. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Fixed client-rendered forms built with `@verbb/formie-vue`, `@verbb/formie-react` or the Formie web components always showing a field’s label above its control, then its instructions and errors. They now follow the field’s **Label Position**, **Instructions Position** and **Error Message Position**, as in server-rendered forms. ([#3146](https://github.com/verbb/formie/issues/3146))
+- Fixed the Question captcha not showing its question in client-rendered forms built with `@verbb/formie-vue`, `@verbb/formie-react` or the Formie web components, so every submission failed the captcha. ([#3146](https://github.com/verbb/formie/issues/3146))
 
 ## 4.0.10 - 2026-11-17
 

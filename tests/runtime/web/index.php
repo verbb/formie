@@ -27,6 +27,7 @@ require dirname(__DIR__) . '/browser-native-save-routes.php';
 require dirname(__DIR__) . '/browser-craft-forms-routes.php';
 require dirname(__DIR__) . '/browser-cp-repeater-upload-routes.php';
 require dirname(__DIR__) . '/browser-custom-field-adapters.php';
+require dirname(__DIR__) . '/browser-captcha-routes.php';
 \verbb\formie\Formie::$plugin->getSettings()->allowedOrigins = ['http://localhost:4179'];
 if ($path === '/browser-completion-payments') {
     $app->getResponse()->format = \yii\web\Response::FORMAT_JSON;

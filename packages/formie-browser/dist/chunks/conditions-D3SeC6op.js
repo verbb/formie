@@ -1,4 +1,4 @@
-import { a as e, c as t, g as n, m as r } from "./dist-BsY_Ph6R.js";
+import { d as e, l as t, t as n, u as r } from "./dist-B4m_9Rxd.js";
 import { a as i } from "./event-names-BCI2FLD8.js";
 import { t as a } from "./debug-rhzqP1j2.js";
 import { n as o } from "./theme-classes-DAQuEqdP.js";
@@ -248,18 +248,18 @@ function X(e, t = null) {
 	let r = Array.from(n.values()).flatMap((e) => J(e, t?.selector || ""));
 	return (r.length === 0 || r.every((e) => e === "")) && t?.defaultValue ? [t.defaultValue] : r;
 }
-function Z(e, n, r, i) {
-	if (n?.transformerParams.scope) {
+function Z(e, t, r, i) {
+	if (t?.transformerParams.scope) {
 		let a = /* @__PURE__ */ new Map();
 		for (let t of e) {
 			let e = t.name.match(/\[([0-9]+)\]/)?.[1];
 			e != null && a.set(e, [...a.get(e) ?? [], t]);
 		}
 		let o = [...a.values()].map((e) => Z(e, {
-			...n,
+			...t,
 			transformerParams: {}
-		}, r === "collection" ? e.length > 1 ? "collection" : "text" : r)), s = t(o, n.transformerParams, i);
-		return s.diagnostic ? { conditionDiagnostic: s.diagnostic } : n.transformerParams.scope === "rows" && !Array.isArray(s.value) ? [s.value] : s.value;
+		}, r === "collection" ? e.length > 1 ? "collection" : "text" : r)), s = n(o, t.transformerParams, i);
+		return s.diagnostic ? { conditionDiagnostic: s.diagnostic } : t.transformerParams.scope === "rows" && !Array.isArray(s.value) ? [s.value] : s.value;
 	}
 	if (r === "boolean") {
 		let t = e.find((e) => e instanceof HTMLInputElement && e.type === "checkbox");
@@ -277,7 +277,7 @@ function Z(e, n, r, i) {
 		}
 		if (Object.keys(t).length) return t;
 	}
-	let a = X(e, n);
+	let a = X(e, t);
 	return r === "collection" ? a.filter((e) => e !== "") : a[0] ?? null;
 }
 //#endregion
@@ -286,24 +286,24 @@ var ce = "[data-formie-conditionally-hidden], [data-formie-conditionally-disable
 function le(e) {
 	return !e.closest(ce);
 }
-function ue(t, i, a = {}) {
-	let o = a.root, s = a.from || o, c = t.conditions.map((t) => {
-		let r = i(t), a = r.filter(le), c = B(t), l = c?.target === "submission" && o && s ? q(o, c, s) : X(a, c);
-		if (t.browserSafe === !1 || c?.transformerId || c?.isValid === !1 || !r.length && c?.target !== "submission") return {
+function ue(n, i, a = {}) {
+	let o = a.root, s = a.from || o, c = n.conditions.map((n) => {
+		let r = i(n), a = r.filter(le), c = B(n), l = c?.target === "submission" && o && s ? q(o, c, s) : X(a, c);
+		if (n.browserSafe === !1 || c?.transformerId || c?.isValid === !1 || !r.length && c?.target !== "submission") return {
 			value: null,
 			diagnostics: [{ code: "unresolvedReference" }]
 		};
 		if (c?.elementValues) {
 			let r = e(l, c.elementValues) ?? (c.defaultValue || null);
-			return n(t.condition, r, t.value, Array.isArray(r) ? "collection" : t.valueType ?? "text");
+			return t(n.condition, r, n.value, Array.isArray(r) ? "collection" : n.valueType ?? "text");
 		}
-		let u = t.valueType ?? (l.length > 1 ? "collection" : "text"), d = c?.target === "submission" ? u === "collection" ? l : l[0] ?? null : Z(a, c, u, Number(s?.querySelector("input,select,textarea")?.getAttribute("name")?.match(/\[([0-9]+)\]/)?.[1]));
+		let u = n.valueType ?? (l.length > 1 ? "collection" : "text"), d = c?.target === "submission" ? u === "collection" ? l : l[0] ?? null : Z(a, c, u, Number(s?.querySelector("input,select,textarea")?.getAttribute("name")?.match(/\[([0-9]+)\]/)?.[1]));
 		return d && typeof d == "object" && "conditionDiagnostic" in d ? {
 			value: null,
 			diagnostics: [{ code: String(d.conditionDiagnostic) }]
-		} : n(t.condition, d, t.value, u);
+		} : t(n.condition, d, n.value, u);
 	});
-	return r(t, c);
+	return r(n, c);
 }
 //#endregion
 //#region src/js/modules/fields/conditions.ts

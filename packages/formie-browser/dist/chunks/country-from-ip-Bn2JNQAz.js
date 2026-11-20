@@ -1,5 +1,5 @@
 import { t as e } from "./request-profile-DhwkeCpS.js";
-import { s as t } from "./dist-BsY_Ph6R.js";
+import { c as t } from "./dist-B4m_9Rxd.js";
 //#region src/js/utils/country-from-ip.ts
 var n = "formie/address/country-from-ip", r = /* @__PURE__ */ new Map();
 function i(e) {

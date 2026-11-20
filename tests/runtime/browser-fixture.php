@@ -278,3 +278,6 @@ if (!Craft::$app->getElements()->saveElement($importReview)) {
         'rows' => [['fields' => [['type' => \verbb\formie\fields\SingleLineText::class, 'label' => 'Phone', 'handle' => 'phone']]]],
     ])
     ->create();
+
+// Last, because new forms take on every captcha that's enabled.
+require __DIR__ . '/browser-captcha-fixture.php';

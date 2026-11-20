@@ -1,7 +1,7 @@
-import { _ as e, d as t, f as n, h as r, l as i } from "./dist-BsY_Ph6R.js";
+import { f as e, g as t, h as n, p as r, s as i } from "./dist-B4m_9Rxd.js";
 import { t as a } from "./debug-rhzqP1j2.js";
 import { n as o, r as s, t as c } from "./field-references.keys-58ZSTrCW.js";
-import { n as l, r as u } from "./field-references.resolver-MUxltscd.js";
+import { n as l, r as u } from "./field-references.resolver-Bu3jDHC2.js";
 import { i as d, n as f } from "./shared-CJ1LIEh3.js";
 //#region src/js/utils/field-references.row-scope.ts
 var p = /* @__PURE__ */ new Set([
@@ -176,15 +176,15 @@ var E = a("fields", "calculations");
 function D(e, t, i, a = null) {
 	let o = u(e), s = {};
 	return t.forEach(([e, t]) => {
-		let r = S(t);
-		if (String(r.scope || "").trim()) {
-			let i = b(t.sourceKey || "", r, o);
-			s[e] = n(t, i.value);
+		let n = S(t);
+		if (String(n.scope || "").trim()) {
+			let i = b(t.sourceKey || "", n, o);
+			s[e] = r(t, i.value);
 			return;
 		}
 		let i = l(T(t.sourceKey || "", a), o);
-		s[e] = n(t, i.value);
-	}), r(s, i.formatting);
+		s[e] = r(t, i.value);
+	}), n(s, i.formatting);
 }
 function O(e, t, n = null) {
 	let r = u(e), i = /* @__PURE__ */ new Set();
@@ -208,7 +208,7 @@ function O(e, t, n = null) {
 	}), i;
 }
 function k(n, r, a, o) {
-	let s = t(o), c = e(o), l = w(a), u = /* @__PURE__ */ new Map(), d = null, p = !1, m = !1, h = !1, g = () => {
+	let s = e(o), c = t(o), l = w(a), u = /* @__PURE__ */ new Map(), d = null, p = !1, m = !1, h = !1, g = () => {
 		u.forEach((e, t) => {
 			e.forEach((e, n) => {
 				t.removeEventListener(n, e);

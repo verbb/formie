@@ -1,4 +1,4 @@
-import { s as e } from "./dist-BsY_Ph6R.js";
+import { c as e } from "./dist-B4m_9Rxd.js";
 //#region src/js/utils/http.ts
 async function t(t, n = {}) {
 	let r = {

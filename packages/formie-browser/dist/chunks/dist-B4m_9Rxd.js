@@ -3208,11 +3208,70 @@ function re(e, t) {
 	};
 }
 var O = /* @__PURE__ */ new Map();
-function ie(e) {
+async function ie(e, t, n = {}) {
+	let r = n.profile ?? "same-origin-browser", i = ae(e, n, t.headers), a = await fetch(e, {
+		...t,
+		headers: i,
+		credentials: r === "cross-origin-public" ? "omit" : "same-origin"
+	}), o = new URL(e, typeof location > "u" ? "http://localhost" : location.href).origin, s = a.headers.get("X-Formie-Session");
+	return r === "cross-origin-public" && s && O.set(o, s), a;
+}
+function ae(e, t = {}, n) {
+	let r = t.profile ?? "same-origin-browser";
+	if (!["same-origin-browser", "cross-origin-public"].includes(r)) throw Error("Client-rendered forms require a public browser profile. Use administrative API mutations for trusted administration.");
+	let i = new Headers(n);
+	i.set("X-Formie-Profile", r);
+	let a = new URL(e, typeof location > "u" ? "http://localhost" : location.href).origin;
+	if (r === "cross-origin-public") {
+		let e = t.publicSession ?? O.get(a);
+		e && i.set("X-Formie-Session", e);
+	}
+	return i;
+}
+var k = (() => {
+	if (typeof Intl > "u") return null;
+	let e = Intl.Segmenter;
+	if (!e) return null;
+	try {
+		return new e(void 0, { granularity: "grapheme" });
+	} catch {
+		return null;
+	}
+})(), oe = /[^\s\u0085]+/gu, A = (() => {
+	try {
+		return /* @__PURE__ */ RegExp("(?:\\p{Regional_Indicator}{2}|\\p{Extended_Pictographic}[\\p{Emoji_Modifier}\\p{M}\\u{E0020}-\\u{E007F}]*(?:\\u{200D}\\p{Extended_Pictographic}[\\p{Emoji_Modifier}\\p{M}\\u{E0020}-\\u{E007F}]*)*|[\\s\\S])\\p{M}*", "gu");
+	} catch {
+		return null;
+	}
+})();
+function se(e) {
+	return typeof DOMParser < "u" ? new DOMParser().parseFromString(e, "text/html").body.textContent || "" : e.replace(/<[^>]*>/g, "");
+}
+function j(e) {
+	return se(e);
+}
+function ce(e) {
+	return j(e).replace(/[\s\u0085]+/g, " ").trim();
+}
+function le(e) {
+	return k ? Array.from(k.segment(e)).length : A ? e.match(A)?.length || 0 : Array.from(e).length;
+}
+function ue(e) {
+	return e.match(oe)?.length || 0;
+}
+function de(e) {
+	let t = j(e), n = ce(e);
+	return {
+		graphemeCount: le(t),
+		wordCount: ue(n)
+	};
+}
+var fe = /* @__PURE__ */ new Map();
+function pe(e) {
 	return e == null || e === !1 || typeof e == "string" && e.trim() === "" || Array.isArray(e) && e.length === 0;
 }
-function ae(e, t, n = {}) {
-	let r = n.empty ?? ie(e), i = n.label ?? "This field", a = (e, n) => t.messages?.[e] ?? t.message ?? n;
+function me(e, t, n = {}) {
+	let r = n.empty ?? pe(e), i = n.label ?? "This field", a = (e, n) => t.messages?.[e] ?? t.message ?? n;
 	if (t.type === "required") return r ? a("required", `${i} cannot be blank.`) : null;
 	if (r) return null;
 	if (t.type === "email") return typeof e == "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) ? null : a("email", `${i} is not a valid email address.`);
@@ -3238,13 +3297,17 @@ function ae(e, t, n = {}) {
 		let n = String(e);
 		return typeof t.min == "number" && [...n].length < t.min ? a("minCharacters", `${i} must be no less than ${t.min} characters.`) : t.uppercase === !0 && !/[A-Z]/.test(n) ? a("passwordUppercase", `${i} must contain at least one uppercase letter.`) : t.lowercase === !0 && !/[a-z]/.test(n) ? a("passwordLowercase", `${i} must contain at least one lowercase letter.`) : t.specialCharacter === !0 && !/[^a-zA-Z0-9]/.test(n) ? a("passwordSpecialCharacter", `${i} must contain at least one special character.`) : null;
 	}
+	if (t.type === "textLimit") {
+		let n = de(String(e)), r = (e) => e === "words" ? n.wordCount : n.graphemeCount, o = (e) => e === "words" ? "Words" : "Characters";
+		return typeof t.min == "number" && t.min > 0 && r(t.minType) < t.min ? a(`min${o(t.minType)}`, `${i} must be no less than ${t.min} ${o(t.minType).toLowerCase()}.`) : typeof t.max == "number" && t.max > 0 && r(t.maxType) > t.max ? a(`max${o(t.maxType)}`, `${i} must be no greater than ${t.max} ${o(t.maxType).toLowerCase()}.`) : null;
+	}
 	if (t.type === "minmaxOptions" && Array.isArray(e)) {
 		if (t.min != null && e.length < t.min) return a("minOptions", `Please select at least ${t.min} options.`);
 		if (t.max != null && e.length > t.max) return a("maxOptions", `Please select no more than ${t.max} options.`);
 	}
-	return O.get(t.type)?.(e, t, n) ?? null;
+	return fe.get(t.type)?.(e, t, n) ?? null;
 }
-function k(e) {
+function he(e) {
 	let t = e;
 	if (!t || t.contractVersion !== 2 || ![
 		"server-rendered",
@@ -3266,65 +3329,6 @@ function k(e) {
 		}
 		n.add(e.key);
 	}
-}
-var oe = /* @__PURE__ */ new Map();
-async function A(e, t, n = {}) {
-	let r = n.profile ?? "same-origin-browser", i = se(e, n, t.headers), a = await fetch(e, {
-		...t,
-		headers: i,
-		credentials: r === "cross-origin-public" ? "omit" : "same-origin"
-	}), o = new URL(e, typeof location > "u" ? "http://localhost" : location.href).origin, s = a.headers.get("X-Formie-Session");
-	return r === "cross-origin-public" && s && oe.set(o, s), a;
-}
-function se(e, t = {}, n) {
-	let r = t.profile ?? "same-origin-browser";
-	if (!["same-origin-browser", "cross-origin-public"].includes(r)) throw Error("Client-rendered forms require a public browser profile. Use administrative API mutations for trusted administration.");
-	let i = new Headers(n);
-	i.set("X-Formie-Profile", r);
-	let a = new URL(e, typeof location > "u" ? "http://localhost" : location.href).origin;
-	if (r === "cross-origin-public") {
-		let e = t.publicSession ?? oe.get(a);
-		e && i.set("X-Formie-Session", e);
-	}
-	return i;
-}
-var j = (() => {
-	if (typeof Intl > "u") return null;
-	let e = Intl.Segmenter;
-	if (!e) return null;
-	try {
-		return new e(void 0, { granularity: "grapheme" });
-	} catch {
-		return null;
-	}
-})(), ce = /[^\s\u0085]+/gu, le = (() => {
-	try {
-		return /* @__PURE__ */ RegExp("(?:\\p{Regional_Indicator}{2}|\\p{Extended_Pictographic}[\\p{Emoji_Modifier}\\p{M}\\u{E0020}-\\u{E007F}]*(?:\\u{200D}\\p{Extended_Pictographic}[\\p{Emoji_Modifier}\\p{M}\\u{E0020}-\\u{E007F}]*)*|[\\s\\S])\\p{M}*", "gu");
-	} catch {
-		return null;
-	}
-})();
-function ue(e) {
-	return typeof DOMParser < "u" ? new DOMParser().parseFromString(e, "text/html").body.textContent || "" : e.replace(/<[^>]*>/g, "");
-}
-function de(e) {
-	return ue(e);
-}
-function fe(e) {
-	return de(e).replace(/[\s\u0085]+/g, " ").trim();
-}
-function pe(e) {
-	return j ? Array.from(j.segment(e)).length : le ? e.match(le)?.length || 0 : Array.from(e).length;
-}
-function me(e) {
-	return e.match(ce)?.length || 0;
-}
-function he(e) {
-	let t = de(e), n = fe(e);
-	return {
-		graphemeCount: pe(t),
-		wordCount: me(n)
-	};
 }
 var M = { username: "user:name" };
 Object.entries({
@@ -3507,4 +3511,4 @@ function _e(e, t) {
 	};
 }
 //#endregion
-export { p as _, b as a, y as c, f as d, g as f, te as g, m as h, _e as i, _ as l, re as m, se as n, k as o, he as p, ge as r, A as s, v as t, ae as u };
+export { ae as _, de as a, ie as c, b as d, f, p as g, m as h, ge as i, te as l, v as m, me as n, he as o, g as p, _e as r, _ as s, y as t, re as u };

@@ -7,6 +7,7 @@ export const builtinCaptchaModuleLoaders: Record<string, () => Promise<BrowserMo
     'friendly-captcha-v1': () => import('#modules/captchas/friendly-captcha-v1').then((module) => module.friendlyCaptchaV1Module),
     'friendly-captcha-v2': () => import('#modules/captchas/friendly-captcha-v2').then((module) => module.friendlyCaptchaV2Module),
     'hcaptcha': () => import('#modules/captchas/hcaptcha').then((module) => module.hcaptchaModule),
+    'question-captcha': () => import('#modules/captchas/question').then((module) => module.questionCaptchaModule),
     'recaptcha-enterprise': () => import('#modules/captchas/recaptcha-enterprise').then((module) => module.recaptchaEnterpriseModule),
     'recaptcha-v2-checkbox': () => import('#modules/captchas/recaptcha-v2-checkbox').then((module) => module.recaptchaV2CheckboxModule),
     'recaptcha-v2-invisible': () => import('#modules/captchas/recaptcha-v2-invisible').then((module) => module.recaptchaV2InvisibleModule),

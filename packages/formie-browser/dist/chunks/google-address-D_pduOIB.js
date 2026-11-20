@@ -1,5 +1,5 @@
 import { t as e } from "./request-profile-DhwkeCpS.js";
-import { s as t } from "./dist-BsY_Ph6R.js";
+import { c as t } from "./dist-B4m_9Rxd.js";
 import { n } from "./event-names-BCI2FLD8.js";
 import { t as r } from "./csrf-DxHg_ZYt.js";
 import { t as i } from "./api-CmuOZ0i3.js";

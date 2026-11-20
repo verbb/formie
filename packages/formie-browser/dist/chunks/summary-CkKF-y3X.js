@@ -1,7 +1,7 @@
 import { t as e } from "./request-profile-DhwkeCpS.js";
 import { t } from "./debug-rhzqP1j2.js";
 import { a as n } from "./theme-classes-DAQuEqdP.js";
-import { r } from "./http-UZYgG5pY.js";
+import { r } from "./http-8DCiu7P8.js";
 import { t as i } from "./async-2GdXNFCE.js";
 import { t as a } from "./styles-CBQ_fQem.js";
 import { i as o, n as s } from "./shared-CJ1LIEh3.js";
