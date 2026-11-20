@@ -64,6 +64,9 @@ export declare function isArrayValuedField(field: ClientFieldDefinition): boolea
  * placeholder option for most dropdowns, but element fields only send the placeholder text.
  */
 export declare function dropdownOptions(field: ClientFieldDefinition): ClientFieldOption[];
+export declare function isSearchableDropdown(field: ClientFieldDefinition): boolean;
+export declare function searchableDropdownMarkup(field: ClientFieldDefinition, attributes: Record<string, string | boolean | null | undefined>): string;
+export declare function searchableDropdownValue(field: ClientFieldDefinition, select: HTMLSelectElement): unknown;
 export type ClientTableColumn = {
     id: string;
     handle: string;

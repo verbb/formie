@@ -19,6 +19,7 @@
 - Repeater and Table **Remove** buttons are now named “Remove row 1”, “Remove row 2” and so on, and Repeater, Table and Signature buttons use the text the server translates for the site.
 
 ### Fixed
+- Fixed Dropdown, Recipients and element fields with **Use Searchable Dropdown** showing a plain select. They now render the select the searchable dropdown attaches to, in `.formie-vue-combobox`. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Fixed Date fields with the **Calendar (Advanced)** display type showing separate date and time inputs. They now render the input the date picker attaches to, in `.formie-vue-date-picker`, and the field label names it. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Fixed Multi-line Text fields with **Use Rich Text Field** showing a plain textarea. They now render the editor container and hidden textarea the rich text editor attaches to, in `.formie-vue-rich-text`, and save its HTML. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Fixed Checkboxes fields not showing their “Select all” checkbox (`.formie-vue-checkbox-toggle`). It chooses or clears every option that isn’t disabled, and shows as checked once they’re all chosen. ([#3146](https://github.com/verbb/formie/issues/3146))

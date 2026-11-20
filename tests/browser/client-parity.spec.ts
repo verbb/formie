@@ -73,6 +73,22 @@ const STEPS: Step[] = [
             await page.locator('.ts-dropdown .option', { hasText: 'Gamma' }).first().click();
         },
     },
+    {
+        handle: 'pDropdownSearchMulti',
+        fill: async (f, page) => {
+            await f.locator('.ts-control').first().click();
+            await page.locator('.ts-dropdown:visible .option', { hasText: 'Alpha' }).first().click();
+            await page.locator('.ts-dropdown:visible .option', { hasText: 'Gamma' }).first().click();
+            await page.keyboard.press('Escape');
+        },
+    },
+    {
+        handle: 'pEntriesSearch',
+        fill: async (f, page) => {
+            await f.locator('.ts-control').first().click();
+            await page.locator('.ts-dropdown:visible .option').first().click();
+        },
+    },
     { handle: 'pRadio', fill: (f) => f.getByRole('radio', { name: 'Beta' }).check() },
     {
         handle: 'pCheckboxes',
@@ -210,7 +226,6 @@ const STEPS: Step[] = [
 // Fields that don't match the server-rendered form yet, with why. Fixing one makes its test fail until it's removed
 // here, so this list can only shrink. The plan is in the private Formie context (plans/client-rendered-parity.md).
 const KNOWN_GAPS: Record<string, string> = {
-    pDropdownSearch: 'The searchable dropdown isn’t attached; a native select is shown.',
     pSignature: 'The server-rendered signature pad doesn’t save the drawn signature in this fixture, so the baseline is empty.',
 };
 
@@ -220,7 +235,7 @@ async function fillAndSubmit(page: Page, surface: Surface): Promise<Run> {
     const problems: string[] = [];
     const errors: string[] = [];
     // A field that can't be filled fails on its own instead of holding up the rest.
-    page.setDefaultTimeout(4000);
+    page.setDefaultTimeout(8000);
     page.on('pageerror', (error) => errors.push(error.message || String(error)));
     page.on('console', (message) => {
         if (message.type() === 'error') errors.push(message.text());

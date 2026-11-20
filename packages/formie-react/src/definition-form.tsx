@@ -22,6 +22,9 @@ import {
     isCalculationField,
     isFieldLabelVisuallyHidden,
     isPhoneCountryEnabled,
+    isSearchableDropdown,
+    searchableDropdownMarkup,
+    searchableDropdownValue,
     isDatePickerField,
     datePickerInputValue,
     datePickerValue,
@@ -523,6 +526,18 @@ function renderNestedFieldInput(field: ClientFieldDefinition, value: unknown, di
                 setValue(target.value);
             },
         });
+    }
+
+    if (rendererType === 'dropdown' && isSearchableDropdown(field)) {
+        // The searchable dropdown hides this select and edits its options, so it's HTML React leaves alone while the
+        // definition stays the same. It mirrors each change back to the select and fires `input`, which the wrapper
+        // reads. React's onInput sees input events from markup it doesn't manage, unlike onChange.
+        return createElement('div', {
+            className: 'formie-react-combobox',
+            onInput: (event: { target: EventTarget }) => {
+                if (event.target instanceof HTMLSelectElement) setValue(searchableDropdownValue(field, event.target));
+            },
+        }, createElement('div', { dangerouslySetInnerHTML: { __html: searchableDropdownMarkup(field, { id: labelling.inputId || undefined, 'aria-required': field.required ? 'true' : undefined, disabled }) } }));
     }
 
     if (rendererType === 'dropdown') {

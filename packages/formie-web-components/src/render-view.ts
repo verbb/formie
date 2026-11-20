@@ -13,6 +13,9 @@ import {
     isCalculationField,
     isFieldLabelVisuallyHidden,
     isPhoneCountryEnabled,
+    isSearchableDropdown,
+    searchableDropdownMarkup,
+    searchableDropdownValue,
     isDatePickerField,
     datePickerInputValue,
     datePickerValue,
@@ -287,6 +290,18 @@ function renderNestedInput(
                     setValue((e.target as HTMLTextAreaElement).value);
                 }}
             ></textarea>
+        `;
+    }
+
+    if (rendererType === 'dropdown' && isSearchableDropdown(field)) {
+        // The searchable dropdown hides this select and edits its options, so it's HTML Lit leaves alone while the
+        // definition stays the same. It mirrors each change back to the select and fires `input`, which the wrapper reads.
+        return html`
+            <div class="starter-component-combobox" @input=${(e: Event) => {
+                if (e.target instanceof HTMLSelectElement) setValue(searchableDropdownValue(field, e.target));
+            }}>
+                <div>${unsafeHTML(searchableDropdownMarkup(field, { id: labelling.ids.input, 'aria-required': field.required ? 'true' : undefined, disabled }))}</div>
+            </div>
         `;
     }
 

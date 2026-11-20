@@ -8,6 +8,7 @@ import {
     isCompositeField,
     isMultiValueField,
     isPhoneCountryEnabled,
+    searchableDropdownMarkup,
     datePickerInputValue,
     datePickerValue,
     datePickerParts,
@@ -327,5 +328,16 @@ describe('date pickers', () => {
         expect(datePickerParts({ datetime: '2026-11-15 12:30:00' })).toEqual({ year: '2026', month: '11', day: '15', hour: '12', minute: '30', second: '00' });
         expect(datePickerParts({ datetime: '2026-11-15' })).toEqual({ year: '2026', month: '11', day: '15' });
         expect(datePickerParts({ datetime: '' })).toEqual({});
+    });
+});
+
+describe('searchable dropdowns', () => {
+    it('builds the select from the definition, with its default chosen and text escaped', () => {
+        const single = field('dropdown', { useSearchable: true, placeholder: 'Pick', defaultValue: 'b', options: [option('a', 'A & "a"'), option('b')] });
+        const multiple = field('dropdown', { useSearchable: true, multiple: true, defaultValue: ['a'], options: [option('a'), option('b')] });
+
+        expect(searchableDropdownMarkup(single, { id: 'x', disabled: false, 'aria-required': undefined }))
+            .toBe('<select id="x" data-formie-combobox-input><option value="">Pick</option><option value="a">A &#38; &#34;a&#34;</option><option value="b" selected>b</option></select>');
+        expect(searchableDropdownMarkup(multiple, {})).toBe('<select data-formie-combobox-input multiple><option value="a" selected>a</option><option value="b">b</option></select>');
     });
 });

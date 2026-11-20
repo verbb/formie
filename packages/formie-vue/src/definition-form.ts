@@ -22,6 +22,9 @@ import {
     isCalculationField,
     isFieldLabelVisuallyHidden,
     isPhoneCountryEnabled,
+    isSearchableDropdown,
+    searchableDropdownMarkup,
+    searchableDropdownValue,
     isDatePickerField,
     datePickerInputValue,
     datePickerValue,
@@ -1240,6 +1243,18 @@ function renderNestedFieldInput(field: ClientFieldDefinition, value: unknown, di
                 setValue(target.value);
             },
         });
+    }
+
+    if (rendererType === 'dropdown' && isSearchableDropdown(field)) {
+        // The searchable dropdown hides this select and edits its options, so Vue sets it as HTML that only changes
+        // with the definition. It mirrors each change back to the select and fires `input`, which the wrapper reads.
+        return h('div', {
+            class: 'formie-vue-combobox',
+            onInput: (event: Event) => {
+                const target = event.target;
+                if (target instanceof HTMLSelectElement) setValue(searchableDropdownValue(field, target));
+            },
+        }, h('div', { innerHTML: searchableDropdownMarkup(field, { id: labelling.inputId || undefined, 'aria-required': field.required ? 'true' : undefined, disabled }) }));
     }
 
     if (rendererType === 'dropdown') {

@@ -24,6 +24,8 @@ $factory = \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Pari
     ->dropdownField('pDropdown', ['label' => 'P dropdown', 'options' => $options])
     ->dropdownField('pDropdownMulti', ['label' => 'P dropdown multi', 'multi' => true, 'options' => $options])
     ->dropdownField('pDropdownSearch', ['label' => 'P dropdown searchable', 'useSearchable' => true, 'options' => $options])
+    ->dropdownField('pDropdownSearchMulti', ['label' => 'P dropdown searchable multi', 'useSearchable' => true, 'multi' => true, 'options' => $options])
+    ->entriesField('pEntriesSearch', ['label' => 'P entries searchable', 'useSearchable' => true])
     ->radioField('pRadio', ['label' => 'P radio', 'options' => $options])
     ->checkboxesField('pCheckboxes', ['label' => 'P checkboxes', 'options' => $options])
     ->checkboxesField('pCheckboxesToggle', ['label' => 'P checkboxes toggle', 'toggleCheckbox' => 'top', 'toggleCheckboxLabel' => 'Select all', 'options' => $options])

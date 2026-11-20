@@ -318,6 +318,39 @@ export function dropdownOptions(field: ClientFieldDefinition): ClientFieldOption
     return [{ label: placeholder, value: '', disabled: false }, ...options];
 }
 
+// Dropdowns with **Searchable** on use the `formie:combobox` browser module (Tom Select), which hides the select and
+// edits its options. Adapters render the select from this markup, which only depends on the definition, so the
+// framework never manages the options. The module mirrors each change back to the select.
+export function isSearchableDropdown(field: ClientFieldDefinition): boolean {
+    return field.input.useSearchable === true;
+}
+
+export function searchableDropdownMarkup(field: ClientFieldDefinition, attributes: Record<string, string | boolean | null | undefined>): string {
+    const escape = (text: string) => text.replace(/[&"<>]/g, (character) => `&#${character.charCodeAt(0)};`);
+    const multiple = field.input.multiple === true;
+    const initial = field.input.defaultValue;
+    const selected = (Array.isArray(initial) ? initial : (initial == null || initial === '' ? [] : [initial])).map((item) => String(item));
+    const options = multiple ? fieldOptions(field) : dropdownOptions(field);
+    const attributeHtml = Object.entries({ ...attributes, 'data-formie-combobox-input': true, multiple })
+        .filter(([, value]) => value !== undefined && value !== null && value !== false)
+        .map(([name, value]) => (value === true ? name : `${name}="${escape(String(value))}"`))
+        .join(' ');
+    const optionHtml = options.map((option) => `<option value="${escape(option.value)}"${selected.includes(option.value) ? ' selected' : ''}${option.disabled ? ' disabled' : ''}>${escape(option.label)}</option>`).join('');
+
+    return `<select ${attributeHtml}>${optionHtml}</select>`;
+}
+
+// The answer a searchable dropdown's select holds, in the shape the field stores.
+export function searchableDropdownValue(field: ClientFieldDefinition, select: HTMLSelectElement): unknown {
+    const values = Array.from(select.selectedOptions).map((option) => option.value).filter((value) => value !== '');
+
+    if (field.input.multiple === true || isArrayValuedField(field)) {
+        return values;
+    }
+
+    return values[0] ?? '';
+}
+
 export type ClientTableColumn = {
     id: string;
     handle: string;
