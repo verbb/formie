@@ -39,6 +39,7 @@
 - Fixed `fieldComponents` being called as plain functions, so a component using hooks caused React errors when a condition showed or hid its field. They’re now rendered as React components, so define them outside the component that renders the form, or React remounts them on every render.
 - Fixed number values, such as a calculated answer, showing as an empty input.
 - Fixed focus moving to the error message on every keystroke after a submit that failed validation, so only the first character typed was kept. Focus now moves once for each submit result.
+- Fixed Custom fields wrapping a Craft Link field, or a Maps or Google Maps field, showing a single text input. They now show the same controls as server-rendered forms, including the map, and save the same answer. ([#3146](https://github.com/verbb/formie/issues/3146))
 
 ## 4.0.10 - 2026-11-17
 

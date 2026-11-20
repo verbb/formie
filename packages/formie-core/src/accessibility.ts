@@ -1,4 +1,4 @@
-import { displayFieldContent, isCompositeField, isRepeatableField, isDatePickerField, isDateRangePickerField } from './schema.js';
+import { customFieldMarkup, displayFieldContent, isCompositeField, isRepeatableField, isDatePickerField, isDateRangePickerField } from './schema.js';
 import type { ClientFieldDefinition, ClientFormDefinition, ClientFormSession, ClientStringKey } from './types.js';
 
 export type ClientErrorAriaLive = 'polite' | 'assertive' | 'off';
@@ -39,8 +39,9 @@ export function getClientFieldIds(session: ClientFormSession, errorKey: string):
  * `rendererType` is the adapter's resolved renderer, which maps custom fields onto the built-in controls.
  */
 export function getClientFieldLabelTarget(field: ClientFieldDefinition, rendererType: string): ClientFieldLabelTarget {
-    // Payment and Summary fields show markup from the server or a browser module, with no control of their own.
-    if (displayFieldContent(field) || rendererType === 'signature' || rendererType === 'section' || field.type === 'payment' || field.type === 'summary') {
+    // Payment and Summary fields show markup from the server or a browser module, with no control of their own. Custom
+    // link and map markup names its inputs by the label itself.
+    if (displayFieldContent(field) || rendererType === 'signature' || rendererType === 'section' || field.type === 'payment' || field.type === 'summary' || customFieldMarkup(field) !== null) {
         return 'none';
     }
 

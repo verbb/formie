@@ -40,6 +40,8 @@ import {
     datePickerInputValue,
     datePickerValue,
     isRichTextField,
+    customFieldMarkup,
+    readCustomFieldControls,
     textLimitCounter,
     checkboxToggle,
     allOptionsSelected,
@@ -1879,6 +1881,16 @@ const DefaultFieldInput = defineComponent({
 
             if (props.field.type === 'summary') {
                 return h(SummaryFieldInput, props);
+            }
+
+            const custom = customFieldMarkup(props.field, props.field.label && !isFieldLabelHidden(props.field) ? props.labelId : null);
+
+            // Custom link and map fields show the server's markup, which their browser module works in, so Vue sets it
+            // once and never patches inside it. Their answer is read from its named inputs as they change.
+            if (custom !== null) {
+                const read = (event: Event) => props.setValue(readCustomFieldControls(event.currentTarget as HTMLElement, props.field));
+
+                return h('div', { class: 'formie-vue-custom-field', onInput: read, onChange: read, innerHTML: custom });
             }
 
             const payment = paymentFieldMarkup(props.field);

@@ -24,6 +24,7 @@
 - Added `getClientString()`, `isFieldLabelVisuallyHidden()`, `focusClientFormResult()`, `VISUALLY_HIDDEN_STYLE` and `VISUALLY_HIDDEN_CSS` for translated button text, Hidden label positions and focus after a submit or page change.
 - Added the `textLimit` browser validation rule, with `min`, `minType`, `max` and `maxType`, which text fields with **Limit Value** now send, and `fieldTextLimit()`, `textLimitCounter()` and `formatPluralMessage()` for the limit counter, with the client definition’s `input.textLimit` and the counter text in `settings.strings`. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Added `addressStatePart()`, `loadAddressSubdivisions()`, `cachedAddressSubdivisions()` and `isDynamicAddressStatePart()`, and the client definition’s `input.subdivisionsUrl`, for Address **State / Province** parts that follow the chosen country. Browser validation skips the part while it’s hidden for the country. ([#3146](https://github.com/verbb/formie/issues/3146))
+- Added `customFieldMarkup()` and `readCustomFieldControls()`, and the client definition’s `input.html` and `input.htmlName` for Custom link and map fields. ([#3146](https://github.com/verbb/formie/issues/3146))
 
 ### Changed
 - `isCompositeField()` now includes Group fields, which have parts like Name, Address and Date.

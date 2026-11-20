@@ -233,6 +233,50 @@ export function paymentFieldMarkup(field: ClientFieldDefinition): string | null 
     return field.type === 'payment' && typeof field.input.html === 'string' ? field.input.html : null;
 }
 
+// Custom fields wrapping a Craft Link field or a map field show the markup server-rendered forms show, sent in the
+// client definition. Its browser module, such as the map, works inside it, so adapters set it once as HTML they never
+// change, and read the answer back from its named inputs with `readCustomFieldControls()`.
+export function customFieldMarkup(field: ClientFieldDefinition, labelId?: string | null): string | null {
+    const inputType = field.input.inputType;
+
+    if ((inputType !== 'link' && inputType !== 'map') || typeof field.input.html !== 'string') {
+        return null;
+    }
+
+    // The field's label names its main inputs, as the label's `for` does in server-rendered forms.
+    const escaped = (labelId ?? '').replace(/[&"<>]/g, (character) => `&#${character.charCodeAt(0)};`);
+
+    return escaped ? field.input.html.replace(/ data-formie-custom-field-input(?=[\s>])/g, ` data-formie-custom-field-input aria-labelledby="${escaped}"`) : field.input.html;
+}
+
+/**
+ * The answer held by a custom field's markup, from the inputs named under the field, such as `fields[website][value]`
+ * as `{ value }`. Unticked checkboxes are left out, as a browser leaves them out of a post.
+ */
+export function readCustomFieldControls(container: Element, field: ClientFieldDefinition): Record<string, unknown> {
+    const prefix = typeof field.input.htmlName === 'string' ? field.input.htmlName : '';
+    const answer: Record<string, unknown> = {};
+
+    container.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('input[name], select[name], textarea[name]').forEach((control) => {
+        if (!prefix || !control.name.startsWith(`${prefix}[`) || control.disabled) return;
+        if ((control.type === 'checkbox' || control.type === 'radio') && !(control as HTMLInputElement).checked) return;
+
+        const path = [...control.name.slice(prefix.length).matchAll(/\[([^\]]*)\]/g)].map((match) => match[1]);
+        let target = answer;
+
+        path.forEach((key, index) => {
+            if (index === path.length - 1) {
+                target[key] = control.value;
+            } else {
+                target[key] = target[key] && typeof target[key] === 'object' ? target[key] : {};
+                target = target[key] as Record<string, unknown>;
+            }
+        });
+    });
+
+    return answer;
+}
+
 // The "Select all" checkbox of a Checkboxes field, when the field shows one.
 export function checkboxToggle(field: ClientFieldDefinition): { position: 'top' | 'bottom'; label: string } | null {
     const position = field.input.toggleCheckbox;

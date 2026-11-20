@@ -268,6 +268,7 @@ class CustomField extends Field implements SortableFieldInterface, PreviewableFi
     protected function defineValueType(): FieldValueType
     {
         $type = $this->getAdapter()->valueType($this);
+
         return $type;
     }
 
@@ -298,10 +299,20 @@ class CustomField extends Field implements SortableFieldInterface, PreviewableFi
 
     protected function defineClientRenderedInput(): array
     {
-        return array_merge(parent::defineClientRenderedInput(), [
+        $input = array_merge(parent::defineClientRenderedInput(), [
             'customFieldAdapter' => $this->customFieldAdapter,
             'customFieldAdapterSettings' => $this->getCustomFieldAdapterSettings(),
         ], $this->getAdapter()->getClientRenderedInput($this));
+        $form = $this->getForm();
+
+        // Link and map fields have several controls, and maps draw with a browser module, so client-rendered forms show
+        // the same markup as server-rendered ones and read the answer back from its named inputs.
+        if (in_array($input['inputType'] ?? null, ['link', 'map'], true) && $form) {
+            $input['html'] = $this->getAdapter()->getInputHtml($this, $form, null);
+            $input['htmlName'] = $this->getHtmlName();
+        }
+
+        return $input;
     }
 
     protected function defineBrowserModules(): array

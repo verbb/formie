@@ -29,6 +29,12 @@ export type UploadManagerEntry = {
 };
 export declare function readUploadManagerEntries(container: Element): UploadManagerEntry[];
 export declare function paymentFieldMarkup(field: ClientFieldDefinition): string | null;
+export declare function customFieldMarkup(field: ClientFieldDefinition, labelId?: string | null): string | null;
+/**
+ * The answer held by a custom field's markup, from the inputs named under the field, such as `fields[website][value]`
+ * as `{ value }`. Unticked checkboxes are left out, as a browser leaves them out of a post.
+ */
+export declare function readCustomFieldControls(container: Element, field: ClientFieldDefinition): Record<string, unknown>;
 export declare function checkboxToggle(field: ClientFieldDefinition): {
     position: 'top' | 'bottom';
     label: string;

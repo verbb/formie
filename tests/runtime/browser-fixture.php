@@ -206,6 +206,8 @@ require __DIR__ . '/browser-graphql-fixture.php';
 
 require __DIR__ . '/browser-upload-fixture.php';
 
+require __DIR__ . '/browser-custom-field-adapters.php';
+
 require __DIR__ . '/browser-adapter-fields-fixture.php';
 
 require __DIR__ . '/browser-parity-fixture.php';

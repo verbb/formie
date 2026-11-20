@@ -79,6 +79,8 @@ export {
     repeaterRowDefinitions,
     serializeFieldValues,
     serializeTransportFieldValues,
+    customFieldMarkup,
+    readCustomFieldControls,
 } from './schema.js';
 export type { ClientFieldOption, ClientTableColumn, PhoneFieldValue, SurveyLikertRow, UploadManagerEntry } from './schema.js';
 export { attachPointerReorder } from './reorder.js';

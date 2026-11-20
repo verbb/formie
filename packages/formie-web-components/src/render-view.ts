@@ -31,6 +31,8 @@ import {
     datePickerInputValue,
     datePickerValue,
     isRichTextField,
+    customFieldMarkup,
+    readCustomFieldControls,
     textLimitCounter,
     type TextLimitCounter,
     checkboxToggle,
@@ -890,6 +892,16 @@ function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps & { 
     // while the HTML string, which only changes with the token, stays the same.
     if (summary !== null) {
         return html`<div class="starter-component-summary">${unsafeHTML(summary)}</div>`;
+    }
+
+    const custom = customFieldMarkup(field, labelling.labelledByWrapper && !isFieldLabelHidden(field) ? props.ids.label : null);
+
+    // Custom link and map fields show the server's markup, which their browser module works in. Lit leaves it alone
+    // while the HTML string stays the same, and the answer is read from its named inputs as they change.
+    if (custom !== null) {
+        const read = (e: Event) => setValue(readCustomFieldControls(e.currentTarget as HTMLElement, field));
+
+        return html`<div class="starter-component-custom-field" @input=${read} @change=${read}>${unsafeHTML(custom)}</div>`;
     }
 
     const payment = paymentFieldMarkup(field);

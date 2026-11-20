@@ -37,6 +37,7 @@
 - Fixed choosing a Radio option in one Repeater row clearing the same field in another row, as every row shared one `name`.
 - Fixed number values, such as a calculated answer, showing as an empty input.
 - Fixed the Signature field causing an unhandled error each time it loaded.
+- Fixed Custom fields wrapping a Craft Link field, or a Maps or Google Maps field, showing a single text input. They now show the same controls as server-rendered forms, including the map, and save the same answer. ([#3146](https://github.com/verbb/formie/issues/3146))
 
 ## 4.0.10 - 2026-11-17
 

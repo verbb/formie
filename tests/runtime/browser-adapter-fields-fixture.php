@@ -155,3 +155,26 @@ $addressStateRows = static function(array $state, array $country = []): array {
     ->addressField('homeAddress', ['label' => 'Home address', 'rows' => $addressStateRows(['useSearchable' => false, 'required' => true], ['required' => true])])
     ->addressField('postalAddress', ['label' => 'Postal address', 'countryPreselectFromIp' => true, 'rows' => $addressStateRows(['useSearchable' => true])])
     ->create();
+
+// Custom fields wrapping a Craft Link field and the Maps and Google Maps plugins' map fields.
+\verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Adapter custom fields', 'handle' => 'adapterCustomFields'])
+    ->settings(['disableCaptchas' => true, 'submitMethod' => 'ajax'])
+    ->addField(\verbb\formie\fields\CustomField::class, 'website', ['label' => 'Website', 'customFieldAdapter' => \verbb\formie\fields\custom\adapters\LinkCustomFieldAdapter::class, 'customFieldAdapterSettings' => [
+        'allowedTypes' => ['url', 'email', 'tel'],
+        'defaultType' => 'url',
+        'showLabelField' => true,
+        'advancedFields' => ['target', 'title'],
+    ]])
+    ->addField(\verbb\formie\fields\CustomField::class, 'location', ['label' => 'Location', 'customFieldAdapter' => BrowserMapsCustomFieldAdapter::class, 'customFieldAdapterSettings' => [
+        'defaultLat' => -37.8136,
+        'defaultLng' => 144.9631,
+        'defaultZoom' => 12,
+    ]])
+    ->addField(\verbb\formie\fields\CustomField::class, 'place', ['label' => 'Place', 'customFieldAdapter' => BrowserGoogleMapsCustomFieldAdapter::class, 'customFieldAdapterSettings' => [
+        'defaultLat' => -33.8688,
+        'defaultLng' => 151.2093,
+    ]])
+    ->groupField('contact', ['label' => 'Contact', 'rows' => [['fields' => [
+        ['type' => \verbb\formie\fields\CustomField::class, 'handle' => 'profile', 'label' => 'Profile', 'customFieldAdapter' => \verbb\formie\fields\custom\adapters\LinkCustomFieldAdapter::class],
+    ]]]])
+    ->create();

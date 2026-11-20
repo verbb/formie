@@ -40,6 +40,8 @@ import {
     datePickerInputValue,
     datePickerValue,
     isRichTextField,
+    customFieldMarkup,
+    readCustomFieldControls,
     textLimitCounter,
     checkboxToggle,
     allOptionsSelected,
@@ -1551,6 +1553,19 @@ function defaultFieldRenderer(props: FormieFieldComponentProps, labelledByWrappe
 
     if (field.type === 'summary') {
         return createElement(SummaryFieldInput, { field });
+    }
+
+    const custom = customFieldMarkup(field, labelling.labelledByWrapper && !isFieldLabelHidden(field) ? labelling.labelId : null);
+
+    // Custom link and map fields show the server's markup, which their browser module works in. React leaves it alone
+    // while the HTML string stays the same. Selects, checkboxes and text inputs all fire `input`, which React's onInput
+    // sees from markup it doesn't manage, so the answer is read from the named inputs there.
+    if (custom !== null) {
+        return createElement('div', {
+            className: 'formie-react-custom-field',
+            onInput: (event: { currentTarget: HTMLElement }) => setValue(readCustomFieldControls(event.currentTarget, field)),
+            dangerouslySetInnerHTML: { __html: custom },
+        });
     }
 
     const payment = paymentFieldMarkup(field);
