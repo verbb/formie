@@ -280,13 +280,13 @@ export declare const FormieForm: import("vue").DefineComponent<import("vue").Ext
     readonly onSubmitSuccess: (result: FormSubmitResult) => void;
     readonly onSubmitError: (result: FormSubmitResult) => void;
     readonly onEvent: (event: FormieVueEvent) => void;
+    readonly locale: string;
     readonly profile: "same-origin-browser" | "cross-origin-public";
     readonly theme: "none" | "formie";
     readonly themeConfig: Record<string, unknown>;
     readonly transport: FormTransport;
     readonly staticCache: boolean;
     readonly refreshTokens: boolean;
-    readonly locale: string;
     readonly autoVisible: boolean;
 }, {}, {}, {}, string, import("vue").ComponentProvideOptions, true, {}, any>;
 export declare const FormieClientForm: import("vue").DefineComponent<import("vue").ExtractPropTypes<{

@@ -1,6 +1,6 @@
 import { FORMIE_HTML_EVENT_NAMES as e, createFormieClient as t, mountClientRenderedModules as n } from "@verbb/formie-browser";
 import { cloneVNode as r, computed as i, defineComponent as a, h as o, inject as s, onBeforeUnmount as c, onMounted as l, provide as u, ref as d, shallowRef as f, watch as p } from "vue";
-import { CLIENT_FORM_EVENT_NAMES as m, PHONE_COUNTRY_CHANGE_EVENT as h, VISUALLY_HIDDEN_STYLE as g, addressAutocompleteMarkup as _, addressPartMarker as v, allOptionsSelected as y, attachPointerReorder as ee, checkboxToggle as te, clientActionAllowed as ne, compositePartDefinitions as re, createClientFormInstance as ie, createGraphqlClientTransport as ae, createRepeaterRowValue as oe, createRestClientTransport as se, createTableRowValue as ce, datePickerInputValue as le, datePickerValue as ue, dateRangePickerMarkup as de, dateRangePickerValue as fe, displayFieldContent as pe, dropdownOptions as me, fieldContentPath as he, fieldOptions as b, focusClientFormResult as x, getClientErrorAriaLive as ge, getClientFieldIds as _e, getClientFieldLabelTarget as ve, getClientPageProgress as S, getClientString as C, isAddressAutocompletePart as ye, isAddressField as be, isArrayValuedField as w, isCalculationField as xe, isCompositeField as Se, isDatePickerField as Ce, isDateRangePickerField as we, isFieldLabelHidden as Te, isFieldLabelVisuallyHidden as Ee, isFileField as De, isKnownClientFieldType as Oe, isPhoneCountryEnabled as T, isRepeatableField as ke, isRichTextField as Ae, isSearchableDropdown as je, joinIdReferences as E, loadClientFormBootstrap as Me, loadGraphqlClientFormBootstrap as Ne, moveListItem as Pe, paymentFieldMarkup as Fe, phoneFieldValue as D, readAddressParts as O, readPhoneFieldControls as k, readUploadManagerEntries as Ie, repeaterRowDefinitions as Le, resolveClientRendererType as Re, searchableDropdownMarkup as ze, searchableDropdownValue as Be, showsClientPageTitle as Ve, summaryFieldMarkup as He, surveyLikertRows as Ue, surveyRankOrder as A, tableColumns as We, toggleAllOptions as Ge, uploadManagerMarkup as Ke } from "@verbb/formie-core";
+import { CLIENT_FORM_EVENT_NAMES as m, PHONE_COUNTRY_CHANGE_EVENT as h, VISUALLY_HIDDEN_STYLE as g, addressAutocompleteMarkup as _, addressPartMarker as v, addressStatePart as y, allOptionsSelected as ee, attachPointerReorder as te, checkboxToggle as ne, clientActionAllowed as re, compositePartDefinitions as ie, createClientFormInstance as ae, createGraphqlClientTransport as oe, createRepeaterRowValue as se, createRestClientTransport as ce, createTableRowValue as le, customFieldMarkup as ue, datePickerInputValue as de, datePickerValue as fe, dateRangePickerMarkup as pe, dateRangePickerValue as me, displayFieldContent as he, dropdownOptions as ge, fieldContentPath as _e, fieldOptions as b, focusClientFormResult as x, getClientErrorAriaLive as ve, getClientFieldIds as ye, getClientFieldLabelTarget as be, getClientFieldLayout as xe, getClientPageProgress as S, getClientString as C, isAddressAutocompletePart as Se, isAddressField as Ce, isArrayValuedField as w, isCalculationField as we, isCompositeField as Te, isDatePickerField as Ee, isDateRangePickerField as De, isDynamicAddressStatePart as Oe, isFieldLabelHidden as T, isFieldLabelVisuallyHidden as ke, isFileField as Ae, isKnownClientFieldType as je, isPhoneCountryEnabled as Me, isRepeatableField as Ne, isRichTextField as Pe, isSearchableDropdown as Fe, joinIdReferences as E, loadAddressSubdivisions as Ie, loadClientFormBootstrap as Le, loadGraphqlClientFormBootstrap as Re, moveListItem as ze, paymentFieldMarkup as Be, phoneFieldValue as D, readAddressParts as O, readCustomFieldControls as Ve, readPhoneFieldControls as k, readUploadManagerEntries as He, repeaterRowDefinitions as Ue, resolveClientRendererType as We, searchableDropdownMarkup as Ge, searchableDropdownValue as Ke, showsClientPageTitle as qe, summaryFieldMarkup as Je, surveyLikertRows as Ye, surveyRankOrder as A, tableColumns as Xe, textLimitCounter as Ze, toggleAllOptions as Qe, uploadManagerMarkup as $e } from "@verbb/formie-core";
 //#region src/stable.ts
 function j(e, t) {
 	if (e == null) return String(e);
@@ -81,14 +81,14 @@ function F() {
 function I(e) {
 	return "definition" in e;
 }
-async function qe(e) {
-	return I(e) ? e.definition : e.transport === "graphql" ? Ne({
+async function et(e) {
+	return I(e) ? e.definition : e.transport === "graphql" ? Re({
 		endpoint: e.endpoint,
 		profile: e.profile,
 		formHandle: e.formHandle,
 		siteId: e.siteId,
 		query: e.query
-	}) : Me({
+	}) : Le({
 		endpoint: e.endpoint,
 		profile: e.profile,
 		formHandle: e.formHandle,
@@ -96,7 +96,7 @@ async function qe(e) {
 		query: e.query
 	});
 }
-function Je(e) {
+function tt(e) {
 	let t = I(e) ? e.transport : {
 		type: e.transport,
 		endpoint: e.endpoint,
@@ -105,15 +105,15 @@ function Je(e) {
 		siteId: e.siteId,
 		query: e.query
 	};
-	return t.type === "graphql" ? ae(t) : se(t);
+	return t.type === "graphql" ? oe(t) : ce(t);
 }
-function Ye(e) {
+function nt(e) {
 	return e.pages.flatMap((e) => e.rows).flatMap((e) => e.fields);
 }
 function L(e) {
-	return Re(e);
+	return We(e);
 }
-function Xe(e, t, n) {
+function rt(e, t, n) {
 	let r = new Set(e.moduleRefs || []);
 	return t.modules.entries.find((e) => r.has(e.key) && e.moduleId === n) || null;
 }
@@ -129,7 +129,7 @@ function z(e, t, n, r, i) {
 		field: i
 	}, { default: () => [n] }) : n;
 }
-var Ze = a({
+var it = a({
 	name: "FormieVueDefaultErrorSummary",
 	props: { errors: {
 		type: Array,
@@ -143,7 +143,7 @@ var Ze = a({
 			"data-formie-form-message": !0
 		}, [o("ul", null, e.errors.map((e, t) => o("li", { key: `${e}:${t}` }, e)))]);
 	}
-}), Qe = a({
+}), at = a({
 	name: "FormieVueDefaultField",
 	props: {
 		field: {
@@ -180,45 +180,49 @@ var Ze = a({
 		return () => {
 			let r = t.slots.default?.() || [], i = {
 				class: "formie-vue-label",
-				style: Ee(e.field) ? g : void 0,
+				style: ke(e.field) ? g : void 0,
 				id: e.labelId || void 0,
-				for: e.inputId && ve(e.field, L(e.field)) === "control" ? e.inputId : void 0
+				for: e.inputId && be(e.field, L(e.field)) === "control" ? e.inputId : void 0
 			}, a = {
 				class: "formie-vue-description",
 				id: e.instructionsId || void 0
-			};
+			}, s = xe(e.field), c = e.field.label && !T(e.field) ? z(n, "label", o("label", i, e.field.label), i, e.field) : null, l = e.field.instructions ? z(n, "instructions", o("div", {
+				...a,
+				innerHTML: e.field.instructions
+			}), a, e.field) : null, u = z(n, "input", o("div", { class: "formie-vue-input" }, r), { class: "formie-vue-input" }, e.field), d = z(n, "errors", o("ul", {
+				id: e.errorId,
+				class: "formie-vue-field-errors",
+				style: e.errors.length === 0 ? { position: "absolute" } : void 0,
+				"data-formie-field-errors": !0,
+				"aria-live": e.errorAriaLive === "off" ? void 0 : e.errorAriaLive,
+				"aria-atomic": e.errorAriaLive === "off" ? void 0 : "true"
+			}, e.errors.map((e, t) => o("li", { key: `${e}:${t}` }, e))), {
+				id: e.errorId,
+				class: "formie-vue-field-errors",
+				style: e.errors.length === 0 ? { position: "absolute" } : void 0,
+				"data-formie-field-errors": !0,
+				"aria-live": e.errorAriaLive === "off" ? void 0 : e.errorAriaLive,
+				"aria-atomic": e.errorAriaLive === "off" ? void 0 : "true"
+			}, e.field), f = [
+				s.instructions === "above" ? l : null,
+				s.errors === "above" ? d : null,
+				u,
+				s.instructions === "below" ? l : null,
+				s.errors === "below" ? d : null
+			], p = s.label === "left" || s.label === "right" ? [o("div", { class: "formie-vue-field-content" }, f)] : f;
 			return o("div", {
 				class: "formie-vue-field",
 				"data-formie-field-uid": e.field.uid,
 				"data-formie-field-handle": e.field.handle,
 				"data-formie-field-type": e.field.type,
-				"data-formie-field-required": e.field.required ? "true" : void 0
-			}, [
-				e.field.label && !Te(e.field) ? z(n, "label", o("label", i, e.field.label), i, e.field) : null,
-				e.field.instructions ? z(n, "instructions", o("div", {
-					...a,
-					innerHTML: e.field.instructions
-				}), a, e.field) : null,
-				z(n, "input", o("div", { class: "formie-vue-input" }, r), { class: "formie-vue-input" }, e.field),
-				z(n, "errors", o("ul", {
-					id: e.errorId,
-					class: "formie-vue-field-errors",
-					style: e.errors.length === 0 ? { position: "absolute" } : void 0,
-					"data-formie-field-errors": !0,
-					"aria-live": e.errorAriaLive === "off" ? void 0 : e.errorAriaLive,
-					"aria-atomic": e.errorAriaLive === "off" ? void 0 : "true"
-				}, e.errors.map((e, t) => o("li", { key: `${e}:${t}` }, e))), {
-					id: e.errorId,
-					class: "formie-vue-field-errors",
-					style: e.errors.length === 0 ? { position: "absolute" } : void 0,
-					"data-formie-field-errors": !0,
-					"aria-live": e.errorAriaLive === "off" ? void 0 : e.errorAriaLive,
-					"aria-atomic": e.errorAriaLive === "off" ? void 0 : "true"
-				}, e.field)
-			]);
+				"data-formie-field-required": e.field.required ? "true" : void 0,
+				"data-formie-label-position": s.label,
+				"data-formie-instructions-position": s.instructions,
+				"data-formie-error-position": s.errors
+			}, s.label === "below" || s.label === "right" ? [...p, c] : [c, ...p]);
 		};
 	}
-}), $e = a({ setup(e, { slots: t }) {
+}), ot = a({ setup(e, { slots: t }) {
 	let r = F(), i = d(null), a = !1, s;
 	return l(async () => {
 		let e = r.instance.value;
@@ -230,7 +234,7 @@ var Ze = a({
 	}), c(() => {
 		a = !0, s?.destroy();
 	}), () => o("div", { ref: i }, t.default?.());
-} }), et = a({
+} }), st = a({
 	name: "FormieVueDefaultForm",
 	props: {
 		definition: {
@@ -266,7 +270,7 @@ var Ze = a({
 			"data-formie-render-id": e.session.tokens.render
 		}, t.slots.default?.() || []);
 	}
-}), tt = a({
+}), ct = a({
 	name: "FormieVueDefaultPage",
 	props: {
 		page: {
@@ -280,7 +284,7 @@ var Ze = a({
 	},
 	setup(e, t) {
 		return () => {
-			let n = Ve(e.state.definition) && !!e.page.label, r = `formie-${e.state.session.tokens.render || e.state.session.id}-page-${e.page.id}-title`;
+			let n = qe(e.state.definition) && !!e.page.label, r = `formie-${e.state.session.tokens.render || e.state.session.id}-page-${e.page.id}-title`;
 			return o("section", {
 				"data-page-id": e.page.id,
 				class: "formie-vue-page",
@@ -327,11 +331,11 @@ function B(e) {
 		t.valuePosition === "right" ? n : null
 	]);
 }
-var nt = a({
+var lt = a({
 	name: "FormieVueSignatureFieldInput",
 	props: P,
 	setup(e) {
-		let t = F(), n = d(null), r = f(null), a = d(null), s = i(() => Xe(e.field, t.state.value?.definition || { modules: {
+		let t = F(), n = d(null), r = f(null), a = d(null), s = i(() => rt(e.field, t.state.value?.definition || { modules: {
 			contractVersion: 2,
 			surface: "client-rendered",
 			entries: []
@@ -378,7 +382,7 @@ var nt = a({
 				key: "canvas",
 				ref: n,
 				"data-formie-signature-canvas": !0,
-				...ct(e.field, W(e, R(t))),
+				...ht(e.field, W(e, R(t))),
 				style: e.disabled ? { pointerEvents: "none" } : void 0
 			}),
 			o("button", {
@@ -397,7 +401,7 @@ var nt = a({
 			}, a.value) : null
 		]);
 	}
-}), rt = a({
+}), ut = a({
 	name: "FormieVueDatePickerFieldInput",
 	props: P,
 	setup(e) {
@@ -408,61 +412,66 @@ var nt = a({
 				class: "formie-vue-date-picker",
 				onInput: (t) => {
 					let n = t.currentTarget.querySelector("input[type=\"hidden\"]");
-					n instanceof HTMLInputElement && e.setValue(ue(n.value));
+					n instanceof HTMLInputElement && e.setValue(fe(n.value));
 				}
 			}, o("div", null, o("input", {
 				type: "text",
 				...K(e.field, n),
 				"data-formie-date-datepicker-input": "true",
-				value: le(e.value),
+				value: de(e.value),
 				disabled: e.disabled,
 				placeholder: typeof e.field.input.placeholder == "string" ? e.field.input.placeholder : void 0
 			})));
 		};
 	}
-}), it = a({
+}), dt = a({
 	name: "FormieVueCompositeFieldInput",
 	props: P,
 	setup(e) {
-		let t = F();
+		let t = F(), n = d(0);
 		return () => {
-			let n = t.state.value;
-			if (!n) return null;
-			let r = re(e.field), i = e.value && typeof e.value == "object" ? e.value : {};
-			return r.length === 0 ? o("div", { class: "formie-vue-unsupported" }, `Unsupported field type: ${e.field.type}`) : o("div", {
+			let r = t.state.value;
+			if (n.value, !r) return null;
+			let i = ie(e.field), a = e.value && typeof e.value == "object" ? e.value : {};
+			return i.length === 0 ? o("div", { class: "formie-vue-unsupported" }, `Unsupported field type: ${e.field.type}`) : o("div", {
 				class: "formie-vue-name-grid",
 				...q(e.field, W(e, R(t)), "group"),
-				...be(e.field) ? {
+				...Ce(e.field) ? {
 					onInput: (t) => e.setValue({
-						...i,
+						...a,
 						...O(t.currentTarget, e.field)
 					}),
 					onChange: (t) => e.setValue({
-						...i,
+						...a,
 						...O(t.currentTarget, e.field)
 					})
 				} : {}
-			}, r.filter((e) => e.meta?.hidden !== !0).map((t) => {
-				let r = `${e.errorKey}.${t.handle}`;
-				return o(V, {
-					key: `${e.field.id}:${t.handle}`,
-					field: t,
-					value: i[t.handle],
-					errors: n.errors.fields[r] || [],
-					errorKey: r,
-					disabled: e.disabled || t.meta?.disabled === !0,
+			}, i.filter((e) => e.meta?.hidden !== !0).map((i) => {
+				let s = `${e.errorKey}.${i.handle}`, c = y(i, a.country, a[i.handle]), l = c.field;
+				return c.loading ? Ie(i, String(a.country), t.instance.value?.getBrowserRequestOptions()).then(() => {
+					n.value++;
+				}) : Oe(i) && (a[l.handle] ?? "") !== c.value && queueMicrotask(() => e.setValue({
+					...e.value || {},
+					[l.handle]: c.value
+				})), c.hidden ? null : o(V, {
+					key: `${e.field.id}:${l.handle}`,
+					field: l,
+					value: a[l.handle],
+					errors: r.errors.fields[s] || [],
+					errorKey: s,
+					disabled: e.disabled || l.meta?.disabled === !0,
 					hidden: !1,
-					setValue(n) {
+					setValue(t) {
 						e.setValue({
-							...i,
-							[t.handle]: n
+							...a,
+							[l.handle]: t
 						});
 					}
 				});
 			}));
 		};
 	}
-}), at = a({
+}), ft = a({
 	name: "FormieVueFileFieldInput",
 	props: P,
 	setup(e) {
@@ -495,7 +504,7 @@ var nt = a({
 			if (!n) return null;
 			let r = n.fieldStates[e.errorKey]?.hidden === !0 || e.hidden;
 			if (r) return null;
-			let i = L(e.field), a = t.fieldComponents.value[e.field.type] || t.fieldComponents.value[i] || _t, s = t.components.value.Field || Qe, c = _e(n.session, e.errorKey), l = c.errors, u = ge(n.definition);
+			let i = L(e.field), a = t.fieldComponents.value[e.field.type] || t.fieldComponents.value[i] || Tt, s = t.components.value.Field || at, c = ye(n.session, e.errorKey), l = c.errors, u = ve(n.definition);
 			return o(s, {
 				field: e.field,
 				errors: e.errors,
@@ -517,10 +526,10 @@ var nt = a({
 				disabled: e.disabled,
 				hidden: r,
 				setValue: e.setValue
-			})] });
+			}), gt(Ze(e.field, e.value, n.definition))] });
 		};
 	}
-}), ot = a({
+}), pt = a({
 	name: "FormieVueConfigField",
 	props: { field: {
 		type: Object,
@@ -578,7 +587,7 @@ var nt = a({
 		return () => {
 			let n = t.state.value;
 			return n ? o("div", { class: "formie-vue-row" }, e.row.fields.map((t, r) => {
-				if (!e.values || !e.setFieldValue) return o(ot, {
+				if (!e.values || !e.setFieldValue) return o(pt, {
 					key: t.id || `${e.rowIndex}:${r}`,
 					field: t
 				});
@@ -598,7 +607,7 @@ var nt = a({
 			})) : null;
 		};
 	}
-}), st = a({
+}), mt = a({
 	name: "FormieVueRepeaterFieldInput",
 	props: P,
 	setup(e) {
@@ -606,7 +615,7 @@ var nt = a({
 		return () => {
 			let n = t.state.value;
 			if (!n) return null;
-			let r = Le(e.field), i = Array.isArray(e.value) ? e.value : [], a = e.field.input, s = Number(a.minRows ?? 0) || 0, c = Number(a.maxRows ?? 0) || 0, l = !e.disabled && (c <= 0 || i.length < c);
+			let r = Ue(e.field), i = Array.isArray(e.value) ? e.value : [], a = e.field.input, s = Number(a.minRows ?? 0) || 0, c = Number(a.maxRows ?? 0) || 0, l = !e.disabled && (c <= 0 || i.length < c);
 			if (r.length === 0) return o("div", { class: "formie-vue-unsupported" }, "Unsupported repeater field.");
 			let u = W(e, R(t)), d = n.definition;
 			return o("div", {
@@ -649,7 +658,7 @@ var nt = a({
 				disabled: !l,
 				"data-formie-repeater-add": e.field.handle,
 				onClick: () => {
-					e.setValue([...i, oe(e.field)]);
+					e.setValue([...i, se(e.field)]);
 				}
 			}, String(a.addRowLabel || C(d, "addRow")))]);
 		};
@@ -688,7 +697,7 @@ function K(e, t) {
 		...v(e) ? { [v(e)]: "true" } : {}
 	};
 }
-function ct(e, t) {
+function ht(e, t) {
 	return {
 		role: "img",
 		"aria-labelledby": t.labelledByWrapper ? t.labelId : void 0,
@@ -704,9 +713,15 @@ function q(e, t, n) {
 		"aria-describedby": E(G(e, t))
 	};
 }
+function gt(e) {
+	return e ? o("div", {
+		class: "formie-vue-limit",
+		"data-formie-limit-text": "true"
+	}, [o("span", { class: e.over ? "formie-vue-limit-number formie-vue-limit-number-error" : "formie-vue-limit-number" }, String(e.count)), ` ${e.text}`]) : null;
+}
 function J(e, t, n, r, i, a = L(e)) {
 	let s = e.input;
-	if (a === "multi-line-text" && Ae(e)) return o("div", {
+	if (a === "multi-line-text" && Pe(e)) return o("div", {
 		class: "formie-vue-rich-text",
 		onInput: (e) => {
 			let t = e.target;
@@ -734,19 +749,20 @@ function J(e, t, n, r, i, a = L(e)) {
 			r(t.value);
 		}
 	});
-	if (a === "dropdown" && je(e)) return o("div", {
+	if (a === "dropdown" && Fe(e)) return o("div", {
 		class: "formie-vue-combobox",
 		onInput: (t) => {
 			let n = t.target;
-			n instanceof HTMLSelectElement && r(Be(e, n));
+			n instanceof HTMLSelectElement && r(Ke(e, n));
 		}
-	}, o("div", { innerHTML: ze(e, {
+	}, o("div", { innerHTML: Ge(e, {
 		id: i.inputId || void 0,
 		"aria-required": e.required ? "true" : void 0,
-		disabled: n
+		disabled: n,
+		...v(e) ? { [v(e)]: !0 } : {}
 	}) }));
 	if (a === "dropdown") {
-		let a = s.multiple === !0, c = w(e), l = (Array.isArray(t) ? t : t == null ? [] : [t]).map((e) => String(e)), u = a ? b(e) : me(e), d = a ? "" : l[0] ?? "", f = !a && d === "" && !u.some((e) => e.value === "");
+		let a = s.multiple === !0, c = w(e), l = (Array.isArray(t) ? t : t == null ? [] : [t]).map((e) => String(e)), u = a ? b(e) : ge(e), d = a ? "" : l[0] ?? "", f = !a && d === "" && !u.some((e) => e.value === "");
 		return o("select", {
 			...K(e, i),
 			...a ? {} : { value: d },
@@ -774,7 +790,7 @@ function J(e, t, n, r, i, a = L(e)) {
 		type: c,
 		value: typeof t == "string" || typeof t == "number" ? String(t) : "",
 		disabled: n,
-		readonly: xe(e) || void 0,
+		readonly: we(e) || void 0,
 		placeholder: typeof s.placeholder == "string" ? s.placeholder : void 0,
 		onInput: (e) => {
 			let t = e.target;
@@ -785,7 +801,7 @@ function J(e, t, n, r, i, a = L(e)) {
 		}
 	});
 }
-var lt = a({
+var _t = a({
 	name: "FormieVuePhoneFieldInput",
 	props: P,
 	setup(e) {
@@ -803,7 +819,7 @@ var lt = a({
 					number: String(t ?? "")
 				});
 			}, i, "phone");
-			return T(e.field) ? o("div", {
+			return Me(e.field) ? o("div", {
 				ref: n,
 				class: "formie-vue-phone"
 			}, [r(s, { "data-formie-phone-input": "true" }), o("input", {
@@ -813,13 +829,13 @@ var lt = a({
 			})]) : s;
 		};
 	}
-}), ut = a({
+}), vt = a({
 	name: "FormieVueSurveyLikertFieldInput",
 	props: P,
 	setup(e) {
 		let t = F();
 		return () => {
-			let n = W(e, R(t)), r = b(e.field), i = Ue(e.field), a = i.length > 0, s = a && e.value && typeof e.value == "object" ? e.value : {}, c = e.inputId || `${e.field.id}-likert`;
+			let n = W(e, R(t)), r = b(e.field), i = Ye(e.field), a = i.length > 0, s = a && e.value && typeof e.value == "object" ? e.value : {}, c = e.inputId || `${e.field.id}-likert`;
 			return o("div", {
 				class: "formie-vue-likert",
 				...q(e.field, n, "group")
@@ -853,15 +869,15 @@ var lt = a({
 			}))])]);
 		};
 	}
-}), dt = a({
+}), yt = a({
 	name: "FormieVueSurveyRankFieldInput",
 	props: P,
 	setup(e) {
 		let t = F(), n = d(null), r, i = (t, n) => {
-			e.setValue(Pe(A(e.field, e.value), t, n));
+			e.setValue(ze(A(e.field, e.value), t, n));
 		};
 		return l(() => {
-			n.value && (r = ee(n.value, "li", i));
+			n.value && (r = te(n.value, "li", i));
 		}), c(() => r?.()), () => {
 			let r = W(e, R(t)), a = t.state.value?.definition, s = Object.fromEntries(b(e.field).map((e) => [e.value, e.label])), c = A(e.field, e.value);
 			return o("ol", {
@@ -885,7 +901,7 @@ var lt = a({
 			])));
 		};
 	}
-}), ft = {
+}), bt = {
 	position: "absolute",
 	inset: "0",
 	width: "100%",
@@ -893,7 +909,7 @@ var lt = a({
 	margin: "0",
 	opacity: "0",
 	cursor: "pointer"
-}, pt = a({
+}, xt = a({
 	name: "FormieVueSurveyRatingFieldInput",
 	props: P,
 	setup(e) {
@@ -918,7 +934,7 @@ var lt = a({
 					value: t.value,
 					checked: i === t.value,
 					disabled: e.disabled || t.disabled,
-					style: ft,
+					style: bt,
 					...U(e.errors, e.errorId),
 					onChange: () => e.setValue(t.value),
 					onClick: () => {
@@ -930,23 +946,23 @@ var lt = a({
 			])));
 		};
 	}
-}), mt = a({
+}), St = a({
 	name: "FormieVueSummaryFieldInput",
 	props: P,
 	setup(e) {
 		let t = F();
 		return () => o("div", {
 			class: "formie-vue-summary",
-			innerHTML: He(e.field, t.state.value?.lastSubmitResult) ?? ""
+			innerHTML: Je(e.field, t.state.value?.lastSubmitResult) ?? ""
 		});
 	}
-}), ht = a({
+}), Ct = a({
 	name: "FormieVueTableFieldInput",
 	props: P,
 	setup(e) {
 		let t = F();
 		return () => {
-			let n = t.state.value?.definition, r = We(e.field), i = Array.isArray(e.value) ? e.value : [], a = e.field.input, s = a.static === !0 || a.staticRows === !0, c = Number(a.minRows ?? 0) || 0, l = Number(a.maxRows ?? 0) || 0, u = !e.disabled && !s && (l <= 0 || i.length < l), d = (t, n, r) => {
+			let n = t.state.value?.definition, r = Xe(e.field), i = Array.isArray(e.value) ? e.value : [], a = e.field.input, s = a.static === !0 || a.staticRows === !0, c = Number(a.minRows ?? 0) || 0, l = Number(a.maxRows ?? 0) || 0, u = !e.disabled && !s && (l <= 0 || i.length < l), d = (t, n, r) => {
 				e.setValue(i.map((e, i) => i === t ? {
 					...e,
 					[n]: r
@@ -958,7 +974,7 @@ var lt = a({
 			}, [o("table", null, [o("thead", null, o("tr", null, [...r.map((e) => o("th", {
 				key: e.id,
 				scope: "col"
-			}, e.heading)), s ? null : o("td", { key: "actions" })])), o("tbody", null, i.map((t, a) => o("tr", { key: a }, [...r.map((n) => o("td", { key: n.id }, gt(n, t[n.handle], e.disabled, (e) => d(a, n.handle, e)))), s ? null : o("td", { key: "actions" }, o("button", {
+			}, e.heading)), s ? null : o("td", { key: "actions" })])), o("tbody", null, i.map((t, a) => o("tr", { key: a }, [...r.map((n) => o("td", { key: n.id }, wt(n, t[n.handle], e.disabled, (e) => d(a, n.handle, e)))), s ? null : o("td", { key: "actions" }, o("button", {
 				type: "button",
 				disabled: e.disabled || i.length <= c,
 				"aria-label": `${C(n, "removeRow")} ${a + 1}`,
@@ -966,12 +982,12 @@ var lt = a({
 			}, C(n, "remove")))])))]), s ? null : o("button", {
 				type: "button",
 				disabled: !u,
-				onClick: () => e.setValue([...i, ce(e.field)])
+				onClick: () => e.setValue([...i, le(e.field)])
 			}, String(a.addRowLabel || C(n, "addRow")))]);
 		};
 	}
 });
-function gt(e, t, n, r) {
+function wt(e, t, n, r) {
 	if (e.type === "heading") return o("span", null, typeof t == "string" ? t : "");
 	if (e.type === "checkbox") return o("input", {
 		type: "checkbox",
@@ -1018,45 +1034,45 @@ function gt(e, t, n, r) {
 		onInput: (e) => r(e.target.value)
 	});
 }
-var _t = a({
+var Tt = a({
 	name: "FormieVueDefaultFieldInput",
 	props: P,
 	setup(e) {
 		let t = F();
 		return () => {
 			let n = e.field.input, r = L(e.field), i = W(e, R(t));
-			if (we(e.field)) return o("div", {
+			if (De(e.field)) return o("div", {
 				class: "formie-vue-date-range-picker",
-				onInput: (t) => e.setValue(fe(t.currentTarget))
-			}, o("div", { innerHTML: de(e.field, {
+				onInput: (t) => e.setValue(me(t.currentTarget))
+			}, o("div", { innerHTML: pe(e.field, {
 				id: i.inputId || void 0,
 				"aria-label": i.labelledByWrapper ? void 0 : e.field.label || e.field.handle,
 				"aria-required": e.field.required ? "true" : void 0,
 				placeholder: typeof n.placeholder == "string" ? n.placeholder : void 0
 			}) }));
-			if (Ce(e.field)) return o(rt, e);
-			if (ye(e.field)) return o("div", { class: "formie-vue-address-autocomplete" }, o("div", { innerHTML: _(e.field, {
+			if (Ee(e.field)) return o(ut, e);
+			if (Se(e.field)) return o("div", { class: "formie-vue-address-autocomplete" }, o("div", { innerHTML: _(e.field, {
 				id: i.inputId || void 0,
 				"aria-label": i.labelledByWrapper ? void 0 : e.field.label || e.field.handle,
 				"aria-required": e.field.required ? "true" : void 0,
 				placeholder: typeof n.placeholder == "string" ? n.placeholder : void 0
 			}) }));
-			if (Se(e.field)) return o(it, e);
-			if (ke(e.field)) return o(st, e);
-			let a = Ke(e.field);
+			if (Te(e.field)) return o(dt, e);
+			if (Ne(e.field)) return o(mt, e);
+			let a = $e(e.field);
 			if (a !== null) return o("div", {
 				class: "formie-vue-upload-manager",
-				"data-formie-upload-field-handle": t.state.value ? he(t.state.value.definition, e.errorKey) : e.field.handle,
-				onInput: (t) => e.setValue(Ie(t.currentTarget))
+				"data-formie-upload-field-handle": t.state.value ? _e(t.state.value.definition, e.errorKey) : e.field.handle,
+				onInput: (t) => e.setValue(He(t.currentTarget))
 			}, o("div", { innerHTML: a }));
-			if (De(e.field)) return o(at, e);
-			if (r === "signature") return o(nt, e);
+			if (Ae(e.field)) return o(ft, e);
+			if (r === "signature") return o(lt, e);
 			if (r === "multi-line-text" || r === "dropdown") return J(e.field, e.value, e.disabled, e.setValue, i, r);
-			if (r === "table") return o(ht, e);
-			if (r === "phone") return o(lt, e);
-			if (r === "survey-likert") return o(ut, e);
-			if (r === "survey-rank") return o(dt, e);
-			if (r === "survey-rating") return o(pt, e);
+			if (r === "table") return o(Ct, e);
+			if (r === "phone") return o(_t, e);
+			if (r === "survey-likert") return o(vt, e);
+			if (r === "survey-rank") return o(yt, e);
+			if (r === "survey-rating") return o(xt, e);
 			if (r === "section") return o("hr", { class: "formie-vue-section" });
 			if (r === "radio") {
 				let t = b(e.field), n = w(e.field), r = Array.isArray(e.value) ? String(e.value[0] ?? "") : e.value == null ? "" : String(e.value);
@@ -1080,14 +1096,14 @@ var _t = a({
 				}));
 			}
 			if (r === "checkboxes") {
-				let t = b(e.field), n = Array.isArray(e.value) ? e.value.map((e) => String(e)) : [], r = te(e.field), a = r ? o("label", {
+				let t = b(e.field), n = Array.isArray(e.value) ? e.value.map((e) => String(e)) : [], r = ne(e.field), a = r ? o("label", {
 					key: "toggle",
 					class: "formie-vue-checkbox-toggle"
 				}, [o("input", {
 					type: "checkbox",
-					checked: y(e.field, n),
+					checked: ee(e.field, n),
 					disabled: e.disabled,
-					onChange: (t) => e.setValue(Ge(e.field, n, t.target.checked))
+					onChange: (t) => e.setValue(Qe(e.field, n, t.target.checked))
 				}), o("span", null, r.label)]) : null;
 				return o("div", {
 					class: "formie-vue-choices",
@@ -1133,20 +1149,30 @@ var _t = a({
 					innerHTML: t
 				}) : o("span", { key: "description" }, e.field.label)])]);
 			}
-			let s = pe(e.field);
+			let s = he(e.field);
 			if (s) return s.kind === "heading" ? o(s.level, { class: "formie-vue-heading" }, s.text) : o("div", {
 				class: "formie-vue-content",
 				innerHTML: s.html
 			});
-			if (e.field.type === "summary") return o(mt, e);
-			let c = Fe(e.field);
-			return c === null ? Oe(r) ? J(e.field, e.value, e.disabled, e.setValue, i, r) : o("div", { class: "formie-vue-unsupported" }, `Unsupported field type: ${String(e.field.meta?.fieldType ?? e.field.type)}`) : o("div", {
+			if (e.field.type === "summary") return o(St, e);
+			let c = ue(e.field, e.field.label && !T(e.field) ? e.labelId : null);
+			if (c !== null) {
+				let t = (t) => e.setValue(Ve(t.currentTarget, e.field));
+				return o("div", {
+					class: "formie-vue-custom-field",
+					onInput: t,
+					onChange: t,
+					innerHTML: c
+				});
+			}
+			let l = Be(e.field);
+			return l === null ? je(r) ? J(e.field, e.value, e.disabled, e.setValue, i, r) : o("div", { class: "formie-vue-unsupported" }, `Unsupported field type: ${String(e.field.meta?.fieldType ?? e.field.type)}`) : o("div", {
 				class: "formie-vue-payment",
-				innerHTML: c
+				innerHTML: l
 			});
 		};
 	}
-}), vt = a({
+}), Et = a({
 	name: "FormieVueConfigPageActions",
 	setup() {
 		let e = F();
@@ -1168,11 +1194,11 @@ var _t = a({
 			}), i.push(o("button", {
 				key: r.actions.primary.type,
 				type: "submit",
-				disabled: !ne(t)
+				disabled: !re(t)
 			}, r.actions.primary.label)), o("div", { class: "formie-page-actions" }, i);
 		};
 	}
-}), yt = a({
+}), Dt = a({
 	name: "FormieVueConfigRenderer",
 	props: { className: {
 		type: String,
@@ -1183,7 +1209,7 @@ var _t = a({
 		return () => {
 			let n = t.instance.value, r = t.state.value;
 			if (!n || !r) return null;
-			let i = t.components.value.Form || et, a = t.components.value.Page || tt, s = t.components.value.ErrorSummary || Ze, c = r.definition.pages.find((e) => e.id === r.currentPageId && r.pageStates[e.id]?.hidden !== !0) || r.definition.pages.find((e) => r.pageStates[e.id]?.hidden !== !0) || r.definition.pages[0], l = r.lastSubmitResult?.messages.error, u = !!l && !r.errors.form.includes(l), d = !(r.lastSubmitResult?.completion?.behavior === "message" && r.lastSubmitResult.completion.hideForm);
+			let i = t.components.value.Form || st, a = t.components.value.Page || ct, s = t.components.value.ErrorSummary || it, c = r.definition.pages.find((e) => e.id === r.currentPageId && r.pageStates[e.id]?.hidden !== !0) || r.definition.pages.find((e) => r.pageStates[e.id]?.hidden !== !0) || r.definition.pages[0], l = r.lastSubmitResult?.messages.error, u = !!l && !r.errors.form.includes(l), d = !(r.lastSubmitResult?.completion?.behavior === "message" && r.lastSubmitResult.completion.hideForm);
 			return c ? o(i, {
 				definition: r.definition,
 				session: r.session,
@@ -1219,12 +1245,12 @@ var _t = a({
 					key: `${c.id}:${t}`,
 					row: e,
 					rowIndex: t
-				})), o(vt, { key: "actions" })] }) : null,
+				})), o(Et, { key: "actions" })] }) : null,
 				d && S(r.definition, r.currentPageId)?.position === "end" ? B(r) : null
 			] }) : null;
 		};
 	}
-}), bt = {
+}), Ot = {
 	source: {
 		type: Object,
 		required: !0
@@ -1289,9 +1315,9 @@ var _t = a({
 function Y(e, t, ...n) {
 	e?.(...n), t && t !== e && t(...n);
 }
-var xt = a({
+var kt = a({
 	name: "FormieVueDefinitionFormView",
-	props: bt,
+	props: Ot,
 	emits: [
 		"mount",
 		"ready",
@@ -1316,7 +1342,7 @@ var xt = a({
 			let c = !1, l = () => void 0;
 			(async () => {
 				try {
-					let i = await qe(e.source), o = Je(e.source), s = ie({
+					let i = await et(e.source), o = tt(e.source), s = ae({
 						envelope: i,
 						transport: o
 					});
@@ -1350,10 +1376,10 @@ var xt = a({
 			})(), s(() => {
 				c = !0, l();
 			});
-		}, { immediate: !0 }), () => a.value ? o("div", { class: "formie-vue-error" }, a.value.message) : !n.value || !r.value ? o("div", { class: "formie-vue-loading" }, "Loading form...") : o($e, {}, { default: () => o(yt, { className: e.className }) });
+		}, { immediate: !0 }), () => a.value ? o("div", { class: "formie-vue-error" }, a.value.message) : !n.value || !r.value ? o("div", { class: "formie-vue-loading" }, "Loading form...") : o(ot, {}, { default: () => o(Dt, { className: e.className }) });
 	}
 });
-function St() {
+function At() {
 	let e = F();
 	return {
 		definition: i(() => e.state.value?.definition || null),
@@ -1362,10 +1388,10 @@ function St() {
 		instance: e.instance
 	};
 }
-function Ct(e) {
+function jt(e) {
 	let t = F(), n = i(() => {
 		let n = t.state.value?.definition;
-		return n && Ye(n).find((t) => t.id === e) || null;
+		return n && nt(n).find((t) => t.id === e) || null;
 	});
 	return {
 		field: n,
@@ -1378,7 +1404,7 @@ function Ct(e) {
 		}
 	};
 }
-function wt(e) {
+function Mt(e) {
 	let t = F();
 	return {
 		page: i(() => t.state.value?.definition.pages.find((t) => t.id === e) || null),
@@ -1386,10 +1412,10 @@ function wt(e) {
 		hidden: i(() => t.state.value?.pageStates[e]?.hidden === !0)
 	};
 }
-function Tt() {
+function Nt() {
 	return F().instance;
 }
-function Et(e) {
+function Pt(e) {
 	let t = F();
 	return i(() => t.slots.value[e] || null);
 }
@@ -1398,13 +1424,13 @@ function Et(e) {
 function X(e) {
 	return !!e && "payload" in e;
 }
-function Dt(e) {
+function Ft(e) {
 	return "success" in e ? e.success : e.ok;
 }
 function Z(e, t, ...n) {
 	e?.(...n), t && t !== e && t(...n);
 }
-function Q(e) {
+function It(e) {
 	let t = e.transport;
 	if (!t && !X(e.source)) throw Error("`transport` is required for <FormieForm>.");
 	return {
@@ -1423,7 +1449,7 @@ function Q(e) {
 		themeConfig: e.themeConfig
 	};
 }
-function Ot(e) {
+function Lt(e) {
 	if (e.source) return e.source;
 	let t = e.transport, n = e.endpoint, r = e.formHandle;
 	if (t !== "rest" && t !== "graphql") throw Error("Vue client-rendered forms require `transport=\"rest\"` or `transport=\"graphql\"`.");
@@ -1436,14 +1462,14 @@ function Ot(e) {
 		profile: e.profile
 	};
 }
-function kt() {
+function Rt() {
 	return t();
 }
-function $() {
+function Q() {
 	return t();
 }
-function At(e) {
-	let t = $(), n = d(null), r = f(null), a = d(null), o = i(() => M(e));
+function zt(e) {
+	let t = Q(), n = d(null), r = f(null), a = d(null), o = i(() => M(e));
 	return p([n, o], ([n], i, o) => {
 		if (!n) return;
 		let s = !1, c = !1, l = async () => {
@@ -1476,7 +1502,7 @@ function At(e) {
 		submit: async (e = "submit") => r.value ? r.value.submit(e) : null
 	};
 }
-var jt = a({
+var $ = a({
 	name: "FormieVueHtmlFormView",
 	props: { options: {
 		type: Object,
@@ -1495,14 +1521,14 @@ var jt = a({
 		"event"
 	],
 	setup(n, { emit: r }) {
-		let a = d(null), s = t(), c = i(() => Q(n.options)), l = i(() => M(c.value));
+		let a = d(null), s = t(), c = i(() => It(n.options)), l = i(() => M(c.value));
 		return p([a, l], ([t], i, a) => {
 			if (!t) return;
 			let o = !1, l = null, u = [], d = Promise.resolve().then(async () => {
 				let i = await s.mount(t, c.value);
 				o ? await s.unmount(t) : (l = i, n.options.onMount?.(i), n.options.onReady?.(i), r("mount", i), r("ready", i), u.push(i.on("formie:submit:result", (e) => {
 					let t = e;
-					Z(n.options.onSubmitResult, n.options.onResult, t), r("result", t), r("submit-result", t), Dt(t) ? (Z(n.options.onSubmitSuccess, n.options.onSuccess, t), r("success", t), r("submit-success", t)) : (Z(n.options.onSubmitError, n.options.onError, t), r("error", t), r("submit-error", t));
+					Z(n.options.onSubmitResult, n.options.onResult, t), r("result", t), r("submit-result", t), Ft(t) ? (Z(n.options.onSubmitSuccess, n.options.onSuccess, t), r("success", t), r("submit-success", t)) : (Z(n.options.onSubmitError, n.options.onError, t), r("error", t), r("submit-error", t));
 				})), e.forEach((e) => {
 					u.push(i.on(e, (t) => {
 						let i = {
@@ -1523,7 +1549,7 @@ var jt = a({
 			class: n.options.className
 		});
 	}
-}), Mt = {
+}), Bt = {
 	source: {
 		type: Object,
 		default: void 0
@@ -1616,7 +1642,7 @@ var jt = a({
 		type: Function,
 		default: void 0
 	}
-}, Nt = {
+}, Vt = {
 	source: {
 		type: Object,
 		default: void 0
@@ -1697,9 +1723,9 @@ var jt = a({
 		type: Function,
 		default: void 0
 	}
-}, Pt = a({
+}, Ht = a({
 	name: "FormieVueForm",
-	props: Mt,
+	props: Bt,
 	emits: [
 		"mount",
 		"ready",
@@ -1739,7 +1765,7 @@ var jt = a({
 				onSubmitError: e.onSubmitError,
 				onEvent: e.onEvent
 			};
-			return o(jt, {
+			return o($, {
 				options: n,
 				onMount: (e) => t("mount", e),
 				onReady: (e) => t("ready", e),
@@ -1754,9 +1780,9 @@ var jt = a({
 			});
 		};
 	}
-}), Ft = a({
+}), Ut = a({
 	name: "FormieVueClientForm",
-	props: Nt,
+	props: Vt,
 	emits: [
 		"mount",
 		"ready",
@@ -1770,8 +1796,8 @@ var jt = a({
 		"event"
 	],
 	setup(e, { emit: t }) {
-		return () => o(xt, {
-			source: Ot({
+		return () => o(kt, {
+			source: Lt({
 				source: e.source,
 				profile: e.profile,
 				transport: e.transport,
@@ -1822,4 +1848,4 @@ var jt = a({
 	}
 });
 //#endregion
-export { Ft as FormieClientForm, Pt as FormieForm, kt as createVueFormieClient, St as useFormie, $ as useFormieClient, Ct as useFormieField, At as useFormieHtml, Tt as useFormieInstance, wt as useFormiePage, Et as useFormieSlot };
+export { Ut as FormieClientForm, Ht as FormieForm, Rt as createVueFormieClient, At as useFormie, Q as useFormieClient, jt as useFormieField, zt as useFormieHtml, Nt as useFormieInstance, Mt as useFormiePage, Pt as useFormieSlot };
