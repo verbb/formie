@@ -22,6 +22,9 @@ import {
     isCalculationField,
     isFieldLabelVisuallyHidden,
     isPhoneCountryEnabled,
+    checkboxToggle,
+    allOptionsSelected,
+    toggleAllOptions,
     moveListItem,
     surveyLikertRows,
     surveyRankOrder,
@@ -1622,11 +1625,22 @@ const DefaultFieldInput = defineComponent({
             if (rendererType === 'checkboxes') {
                 const options = fieldOptions(props.field);
                 const selectedValues = Array.isArray(props.value) ? props.value.map((item) => String(item)) : [];
+                const toggle = checkboxToggle(props.field);
+                // "Select all" isn't an answer of its own, so it has no value and isn't validated.
+                const toggleControl = toggle ? h('label', { key: 'toggle', class: 'formie-vue-checkbox-toggle' }, [
+                    h('input', {
+                        type: 'checkbox',
+                        checked: allOptionsSelected(props.field, selectedValues),
+                        disabled: props.disabled,
+                        onChange: (event: Event) => props.setValue(toggleAllOptions(props.field, selectedValues, (event.target as HTMLInputElement).checked)),
+                    }),
+                    h('span', null, toggle.label),
+                ]) : null;
 
                 return h('div', {
                     class: 'formie-vue-choices',
                     ...groupAttributes(props.field, labelling, 'group'),
-                }, options.map((option) => {
+                }, [toggle?.position === 'top' ? toggleControl : null, ...options.map((option) => {
                     const optionValue = option.value;
                     const checked = selectedValues.includes(optionValue);
                     const optionDisabled = props.disabled || option.disabled;
@@ -1652,7 +1666,7 @@ const DefaultFieldInput = defineComponent({
                             key: 'label',
                         }, option.label),
                     ]);
-                }));
+                }), toggle?.position === 'bottom' ? toggleControl : null]);
             }
 
             if (rendererType === 'agree') {

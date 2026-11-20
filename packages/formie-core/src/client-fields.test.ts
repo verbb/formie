@@ -8,6 +8,9 @@ import {
     isCompositeField,
     isMultiValueField,
     isPhoneCountryEnabled,
+    checkboxToggle,
+    allOptionsSelected,
+    toggleAllOptions,
     moveListItem,
     surveyRankOrder,
     phoneFieldValue,
@@ -282,5 +285,22 @@ describe('survey display types', () => {
         expect(moveListItem(items, 0, 1)).toEqual(['b', 'a', 'c']);
         expect(moveListItem(items, 0, 5)).toBe(items);
         expect(items).toEqual(['a', 'b', 'c']);
+    });
+});
+
+describe('select all', () => {
+    const checkboxes = (input: Record<string, unknown> = {}) => field('checkboxes', { fieldKind: 'checkbox-group', options: [option('a'), option('b'), { ...option('c'), disabled: true }], ...input });
+
+    it('only shows a toggle with a position and a label', () => {
+        expect(checkboxToggle(checkboxes({ toggleCheckbox: 'top', toggleCheckboxLabel: 'All' }))).toEqual({ position: 'top', label: 'All' });
+        expect(checkboxToggle(checkboxes({ toggleCheckbox: 'top' }))).toBeNull();
+        expect(checkboxToggle(checkboxes())).toBeNull();
+    });
+
+    it('chooses and clears the enabled options and leaves disabled ones alone', () => {
+        expect(toggleAllOptions(checkboxes(), [], true)).toEqual(['a', 'b']);
+        expect(toggleAllOptions(checkboxes(), ['a', 'c'], false)).toEqual(['c']);
+        expect(allOptionsSelected(checkboxes(), ['a', 'b'])).toBe(true);
+        expect(allOptionsSelected(checkboxes(), ['a'])).toBe(false);
     });
 });

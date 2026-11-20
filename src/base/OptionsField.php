@@ -1015,6 +1015,12 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
             $contract['max'] = $this->max ?? null;
         }
 
+        // The "Select all" checkbox, shown above or below the options when it has a label, as in the template.
+        if (in_array('checkboxes', [$displayType, static::kebabClassName()], true) && property_exists($this, 'toggleCheckbox') && $this->toggleCheckbox && $this->toggleCheckboxLabel) {
+            $contract['toggleCheckbox'] = $this->toggleCheckbox;
+            $contract['toggleCheckboxLabel'] = $this->toggleCheckboxLabel;
+        }
+
         return array_merge(parent::defineClientRenderedInput(), $contract);
     }
 

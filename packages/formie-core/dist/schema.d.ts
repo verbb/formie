@@ -15,6 +15,12 @@ export declare function resolveClientRendererType(field: ClientFieldDefinition):
 export declare function isCalculationField(field: ClientFieldDefinition): boolean;
 export declare function summaryFieldMarkup(field: ClientFieldDefinition, lastSubmitResult: ClientSubmitResult | null | undefined): string | null;
 export declare function paymentFieldMarkup(field: ClientFieldDefinition): string | null;
+export declare function checkboxToggle(field: ClientFieldDefinition): {
+    position: 'top' | 'bottom';
+    label: string;
+} | null;
+export declare function allOptionsSelected(field: ClientFieldDefinition, selected: string[]): boolean;
+export declare function toggleAllOptions(field: ClientFieldDefinition, selected: string[], checked: boolean): string[];
 export type SurveyLikertRow = {
     label: string;
     value: string;

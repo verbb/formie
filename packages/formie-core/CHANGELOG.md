@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Added `checkboxToggle()`, `allOptionsSelected()` and `toggleAllOptions()`, and the client definition’s `input.toggleCheckbox` and `input.toggleCheckboxLabel`, for the “Select all” checkbox. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Added `summaryFieldMarkup()` and `summaryTokens` on submit results, which client-rendered Summary fields use to show the answers saved so far. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Added `surveyLikertRows()`, `surveyRankOrder()`, `moveListItem()` and `attachPointerReorder()` for Survey fields, and the client definition’s `input.displayType`, `input.likertRows`, `input.starColor` and `settings.strings.moveUp`/`moveDown`. `resolveClientRendererType()` now picks a Survey field’s control from its display type: `survey-likert`, `survey-rank`, `survey-rating`, or the matching dropdown, radio, checkboxes or text control. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Added `paymentFieldMarkup()`, which returns the provider markup a client-rendered Payment field shows. ([#3146](https://github.com/verbb/formie/issues/3146))

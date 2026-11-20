@@ -13,6 +13,9 @@ import {
     isCalculationField,
     isFieldLabelVisuallyHidden,
     isPhoneCountryEnabled,
+    checkboxToggle,
+    allOptionsSelected,
+    toggleAllOptions,
     moveListItem,
     surveyLikertRows,
     surveyRankOrder,
@@ -671,9 +674,18 @@ function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps & { 
     if (rendererType === 'checkboxes') {
         const options = fieldOptions(field);
         const selected = Array.isArray(value) ? value.map((x) => String(x)) : [];
+        const toggle = checkboxToggle(field);
+        // "Select all" isn't an answer of its own, so it has no value and isn't validated.
+        const toggleControl = toggle ? html`
+            <label class="starter-component-checkbox-toggle flex items-center gap-2 text-sm text-slate-800">
+                <input type="checkbox" .checked=${allOptionsSelected(field, selected)} ?disabled=${disabled} @change=${(e: Event) => setValue(toggleAllOptions(field, selected, (e.target as HTMLInputElement).checked))} />
+                <span>${toggle.label}</span>
+            </label>
+        ` : nothing;
 
         return html`
             <div class="flex flex-col gap-2" role="group" aria-labelledby=${groupLabelledBy} aria-label=${ownName(field, labelling)} aria-describedby=${groupDescribedBy}>
+                ${toggle?.position === 'top' ? toggleControl : nothing}
                 ${options.map((option) => {
                     const optionValue = option.value;
                     const checked = selected.includes(optionValue);
@@ -700,6 +712,7 @@ function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps & { 
                         </label>
                     `;
                 })}
+                ${toggle?.position === 'bottom' ? toggleControl : nothing}
             </div>
         `;
     }

@@ -22,6 +22,9 @@ import {
     isCalculationField,
     isFieldLabelVisuallyHidden,
     isPhoneCountryEnabled,
+    checkboxToggle,
+    allOptionsSelected,
+    toggleAllOptions,
     moveListItem,
     surveyLikertRows,
     surveyRankOrder,
@@ -1287,11 +1290,22 @@ function defaultFieldRenderer(props: FormieFieldComponentProps, labelledByWrappe
     if (rendererType === 'checkboxes') {
         const options = fieldOptions(field);
         const selectedValues = Array.isArray(value) ? value.map((item) => String(item)) : [];
+        const toggle = checkboxToggle(field);
+        // "Select all" isn't an answer of its own, so it has no value and isn't validated.
+        const toggleControl = toggle ? createElement('label', { key: 'toggle', className: 'formie-react-checkbox-toggle' },
+            createElement('input', {
+                type: 'checkbox',
+                checked: allOptionsSelected(field, selectedValues),
+                disabled,
+                onChange: (event: { target: HTMLInputElement }) => setValue(toggleAllOptions(field, selectedValues, event.target.checked)),
+            }),
+            createElement('span', null, toggle.label),
+        ) : null;
 
         return createElement('div', {
             className: 'formie-react-choices',
             ...groupAttributes(field, labelling, 'group'),
-        }, options.map((option) => {
+        }, toggle?.position === 'top' ? toggleControl : null, ...options.map((option) => {
             const optionValue = option.value;
             const checked = selectedValues.includes(optionValue);
             const optionDisabled = disabled || option.disabled;
@@ -1315,7 +1329,7 @@ function defaultFieldRenderer(props: FormieFieldComponentProps, labelledByWrappe
                 }),
                 createElement('span', { key: 'label' }, option.label),
             ]);
-        }));
+        }), toggle?.position === 'bottom' ? toggleControl : null);
     }
 
     if (rendererType === 'agree') {

@@ -139,6 +139,28 @@ export function paymentFieldMarkup(field: ClientFieldDefinition): string | null 
     return field.type === 'payment' && typeof field.input.html === 'string' ? field.input.html : null;
 }
 
+// The "Select all" checkbox of a Checkboxes field, when the field shows one.
+export function checkboxToggle(field: ClientFieldDefinition): { position: 'top' | 'bottom'; label: string } | null {
+    const position = field.input.toggleCheckbox;
+    const label = typeof field.input.toggleCheckboxLabel === 'string' ? field.input.toggleCheckboxLabel : '';
+
+    return (position === 'top' || position === 'bottom') && label ? { position, label } : null;
+}
+
+// "Select all" is checked once every option that can be chosen is.
+export function allOptionsSelected(field: ClientFieldDefinition, selected: string[]): boolean {
+    const enabled = fieldOptions(field).filter((option) => !option.disabled);
+
+    return enabled.length > 0 && enabled.every((option) => selected.includes(option.value));
+}
+
+// Checking "Select all" chooses every enabled option, and unchecking it clears them. Disabled options keep their state.
+export function toggleAllOptions(field: ClientFieldDefinition, selected: string[], checked: boolean): string[] {
+    const options = fieldOptions(field);
+
+    return options.filter((option) => (option.disabled ? selected.includes(option.value) : checked)).map((option) => option.value);
+}
+
 export type SurveyLikertRow = {
     label: string;
     value: string;
