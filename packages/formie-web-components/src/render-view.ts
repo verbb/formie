@@ -28,6 +28,8 @@ import {
     datePickerInputValue,
     datePickerValue,
     isRichTextField,
+    textLimitCounter,
+    type TextLimitCounter,
     checkboxToggle,
     allOptionsSelected,
     toggleAllOptions,
@@ -1126,7 +1128,16 @@ function renderFieldNode(
             setValue: syncSet,
         });
 
-    return wrapField(ctx, field, errors, ids, errorAriaLive, inner, fieldLayout);
+    const counter = renderTextLimitCounter(textLimitCounter(field, value, ctx.state.definition));
+
+    return wrapField(ctx, field, errors, ids, errorAriaLive, counter === nothing ? inner : html`${inner}${counter}`, fieldLayout);
+}
+
+// Text fields with a maximum show how much is left under the control, as server-rendered forms do.
+function renderTextLimitCounter(counter: TextLimitCounter | null) {
+    if (!counter) return nothing;
+
+    return html`<div class="starter-component-limit" data-formie-limit-text="true"><span class=${counter.over ? 'starter-component-limit-number starter-component-limit-number-error' : 'starter-component-limit-number'}>${counter.count}</span> ${counter.text}</div>`;
 }
 
 function renderNestedRow(

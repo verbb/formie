@@ -118,3 +118,12 @@ if (!Craft::$app->getElements()->saveElement($nested)) {
     ->hiddenField('fromPage', ['label' => 'From page', 'valueSource' => 'currentUrl'])
     ->passwordField('secret', ['label' => 'Secret', 'passwordMinLength' => 8, 'passwordRequireUppercase' => true, 'passwordRequireSpecialCharacter' => true])
     ->create();
+
+// Text fields with limits in characters and words, in plain and rich text and as a Survey text answer.
+\verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Adapter text limits', 'handle' => 'adapterTextLimits'])
+    ->settings(['disableCaptchas' => true, 'submitMethod' => 'ajax'])
+    ->singleLineTextField('headline', ['label' => 'Headline', 'limit' => true, 'min' => 3, 'minType' => 'characters', 'max' => 10, 'maxType' => 'characters'])
+    ->multiLineTextField('story', ['label' => 'Story', 'limit' => true, 'max' => 3, 'maxType' => 'words'])
+    ->multiLineTextField('richStory', ['label' => 'Rich story', 'useRichText' => true, 'limit' => true, 'max' => 5, 'maxType' => 'characters'])
+    ->addField(\verbb\formie\fields\Survey::class, 'surveyNote', ['label' => 'Survey note', 'displayType' => 'singleLineText', 'limit' => true, 'max' => 4, 'maxType' => 'characters'])
+    ->create();

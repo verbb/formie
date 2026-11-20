@@ -37,6 +37,7 @@ import {
     datePickerInputValue,
     datePickerValue,
     isRichTextField,
+    textLimitCounter,
     checkboxToggle,
     allOptionsSelected,
     toggleAllOptions,
@@ -65,6 +66,7 @@ import {
     loadGraphqlClientFormBootstrap,
     repeaterRowDefinitions,
     type ClientFieldDefinition,
+    type TextLimitCounter,
     type ClientErrorAriaLive,
     type ClientFieldType,
     type ClientFormDefinition,
@@ -953,6 +955,7 @@ const ConfigFieldNode = defineComponent({
                         hidden,
                         setValue: props.setValue,
                     }),
+                    renderTextLimitCounter(textLimitCounter(props.field, props.value, state.definition)),
                 ],
             });
         };
@@ -1222,6 +1225,16 @@ function groupAttributes(field: ClientFieldDefinition, labelling: ControlLabelli
         'aria-required': role === 'radiogroup' && field.required ? 'true' : undefined,
         'aria-describedby': joinIdReferences(instructionsReference(field, labelling)),
     };
+}
+
+// Text fields with a maximum show how much is left under the control, as server-rendered forms do.
+function renderTextLimitCounter(counter: TextLimitCounter | null) {
+    if (!counter) return null;
+
+    return h('div', { class: 'formie-vue-limit', 'data-formie-limit-text': 'true' }, [
+        h('span', { class: counter.over ? 'formie-vue-limit-number formie-vue-limit-number-error' : 'formie-vue-limit-number' }, String(counter.count)),
+        ` ${counter.text}`,
+    ]);
 }
 
 function renderNestedFieldInput(field: ClientFieldDefinition, value: unknown, disabled: boolean, setValue: (value: unknown) => void, labelling: ControlLabelling, rendererType = resolveFieldRendererType(field)) {

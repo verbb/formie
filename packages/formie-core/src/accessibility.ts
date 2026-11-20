@@ -81,6 +81,12 @@ const CLIENT_STRING_FALLBACKS: Record<ClientStringKey, string> = {
     progress: 'Progress',
     moveUp: 'Move up',
     moveDown: 'Move down',
+    textLimitCharactersAllowed: '{count, plural, one{character allowed} other{characters allowed}}',
+    textLimitCharactersLeft: '{count, plural, one{character left} other{characters left}}',
+    textLimitCharactersOver: '{count, plural, one{character over limit} other{characters over limit}}',
+    textLimitWordsAllowed: '{count, plural, one{word allowed} other{words allowed}}',
+    textLimitWordsLeft: '{count, plural, one{word left} other{words left}}',
+    textLimitWordsOver: '{count, plural, one{word over limit} other{words over limit}}',
 };
 
 /**

@@ -970,6 +970,13 @@ class Form extends Element implements FormInterface
                     'progress' => Craft::t('formie', 'Progress'),
                     'moveUp' => Craft::t('formie', 'Move up'),
                     'moveDown' => Craft::t('formie', 'Move down'),
+                    // Text limit counters, as ICU plural messages the client formats with the count.
+                    'textLimitCharactersAllowed' => Craft::t('formie', '{count, plural, one{character allowed} other{characters allowed}}'),
+                    'textLimitCharactersLeft' => Craft::t('formie', '{count, plural, one{character left} other{characters left}}'),
+                    'textLimitCharactersOver' => Craft::t('formie', '{count, plural, one{character over limit} other{characters over limit}}'),
+                    'textLimitWordsAllowed' => Craft::t('formie', '{count, plural, one{word allowed} other{words allowed}}'),
+                    'textLimitWordsLeft' => Craft::t('formie', '{count, plural, one{word left} other{words left}}'),
+                    'textLimitWordsOver' => Craft::t('formie', '{count, plural, one{word over limit} other{words over limit}}'),
                 ],
             ],
             'pages' => $pages,

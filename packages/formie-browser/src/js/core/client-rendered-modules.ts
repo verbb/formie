@@ -11,7 +11,7 @@ const nativeModuleDelegations: Record<string, { kind: BrowserModuleKind; reason:
     signature: { kind: 'field', reason: 'The adapter owns its signature control and cleanup.' },
     'file-upload': { kind: 'field', reason: 'The shared transport stages selected files and submits attachment capabilities.' },
     'checkbox-radio': { kind: 'field', reason: 'Framework controls own checked state.' },
-    'text-limit': { kind: 'field', reason: 'Core validation enforces the structured minimum and maximum rules.' },
+    'text-limit': { kind: 'field', reason: 'Core checks the limits and adapters show the counter.' },
     calculations: { kind: 'field', reason: 'Core works out calculated answers from the form values.' },
     table: { kind: 'field', reason: 'The adapter owns table rows and core owns row values.' },
 };

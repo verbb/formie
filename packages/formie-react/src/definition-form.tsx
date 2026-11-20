@@ -37,6 +37,7 @@ import {
     datePickerInputValue,
     datePickerValue,
     isRichTextField,
+    textLimitCounter,
     checkboxToggle,
     allOptionsSelected,
     toggleAllOptions,
@@ -65,6 +66,7 @@ import {
     loadGraphqlClientFormBootstrap,
     repeaterRowDefinitions,
     type ClientFieldDefinition,
+    type TextLimitCounter,
     type ClientErrorAriaLive,
     type ClientFormDefinition,
     type ClientFormBootstrap,
@@ -77,6 +79,7 @@ import {
     cloneElement,
     createContext,
     createElement,
+    Fragment,
     isValidElement,
     useContext,
     useEffect,
@@ -1593,8 +1596,25 @@ function ConfigFieldNode({
         labelId: ids.label,
         instructionsId: ids.instructions,
         // Custom field components are React components, so they can use hooks.
-        children: renderer === defaultFieldRenderer ? defaultFieldRenderer(rendererProps, !components.Field) : createElement(renderer, rendererProps),
+        children: createElement(
+            Fragment,
+            null,
+            renderer === defaultFieldRenderer ? defaultFieldRenderer(rendererProps, !components.Field) : createElement(renderer, rendererProps),
+            renderTextLimitCounter(textLimitCounter(field, value, state.definition)),
+        ),
     });
+}
+
+// Text fields with a maximum show how much is left under the control, as server-rendered forms do.
+function renderTextLimitCounter(counter: TextLimitCounter | null) {
+    if (!counter) return null;
+
+    return (
+        <div className="formie-react-limit" data-formie-limit-text="true">
+            <span className={counter.over ? 'formie-react-limit-number formie-react-limit-number-error' : 'formie-react-limit-number'}>{counter.count}</span>
+            {` ${counter.text}`}
+        </div>
+    );
 }
 
 function ConfigField({ field }: { field: ClientFieldDefinition }) {

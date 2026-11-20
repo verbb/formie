@@ -115,6 +115,18 @@ trait DisplayTypeFieldTrait
         return array_merge(parent::defineRules(), $this->defineSearchableDropdownLimitRules());
     }
 
+    protected function defineBrowserValidationRules(): array
+    {
+        $field = $this->getDisplayTypeField();
+
+        // Text display types check what the text field they show checks, such as its limits.
+        if ($field instanceof SingleLineText || $field instanceof MultiLineText) {
+            return $field->defineBrowserValidationRules();
+        }
+
+        return parent::defineBrowserValidationRules();
+    }
+
     protected function definePresentationFieldClassMap(): array
     {
         $config = $this->defaultPresentationFieldClassMap();

@@ -67,6 +67,7 @@
 - Fixed opening a submission in the control panel creating its File Upload folder when the field’s subpath uses submission values, such as `{submission:id}`, which left an empty folder for every submission opened. ([#3134](https://github.com/verbb/formie/issues/3134))
 - Fixed the Submissions index **Export…** dialog combining each Name and Address field into one column. Each part now has its own column, as in Formie 3, and the combined column can still be ticked. ([#3055](https://github.com/verbb/formie/issues/3055))
 - Fixed client-rendered forms built with `@verbb/formie-react` moving focus to the error message on every keystroke after a submit that failed validation, so only the first character typed was kept.
+- Fixed Single-line Text, Multi-line Text and Survey text fields with **Limit Value** not checking their limits or showing the limit counter in client-rendered forms built with `@verbb/formie-vue`, `@verbb/formie-react` or the Formie web components. They now count down to the limit as server-rendered forms do, and don’t submit while an answer is outside its limits. ([#3146](https://github.com/verbb/formie/issues/3146))
 
 ## 4.0.10 - 2026-11-17
 

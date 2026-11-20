@@ -245,6 +245,23 @@ trait TextLimitFieldTrait
         return [
             'min' => $this->min,
             'max' => $this->max,
+            // Whether the limits count characters or words, so client-rendered forms can check them and show a counter.
+            'textLimit' => $this->limit ? ['min' => $this->min ?: null, 'minType' => $this->minType, 'max' => $this->max ?: null, 'maxType' => $this->maxType] : null,
         ];
+    }
+
+    protected function defineTextLimitBrowserValidationRules(): array
+    {
+        if (!$this->limit || (!$this->min && !$this->max)) {
+            return [];
+        }
+
+        return [[
+            'type' => 'textLimit',
+            'min' => $this->min ?: null,
+            'minType' => $this->minType,
+            'max' => $this->max ?: null,
+            'maxType' => $this->maxType,
+        ]];
     }
 }

@@ -310,6 +310,11 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
         return true;
     }
 
+    protected function defineBrowserValidationRules(): array
+    {
+        return array_merge(parent::defineBrowserValidationRules(), $this->defineTextLimitBrowserValidationRules());
+    }
+
     protected function defineClientRenderedInput(): array
     {
         return array_merge(parent::defineClientRenderedInput(), $this->getTextLimitClientRenderedInput(), [

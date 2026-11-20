@@ -3970,18 +3970,58 @@ function gt(e) {
 	return n.pageStates[n.currentPageId]?.hidden && (n.currentPageId = n.definition.pages.find((e) => !n.pageStates[e.id]?.hidden)?.id ?? n.currentPageId), n;
 }
 //#endregion
-//#region src/validation.ts
-var _t = /* @__PURE__ */ new Map();
-function vt(e, t) {
-	return _t.set(e, t), () => {
-		_t.get(e) === t && _t.delete(e);
+//#region src/text.ts
+var _t = (() => {
+	if (typeof Intl > "u") return null;
+	let e = Intl.Segmenter;
+	if (!e) return null;
+	try {
+		return new e(void 0, { granularity: "grapheme" });
+	} catch {
+		return null;
+	}
+})(), vt = /[^\s\u0085]+/gu, yt = (() => {
+	try {
+		return /* @__PURE__ */ RegExp("(?:\\p{Regional_Indicator}{2}|\\p{Extended_Pictographic}[\\p{Emoji_Modifier}\\p{M}\\u{E0020}-\\u{E007F}]*(?:\\u{200D}\\p{Extended_Pictographic}[\\p{Emoji_Modifier}\\p{M}\\u{E0020}-\\u{E007F}]*)*|[\\s\\S])\\p{M}*", "gu");
+	} catch {
+		return null;
+	}
+})();
+function bt(e) {
+	return typeof DOMParser < "u" ? new DOMParser().parseFromString(e, "text/html").body.textContent || "" : e.replace(/<[^>]*>/g, "");
+}
+function xt(e) {
+	return bt(e);
+}
+function St(e) {
+	return xt(e).replace(/[\s\u0085]+/g, " ").trim();
+}
+function Ct(e) {
+	return _t ? Array.from(_t.segment(e)).length : yt ? e.match(yt)?.length || 0 : Array.from(e).length;
+}
+function wt(e) {
+	return e.match(vt)?.length || 0;
+}
+function Tt(e) {
+	let t = xt(e), n = St(e);
+	return {
+		graphemeCount: Ct(t),
+		wordCount: wt(n)
 	};
 }
-function yt(e) {
+//#endregion
+//#region src/validation.ts
+var Et = /* @__PURE__ */ new Map();
+function Dt(e, t) {
+	return Et.set(e, t), () => {
+		Et.get(e) === t && Et.delete(e);
+	};
+}
+function Ot(e) {
 	return e == null || e === !1 || typeof e == "string" && e.trim() === "" || Array.isArray(e) && e.length === 0;
 }
-function bt(e, t, n = {}) {
-	let r = n.empty ?? yt(e), i = n.label ?? "This field", a = (e, n) => t.messages?.[e] ?? t.message ?? n;
+function kt(e, t, n = {}) {
+	let r = n.empty ?? Ot(e), i = n.label ?? "This field", a = (e, n) => t.messages?.[e] ?? t.message ?? n;
 	if (t.type === "required") return r ? a("required", `${i} cannot be blank.`) : null;
 	if (r) return null;
 	if (t.type === "email") return typeof e == "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) ? null : a("email", `${i} is not a valid email address.`);
@@ -4007,16 +4047,20 @@ function bt(e, t, n = {}) {
 		let n = String(e);
 		return typeof t.min == "number" && [...n].length < t.min ? a("minCharacters", `${i} must be no less than ${t.min} characters.`) : t.uppercase === !0 && !/[A-Z]/.test(n) ? a("passwordUppercase", `${i} must contain at least one uppercase letter.`) : t.lowercase === !0 && !/[a-z]/.test(n) ? a("passwordLowercase", `${i} must contain at least one lowercase letter.`) : t.specialCharacter === !0 && !/[^a-zA-Z0-9]/.test(n) ? a("passwordSpecialCharacter", `${i} must contain at least one special character.`) : null;
 	}
+	if (t.type === "textLimit") {
+		let n = Tt(String(e)), r = (e) => e === "words" ? n.wordCount : n.graphemeCount, o = (e) => e === "words" ? "Words" : "Characters";
+		return typeof t.min == "number" && t.min > 0 && r(t.minType) < t.min ? a(`min${o(t.minType)}`, `${i} must be no less than ${t.min} ${o(t.minType).toLowerCase()}.`) : typeof t.max == "number" && t.max > 0 && r(t.maxType) > t.max ? a(`max${o(t.maxType)}`, `${i} must be no greater than ${t.max} ${o(t.maxType).toLowerCase()}.`) : null;
+	}
 	if (t.type === "minmaxOptions" && Array.isArray(e)) {
 		if (t.min != null && e.length < t.min) return a("minOptions", `Please select at least ${t.min} options.`);
 		if (t.max != null && e.length > t.max) return a("maxOptions", `Please select no more than ${t.max} options.`);
 	}
-	return _t.get(t.type)?.(e, t, n) ?? null;
+	return Et.get(t.type)?.(e, t, n) ?? null;
 }
 //#endregion
 //#region src/browser-modules.ts
-var xt = 2;
-function St(e) {
+var At = 2;
+function jt(e) {
 	let t = e;
 	if (!t || t.contractVersion !== 2 || ![
 		"server-rendered",
@@ -4041,49 +4085,49 @@ function St(e) {
 }
 //#endregion
 //#region src/contract.ts
-var Ct = 1;
-function wt(e) {
+var Mt = 1;
+function Nt(e) {
 	let t = e;
 	if (!t || t.contractVersion !== 1) throw Error("Unsupported client-rendered contractVersion. Update Formie and the client-rendered packages together.");
 	if (!t.definition || !Array.isArray(t.definition.pages) || !t.session) throw Error("Invalid client-rendered bootstrap: definition, pages and session are required.");
-	St(t.definition.modules);
+	jt(t.definition.modules);
 }
 //#endregion
 //#region src/date-parts-validation.ts
 function Q(e) {
 	return e == null ? "" : String(e).trim();
 }
-function Tt(e) {
+function Pt(e) {
 	return R(e).filter((e) => e.meta?.hidden !== !0).map((e) => e.handle).filter((e) => [
 		"year",
 		"month",
 		"day"
 	].includes(e));
 }
-function Et(e, t) {
-	let n = Tt(t);
+function Ft(e, t) {
+	let n = Pt(t);
 	return n.length !== 0 && n.every((t) => Q(e[t]) !== "");
 }
-function Dt(e, t, n) {
+function It(e, t, n) {
 	if (!Number.isInteger(e) || !Number.isInteger(t) || !Number.isInteger(n)) return !1;
 	let r = new Date(e, t - 1, n);
 	return r.getFullYear() === e && r.getMonth() === t - 1 && r.getDate() === n;
 }
-function Ot(e) {
+function Lt(e) {
 	let t = Number.parseInt(Q(e.year), 10), n = Number.parseInt(Q(e.month), 10), r = Number.parseInt(Q(e.day), 10), i = Q(e.hour) === "" ? 0 : Number.parseInt(Q(e.hour), 10), a = Q(e.minute) === "" ? 0 : Number.parseInt(Q(e.minute), 10), o = Q(e.second) === "" ? 0 : Number.parseInt(Q(e.second), 10);
 	return new Date(t, n - 1, r, i, a, o);
 }
-function kt(e, t, n, r) {
+function Rt(e, t, n, r) {
 	let i = e.validation.find((e) => e.type === "dateParts");
 	if (!i || e.input.dateEnabled === !1) return;
 	let a = t && typeof t == "object" ? t : {};
-	if (!Et(a, e)) return;
-	if (!Dt(Number.parseInt(Q(a.year), 10), Number.parseInt(Q(a.month), 10), Number.parseInt(Q(a.day), 10))) {
+	if (!Ft(a, e)) return;
+	if (!It(Number.parseInt(Q(a.year), 10), Number.parseInt(Q(a.month), 10), Number.parseInt(Q(a.day), 10))) {
 		let e = `${n}.day`;
 		r[e] || (r[e] = ["Day is invalid."]);
 		return;
 	}
-	let o = Ot(a);
+	let o = Lt(a);
 	if (i.minDate) {
 		let e = new Date(i.minDate);
 		if (Number.isFinite(e.getTime()) && o < e) {
@@ -4098,7 +4142,7 @@ function kt(e, t, n, r) {
 }
 //#endregion
 //#region src/events.ts
-var At = class {
+var zt = class {
 	listeners = /* @__PURE__ */ new Map();
 	on(e, t) {
 		let n = this.listeners.get(e) ?? /* @__PURE__ */ new Set();
@@ -4115,10 +4159,10 @@ var At = class {
 };
 //#endregion
 //#region src/form-instance.ts
-function jt(e) {
-	return Array.isArray(e) ? e.map((e) => jt(e)) : !e || typeof e != "object" || typeof File < "u" && e instanceof File || typeof Blob < "u" && e instanceof Blob ? e : Object.fromEntries(Object.entries(e).map(([e, t]) => [e, jt(t)]));
+function Bt(e) {
+	return Array.isArray(e) ? e.map((e) => Bt(e)) : !e || typeof e != "object" || typeof File < "u" && e instanceof File || typeof Blob < "u" && e instanceof Blob ? e : Object.fromEntries(Object.entries(e).map(([e, t]) => [e, Bt(t)]));
 }
-function Mt(e) {
+function Vt(e) {
 	return {
 		...e,
 		session: {
@@ -4126,7 +4170,7 @@ function Mt(e) {
 			tokens: { ...e.session.tokens },
 			continuation: e.session.continuation ? { ...e.session.continuation } : null
 		},
-		values: jt(e.values),
+		values: Bt(e.values),
 		errors: {
 			form: [...e.errors.form],
 			fields: Object.fromEntries(Object.entries(e.errors.fields).map(([e, t]) => [e, [...t]]))
@@ -4148,19 +4192,19 @@ function Mt(e) {
 		} : null
 	};
 }
-function Nt(e) {
+function Ht(e) {
 	return Object.fromEntries(y(e.definition).map((e) => [e.id, B(e)]));
 }
-function Pt(e) {
+function Ut(e) {
 	return Object.fromEntries(y(e).map((e) => [e.id, {
 		hidden: e.meta?.hidden === !0,
 		disabled: e.meta?.disabled === !0
 	}]));
 }
-function Ft(e) {
+function Wt(e) {
 	return Object.fromEntries(e.pages.map((e) => [e.id, { hidden: !1 }]));
 }
-function It(e, t) {
+function Gt(e, t) {
 	let n = e.definition.pages.find((e) => e.id === t);
 	if (!n) return [];
 	let r = [];
@@ -4173,7 +4217,7 @@ function It(e, t) {
 function $(e) {
 	return Xe(gt(Xe(e)));
 }
-function Lt(e, t) {
+function Kt(e, t) {
 	if (e.type === "checkboxes") return !Array.isArray(t) || t.length === 0;
 	if (Pe(e)) return t !== !0;
 	if (e.type === "survey" && we(e).length > 0) {
@@ -4192,19 +4236,19 @@ function Lt(e, t) {
 	}
 	return T(e) && t && typeof t == "object" ? Object.values(t).every((e) => e == null || e === !1 || Array.isArray(e) && e.length === 0 || typeof e == "string" && e.trim() === "") : t == null || typeof t == "string" && t.trim() === "";
 }
-function Rt(e) {
+function qt(e) {
 	return e.label?.trim() || e.handle;
 }
-function zt(e, t, n, r, i) {
+function Jt(e, t, n, r, i) {
 	if (n.fieldStates[r]?.hidden || n.fieldStates[r]?.disabled) return;
 	let a = e.validation.slice();
 	e.required && !a.some((e) => e.type === "required") && a.unshift({ type: "required" });
 	for (let o of a) {
-		let a = (o.fieldId ? b(n.definition, o.fieldId) : void 0) || (o.fieldHandle ? x(n.definition, o.fieldHandle) : void 0), s = bt(t, o, {
-			label: Rt(e),
-			empty: Lt(e, t),
+		let a = (o.fieldId ? b(n.definition, o.fieldId) : void 0) || (o.fieldHandle ? x(n.definition, o.fieldHandle) : void 0), s = kt(t, o, {
+			label: qt(e),
+			empty: Kt(e, t),
 			comparison: a ? n.values[a.id] : void 0,
-			comparisonLabel: a ? Rt(a) : void 0
+			comparisonLabel: a ? qt(a) : void 0
 		});
 		if (s) {
 			i[r] = [s];
@@ -4215,32 +4259,32 @@ function zt(e, t, n, r, i) {
 		if (T(e)) {
 			let a = R(e), o = t && typeof t == "object" ? t : {};
 			a.forEach((e) => {
-				e.meta?.hidden !== !0 && zt(e, o[e.handle], n, `${r}.${e.handle}`, i);
-			}), kt(e, o, r, i);
+				e.meta?.hidden !== !0 && Jt(e, o[e.handle], n, `${r}.${e.handle}`, i);
+			}), Rt(e, o, r, i);
 		} else if (P(e)) {
 			let a = Array.isArray(t) ? t : [], o = z(e);
 			a.forEach((e, t) => {
 				let a = e && typeof e == "object" ? e : {};
 				o.forEach((e) => {
-					zt(e, a[e.handle], n, `${r}.${t}.${e.handle}`, i);
+					Jt(e, a[e.handle], n, `${r}.${t}.${e.handle}`, i);
 				});
 			});
 		}
 	}
 }
-function Bt(e) {
+function Yt(e) {
 	let t = {
 		form: [],
 		fields: {}
 	};
-	return It(e, e.currentPageId).forEach((n) => {
+	return Gt(e, e.currentPageId).forEach((n) => {
 		let r = b(e.definition, n);
-		r && e.fieldStates[n]?.hidden !== !0 && e.fieldStates[n]?.disabled !== !0 && zt(r, e.values[n], e, n, t.fields);
+		r && e.fieldStates[n]?.hidden !== !0 && e.fieldStates[n]?.disabled !== !0 && Jt(r, e.values[n], e, n, t.fields);
 	}), Object.keys(t.fields).length > 0 && (t.form = [e.definition.settings.validation.formErrorMessage || "Please correct the highlighted fields."]), t;
 }
-function Vt({ envelope: e, transport: t }) {
-	wt(e);
-	let n = new At(), r = /* @__PURE__ */ new Set(), i = Nt(e), a = 0, o = {
+function Xt({ envelope: e, transport: t }) {
+	Nt(e);
+	let n = new zt(), r = /* @__PURE__ */ new Set(), i = Ht(e), a = 0, o = {
 		status: "ready",
 		definition: e.definition,
 		session: e.session,
@@ -4249,15 +4293,15 @@ function Vt({ envelope: e, transport: t }) {
 			form: [],
 			fields: {}
 		},
-		fieldStates: Pt(e.definition),
-		pageStates: Ft(e.definition),
+		fieldStates: Ut(e.definition),
+		pageStates: Wt(e.definition),
 		currentPageId: e.session.currentPageId || e.definition.settings.initialPageId,
 		lastSubmitResult: null
 	};
 	o = $(o);
 	let s = () => {
 		if (o.status === "destroyed") return;
-		let e = Mt(o);
+		let e = Vt(o);
 		r.forEach((t) => {
 			t(e);
 		});
@@ -4278,10 +4322,10 @@ function Vt({ envelope: e, transport: t }) {
 		},
 		id: e.session.id,
 		getState() {
-			return Mt(o);
+			return Vt(o);
 		},
 		subscribe(e) {
-			return r.add(e), e(Mt(o)), () => {
+			return r.add(e), e(Vt(o)), () => {
 				r.delete(e);
 			};
 		},
@@ -4333,7 +4377,7 @@ function Vt({ envelope: e, transport: t }) {
 			};
 			let r = o.definition.pages.find((e) => e.id === o.currentPageId), i = e || r?.actions.primary.type || "submit", s = i === "next" ? "submit" : i;
 			if (s !== "back" && s !== "save" && o.definition.settings.validation.onSubmit) {
-				let e = Bt(o);
+				let e = Yt(o);
 				if (e.form.length > 0 || Object.keys(e.fields).length > 0) {
 					let t = {
 						success: !1,
@@ -4489,7 +4533,7 @@ function Vt({ envelope: e, transport: t }) {
 				...t,
 				status: "ready",
 				session: e.session,
-				values: jt(i),
+				values: Bt(i),
 				errors: {
 					form: [],
 					fields: {}
@@ -4514,7 +4558,7 @@ function Vt({ envelope: e, transport: t }) {
 }
 //#endregion
 //#region src/event-names.ts
-var Ht = [
+var Zt = [
 	"formie:client:ready",
 	"formie:submit:result",
 	"formie:page:navigate",
@@ -4522,31 +4566,31 @@ var Ht = [
 	"formie:session:refreshed",
 	"formie:session:refresh:error",
 	"formie:state:reset"
-], Ut = /* @__PURE__ */ new Map();
-async function Wt(e, t, n = {}) {
-	let r = n.profile ?? "same-origin-browser", i = Gt(e, n, t.headers), a = await fetch(e, {
+], Qt = /* @__PURE__ */ new Map();
+async function $t(e, t, n = {}) {
+	let r = n.profile ?? "same-origin-browser", i = en(e, n, t.headers), a = await fetch(e, {
 		...t,
 		headers: i,
 		credentials: r === "cross-origin-public" ? "omit" : "same-origin"
 	}), o = new URL(e, typeof location > "u" ? "http://localhost" : location.href).origin, s = a.headers.get("X-Formie-Session");
-	return r === "cross-origin-public" && s && Ut.set(o, s), a;
+	return r === "cross-origin-public" && s && Qt.set(o, s), a;
 }
-function Gt(e, t = {}, n) {
+function en(e, t = {}, n) {
 	let r = t.profile ?? "same-origin-browser";
 	if (!["same-origin-browser", "cross-origin-public"].includes(r)) throw Error("Client-rendered forms require a public browser profile. Use administrative API mutations for trusted administration.");
 	let i = new Headers(n);
 	i.set("X-Formie-Profile", r);
 	let a = new URL(e, typeof location > "u" ? "http://localhost" : location.href).origin;
 	if (r === "cross-origin-public") {
-		let e = t.publicSession ?? Ut.get(a);
+		let e = t.publicSession ?? Qt.get(a);
 		e && i.set("X-Formie-Session", e);
 	}
 	return i;
 }
 //#endregion
 //#region src/uploads.ts
-var Kt = /* @__PURE__ */ new WeakMap();
-async function qt(e, t, n, r) {
+var tn = /* @__PURE__ */ new WeakMap();
+async function nn(e, t, n, r) {
 	let i = async (n, a) => {
 		if (typeof Blob < "u" && n instanceof Blob) {
 			let i = JSON.stringify([
@@ -4554,14 +4598,14 @@ async function qt(e, t, n, r) {
 				t.tokens.render,
 				t.continuation?.draftContextToken,
 				a
-			]), o = Kt.get(n) ?? /* @__PURE__ */ new Map();
-			if (Kt.set(n, o), o.has(i)) return o.get(i);
+			]), o = tn.get(n) ?? /* @__PURE__ */ new Map();
+			if (tn.set(n, o), o.has(i)) return o.get(i);
 			let s = (async () => {
 				let i = new FormData();
 				i.set("file", n, n instanceof File ? n.name : "upload"), i.set("handle", e.handle), e.siteId && i.set("siteId", String(e.siteId)), i.set("fieldHandle", a.replace(/\.\d+$/, "")), i.set("renderId", t.tokens.render ?? ""), i.set("draftContext", String(t.continuation?.draftContext ?? "")), i.set("draftContextToken", String(t.continuation?.draftContextToken ?? "")), i.set("uploadCreateToken", t.tokens.uploadCreate ?? ""), t.continuation?.submissionId && i.set("submissionId", String(t.continuation.submissionId)), t.tokens.csrf && i.set(t.tokens.csrf.name, t.tokens.csrf.value);
 				let o = e.submission.uploadEndpoint;
 				if (!o) throw Error("The form bootstrap does not provide a staged upload endpoint.");
-				let s = await Wt(o, {
+				let s = await $t(o, {
 					method: "POST",
 					headers: { Accept: "application/json" },
 					body: i
@@ -4585,7 +4629,7 @@ async function qt(e, t, n, r) {
 }
 //#endregion
 //#region src/grants.ts
-function Jt(e) {
+function rn(e) {
 	if (!e || typeof window > "u") return;
 	let t = new URL(window.location.href), n = !1;
 	for (let r of [
@@ -4597,7 +4641,7 @@ function Jt(e) {
 }
 //#endregion
 //#region src/rest.ts
-function Yt(e, t) {
+function an(e, t) {
 	if (t.startsWith("http://") || t.startsWith("https://")) return t;
 	let n = t.startsWith("/") ? t : `/${t}`;
 	if (e.startsWith("http://") || e.startsWith("https://")) {
@@ -4607,8 +4651,8 @@ function Yt(e, t) {
 	let r = e.trim();
 	return !r || r === "/" ? n : `${r.replace(/\/+$/, "")}${n}`;
 }
-async function Xt(e, t, n) {
-	let r = await Wt(e, t, n), i = await r.json();
+async function on(e, t, n) {
+	let r = await $t(e, t, n), i = await r.json();
 	if (!r.ok && !(typeof i.outcome == "string" && [
 		403,
 		409,
@@ -4617,34 +4661,34 @@ async function Xt(e, t, n) {
 	].includes(r.status))) throw Error(`Request failed with status ${r.status}.`);
 	return i;
 }
-function Zt(e, t) {
+function sn(e, t) {
 	let n = t?.tokens?.csrf;
 	n?.name && n.value && (e[n.name] = n.value);
 }
-async function Qt(e) {
-	let t = Yt(e.endpoint, "/actions/formie/client/forms/load"), n = JSON.stringify({
+async function cn(e) {
+	let t = an(e.endpoint, "/actions/formie/client/forms/load"), n = JSON.stringify({
 		handle: e.formHandle,
 		siteId: e.siteId,
 		grantToken: e.grantToken,
 		grantPurpose: e.grantPurpose,
 		draftContext: e.draftContext,
 		query: e.query
-	}), r = await Xt(t, {
+	}), r = await on(t, {
 		method: "POST",
 		credentials: e.credentials ?? "same-origin",
 		headers: { "Content-Type": "application/json" },
 		body: n
 	}, e);
-	return wt(r), Jt(e.grantToken), r;
+	return Nt(r), rn(e.grantToken), r;
 }
-function $t(e) {
+function ln(e) {
 	return {
 		browserRequestOptions: {
 			profile: e.profile ?? "same-origin-browser",
 			publicSession: e.publicSession
 		},
 		async submit({ definition: t, session: n, values: r, action: i, browserData: a }) {
-			let o = Yt(e.endpoint, "/actions/formie/client/submissions/submit"), s = await J(t, await qt(t, n, r, e)), c = {
+			let o = an(e.endpoint, "/actions/formie/client/submissions/submit"), s = await J(t, await nn(t, n, r, e)), c = {
 				handle: e.formHandle,
 				siteId: e.siteId,
 				action: i,
@@ -4652,7 +4696,7 @@ function $t(e) {
 				session: n,
 				values: s
 			};
-			return Zt(c, n), Xt(o, {
+			return sn(c, n), on(o, {
 				method: "POST",
 				credentials: e.credentials ?? "same-origin",
 				headers: { "Content-Type": "application/json" },
@@ -4660,12 +4704,12 @@ function $t(e) {
 			}, e);
 		},
 		async refreshSession({ session: t }) {
-			let n = Yt(e.endpoint, "/actions/formie/client/sessions/refresh"), r = {
+			let n = an(e.endpoint, "/actions/formie/client/sessions/refresh"), r = {
 				handle: e.formHandle,
 				siteId: e.siteId,
 				session: t
 			};
-			return Zt(r, t), Xt(n, {
+			return sn(r, t), on(n, {
 				method: "POST",
 				credentials: e.credentials ?? "same-origin",
 				headers: { "Content-Type": "application/json" },
@@ -4673,7 +4717,7 @@ function $t(e) {
 			}, e);
 		},
 		async setPage({ definition: t, session: n, values: r, currentPageId: i, targetPageId: a }) {
-			let o = Yt(e.endpoint, "/actions/formie/client/forms/page"), s = await J(t, await qt(t, n, r, e)), c = {
+			let o = an(e.endpoint, "/actions/formie/client/forms/page"), s = await J(t, await nn(t, n, r, e)), c = {
 				handle: e.formHandle,
 				siteId: e.siteId,
 				currentPageId: i,
@@ -4681,7 +4725,7 @@ function $t(e) {
 				session: n,
 				values: s
 			};
-			return Zt(c, n), Xt(o, {
+			return sn(c, n), on(o, {
 				method: "POST",
 				credentials: e.credentials ?? "same-origin",
 				headers: { "Content-Type": "application/json" },
@@ -4692,7 +4736,7 @@ function $t(e) {
 }
 //#endregion
 //#region src/graphql.ts
-var en = "\n    id\n    version\n    currentPageId\n    tokens\n    continuation\n", tn = `
+var un = "\n    id\n    version\n    currentPageId\n    tokens\n    continuation\n", dn = `
     success
     outcome
     version
@@ -4710,19 +4754,19 @@ var en = "\n    id\n    version\n    currentPageId\n    tokens\n    continuation
     payment
     summaryTokens
     session {
-        ${en}
+        ${un}
     }
     quizResult
     completion
     redirect
 `;
-function nn(e) {
+function fn(e) {
 	if (e.startsWith("http://") || e.startsWith("https://")) return e;
 	let t = e.trim();
 	return !t || t === "/" ? "/api" : t;
 }
-async function rn(e, t, n) {
-	let r = await Wt(nn(e.endpoint), {
+async function pn(e, t, n) {
+	let r = await $t(fn(e.endpoint), {
 		method: "POST",
 		credentials: e.credentials ?? "same-origin",
 		headers: {
@@ -4740,14 +4784,14 @@ async function rn(e, t, n) {
 	if (!i.data) throw Error("GraphQL returned no data.");
 	return i.data;
 }
-async function an(e) {
-	let t = await rn(e, `
+async function mn(e) {
+	let t = await pn(e, `
             query ClientForm($handle: String!, $siteId: Int, $grantToken: String, $grantPurpose: String, $draftContext: String, $query: Json) {
                 formieClientForm(handle: $handle, siteId: $siteId, grantToken: $grantToken, grantPurpose: $grantPurpose, draftContext: $draftContext, query: $query) {
                     contractVersion
                     definition
                     session {
-                        ${en}
+                        ${un}
                     }
                 }
             }
@@ -4760,21 +4804,21 @@ async function an(e) {
 		query: e.query
 	});
 	if (!t.formieClientForm) throw Error("No client form definition was returned.");
-	return wt(t.formieClientForm), Jt(e.grantToken), t.formieClientForm;
+	return Nt(t.formieClientForm), rn(e.grantToken), t.formieClientForm;
 }
-function on(e) {
+function hn(e) {
 	return {
 		browserRequestOptions: {
 			profile: e.profile ?? "same-origin-browser",
 			publicSession: e.publicSession
 		},
 		async submit({ definition: t, session: n, values: r, action: i, browserData: a }) {
-			let o = await J(t, await qt(t, n, r, e)), s = await rn(e, `
+			let o = await J(t, await nn(t, n, r, e)), s = await pn(e, `
                     mutation SubmitFormieClientForm(
                         $input: FormieClientSubmitInput!
                     ) {
                         submitFormieClientForm(input: $input) {
-                            ${tn}
+                            ${dn}
                         }
                     }
                 `, { input: {
@@ -4789,12 +4833,12 @@ function on(e) {
 			return s.submitFormieClientForm;
 		},
 		async refreshSession({ session: t }) {
-			let n = await rn(e, `
+			let n = await pn(e, `
                     mutation RefreshFormieClientSession(
                         $input: FormieClientSessionRefreshInput!
                     ) {
                         refreshFormieClientSession(input: $input) {
-                            ${en}
+                            ${un}
                         }
                     }
                 `, { input: {
@@ -4806,12 +4850,12 @@ function on(e) {
 			return n.refreshFormieClientSession;
 		},
 		async setPage({ definition: t, session: n, values: r, currentPageId: i, targetPageId: a }) {
-			let o = await J(t, await qt(t, n, r, e)), s = await rn(e, `
+			let o = await J(t, await nn(t, n, r, e)), s = await pn(e, `
                     mutation SetFormieClientPage(
                         $input: FormieClientSetPageInput!
                     ) {
                         setFormieClientPage(input: $input) {
-                            success outcome httpStatus errors messages currentPageId nextPageId version session { ${en} }
+                            success outcome httpStatus errors messages currentPageId nextPageId version session { ${un} }
                         }
                     }
                 `, { input: {
@@ -4829,7 +4873,7 @@ function on(e) {
 }
 //#endregion
 //#region src/reorder.ts
-function sn(e, t, n) {
+function gn(e, t, n) {
 	let r = -1, i = 0, a = !1, o = -1, s = () => Array.from(e.querySelectorAll(t)).filter((t) => t.parentElement === e), c = (e) => {
 		let t = s(), n = t.findIndex((t) => {
 			let n = t.getBoundingClientRect();
@@ -4858,46 +4902,6 @@ function sn(e, t, n) {
 	};
 	return e.addEventListener("pointerdown", m), () => {
 		e.removeEventListener("pointerdown", m), d();
-	};
-}
-//#endregion
-//#region src/text.ts
-var cn = (() => {
-	if (typeof Intl > "u") return null;
-	let e = Intl.Segmenter;
-	if (!e) return null;
-	try {
-		return new e(void 0, { granularity: "grapheme" });
-	} catch {
-		return null;
-	}
-})(), ln = /[^\s\u0085]+/gu, un = (() => {
-	try {
-		return /* @__PURE__ */ RegExp("(?:\\p{Regional_Indicator}{2}|\\p{Extended_Pictographic}[\\p{Emoji_Modifier}\\p{M}\\u{E0020}-\\u{E007F}]*(?:\\u{200D}\\p{Extended_Pictographic}[\\p{Emoji_Modifier}\\p{M}\\u{E0020}-\\u{E007F}]*)*|[\\s\\S])\\p{M}*", "gu");
-	} catch {
-		return null;
-	}
-})();
-function dn(e) {
-	return typeof DOMParser < "u" ? new DOMParser().parseFromString(e, "text/html").body.textContent || "" : e.replace(/<[^>]*>/g, "");
-}
-function fn(e) {
-	return dn(e);
-}
-function pn(e) {
-	return fn(e).replace(/[\s\u0085]+/g, " ").trim();
-}
-function mn(e) {
-	return cn ? Array.from(cn.segment(e)).length : un ? e.match(un)?.length || 0 : Array.from(e).length;
-}
-function hn(e) {
-	return e.match(ln)?.length || 0;
-}
-function gn(e) {
-	let t = fn(e), n = pn(e);
-	return {
-		graphemeCount: mn(t),
-		wordCount: hn(n)
 	};
 }
 //#endregion
@@ -4943,7 +4947,13 @@ var Cn = {
 	clearSignature: "Clear signature",
 	progress: "Progress",
 	moveUp: "Move up",
-	moveDown: "Move down"
+	moveDown: "Move down",
+	textLimitCharactersAllowed: "{count, plural, one{character allowed} other{characters allowed}}",
+	textLimitCharactersLeft: "{count, plural, one{character left} other{characters left}}",
+	textLimitCharactersOver: "{count, plural, one{character over limit} other{characters over limit}}",
+	textLimitWordsAllowed: "{count, plural, one{word allowed} other{words allowed}}",
+	textLimitWordsLeft: "{count, plural, one{word left} other{words left}}",
+	textLimitWordsOver: "{count, plural, one{word over limit} other{words over limit}}"
 };
 function wn(e, t) {
 	return e?.settings?.strings?.[t] || Cn[t];
@@ -4981,8 +4991,60 @@ function An(e) {
 	return e.settings.displayCurrentPageTitle === !0;
 }
 //#endregion
+//#region src/text-limit.ts
+function jn(e) {
+	let t = e.input.textLimit;
+	if (!t || typeof t != "object") return null;
+	let n = t, r = (e) => typeof e == "number" && e > 0 ? e : null;
+	return {
+		min: r(n.min),
+		minType: n.minType === "words" ? "words" : "characters",
+		max: r(n.max),
+		maxType: n.maxType === "words" ? "words" : "characters"
+	};
+}
+function Mn(e, t, n) {
+	let r = "", i = 0;
+	for (; i < e.length;) {
+		let a = e[i] === "{" ? e.slice(i).match(/^\{\w+,\s*plural,\s*/) : null;
+		if (!a) {
+			r += e[i], i++;
+			continue;
+		}
+		let o = {};
+		for (i += a[0].length; i < e.length && e[i] !== "}";) {
+			let t = e.slice(i).match(/^\s*(\w+|=\d+)\s*\{/);
+			if (!t) break;
+			i += t[0].length;
+			let n = i, r = 1;
+			for (; i < e.length && r > 0;) r += e[i] === "{" ? 1 : e[i] === "}" ? -1 : 0, i++;
+			o[t[1]] = e.slice(n, i - 1), i += e.slice(i).match(/^\s*/)?.[0].length ?? 0;
+		}
+		i++;
+		let s = "other";
+		try {
+			s = new Intl.PluralRules(n).select(t);
+		} catch {
+			s = t === 1 ? "one" : "other";
+		}
+		let c = o[`=${t}`] ?? o[s] ?? o.other ?? "";
+		r += c.replace(/#/g, String(t));
+	}
+	return r;
+}
+function Nn(e, t, n) {
+	let r = jn(e);
+	if (!r?.max) return null;
+	let i = typeof t == "string" ? t : "", a = r.maxType === "words", o = Tt(i), s = r.max - (a ? o.wordCount : o.graphemeCount), c = (a ? i.trim() === "" : i === "") ? "Allowed" : s < 0 ? "Over" : "Left", l = c === "Allowed" ? r.max : Math.abs(s), u = `textLimit${a ? "Words" : "Characters"}${c}`, d = n?.locale ?? void 0;
+	return {
+		count: l,
+		text: Mn(wn(n, u), l, d),
+		over: c === "Over"
+	};
+}
+//#endregion
 //#region src/references.ts
-var jn = { username: "user:name" };
+var Pn = { username: "user:name" };
 Object.entries({
 	form: ["name", "handle"],
 	submission: [
@@ -5003,7 +5065,7 @@ Object.entries({
 	]
 }).forEach(([e, t]) => {
 	t.forEach((t) => {
-		jn[`${e}.${t}`] = `${e}:${t}`;
+		Pn[`${e}.${t}`] = `${e}:${t}`;
 	});
 }), Object.entries({
 	form: ["Name", "Handle"],
@@ -5038,7 +5100,7 @@ Object.entries({
 	]
 }).forEach(([e, t]) => {
 	t.forEach((t) => {
-		jn[e + t] = `${e}:${t[0].toLowerCase()}${t.slice(1)}`;
+		Pn[e + t] = `${e}:${t[0].toLowerCase()}${t.slice(1)}`;
 	});
 }), Object.entries({
 	dateUs: "m/d/Y",
@@ -5046,9 +5108,9 @@ Object.entries({
 	time12: "h:i a",
 	time24: "H:i"
 }).forEach(([e, t]) => {
-	jn[e] = `timestamp;transform=format;preset=custom;pattern=${encodeURIComponent(t)}`;
+	Pn[e] = `timestamp;transform=format;preset=custom;pattern=${encodeURIComponent(t)}`;
 });
-function Mn(e) {
+function Fn(e) {
 	let t = {
 		raw: e,
 		target: "",
@@ -5067,7 +5129,7 @@ function Mn(e) {
 	let i = r[1].replace(/^field\./, "field:"), a = i.indexOf("|"), o = a < 0 ? "" : i.slice(a + 1);
 	i = a < 0 ? i : i.slice(0, a);
 	let s = i.indexOf(";"), c = s < 0 ? i : i.slice(0, s);
-	i = (Object.prototype.hasOwnProperty.call(jn, c) ? jn[c] : c) + (s < 0 ? "" : i.slice(s));
+	i = (Object.prototype.hasOwnProperty.call(Pn, c) ? Pn[c] : c) + (s < 0 ? "" : i.slice(s));
 	let [l, ...u] = i.split(";"), d = Object.create(null);
 	try {
 		for (let e of u) {
@@ -5105,15 +5167,15 @@ function Mn(e) {
 		return n("invalidEncoding");
 	}
 }
-function Nn(e) {
+function In(e) {
 	if (!e.isValid || e.version !== 1) throw Error("Cannot serialize an invalid reference expression.");
 	let t = (e) => encodeURIComponent(e).replace(/[!'()*]/g, (e) => `%${e.charCodeAt(0).toString(16).toUpperCase()}`), n = (e) => t(e).replace(/%2F/g, "/"), r = e.target;
 	e.identifier && (r += `:${n(e.identifier)}`), e.selector && (r += `:${n(e.selector).replace(/%3A/g, ":")}`), e.transformerId && (r += `;transform=${t(e.transformerId)}`);
 	for (let [n, i] of Object.entries(e.transformerParams)) r += `;${n}=${t(i)}`;
 	return e.default && (r += `|${t(e.default)}`), `{${r}}`;
 }
-function Pn(e, t) {
-	let n = Mn(e);
+function Ln(e, t) {
+	let n = Fn(e);
 	if (!n.isValid) return {
 		expression: n,
 		diagnostic: "invalidExpression"
@@ -5170,4 +5232,4 @@ function Pn(e, t) {
 	};
 }
 //#endregion
-export { xt as BROWSER_MODULE_CONTRACT_VERSION, Ct as CLIENT_FORM_CONTRACT_VERSION, Ht as CLIENT_FORM_EVENT_NAMES, De as PHONE_COUNTRY_CHANGE_EVENT, Dn as VISUALLY_HIDDEN_CSS, En as VISUALLY_HIDDEN_STYLE, le as addressAutocompleteMarkup, ce as addressPartMarker, y as allFields, he as allOptionsSelected, St as assertBrowserModuleManifest, wt as assertClientFormBootstrap, sn as attachPointerReorder, Wt as browserRequest, Gt as browserRequestHeaders, yt as browserValueEmpty, Yt as buildActionUrl, me as checkboxToggle, ht as clientActionAllowed, m as coerceCalculationVariables, st as combineConditions, R as compositePartDefinitions, rt as conditionNumber, mn as countGraphemes, Vt as createClientFormInstance, on as createGraphqlClientTransport, W as createRepeaterRowValue, $t as createRestClientTransport, N as createTableRowValue, ve as datePickerInputValue, Ce as datePickerParts, ye as datePickerValue, xe as dateRangePickerMarkup, Se as dateRangePickerValue, B as defaultValueForField, Xe as deriveCalculationValues, H as displayFieldContent, Me as dropdownOptions, _ as evaluateCalculationExpression, mt as evaluateClientCondition, ot as evaluateCondition, ct as evaluateConditionDefinition, oe as fieldContentPath, je as fieldOptions, G as fieldValueAsStrings, C as fieldValueContract, w as fieldValueStructure, lt as finalizeConditionEvaluation, x as findFieldByHandle, b as findFieldById, On as focusClientFormResult, h as formatCalculationValue, f as getCalculationFormula, p as getCalculationVariableEntries, _n as getClientErrorAriaLive, vn as getClientFieldErrorId, yn as getClientFieldIds, bn as getClientFieldLabelTarget, kn as getClientPageProgress, wn as getClientString, gn as getTextLimitMetrics, hn as getWordCount, E as isAddressAutocompletePart, ue as isAddressField, k as isArrayValuedField, Pe as isBooleanField, ie as isCalculationField, T as isCompositeField, O as isDatePickerField, be as isDateRangePickerField, Fe as isEmailField, U as isFieldLabelHidden, Tn as isFieldLabelVisuallyHidden, F as isFileField, S as isKnownClientFieldType, I as isMultiValueField, L as isNumericField, ke as isPhoneCountryEnabled, P as isRepeatableField, _e as isRichTextField, Ne as isSearchableDropdown, xn as joinIdReferences, Qt as loadClientFormBootstrap, an as loadGraphqlClientFormBootstrap, Ee as moveListItem, pn as normalizeText, Mn as parseReference, We as parseRowsExpression, pe as paymentFieldMarkup, Oe as phoneFieldValue, Qe as projectElementConditionValues, D as readAddressParts, g as readCalculationVariableValue, Ae as readPhoneFieldControls, fe as readUploadManagerEntries, vt as registerBrowserValidationRule, z as repeaterFieldDefinitions, Ie as repeaterRowDefinitions, re as resolveClientRendererType, Pn as resolveReference, A as searchableDropdownMarkup, j as searchableDropdownValue, Ze as selectConditionRows, ee as serializeFieldValues, Nn as serializeReference, J as serializeTransportFieldValues, An as showsClientPageTitle, ae as summaryFieldMarkup, we as surveyLikertRows, Te as surveyRankOrder, M as tableColumns, ge as toggleAllOptions, de as uploadManagerMarkup, bt as validateBrowserValue };
+export { At as BROWSER_MODULE_CONTRACT_VERSION, Mt as CLIENT_FORM_CONTRACT_VERSION, Zt as CLIENT_FORM_EVENT_NAMES, De as PHONE_COUNTRY_CHANGE_EVENT, Dn as VISUALLY_HIDDEN_CSS, En as VISUALLY_HIDDEN_STYLE, le as addressAutocompleteMarkup, ce as addressPartMarker, y as allFields, he as allOptionsSelected, jt as assertBrowserModuleManifest, Nt as assertClientFormBootstrap, gn as attachPointerReorder, $t as browserRequest, en as browserRequestHeaders, Ot as browserValueEmpty, an as buildActionUrl, me as checkboxToggle, ht as clientActionAllowed, m as coerceCalculationVariables, st as combineConditions, R as compositePartDefinitions, rt as conditionNumber, Ct as countGraphemes, Xt as createClientFormInstance, hn as createGraphqlClientTransport, W as createRepeaterRowValue, ln as createRestClientTransport, N as createTableRowValue, ve as datePickerInputValue, Ce as datePickerParts, ye as datePickerValue, xe as dateRangePickerMarkup, Se as dateRangePickerValue, B as defaultValueForField, Xe as deriveCalculationValues, H as displayFieldContent, Me as dropdownOptions, _ as evaluateCalculationExpression, mt as evaluateClientCondition, ot as evaluateCondition, ct as evaluateConditionDefinition, oe as fieldContentPath, je as fieldOptions, jn as fieldTextLimit, G as fieldValueAsStrings, C as fieldValueContract, w as fieldValueStructure, lt as finalizeConditionEvaluation, x as findFieldByHandle, b as findFieldById, On as focusClientFormResult, h as formatCalculationValue, Mn as formatPluralMessage, f as getCalculationFormula, p as getCalculationVariableEntries, _n as getClientErrorAriaLive, vn as getClientFieldErrorId, yn as getClientFieldIds, bn as getClientFieldLabelTarget, kn as getClientPageProgress, wn as getClientString, Tt as getTextLimitMetrics, wt as getWordCount, E as isAddressAutocompletePart, ue as isAddressField, k as isArrayValuedField, Pe as isBooleanField, ie as isCalculationField, T as isCompositeField, O as isDatePickerField, be as isDateRangePickerField, Fe as isEmailField, U as isFieldLabelHidden, Tn as isFieldLabelVisuallyHidden, F as isFileField, S as isKnownClientFieldType, I as isMultiValueField, L as isNumericField, ke as isPhoneCountryEnabled, P as isRepeatableField, _e as isRichTextField, Ne as isSearchableDropdown, xn as joinIdReferences, cn as loadClientFormBootstrap, mn as loadGraphqlClientFormBootstrap, Ee as moveListItem, St as normalizeText, Fn as parseReference, We as parseRowsExpression, pe as paymentFieldMarkup, Oe as phoneFieldValue, Qe as projectElementConditionValues, D as readAddressParts, g as readCalculationVariableValue, Ae as readPhoneFieldControls, fe as readUploadManagerEntries, Dt as registerBrowserValidationRule, z as repeaterFieldDefinitions, Ie as repeaterRowDefinitions, re as resolveClientRendererType, Ln as resolveReference, A as searchableDropdownMarkup, j as searchableDropdownValue, Ze as selectConditionRows, ee as serializeFieldValues, In as serializeReference, J as serializeTransportFieldValues, An as showsClientPageTitle, ae as summaryFieldMarkup, we as surveyLikertRows, Te as surveyRankOrder, M as tableColumns, Nn as textLimitCounter, ge as toggleAllOptions, de as uploadManagerMarkup, kt as validateBrowserValue };

@@ -1,4 +1,5 @@
 import { conditionNumber } from './conditions.js';
+import { getTextLimitMetrics } from './text.js';
 
 export type BrowserValidationRule = {
     message?: string;
@@ -55,6 +56,16 @@ export function validateBrowserValue(value: unknown, rule: BrowserValidationRule
         if (rule.uppercase === true && !/[A-Z]/.test(password)) return message('passwordUppercase', `${label} must contain at least one uppercase letter.`);
         if (rule.lowercase === true && !/[a-z]/.test(password)) return message('passwordLowercase', `${label} must contain at least one lowercase letter.`);
         if (rule.specialCharacter === true && !/[^a-zA-Z0-9]/.test(password)) return message('passwordSpecialCharacter', `${label} must contain at least one special character.`);
+        return null;
+    }
+    if (rule.type === 'textLimit') {
+        // Counted as server-rendered forms count them: characters as graphemes and words as runs of non-space, both
+        // without any rich text markup.
+        const metrics = getTextLimitMetrics(String(value));
+        const count = (type: unknown) => (type === 'words' ? metrics.wordCount : metrics.graphemeCount);
+        const unit = (type: unknown) => (type === 'words' ? 'Words' : 'Characters');
+        if (typeof rule.min === 'number' && rule.min > 0 && count(rule.minType) < rule.min) return message(`min${unit(rule.minType)}`, `${label} must be no less than ${rule.min} ${unit(rule.minType).toLowerCase()}.`);
+        if (typeof rule.max === 'number' && rule.max > 0 && count(rule.maxType) > rule.max) return message(`max${unit(rule.maxType)}`, `${label} must be no greater than ${rule.max} ${unit(rule.maxType).toLowerCase()}.`);
         return null;
     }
     if (rule.type === 'minmaxOptions' && Array.isArray(value)) {

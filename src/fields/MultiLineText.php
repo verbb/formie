@@ -444,6 +444,11 @@ class MultiLineText extends Field implements SortableFieldInterface, Previewable
         ];
     }
 
+    protected function defineBrowserValidationRules(): array
+    {
+        return array_merge(parent::defineBrowserValidationRules(), $this->defineTextLimitBrowserValidationRules());
+    }
+
     protected function defineClientRenderedInput(): array
     {
         return array_merge(parent::defineClientRenderedInput(), $this->getTextLimitClientRenderedInput(), [

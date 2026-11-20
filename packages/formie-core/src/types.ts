@@ -17,7 +17,9 @@ export type KnownClientFieldType =
     | 'signature'
     | 'file';
 
-export type ClientStringKey = 'addRow' | 'remove' | 'removeRow' | 'clear' | 'clearSignature' | 'progress' | 'moveUp' | 'moveDown';
+export type ClientStringKey = 'addRow' | 'remove' | 'removeRow' | 'clear' | 'clearSignature' | 'progress' | 'moveUp' | 'moveDown'
+    | 'textLimitCharactersAllowed' | 'textLimitCharactersLeft' | 'textLimitCharactersOver'
+    | 'textLimitWordsAllowed' | 'textLimitWordsLeft' | 'textLimitWordsOver';
 
 export type ClientFieldType = KnownClientFieldType | (string & {});
 

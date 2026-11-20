@@ -30,11 +30,23 @@ trait FieldBrowserValidationTrait
                 'number' => ['number', 'numberMin', 'numberMax'],
                 'minmaxOptions' => ['minOptions', 'maxOptions'],
                 'password' => ['minCharacters', 'passwordUppercase', 'passwordLowercase', 'passwordSpecialCharacter'],
+                'textLimit' => ['minCharacters', 'maxCharacters', 'minWords', 'maxWords'],
                 default => [$type],
             };
 
             foreach ($keys as $key) {
-                $definition['messages'][$key] = SubmissionErrors::plainText($this->getValidationMessage($key, $params));
+                $keyParams = $params;
+
+                // Custom messages can name the limit as `{limit}`, which is the minimum or maximum the message is about.
+                if (!isset($rule['limit'])) {
+                    $bound = str_starts_with($key, 'min') ? 'min' : (str_starts_with($key, 'max') ? 'max' : null);
+
+                    if ($bound !== null && isset($params[$bound])) {
+                        $keyParams['limit'] = $params[$bound];
+                    }
+                }
+
+                $definition['messages'][$key] = SubmissionErrors::plainText($this->getValidationMessage($key, $keyParams));
             }
 
             return $definition;
