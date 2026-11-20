@@ -153,6 +153,15 @@ const STEPS: Step[] = [
     { handle: 'pGroup', fill: (f) => f.getByRole('textbox').first().fill('In a group') },
     { handle: 'pRepeater', fill: (f) => f.getByRole('textbox').first().fill('In a row') },
     {
+        handle: 'pGroupUpload',
+        fill: async (f) => {
+            await f.locator('input[type="file"]').first().setInputFiles({ ...upload, name: 'group-file.txt' });
+            await expect(f.locator('[data-formie-upload-manager-list]')).toContainText('group-file');
+            await expect(f.locator('input[type="hidden"][name$="[uploadUid]"]')).toHaveCount(1);
+        },
+        normalize: (value) => fileNames((value as Record<string, unknown> | null)?.pGroupFile),
+    },
+    {
         handle: 'pRepeaterUpload',
         // Each row's Upload Manager keeps its own uploads.
         fill: async (f) => {

@@ -39,6 +39,9 @@ $factory = \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Pari
     ->addressField('pAddress', ['label' => 'P address', 'rows' => (new fields\Address())->getSubFields()])
     ->groupField('pGroup', ['label' => 'P group', 'rows' => [['fields' => [$text('pGroupText', 'P group text')]]]])
     ->repeaterField('pRepeater', ['label' => 'P repeater', 'minRows' => 1, 'rows' => [['fields' => [$text('pRepeaterText', 'P repeater text')]]]])
+    ->groupField('pGroupUpload', ['label' => 'P group upload', 'rows' => [['fields' => [
+        ['type' => fields\FileUpload::class, 'handle' => 'pGroupFile', 'label' => 'P group file', 'restrictFiles' => false, 'displayType' => 'uploadManager'],
+    ]]]])
     ->repeaterField('pRepeaterUpload', ['label' => 'P repeater upload', 'minRows' => 2, 'rows' => [['fields' => [
         ['type' => fields\FileUpload::class, 'handle' => 'pRowFile', 'label' => 'P row file', 'restrictFiles' => false, 'displayType' => 'uploadManager'],
     ]]]])
