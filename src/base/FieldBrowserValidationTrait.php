@@ -29,6 +29,7 @@ trait FieldBrowserValidationTrait
             $keys = match ($type) {
                 'number' => ['number', 'numberMin', 'numberMax'],
                 'minmaxOptions' => ['minOptions', 'maxOptions'],
+                'password' => ['minCharacters', 'passwordUppercase', 'passwordLowercase', 'passwordSpecialCharacter'],
                 default => [$type],
             };
 

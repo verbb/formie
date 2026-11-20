@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Added the `password` browser validation rule, with `min`, `uppercase`, `lowercase` and `specialCharacter`, which Password fields now send. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Added `addressPartMarker()`, `isAddressAutocompletePart()`, `addressAutocompleteMarkup()`, `readAddressParts()` and `isAddressField()`, and the client definition’s `input.currentLocationLabel` on the Address auto-complete part. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Added `uploadManagerMarkup()`, `readUploadManagerEntries()` and `fieldContentPath()` for File Upload fields using the Upload Manager. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Added `isSearchableDropdown()`, `searchableDropdownMarkup()` and `searchableDropdownValue()` for fields with **Use Searchable Dropdown**. ([#3146](https://github.com/verbb/formie/issues/3146))

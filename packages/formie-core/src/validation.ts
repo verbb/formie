@@ -49,6 +49,14 @@ export function validateBrowserValue(value: unknown, rule: BrowserValidationRule
         } catch { return null; }
     }
     if (rule.type === 'match') return context.comparison === undefined || value === context.comparison ? null : message('match', `${label} must match ${context.comparisonLabel ?? 'the other field'}.`);
+    if (rule.type === 'password') {
+        const password = String(value);
+        if (typeof rule.min === 'number' && [...password].length < rule.min) return message('minCharacters', `${label} must be no less than ${rule.min} characters.`);
+        if (rule.uppercase === true && !/[A-Z]/.test(password)) return message('passwordUppercase', `${label} must contain at least one uppercase letter.`);
+        if (rule.lowercase === true && !/[a-z]/.test(password)) return message('passwordLowercase', `${label} must contain at least one lowercase letter.`);
+        if (rule.specialCharacter === true && !/[^a-zA-Z0-9]/.test(password)) return message('passwordSpecialCharacter', `${label} must contain at least one special character.`);
+        return null;
+    }
     if (rule.type === 'minmaxOptions' && Array.isArray(value)) {
         if (rule.min != null && value.length < rule.min) return message('minOptions', `Please select at least ${rule.min} options.`);
         if (rule.max != null && value.length > rule.max) return message('maxOptions', `Please select no more than ${rule.max} options.`);

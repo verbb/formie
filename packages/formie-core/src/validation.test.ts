@@ -26,3 +26,14 @@ it('keeps explicit row scopes and diagnoses missing or invalid scopes', () => {
     expect(selectConditionRows(rows, {}).diagnostic).toBe('missingRowScope');
     expect(selectConditionRows(rows, { scope: 'index', index: '-1' }).diagnostic).toBe('invalidRowScope');
 });
+
+it('checks password requirements as the server does', () => {
+    const rule = { type: 'password', min: 8, uppercase: true, lowercase: true, specialCharacter: true, messages: { passwordUppercase: 'Needs an uppercase letter.' } };
+
+    expect(validateBrowserValue('Sh0rt!', rule, { label: 'Secret' })).toBe('Secret must be no less than 8 characters.');
+    expect(validateBrowserValue('lowercase!', rule, { label: 'Secret' })).toBe('Needs an uppercase letter.');
+    expect(validateBrowserValue('UPPERCASE!', rule, { label: 'Secret' })).toBe('Secret must contain at least one lowercase letter.');
+    expect(validateBrowserValue('Mixedcase1', rule, { label: 'Secret' })).toBe('Secret must contain at least one special character.');
+    expect(validateBrowserValue('Mixedcase1!', rule, { label: 'Secret' })).toBeNull();
+    expect(validateBrowserValue('', rule, { label: 'Secret' })).toBeNull();
+});

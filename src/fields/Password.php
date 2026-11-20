@@ -342,6 +342,24 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
         ]);
     }
 
+    protected function defineBrowserValidationRules(): array
+    {
+        $validators = parent::defineBrowserValidationRules();
+
+        // The password requirements, checked as the server checks them, for forms that validate in the browser.
+        if ($this->passwordMinLength || $this->passwordRequireUppercase || $this->passwordRequireLowercase || $this->passwordRequireSpecialCharacter) {
+            $validators[] = [
+                'type' => 'password',
+                'min' => $this->passwordMinLength ?: null,
+                'uppercase' => $this->passwordRequireUppercase,
+                'lowercase' => $this->passwordRequireLowercase,
+                'specialCharacter' => $this->passwordRequireSpecialCharacter,
+            ];
+        }
+
+        return $validators;
+    }
+
     protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         $form = $context->form;
