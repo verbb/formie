@@ -66,6 +66,7 @@
 - Fixed **All Non Empty Fields** leaving out unticked Agree fields. They’re listed with their **Unchecked Value** again, as in Formie 3. ([#3142](https://github.com/verbb/formie/issues/3142))
 - Fixed opening a submission in the control panel creating its File Upload folder when the field’s subpath uses submission values, such as `{submission:id}`, which left an empty folder for every submission opened. ([#3134](https://github.com/verbb/formie/issues/3134))
 - Fixed the Submissions index **Export…** dialog combining each Name and Address field into one column. Each part now has its own column, as in Formie 3, and the combined column can still be ticked. ([#3055](https://github.com/verbb/formie/issues/3055))
+- Fixed client-rendered forms built with `@verbb/formie-react` moving focus to the error message on every keystroke after a submit that failed validation, so only the first character typed was kept.
 
 ## 4.0.10 - 2026-11-17
 

@@ -342,18 +342,25 @@ function BrowserModuleHost({ children }: { children: ReactNode }) {
 }
 
 function DefaultForm({ definition, session, state, children, className, onSubmit }: FormieFormComponentProps) {
+    const { instance } = useDefinitionContext();
     const root = useRef<HTMLFormElement>(null);
     const pageRef = useRef(state.currentPageId);
-    const resultRef = useRef(state.lastSubmitResult);
+    // The page shown when a submit result arrived, until focus has moved for that result.
+    const pendingFocus = useRef<string | null>(null);
+    useEffect(() => instance.on('formie:submit:result', () => {
+        pendingFocus.current = pageRef.current;
+    }), [instance]);
     useEffect(() => {
-        // Focus moves once per submit result, compared with the page shown before it.
-        if (state.lastSubmitResult && state.lastSubmitResult !== resultRef.current) {
-            focusClientFormResult(root.current, pageRef.current);
+        // Focus moves once per submit result, after it renders, compared with the page shown before it. The state is a
+        // new copy after every change, so a result is recognised by its event, not by a new result object, or typing
+        // after a failed submit would move focus away on every keystroke.
+        if (pendingFocus.current !== null) {
+            focusClientFormResult(root.current, pendingFocus.current);
+            pendingFocus.current = null;
         }
 
-        resultRef.current = state.lastSubmitResult;
         pageRef.current = state.currentPageId;
-    }, [state.lastSubmitResult, state.currentPageId]);
+    });
     return createElement('form', {
         ref: root,
         className,
