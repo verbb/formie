@@ -279,6 +279,8 @@ class AddressState extends SingleLineText implements ChildFieldInterface
             'useDatalist' => $this->useDatalist,
             'optionLabel' => $this->optionLabel,
             'optionValue' => $this->optionValue,
+            // Client-rendered forms load the selected country's subdivisions from here, as the server-rendered module does.
+            'subdivisionsUrl' => $this->_usesDynamicSubdivisions() ? UrlHelper::actionUrl('formie/address/subdivisions') : null,
         ]);
     }
 
@@ -297,6 +299,7 @@ class AddressState extends SingleLineText implements ChildFieldInterface
             foreach ($parent->getEnabledFields() as $subField) {
                 if ($subField instanceof AddressCountry) {
                     $countryOptionValue = $subField->optionValue ?? 'short';
+
                     break;
                 }
             }
@@ -318,6 +321,20 @@ class AddressState extends SingleLineText implements ChildFieldInterface
                 'subdivisionsAction' => UrlHelper::actionUrl('formie/address/subdivisions'),
             ],
         ]);
+
+        // Client-rendered forms render the subdivisions dropdown themselves, so it's made searchable as other
+        // dropdowns are, rather than by the server-rendered State / Province module.
+        if ($this->useSearchable) {
+            $modules[] = new BrowserModule([
+                'moduleId' => 'formie:combobox',
+                'surfaces' => [BrowserModule::SURFACE_CLIENT_RENDERED],
+                'config' => [
+                    'multiple' => false,
+                    'maxOptions' => $this->searchableOptionLimit,
+                    'placeholder' => $this->placeholder ?: null,
+                ],
+            ]);
+        }
 
         return $modules;
     }

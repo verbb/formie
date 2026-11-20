@@ -127,3 +127,31 @@ if (!Craft::$app->getElements()->saveElement($nested)) {
     ->multiLineTextField('richStory', ['label' => 'Rich story', 'useRichText' => true, 'limit' => true, 'max' => 5, 'maxType' => 'characters'])
     ->addField(\verbb\formie\fields\Survey::class, 'surveyNote', ['label' => 'Survey note', 'displayType' => 'singleLineText', 'limit' => true, 'max' => 4, 'maxType' => 'characters'])
     ->create();
+
+// Address fields whose State / Province follows the chosen country, as a plain and a searchable dropdown, and one that
+// preselects the country from the visitor's IP address.
+$addressStateRows = static function(array $state, array $country = []): array {
+    $rows = (new Address())->getSubFields();
+
+    foreach ($rows as &$row) {
+        foreach ($row['fields'] as &$subField) {
+            if (($subField['handle'] ?? null) === 'state') {
+                $subField = array_merge($subField, ['inputMode' => 'dropdownWhenAvailable'], $state);
+            }
+
+            if (($subField['handle'] ?? null) === 'country') {
+                $subField = array_merge($subField, $country);
+            }
+        }
+    }
+
+    unset($row, $subField);
+
+    return $rows;
+};
+
+\verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Adapter address state', 'handle' => 'adapterAddressState'])
+    ->settings(['disableCaptchas' => true, 'submitMethod' => 'ajax'])
+    ->addressField('homeAddress', ['label' => 'Home address', 'rows' => $addressStateRows(['useSearchable' => false, 'required' => true], ['required' => true])])
+    ->addressField('postalAddress', ['label' => 'Postal address', 'countryPreselectFromIp' => true, 'rows' => $addressStateRows(['useSearchable' => true])])
+    ->create();

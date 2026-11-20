@@ -11,6 +11,7 @@
 - Added the page title (`.formie-react-page-title`) for forms that turn on **Display Current Page Title**, and the progress bar (`.formie-react-progress`, with `role="progressbar"` and `data-formie-progress-state`) for multi-page forms that turn on **Display Page Progress**, placed and worked out as in server-rendered forms. The page is named by its title. A custom `Page` component renders its own title, using `showsClientPageTitle()` from `@verbb/formie-core`.
 - Added `autocomplete` to inputs that have an autocomplete hint, and kept labels in the **Hidden** position in the page, visually hidden, so they still name their control.
 - Added the limit counter (`.formie-react-limit`, with `data-formie-limit-text`) under text fields with a maximum, which shows how many characters or words are left, as in server-rendered forms. Text limits are now checked before the form submits. ([#3146](https://github.com/verbb/formie/issues/3146))
+- Added the chosen country’s subdivisions to **State / Province** in Address fields with **Input Mode** set to **Dropdown when available**. It takes the name the country uses for them, such as Prefecture, and hides for countries that don’t use them. ([#3146](https://github.com/verbb/formie/issues/3146))
 
 ### Changed
 - Field labels now point at their control with `for` instead of the control repeating the label in `aria-label`, and field instructions describe the control with `aria-describedby`. Controls rendered inside a custom `Field` component keep their `aria-label`. ([#3140](https://github.com/verbb/formie/issues/3140))

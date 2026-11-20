@@ -85,6 +85,8 @@ export { attachPointerReorder } from './reorder.js';
 export { deriveCalculationValues, parseRowsExpression } from './client-calculations.js';
 export { countGraphemes, getTextLimitMetrics, getWordCount, normalizeText } from './text.js';
 export { fieldTextLimit, formatPluralMessage, textLimitCounter } from './text-limit.js';
+export { addressStatePart, cachedAddressSubdivisions, isDynamicAddressStatePart, loadAddressSubdivisions } from './address-state.js';
+export type { AddressStatePart, AddressSubdivisions } from './address-state.js';
 export type { ClientTextLimit, TextLimitCounter } from './text-limit.js';
 export {
     getClientErrorAriaLive,

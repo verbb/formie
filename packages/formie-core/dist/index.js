@@ -467,7 +467,7 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 				}), this.isIdentifier = n, this.isNullSafe = r, this.name = "ConstantNode";
 			}
 		}
-		class x extends _ {
+		class ee extends _ {
 			constructor(e, n, r) {
 				super({
 					expr1: e,
@@ -486,7 +486,7 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 				]), this.name = "ConditionalNode";
 			}
 		}
-		class ee extends _ {
+		class te extends _ {
 			constructor(e, n) {
 				super({ fnArguments: n }, { name: e }), t(this, "compile", (e) => {
 					let t = [];
@@ -505,14 +505,14 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 				}), this.name = "FunctionNode";
 			}
 		}
-		class S extends _ {
+		class x extends _ {
 			constructor(e) {
 				super({}, { name: e }), t(this, "compile", (e) => {
 					e.raw(this.attributes.name);
 				}), t(this, "evaluate", (e, t) => t[this.attributes.name]), t(this, "toArray", () => [this.attributes.name]), this.name = "NameNode";
 			}
 		}
-		class C extends _ {
+		class S extends _ {
 			constructor() {
 				super(), t(this, "addElement", (e, t = null) => {
 					t === null ? t = new b(++this.index) : this.type === "Array" && (this.type = "Object"), this.nodes[(++this.keyIndex).toString()] = t, this.nodes[(++this.keyIndex).toString()] = e;
@@ -553,7 +553,7 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 				}), this.name = "ArrayNode", this.type = "Array", this.index = -1, this.keyIndex = -1;
 			}
 		}
-		class w extends C {
+		class C extends S {
 			constructor() {
 				super(), t(this, "compile", (e) => {
 					this.compileArguments(e, !1);
@@ -564,7 +564,7 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 				}), this.name = "ArgumentsNode";
 			}
 		}
-		class T extends _ {
+		class w extends _ {
 			constructor(e, n, r, i) {
 				super({
 					node: e,
@@ -577,24 +577,24 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 				}), t(this, "compile", (e) => {
 					let t = this.nodes.attribute instanceof b && this.nodes.attribute.isNullSafe;
 					switch (this.attributes.type) {
-						case T.PROPERTY_CALL:
+						case w.PROPERTY_CALL:
 							e.compile(this.nodes.node).raw(t ? "?." : ".").raw(this.nodes.attribute.attributes.value);
 							break;
-						case T.METHOD_CALL:
+						case w.METHOD_CALL:
 							e.compile(this.nodes.node).raw(t ? "?." : ".").raw(this.nodes.attribute.attributes.value).raw("(").compile(this.nodes.fnArguments).raw(")");
 							break;
-						case T.ARRAY_CALL: e.compile(this.nodes.node).raw("[").compile(this.nodes.attribute).raw("]");
+						case w.ARRAY_CALL: e.compile(this.nodes.node).raw("[").compile(this.nodes.attribute).raw("]");
 					}
 				}), t(this, "evaluate", (e, t) => {
 					switch (this.attributes.type) {
-						case T.PROPERTY_CALL:
+						case w.PROPERTY_CALL:
 							let n = this.nodes.node.evaluate(e, t);
 							if (n === null && (this.nodes.attribute.isNullSafe || this.attributes.is_null_coalesce)) return this.attributes.is_short_circuited = !0, null;
 							if (n === null && this.isShortCircuited()) return null;
 							let r = this.nodes.attribute.attributes.value;
 							if (typeof n != "object") throw Error(`Unable to get property "${r}" on a non-object: ` + typeof n);
 							return this.attributes.is_null_coalesce ? n[r] ?? null : n[r];
-						case T.METHOD_CALL:
+						case w.METHOD_CALL:
 							let i = this.nodes.node.evaluate(e, t);
 							if (i === null && this.nodes.attribute.isNullSafe) return this.attributes.is_short_circuited = !0, null;
 							if (i === null && this.isShortCircuited()) return null;
@@ -604,7 +604,7 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 							if (typeof i[a] != "function") throw Error(`Method "${a}" is not a function on object.`);
 							let o = this.nodes.fnArguments.evaluate(e, t);
 							return i[a].apply(null, o);
-						case T.ARRAY_CALL:
+						case w.ARRAY_CALL:
 							let s = this.nodes.node.evaluate(e, t);
 							if (s === null && this.isShortCircuited()) return null;
 							if (!(Array.isArray(s) || typeof s == "object" || s === null && this.attributes.is_null_coalesce)) throw Error("Unable to get an item on a non-array: " + typeof s);
@@ -613,12 +613,12 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 				}), t(this, "toArray", () => {
 					let e = this.nodes.attribute instanceof b && this.nodes.attribute.isNullSafe;
 					switch (this.attributes.type) {
-						case T.PROPERTY_CALL: return [
+						case w.PROPERTY_CALL: return [
 							this.nodes.node,
 							e ? "?." : ".",
 							this.nodes.attribute
 						];
-						case T.METHOD_CALL: return [
+						case w.METHOD_CALL: return [
 							this.nodes.node,
 							e ? "?." : ".",
 							this.nodes.attribute,
@@ -626,7 +626,7 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 							this.nodes.fnArguments,
 							")"
 						];
-						case T.ARRAY_CALL: return [
+						case w.ARRAY_CALL: return [
 							this.nodes.node,
 							"[",
 							this.nodes.attribute,
@@ -636,39 +636,39 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 				}), this.name = "GetAttrNode";
 			}
 			isShortCircuited() {
-				return this.attributes.is_short_circuited || this.nodes.node instanceof T && this.nodes.node.isShortCircuited();
+				return this.attributes.is_short_circuited || this.nodes.node instanceof w && this.nodes.node.isShortCircuited();
 			}
 		}
-		t(T, "PROPERTY_CALL", 1), t(T, "METHOD_CALL", 2), t(T, "ARRAY_CALL", 3);
-		class te extends _ {
+		t(w, "PROPERTY_CALL", 1), t(w, "METHOD_CALL", 2), t(w, "ARRAY_CALL", 3);
+		class ne extends _ {
 			constructor(e, n) {
 				super({
 					expr1: e,
 					expr2: n
 				}), t(this, "compile", (e) => {
 					e.raw("((").compile(this.nodes.expr1).raw(") ?? (").compile(this.nodes.expr2).raw("))");
-				}), t(this, "evaluate", (e, t) => (this.nodes.expr1 instanceof T && this._addNullCoalesceAttributeToGetAttrNodes(this.nodes.expr1), this.nodes.expr1.evaluate(e, t) ?? this.nodes.expr2.evaluate(e, t))), t(this, "toArray", () => [
+				}), t(this, "evaluate", (e, t) => (this.nodes.expr1 instanceof w && this._addNullCoalesceAttributeToGetAttrNodes(this.nodes.expr1), this.nodes.expr1.evaluate(e, t) ?? this.nodes.expr2.evaluate(e, t))), t(this, "toArray", () => [
 					"(",
 					this.nodes.expr1,
 					") ?? (",
 					this.nodes.expr2,
 					")"
 				]), t(this, "_addNullCoalesceAttributeToGetAttrNodes", (e) => {
-					if (e instanceof T) {
+					if (e instanceof w) {
 						e.attributes.is_null_coalesce = !0;
 						for (let t of Object.values(e.nodes)) this._addNullCoalesceAttributeToGetAttrNodes(t);
 					}
 				}), this.name = "NullCoalesceNode";
 			}
 		}
-		class ne extends _ {
+		class re extends _ {
 			constructor(e) {
 				super({}, { name: e }), t(this, "compile", (e) => {
 					e.raw(this.attributes.name + " ?? null");
 				}), t(this, "evaluate", (e, t) => null), t(this, "toArray", () => [this.attributes.name + " ?? null"]), this.name = "NullCoalescedNameNode";
 			}
 		}
-		class re {
+		class ie {
 			constructor(e = {}) {
 				t(this, "functions", {}), t(this, "unaryOperators", {
 					not: { precedence: 50 },
@@ -847,12 +847,12 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 					return [];
 				}), t(this, "parseArrayExpression", () => {
 					this.tokenStream.expect(a.PUNCTUATION_TYPE, "[", "An array element was expected");
-					let e = new C(), t = !0;
+					let e = new S(), t = !0;
 					for (; !this.tokenStream.current.test(a.PUNCTUATION_TYPE, "]") && (t || (this.tokenStream.expect(a.PUNCTUATION_TYPE, ",", "An array element must be followed by a comma"), !this.tokenStream.current.test(a.PUNCTUATION_TYPE, "]")));) t = !1, e.addElement(this.parseExpression());
 					return this.tokenStream.expect(a.PUNCTUATION_TYPE, "]", "An opened array is not properly closed"), e;
 				}), t(this, "parseHashExpression", () => {
 					this.tokenStream.expect(a.PUNCTUATION_TYPE, "{", "A hash element was expected");
-					let e = new C(), t = !0;
+					let e = new S(), t = !0;
 					for (; !this.tokenStream.current.test(a.PUNCTUATION_TYPE, "}") && (t || (this.tokenStream.expect(a.PUNCTUATION_TYPE, ",", "A hash value must be followed by a comma"), !this.tokenStream.current.test(a.PUNCTUATION_TYPE, "}")));) {
 						t = !1;
 						let n = null;
@@ -875,18 +875,18 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 						if (t.value === "." || t.value === "?.") {
 							let n = t.value === "?.";
 							if (this.tokenStream.next(), t = this.tokenStream.current, this.tokenStream.next(), a.NAME_TYPE !== t.type && (a.OPERATOR_TYPE !== t.type || !/[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*/.test(t.value))) throw new r("Expected name", t.cursor, this.tokenStream.expression);
-							let i = new b(t.value, !0, n), o = new w(), s = null;
+							let i = new b(t.value, !0, n), o = new C(), s = null;
 							if (this.tokenStream.current.test(a.PUNCTUATION_TYPE, "(")) {
-								s = T.METHOD_CALL;
+								s = w.METHOD_CALL;
 								for (let e of Object.values(this.parseArguments().nodes)) o.addElement(e);
-							} else s = T.PROPERTY_CALL;
-							e = new T(e, i, o, s);
+							} else s = w.PROPERTY_CALL;
+							e = new w(e, i, o, s);
 						} else {
 							if (t.value !== "[") break;
 							{
 								this.tokenStream.next();
 								let t = this.parseExpression();
-								this.tokenStream.expect(a.PUNCTUATION_TYPE, "]"), e = new T(e, t, new w(), T.ARRAY_CALL);
+								this.tokenStream.expect(a.PUNCTUATION_TYPE, "]"), e = new w(e, t, new C(), w.ARRAY_CALL);
 							}
 						}
 						t = this.tokenStream.current;
@@ -902,11 +902,11 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 				for (; this.tokenStream.current.test(a.PUNCTUATION_TYPE, "??");) {
 					this.tokenStream.next();
 					let t = this.parseExpression();
-					e = new te(e, t);
+					e = new ne(e, t);
 				}
 				for (; this.tokenStream.current.test(a.PUNCTUATION_TYPE, "?");) {
 					let t, n;
-					this.tokenStream.next(), this.tokenStream.current.test(a.PUNCTUATION_TYPE, ":") ? (this.tokenStream.next(), t = e, n = this.parseExpression()) : (t = this.parseExpression(), this.tokenStream.current.test(a.PUNCTUATION_TYPE, ":") ? (this.tokenStream.next(), n = this.parseExpression()) : t instanceof b && typeof t.attributes?.value == "string" ? n = new b("") : t instanceof x ? (n = t.nodes.expr3, t = t.nodes.expr2) : (n = t, t = e)), e = new x(e, t, n);
+					this.tokenStream.next(), this.tokenStream.current.test(a.PUNCTUATION_TYPE, ":") ? (this.tokenStream.next(), t = e, n = this.parseExpression()) : (t = this.parseExpression(), this.tokenStream.current.test(a.PUNCTUATION_TYPE, ":") ? (this.tokenStream.next(), n = this.parseExpression()) : t instanceof b && typeof t.attributes?.value == "string" ? n = new b("") : t instanceof ee ? (n = t.nodes.expr3, t = t.nodes.expr2) : (n = t, t = e)), e = new ee(e, t, n);
 				}
 				return e;
 			}
@@ -923,18 +923,18 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 							case "NULL": return new b(null);
 							default: if (this.tokenStream.current.value === "(") {
 								if (this.functions[e.value] === void 0 && !(2 & this.flags)) throw new r(`The function "${e.value}" does not exist`, e.cursor, this.tokenStream.expression, e.values, Object.keys(this.functions));
-								t = new ee(e.value, this.parseArguments());
+								t = new te(e.value, this.parseArguments());
 							} else {
 								let n = null;
 								if (1 & this.flags) n = e.value;
 								else {
 									if (!this.hasVariable(e.value)) {
-										if (this.tokenStream.current.test(a.PUNCTUATION_TYPE, "??")) return new ne(e.value);
+										if (this.tokenStream.current.test(a.PUNCTUATION_TYPE, "??")) return new re(e.value);
 										throw new r(`Variable "${e.value}" is not valid`, e.cursor, this.tokenStream.expression, e.value, this.getNames());
 									}
 									n = e.value, this.objectMatches[n] !== void 0 && (n = this.getNames()[this.objectMatches[n]]);
 								}
-								t = new S(n);
+								t = new x(n);
 							}
 						}
 						break;
@@ -949,7 +949,7 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 				return this.parsePostfixExpression(t);
 			}
 		}
-		class ie {
+		class ae {
 			constructor(e) {
 				t(this, "getFunction", (e) => this.functions[e]), t(this, "getSource", () => this.source), t(this, "reset", () => (this.source = "", this)), t(this, "compile", (e) => (e.compile(this), this)), t(this, "subcompile", (e) => {
 					let t = this.source;
@@ -976,7 +976,7 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 				}), this.source = "", this.functions = e;
 			}
 		}
-		class ae {
+		class oe {
 			constructor(e) {
 				this.expression = e;
 			}
@@ -984,7 +984,7 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 				return this.expression;
 			}
 		}
-		class oe extends ae {
+		class se extends oe {
 			constructor(e, n) {
 				super(e), t(this, "getNodes", () => this.nodes), this.nodes = n;
 			}
@@ -993,30 +993,30 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 					if (e == null || e instanceof _ || typeof e != "object" || !e.name) return e;
 					switch (e.name) {
 						case "ConstantNode": return new b(e.attributes?.value, !!e.isIdentifier, !!e.isNullSafe);
-						case "NameNode": return new S(e.attributes?.name);
-						case "NullCoalescedNameNode": return new ne(e.attributes?.name);
+						case "NameNode": return new x(e.attributes?.name);
+						case "NullCoalescedNameNode": return new re(e.attributes?.name);
 						case "UnaryNode": return new y(e.attributes?.operator, n(e.nodes?.node));
 						case "BinaryNode": return new v(e.attributes?.operator, n(e.nodes?.left), n(e.nodes?.right));
-						case "ConditionalNode": return new x(n(e.nodes?.expr1), n(e.nodes?.expr2), n(e.nodes?.expr3));
-						case "NullCoalesceNode": return new te(n(e.nodes?.expr1), n(e.nodes?.expr2));
+						case "ConditionalNode": return new ee(n(e.nodes?.expr1), n(e.nodes?.expr2), n(e.nodes?.expr3));
+						case "NullCoalesceNode": return new ne(n(e.nodes?.expr1), n(e.nodes?.expr2));
 						case "ArgumentsNode": {
-							let t = new w();
+							let t = new C();
 							typeof e.type == "string" && (t.type = e.type), typeof e.index == "number" && (t.index = e.index), typeof e.keyIndex == "number" && (t.keyIndex = e.keyIndex), t.nodes = {};
 							for (let r of Object.keys(e.nodes || {})) t.nodes[r] = n(e.nodes[r]);
 							return t;
 						}
 						case "ArrayNode": {
-							let t = new C();
+							let t = new S();
 							typeof e.type == "string" && (t.type = e.type), typeof e.index == "number" && (t.index = e.index), typeof e.keyIndex == "number" && (t.keyIndex = e.keyIndex), t.nodes = {};
 							for (let r of Object.keys(e.nodes || {})) t.nodes[r] = n(e.nodes[r]);
 							return t;
 						}
 						case "FunctionNode": {
 							let t = n(e.nodes?.fnArguments);
-							return new ee(e.attributes?.name, t);
+							return new te(e.attributes?.name, t);
 						}
 						case "GetAttrNode": {
-							let t = new T(n(e.nodes?.node), n(e.nodes?.attribute), n(e.nodes?.fnArguments), e.attributes?.type);
+							let t = new w(n(e.nodes?.node), n(e.nodes?.attribute), n(e.nodes?.fnArguments), e.attributes?.type);
 							return e.attributes && typeof e.attributes.is_null_coalesce == "boolean" && (t.attributes.is_null_coalesce = e.attributes.is_null_coalesce), e.attributes && typeof e.attributes.is_short_circuited == "boolean" && (t.attributes.is_short_circuited = e.attributes.is_short_circuited), t;
 						}
 						case "Node": {
@@ -1049,14 +1049,14 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 					}
 					return e;
 				})(t.nodes);
-				return new oe(r, i);
+				return new se(r, i);
 			}
 		}
-		var se;
-		class ce {
+		var ce;
+		class le {
 			constructor(e = 0) {
 				t(this, "createCacheItem", (e, t, n) => {
-					let r = new E();
+					let r = new T();
 					return r.key = e, r.value = t, r.isHit = n, r.defaultLifetime = this.defaultLifetime, r;
 				}), t(this, "get", (e, t, n = null, r = null) => {
 					let i = this.getItem(e);
@@ -1065,12 +1065,12 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 					let t = this.hasItem(e), n = null;
 					return t ? n = this.values[e] : this.values[e] = null, (0, this.createCacheItem)(e, n, t);
 				}), t(this, "getItems", (e) => {
-					for (let t of e) typeof t == "string" || this.expiries[t] || E.validateKey(t);
+					for (let t of e) typeof t == "string" || this.expiries[t] || T.validateKey(t);
 					return this.generateItems(e, (/* @__PURE__ */ new Date()).getTime() / 1e3, this.createCacheItem);
 				}), t(this, "deleteItems", (e) => {
 					for (let t of e) this.deleteItem(t);
 					return !0;
-				}), t(this, "save", (e) => e instanceof E && (e.expiry !== null && e.expiry <= (/* @__PURE__ */ new Date()).getTime() / 1e3 ? (this.deleteItem(e.key), !0) : (e.expiry === null && 0 < e.defaultLifetime && (e.expiry = (/* @__PURE__ */ new Date()).getTime() / 1e3 + e.defaultLifetime), this.values[e.key] = e.value, this.expiries[e.key] = e.expiry || 2 ** 53 - 1, !0))), t(this, "saveDeferred", (e) => this.save(e)), t(this, "commit", () => !0), t(this, "delete", (e) => this.deleteItem(e)), t(this, "getValues", () => this.values), t(this, "hasItem", (e) => !!(typeof e == "string" && this.expiries[e] && this.expiries[e] > (/* @__PURE__ */ new Date()).getTime() / 1e3) || (E.validateKey(e), !!this.expiries[e] && !this.deleteItem(e))), t(this, "clear", () => (this.values = {}, this.expiries = {}, !0)), t(this, "deleteItem", (e) => (typeof e == "string" && this.expiries[e] || E.validateKey(e), delete this.values[e], delete this.expiries[e], !0)), t(this, "reset", () => {
+				}), t(this, "save", (e) => e instanceof T && (e.expiry !== null && e.expiry <= (/* @__PURE__ */ new Date()).getTime() / 1e3 ? (this.deleteItem(e.key), !0) : (e.expiry === null && 0 < e.defaultLifetime && (e.expiry = (/* @__PURE__ */ new Date()).getTime() / 1e3 + e.defaultLifetime), this.values[e.key] = e.value, this.expiries[e.key] = e.expiry || 2 ** 53 - 1, !0))), t(this, "saveDeferred", (e) => this.save(e)), t(this, "commit", () => !0), t(this, "delete", (e) => this.deleteItem(e)), t(this, "getValues", () => this.values), t(this, "hasItem", (e) => !!(typeof e == "string" && this.expiries[e] && this.expiries[e] > (/* @__PURE__ */ new Date()).getTime() / 1e3) || (T.validateKey(e), !!this.expiries[e] && !this.deleteItem(e))), t(this, "clear", () => (this.values = {}, this.expiries = {}, !0)), t(this, "deleteItem", (e) => (typeof e == "string" && this.expiries[e] || T.validateKey(e), delete this.values[e], delete this.expiries[e], !0)), t(this, "reset", () => {
 					this.clear();
 				}), t(this, "generateItems", (e, t, n) => {
 					let r = [];
@@ -1082,7 +1082,7 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 				}), this.defaultLifetime = e, this.values = {}, this.expiries = {};
 			}
 		}
-		class E {
+		class T {
 			constructor() {
 				t(this, "getKey", () => this.key), t(this, "get", () => this.value), t(this, "set", (e) => (this.value = e, this)), t(this, "expiresAt", (e) => {
 					if (e === null) this.expiry = this.defaultLifetime > 0 ? Date.now() / 1e3 + this.defaultLifetime : null;
@@ -1110,7 +1110,7 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 				}), t(this, "getMetadata", () => this.metadata), this.key = null, this.value = null, this.isHit = !1, this.expiry = null, this.defaultLifetime = null, this.metadata = {}, this.newMetadata = {}, this.innerItem = null, this.poolHash = null, this.isTaggable = !1;
 			}
 		}
-		se = E, t(E, "METADATA_EXPIRY_OFFSET", 1527506807), t(E, "RESERVED_CHARACTERS", [
+		ce = T, t(T, "METADATA_EXPIRY_OFFSET", 1527506807), t(T, "RESERVED_CHARACTERS", [
 			"{",
 			"}",
 			"(",
@@ -1119,13 +1119,13 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 			"\\",
 			"@",
 			":"
-		]), t(E, "validateKey", (e) => {
+		]), t(T, "validateKey", (e) => {
 			if (typeof e != "string") throw Error(`Cache key must be string, "${typeof e}" given.`);
 			if (e === "") throw Error("Cache key length must be greater than zero");
-			for (let t of se.RESERVED_CHARACTERS) if (e.indexOf(t) >= 0) throw Error(`Cache key "${e}" contains reserved character "${t}".`);
+			for (let t of ce.RESERVED_CHARACTERS) if (e.indexOf(t) >= 0) throw Error(`Cache key "${e}" contains reserved character "${t}".`);
 			return e;
 		});
-		class le extends Error {
+		class ue extends Error {
 			constructor(e) {
 				super(e), this.name = "LogicException";
 			}
@@ -1133,7 +1133,7 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 				return `${this.name}: ${this.message}`;
 			}
 		}
-		class D {
+		class E {
 			constructor(e, n, r) {
 				t(this, "getName", () => this.name), t(this, "getCompiler", () => this.compiler), t(this, "getEvaluator", () => this.evaluator), this.name = e, this.compiler = n, this.evaluator = r;
 			}
@@ -1149,10 +1149,10 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 				return new this(t || r[r.length - 1], (...e) => `${n}(${e.join(", ")})`, (e, ...t) => i(...t));
 			}
 		}
-		class ue {
+		class de {
 			constructor(e = null, n = []) {
 				t(this, "compile", (e, t = []) => this.getCompiler().compile(this.parse(e, t).getNodes()).getSource()), t(this, "evaluate", (e, t = {}) => this.parse(e, Object.keys(t)).getNodes().evaluate(this.functions, t)), t(this, "parse", (e, t = [], n = 0) => {
-					if (e instanceof oe) return e;
+					if (e instanceof se) return e;
 					t.sort((e, t) => {
 						let n = e, r = t;
 						return typeof e == "object" && (n = Object.values(e)[0]), typeof t == "object" && (r = Object.values(t)[0]), n.localeCompare(r);
@@ -1165,15 +1165,15 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 					let i = this.cache.getItem(this.fixedEncodeURIComponent(e + "//" + r.join("|"))), a = i.get();
 					if (a === null) {
 						let r = this.getParser().parse(this.getLexer().tokenize(e), t, n);
-						a = new oe(e, r), i.set(a), this.cache.save(i);
+						a = new se(e, r), i.set(a), this.cache.save(i);
 					}
 					return a;
 				}), t(this, "lint", (e, t = null, n = 0) => {
-					t === null && (console.log("Deprecated: passing \"null\" as the second argument of lint is deprecated, pass IGNORE_UNKNOWN_VARIABLES instead as the third argument"), n |= 1, t = []), e instanceof oe || this.getParser().lint(this.getLexer().tokenize(e), t, n);
+					t === null && (console.log("Deprecated: passing \"null\" as the second argument of lint is deprecated, pass IGNORE_UNKNOWN_VARIABLES instead as the third argument"), n |= 1, t = []), e instanceof se || this.getParser().lint(this.getLexer().tokenize(e), t, n);
 				}), t(this, "fixedEncodeURIComponent", (e) => encodeURIComponent(e).replace(/[!'()*]/g, function(e) {
 					return "%" + e.charCodeAt(0).toString(16);
 				})), t(this, "register", (e, t, n) => {
-					if (this.parser !== null) throw new le("Registering functions after calling evaluate(), compile(), or parse() is not supported.");
+					if (this.parser !== null) throw new ue("Registering functions after calling evaluate(), compile(), or parse() is not supported.");
 					this.functions[e] = {
 						compiler: t,
 						evaluator: n
@@ -1182,19 +1182,19 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 					this.register(e.getName(), e.getCompiler(), e.getEvaluator());
 				}), t(this, "registerProvider", (e) => {
 					for (let t of e.getFunctions()) this.addFunction(t);
-				}), t(this, "getLexer", () => (this.lexer === null && (this.lexer = { tokenize: o }), this.lexer)), t(this, "getParser", () => (this.parser === null && (this.parser = new re(this.functions)), this.parser)), t(this, "getCompiler", () => (this.compiler === null && (this.compiler = new ie(this.functions)), this.compiler.reset())), this.functions = [], this.lexer = null, this.parser = null, this.compiler = null, this.cache = e || new ce(), this._registerBuiltinFunctions();
+				}), t(this, "getLexer", () => (this.lexer === null && (this.lexer = { tokenize: o }), this.lexer)), t(this, "getParser", () => (this.parser === null && (this.parser = new ie(this.functions)), this.parser)), t(this, "getCompiler", () => (this.compiler === null && (this.compiler = new ae(this.functions)), this.compiler.reset())), this.functions = [], this.lexer = null, this.parser = null, this.compiler = null, this.cache = e || new le(), this._registerBuiltinFunctions();
 				for (let e of n) this.registerProvider(e);
 			}
 			_registerBuiltinFunctions() {
-				let e = D.fromJavascript("Math.min", "min"), t = D.fromJavascript("Math.max", "max");
-				this.addFunction(e), this.addFunction(t), this.addFunction(new D("constant", function(e) {
+				let e = E.fromJavascript("Math.min", "min"), t = E.fromJavascript("Math.max", "max");
+				this.addFunction(e), this.addFunction(t), this.addFunction(new E("constant", function(e) {
 					return `(function(__n){var __g=(typeof globalThis!=='undefined'?globalThis:(typeof window!=='undefined'?window:(typeof global!=='undefined'?global:{})));return __n.split('.').reduce(function(o,k){return o==null?undefined:o[k];}, __g)})(${e})`;
 				}, function(e, t) {
 					if (typeof t != "string" || !t) return;
 					let n = (r = typeof globalThis < "u" ? globalThis : typeof window < "u" ? window : typeof global < "u" ? global : {}, t.split(".").reduce((e, t) => e?.[t], r));
 					var r;
 					return n === void 0 && e && Object.prototype.hasOwnProperty.call(e, t) && (n = e[t]), n;
-				})), this.addFunction(new D("enum", function(e) {
+				})), this.addFunction(new E("enum", function(e) {
 					return `(function(__n){var __g=(typeof globalThis!=='undefined'?globalThis:(typeof window!=='undefined'?window:(typeof global!=='undefined'?global:{})));if(typeof __n!=='string'||!__n)return undefined;var s=String(__n);var keys=[],buf='';for(var i=0;i<s.length;i++){var c=s.charCodeAt(i);if(c===46||c===92){if(buf){keys.push(buf);buf='';}continue;}if(c===58){if(i+1<s.length&&s.charCodeAt(i+1)===58){if(buf){keys.push(buf);buf='';}i++;continue;}}buf+=s[i];}if(buf)keys.push(buf);return keys.reduce(function(o,k){return o==null?undefined:o[k];}, __g)})(${e})`;
 				}, function(e, t) {
 					if (typeof t != "string" || !t) return;
@@ -1204,12 +1204,12 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 				}));
 			}
 		}
-		class de {
+		class fe {
 			getFunctions() {
 				throw Error("getFunctions must be implemented by " + this.constructor.name);
 			}
 		}
-		let fe = new D("isset", function(e) {
+		let pe = new E("isset", function(e) {
 			if (/^(?:"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')$/.test(e)) throw Error("isset() does not support compile() when called with a string-literal path (e.g. isset(\"foo.bar\")). Use an expression path instead (e.g. isset(foo.bar) or isset(foo?.bar)), or call evaluate() directly.");
 			return `(function(){try{var __v=(${e});return __v!==null&&__v!==undefined;}catch(e){return false;}})()`;
 		}, function(e, t) {
@@ -1253,7 +1253,7 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 			}
 			return e[n] !== void 0;
 		});
-		function pe(...e) {
+		function me(...e) {
 			let [t, n, r] = e, i = t, a = n;
 			if (e.length < 2 || i === void 0 || a === void 0) return null;
 			if (i === "" || !1 === i || i === null) return !1;
@@ -1262,28 +1262,28 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 			let o = i + "", s = (a + "").split(o);
 			return r === void 0 ? s : (r === 0 && (r = 1), r > 0 ? r >= s.length ? s : s.slice(0, r - 1).concat([s.slice(r - 1).join(o)]) : -r >= s.length ? [] : (s.splice(s.length + r), s));
 		}
-		let me = (e) => Object.entries(e);
-		function he(e) {
+		let he = (e) => Object.entries(e);
+		function ge(e) {
 			return typeof e == "object" && !!e;
 		}
-		function ge(e) {
-			return he(e) && !function(e) {
+		function _e(e) {
+			return ge(e) && !function(e) {
 				return Array.isArray(e);
 			}(e);
 		}
-		function _e(e) {
+		function ve(e) {
 			return function(e) {
-				return he(e);
+				return ge(e);
 			}(e) ? e : {};
 		}
-		let O = typeof window == "object" && window !== null ? window : typeof global == "object" && global !== null ? global : {};
-		function ve() {
+		let D = typeof window == "object" && window !== null ? window : typeof global == "object" && global !== null ? global : {};
+		function ye() {
 			let e = (() => {
-				let e = O.$locutus;
-				typeof e == "object" && e || (e = {}, O.$locutus = e);
+				let e = D.$locutus;
+				typeof e == "object" && e || (e = {}, D.$locutus = e);
 				let t = e.php;
 				return typeof t == "object" && t || (t = {}, e.php = t), t;
-			})(), t = e.ini, n = e.locales, r = e.localeCategories, i = e.pointers, a = ge(t) ? t : {}, o = ((e) => ge(e))(n) ? n : {}, s = ((e) => ge(e))(r) ? r : {}, c = Array.isArray(i) ? i : [];
+			})(), t = e.ini, n = e.locales, r = e.localeCategories, i = e.pointers, a = _e(t) ? t : {}, o = ((e) => _e(e))(n) ? n : {}, s = ((e) => _e(e))(r) ? r : {}, c = Array.isArray(i) ? i : [];
 			t !== a && (e.ini = a), n !== o && (e.locales = o), r !== s && (e.localeCategories = s), i !== c && (e.pointers = c);
 			let l = e.locale_default;
 			return {
@@ -1294,14 +1294,14 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 				locale_default: typeof l == "string" ? l : void 0
 			};
 		}
-		function ye(e) {
-			let t = ve().ini[e];
+		function be(e) {
+			let t = ye().ini[e];
 			return t && t.local_value !== void 0 ? t.local_value === null ? "" : String(t.local_value) : "";
 		}
-		function be(e) {
+		function xe(e) {
 			if (e === void 0) throw Error("strlen() expects exactly 1 argument, 0 given");
 			let t = e + "";
-			if ((ye("unicode.semantics") || "off") === "off") return t.length;
+			if ((be("unicode.semantics") || "off") === "off") return t.length;
 			let n = 0, r = 0, i = function(e, t) {
 				let n = e.charCodeAt(t);
 				if (n >= 55296 && n <= 56319) {
@@ -1321,15 +1321,15 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 			for (n = 0, r = 0; n < t.length; n++) !1 !== i(t, n) && r++;
 			return r;
 		}
-		function xe(e) {
+		function Se(e) {
 			if (e === void 0) throw Error("strtolower() expects exactly 1 argument, 0 given");
 			return (e + "").toLowerCase();
 		}
-		function Se(e) {
+		function Ce(e) {
 			if (e === void 0) throw Error("strtoupper() expects exactly 1 argument, 0 given");
 			return (e + "").toUpperCase();
 		}
-		function Ce(e, t, n) {
+		function we(e, t, n) {
 			let r = function(e) {
 				if (typeof e == "boolean") return e ? "1" : "";
 				if (typeof e == "string") return e;
@@ -1337,25 +1337,25 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 				if (e === void 0) return "";
 				if (typeof e == "object") return Array.isArray(e) ? "Array" : e === null ? "" : "Object";
 				throw Error("Unsupported value type");
-			}(e), i = ye("unicode.semantics") === "on" ? r.match(/[\uD800-\uDBFF][\uDC00-\uDFFF]|[\s\S]/g) || [] : null, a = i ? i.length : r.length, o = a;
+			}(e), i = be("unicode.semantics") === "on" ? r.match(/[\uD800-\uDBFF][\uDC00-\uDFFF]|[\s\S]/g) || [] : null, a = i ? i.length : r.length, o = a;
 			return t < 0 && (t += o), n !== void 0 && (o = n < 0 ? n + o : n + t), !(t > a || t < 0 || t > o) && (i ? i.slice(t, o).join("") : r.slice(t, o));
-		}
-		function we(e, t, n) {
-			let r = 0;
-			return r = (e += "").indexOf(t), r !== -1 && (n ? e.substr(0, r) : e.slice(r));
 		}
 		function Te(e, t, n) {
 			let r = 0;
+			return r = (e += "").indexOf(t), r !== -1 && (n ? e.substr(0, r) : e.slice(r));
+		}
+		function Ee(e, t, n) {
+			let r = 0;
 			return r = (e += "").toLowerCase().indexOf((t + "").toLowerCase()), r !== -1 && (n ? e.substr(0, r) : e.slice(r));
 		}
-		function Ee(e, ...t) {
+		function De(e, ...t) {
 			let n = {};
 			if (t.length < 1) return n;
-			let r = _e(e);
-			e: for (let [e, i] of me(r)) {
+			let r = ve(e);
+			e: for (let [e, i] of he(r)) {
 				for (let e of t) {
-					let t = _e(e), n = !1;
-					for (let [, e] of me(t)) if (e === i) {
+					let t = ve(e), n = !1;
+					for (let [, e] of he(t)) if (e === i) {
 						n = !0;
 						break;
 					}
@@ -1365,12 +1365,12 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 			}
 			return n;
 		}
-		let De = (e) => {
+		let Oe = (e) => {
 			if (!e || typeof e != "object") return !1;
 			let t = Object.getPrototypeOf(e);
 			return t === Array.prototype || t === Object.prototype;
 		};
-		function Oe(e, t = 0) {
+		function ke(e, t = 0) {
 			let n = 0;
 			if (e == null) return 0;
 			if (typeof e != "object") return 1;
@@ -1381,14 +1381,14 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 				for (let t of Object.keys(e)) {
 					n++;
 					let r = e[Number(t)];
-					i && De(r) && (n += Oe(r, 1));
+					i && Oe(r) && (n += ke(r, 1));
 				}
 				return n;
 			}
-			for (let t of Object.values(e)) n++, i && De(t) && (n += Oe(t, 1));
+			for (let t of Object.values(e)) n++, i && Oe(t) && (n += ke(t, 1));
 			return n;
 		}
-		function ke(...e) {
+		function Ae(...e) {
 			let t, n = "", r = "", i = "";
 			if (e.length === 1) {
 				let [n] = e;
@@ -1404,22 +1404,22 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 			}
 			return String(t);
 		}
-		let Ae = new D("implode", function(e, t) {
+		let je = new E("implode", function(e, t) {
 			return `__runtime.implode(${e}, ${t})`;
 		}, function(e, t, n) {
-			return ke(t, n);
-		}), je = new D("count", function(e, t) {
+			return Ae(t, n);
+		}), O = new E("count", function(e, t) {
 			let n = "";
 			return t && (n = `, ${t}`), `__runtime.count(${e}${n})`;
 		}, function(e, t, n) {
-			return Oe(t, n);
-		}), k = new D("array_intersect", function(e, ...t) {
+			return ke(t, n);
+		}), k = new E("array_intersect", function(e, ...t) {
 			let n = "";
 			return t.length > 0 && (n = ", " + t.join(", ")), `__runtime.array_intersect(${e}${n})`;
 		}, function(e) {
 			let t = [], n = !0;
 			for (let e = 1; e < arguments.length; e++) t.push(arguments[e]), Array.isArray(arguments[e]) || (n = !1);
-			let r = Ee.apply(null, t);
+			let r = De.apply(null, t);
 			return n ? Object.values(r) : r;
 		});
 		function Me(e, t) {
@@ -2556,9 +2556,9 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 					}
 				}, y = "en", b = {};
 				b[y] = g;
-				var x = "$isDayjsObject", ee = function(e) {
-					return e instanceof T || !(!e || !e[x]);
-				}, S = function e(t, n, r) {
+				var ee = "$isDayjsObject", te = function(e) {
+					return e instanceof w || !(!e || !e[ee]);
+				}, x = function e(t, n, r) {
 					var i;
 					if (!t) return y;
 					if (typeof t == "string") {
@@ -2571,29 +2571,29 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 						b[s] = t, i = s;
 					}
 					return !r && i && (y = i), i || !r && y;
-				}, C = function(e, t) {
-					if (ee(e)) return e.clone();
+				}, S = function(e, t) {
+					if (te(e)) return e.clone();
 					var n = typeof t == "object" ? t : {};
-					return n.date = e, n.args = arguments, new T(n);
-				}, w = v;
-				w.l = S, w.i = ee, w.w = function(e, t) {
-					return C(e, {
+					return n.date = e, n.args = arguments, new w(n);
+				}, C = v;
+				C.l = x, C.i = te, C.w = function(e, t) {
+					return S(e, {
 						locale: t.$L,
 						utc: t.$u,
 						x: t.$x,
 						$offset: t.$offset
 					});
 				};
-				var T = function() {
+				var w = function() {
 					function g(e) {
-						this.$L = S(e.locale, null, !0), this.parse(e), this.$x = this.$x || e.x || {}, this[x] = !0;
+						this.$L = x(e.locale, null, !0), this.parse(e), this.$x = this.$x || e.x || {}, this[ee] = !0;
 					}
 					var _ = g.prototype;
 					return _.parse = function(e) {
 						this.$d = function(e) {
 							var t = e.date, n = e.utc;
 							if (t === null) return /* @__PURE__ */ new Date(NaN);
-							if (w.u(t)) return /* @__PURE__ */ new Date();
+							if (C.u(t)) return /* @__PURE__ */ new Date();
 							if (t instanceof Date) return new Date(t);
 							if (typeof t == "string" && !/Z$/i.test(t)) {
 								var r = t.match(m);
@@ -2608,28 +2608,28 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 						var e = this.$d;
 						this.$y = e.getFullYear(), this.$M = e.getMonth(), this.$D = e.getDate(), this.$W = e.getDay(), this.$H = e.getHours(), this.$m = e.getMinutes(), this.$s = e.getSeconds(), this.$ms = e.getMilliseconds();
 					}, _.$utils = function() {
-						return w;
+						return C;
 					}, _.isValid = function() {
 						return this.$d.toString() !== p;
 					}, _.isSame = function(e, t) {
-						var n = C(e);
+						var n = S(e);
 						return this.startOf(t) <= n && n <= this.endOf(t);
 					}, _.isAfter = function(e, t) {
-						return C(e) < this.startOf(t);
+						return S(e) < this.startOf(t);
 					}, _.isBefore = function(e, t) {
-						return this.endOf(t) < C(e);
+						return this.endOf(t) < S(e);
 					}, _.$g = function(e, t, n) {
-						return w.u(e) ? this[t] : this.set(n, e);
+						return C.u(e) ? this[t] : this.set(n, e);
 					}, _.unix = function() {
 						return Math.floor(this.valueOf() / 1e3);
 					}, _.valueOf = function() {
 						return this.$d.getTime();
 					}, _.startOf = function(e, t) {
-						var n = this, r = !!w.u(t) || t, u = w.p(e), p = function(e, t) {
-							var i = w.w(n.$u ? Date.UTC(n.$y, t, e) : new Date(n.$y, t, e), n);
+						var n = this, r = !!C.u(t) || t, u = C.p(e), p = function(e, t) {
+							var i = C.w(n.$u ? Date.UTC(n.$y, t, e) : new Date(n.$y, t, e), n);
 							return r ? i : i.endOf(s);
 						}, m = function(e, t) {
-							return w.w(n.toDate()[e].apply(n.toDate("s"), (r ? [
+							return C.w(n.toDate()[e].apply(n.toDate("s"), (r ? [
 								0,
 								0,
 								0,
@@ -2657,7 +2657,7 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 					}, _.endOf = function(e) {
 						return this.startOf(e, !1);
 					}, _.$set = function(e, t) {
-						var n, c = w.p(e), u = "set" + (this.$u ? "UTC" : ""), p = (n = {}, n[s] = u + "Date", n[f] = u + "Date", n[l] = u + "Month", n[d] = u + "FullYear", n[o] = u + "Hours", n[a] = u + "Minutes", n[i] = u + "Seconds", n[r] = u + "Milliseconds", n)[c], m = c === s ? this.$D + (t - this.$W) : t;
+						var n, c = C.p(e), u = "set" + (this.$u ? "UTC" : ""), p = (n = {}, n[s] = u + "Date", n[f] = u + "Date", n[l] = u + "Month", n[d] = u + "FullYear", n[o] = u + "Hours", n[a] = u + "Minutes", n[i] = u + "Seconds", n[r] = u + "Milliseconds", n)[c], m = c === s ? this.$D + (t - this.$W) : t;
 						if (c === l || c === d) {
 							var h = this.clone().set(f, 1);
 							h.$d[p](m), h.init(), this.$d = h.set(f, Math.min(this.$D, h.daysInMonth())).$d;
@@ -2666,29 +2666,29 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 					}, _.set = function(e, t) {
 						return this.clone().$set(e, t);
 					}, _.get = function(e) {
-						return this[w.p(e)]();
+						return this[C.p(e)]();
 					}, _.add = function(r, u) {
 						var f, p = this;
 						r = Number(r);
-						var m = w.p(u), h = function(e) {
-							var t = C(p);
-							return w.w(t.date(t.date() + Math.round(e * r)), p);
+						var m = C.p(u), h = function(e) {
+							var t = S(p);
+							return C.w(t.date(t.date() + Math.round(e * r)), p);
 						};
 						if (m === l) return this.set(l, this.$M + r);
 						if (m === d) return this.set(d, this.$y + r);
 						if (m === s) return h(1);
 						if (m === c) return h(7);
 						var g = (f = {}, f[a] = t, f[o] = n, f[i] = e, f)[m] || 1, _ = this.$d.getTime() + r * g;
-						return w.w(_, this);
+						return C.w(_, this);
 					}, _.subtract = function(e, t) {
 						return this.add(-1 * e, t);
 					}, _.format = function(e) {
 						var t = this, n = this.$locale();
 						if (!this.isValid()) return n.invalidDate || p;
-						var r = e || "YYYY-MM-DDTHH:mm:ssZ", i = w.z(this), a = this.$H, o = this.$m, s = this.$M, c = n.weekdays, l = n.months, u = n.meridiem, d = function(e, n, i, a) {
+						var r = e || "YYYY-MM-DDTHH:mm:ssZ", i = C.z(this), a = this.$H, o = this.$m, s = this.$M, c = n.weekdays, l = n.months, u = n.meridiem, d = function(e, n, i, a) {
 							return e && (e[n] || e(t, r)) || i[n].slice(0, a);
 						}, f = function(e) {
-							return w.s(a % 12 || 12, e, "0");
+							return C.s(a % 12 || 12, e, "0");
 						}, m = u || function(e, t, n) {
 							var r = e < 12 ? "AM" : "PM";
 							return n ? r.toLowerCase() : r;
@@ -2697,28 +2697,28 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 							return r || function(e) {
 								switch (e) {
 									case "YY": return String(t.$y).slice(-2);
-									case "YYYY": return w.s(t.$y, 4, "0");
+									case "YYYY": return C.s(t.$y, 4, "0");
 									case "M": return s + 1;
-									case "MM": return w.s(s + 1, 2, "0");
+									case "MM": return C.s(s + 1, 2, "0");
 									case "MMM": return d(n.monthsShort, s, l, 3);
 									case "MMMM": return d(l, s);
 									case "D": return t.$D;
-									case "DD": return w.s(t.$D, 2, "0");
+									case "DD": return C.s(t.$D, 2, "0");
 									case "d": return String(t.$W);
 									case "dd": return d(n.weekdaysMin, t.$W, c, 2);
 									case "ddd": return d(n.weekdaysShort, t.$W, c, 3);
 									case "dddd": return c[t.$W];
 									case "H": return String(a);
-									case "HH": return w.s(a, 2, "0");
+									case "HH": return C.s(a, 2, "0");
 									case "h": return f(1);
 									case "hh": return f(2);
 									case "a": return m(a, o, !0);
 									case "A": return m(a, o, !1);
 									case "m": return String(o);
-									case "mm": return w.s(o, 2, "0");
+									case "mm": return C.s(o, 2, "0");
 									case "s": return String(t.$s);
-									case "ss": return w.s(t.$s, 2, "0");
-									case "SSS": return w.s(t.$ms, 3, "0");
+									case "ss": return C.s(t.$s, 2, "0");
+									case "SSS": return C.s(t.$ms, 3, "0");
 									case "Z": return i;
 								}
 								return null;
@@ -2727,8 +2727,8 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 					}, _.utcOffset = function() {
 						return 15 * -Math.round(this.$d.getTimezoneOffset() / 15);
 					}, _.diff = function(r, f, p) {
-						var m, h = this, g = w.p(f), _ = C(r), v = (_.utcOffset() - this.utcOffset()) * t, y = this - _, b = function() {
-							return w.m(h, _);
+						var m, h = this, g = C.p(f), _ = S(r), v = (_.utcOffset() - this.utcOffset()) * t, y = this - _, b = function() {
+							return C.m(h, _);
 						};
 						switch (g) {
 							case d:
@@ -2757,17 +2757,17 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 								break;
 							default: m = y;
 						}
-						return p ? m : w.a(m);
+						return p ? m : C.a(m);
 					}, _.daysInMonth = function() {
 						return this.endOf(l).$D;
 					}, _.$locale = function() {
 						return b[this.$L];
 					}, _.locale = function(e, t) {
 						if (!e) return this.$L;
-						var n = this.clone(), r = S(e, t, !0);
+						var n = this.clone(), r = x(e, t, !0);
 						return r && (n.$L = r), n;
 					}, _.clone = function() {
-						return w.w(this.$d, this);
+						return C.w(this.$d, this);
 					}, _.toDate = function() {
 						return new Date(this.valueOf());
 					}, _.toJSON = function() {
@@ -2777,8 +2777,8 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 					}, _.toString = function() {
 						return this.$d.toUTCString();
 					}, g;
-				}(), te = T.prototype;
-				return C.prototype = te, [
+				}(), ne = w.prototype;
+				return S.prototype = ne, [
 					["$ms", r],
 					["$s", i],
 					["$m", a],
@@ -2788,14 +2788,14 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 					["$y", d],
 					["$D", f]
 				].forEach(function(e) {
-					te[e[1]] = function(t) {
+					ne[e[1]] = function(t) {
 						return this.$g(t, e[0], e[1]);
 					};
-				}), C.extend = function(e, t) {
-					return e.$i ||= (e(t, T, C), !0), C;
-				}, C.locale = S, C.isDayjs = ee, C.unix = function(e) {
-					return C(1e3 * e);
-				}, C.en = b[y], C.Ls = b, C.p = {}, C;
+				}), S.extend = function(e, t) {
+					return e.$i ||= (e(t, w, S), !0), S;
+				}, S.locale = x, S.isDayjs = te, S.unix = function(e) {
+					return S(1e3 * e);
+				}, S.en = b[y], S.Ls = b, S.p = {}, S;
 			}();
 		}(Je)), Je.exports));
 		let Xe = (e) => typeof e == "string", Ze = (e, t) => e.format(t), Qe = {
@@ -2812,77 +2812,77 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 			string: (e) => e == null || e.toString === void 0 ? "" : e.toString(),
 			int: (e) => parseInt(e)
 		}, $e = {
-			strtolower: xe,
-			strtoupper: Se,
-			explode: pe,
-			strlen: be,
-			strstr: we,
-			stristr: Te,
-			substr: Ce,
-			implode: ke,
-			count: Oe,
+			strtolower: Se,
+			strtoupper: Ce,
+			explode: me,
+			strlen: xe,
+			strstr: Te,
+			stristr: Ee,
+			substr: we,
+			implode: Ae,
+			count: ke,
 			array_intersect: (...e) => k.getEvaluator()(null, ...e),
 			date: Me,
 			strtotime: Ge
 		};
-		e.AbstractProvider = de, e.ArrayAdapter = ce, e.ArrayProvider = class extends de {
+		e.AbstractProvider = fe, e.ArrayAdapter = le, e.ArrayProvider = class extends fe {
 			getFunctions() {
 				return [
-					Ae,
 					je,
+					O,
 					k
 				];
 			}
-		}, e.BasicProvider = class extends de {
+		}, e.BasicProvider = class extends fe {
 			getFunctions() {
-				return [fe];
+				return [pe];
 			}
-		}, e.CacheItem = E, e.CompileRuntime = $e, e.Compiler = ie, e.DateProvider = class extends de {
+		}, e.CacheItem = T, e.CompileRuntime = $e, e.Compiler = ae, e.DateProvider = class extends fe {
 			getFunctions() {
-				return [new D("date", function(e, t) {
+				return [new E("date", function(e, t) {
 					let n = "";
 					return t && (n = `, ${t}`), `__runtime.date(${e}${n})`;
 				}, function(e, t, n) {
 					return Me(t, n);
-				}), new D("strtotime", function(e, t) {
+				}), new E("strtotime", function(e, t) {
 					let n = "";
 					return t && (n = `, ${t}`), `__runtime.strtotime(${e}${n})`;
 				}, function(e, t, n) {
 					return Ge(t, n);
 				})];
 			}
-		}, e.Expression = ae, e.ExpressionFunction = D, e.ExpressionLanguage = ue, e.IGNORE_UNKNOWN_FUNCTIONS = 2, e.IGNORE_UNKNOWN_VARIABLES = 1, e.Node = _, e.OPERATOR_LEFT = 1, e.OPERATOR_RIGHT = 2, e.ParsedExpression = oe, e.Parser = re, e.StringProvider = class extends de {
+		}, e.Expression = oe, e.ExpressionFunction = E, e.ExpressionLanguage = de, e.IGNORE_UNKNOWN_FUNCTIONS = 2, e.IGNORE_UNKNOWN_VARIABLES = 1, e.Node = _, e.OPERATOR_LEFT = 1, e.OPERATOR_RIGHT = 2, e.ParsedExpression = se, e.Parser = ie, e.StringProvider = class extends fe {
 			getFunctions() {
 				return [
-					new D("strtolower", (e) => "__runtime.strtolower(" + e + ")", (e, t) => xe(t)),
-					new D("strtoupper", (e) => "__runtime.strtoupper(" + e + ")", (e, t) => Se(t)),
-					new D("explode", (e, t, n = "null") => `__runtime.explode(${e}, ${t}, ${n})`, (e, t, n, r = null) => pe(t, n, r)),
-					new D("strlen", function(e) {
+					new E("strtolower", (e) => "__runtime.strtolower(" + e + ")", (e, t) => Se(t)),
+					new E("strtoupper", (e) => "__runtime.strtoupper(" + e + ")", (e, t) => Ce(t)),
+					new E("explode", (e, t, n = "null") => `__runtime.explode(${e}, ${t}, ${n})`, (e, t, n, r = null) => me(t, n, r)),
+					new E("strlen", function(e) {
 						return `__runtime.strlen(${e})`;
 					}, function(e, t) {
-						return be(t);
+						return xe(t);
 					}),
-					new D("strstr", function(e, t, n) {
+					new E("strstr", function(e, t, n) {
 						let r = "";
 						return n && (r = `, ${n}`), `__runtime.strstr(${e}, ${t}${r})`;
 					}, function(e, t, n, r) {
-						return we(t, n, r);
+						return Te(t, n, r);
 					}),
-					new D("stristr", function(e, t, n) {
+					new E("stristr", function(e, t, n) {
 						let r = "";
 						return n && (r = `, ${n}`), `__runtime.stristr(${e}, ${t}${r})`;
 					}, function(e, t, n, r) {
-						return Te(t, n, r);
+						return Ee(t, n, r);
 					}),
-					new D("substr", function(e, t, n) {
+					new E("substr", function(e, t, n) {
 						let r = "";
 						return n && (r = `, ${n}`), `__runtime.substr(${e}, ${t}${r})`;
 					}, function(e, t, n, r) {
-						return Ce(t, n, r);
+						return we(t, n, r);
 					})
 				];
 			}
-		}, e.SyntaxError = r, e.Token = a, e.TokenStream = i, e.default = ue, e.defaultCustomFunctions = Qe, e.tokenize = o, Object.defineProperty(e, "__esModule", { value: !0 });
+		}, e.SyntaxError = r, e.Token = a, e.TokenStream = i, e.default = de, e.defaultCustomFunctions = Qe, e.tokenize = o, Object.defineProperty(e, "__esModule", { value: !0 });
 	}), function(e) {
 		var t = e.ExpressionLanguage;
 		if (t && typeof t.ExpressionLanguage == "function") {
@@ -2961,30 +2961,30 @@ function y(e) {
 function b(e, t) {
 	return y(e).find((e) => e.id === t);
 }
-function x(e, t) {
+function ee(e, t) {
 	return y(e).find((e) => e.handle === t);
 }
-function ee(e, t) {
+function te(e, t) {
 	return Object.fromEntries(Object.entries(t).map(([t, n]) => [b(e, t)?.handle ?? t, n]));
 }
-function S(e) {
+function x(e) {
 	return v.has(e);
 }
-function C(e) {
+function S(e) {
 	if (!e.client?.children) throw Error(`Field "${e.handle}" is missing client-rendered value metadata. Update Formie and its packages together.`);
 	return {
 		structure: e.client.children.model,
 		valueType: e.client.valueType
 	};
 }
-function w(e) {
-	return C(e).structure;
+function C(e) {
+	return S(e).structure;
 }
-function T(e) {
-	let t = w(e);
+function w(e) {
+	let t = C(e);
 	return (t === "fixed-parent" || t === "container-parent") && R(e).length > 0;
 }
-var te = {
+var ne = {
 	text: "single-line-text",
 	textarea: "multi-line-text",
 	boolean: "agree",
@@ -2994,7 +2994,7 @@ var te = {
 	"checkbox-group": "checkboxes",
 	signature: "signature",
 	table: "table"
-}, ne = {
+}, re = {
 	likert: "survey-likert",
 	rank: "survey-rank",
 	rating: "survey-rating",
@@ -3004,24 +3004,24 @@ var te = {
 	singleLineText: "single-line-text",
 	multiLineText: "multi-line-text"
 };
-function re(e) {
-	if (S(e.type) || e.type === "table" || e.type === "section") return e.type;
-	let t = typeof e.input.fieldKind == "string" ? e.input.fieldKind : null;
-	return e.type === "survey" ? ne[typeof e.input.displayType == "string" ? e.input.displayType : ""] ?? (t === "radio-group" ? "radio" : t === "checkbox-group" ? "checkboxes" : e.type) : t && te[t] || e.type;
-}
 function ie(e) {
+	if (x(e.type) || e.type === "table" || e.type === "section") return e.type;
+	let t = typeof e.input.fieldKind == "string" ? e.input.fieldKind : null;
+	return e.type === "survey" ? re[typeof e.input.displayType == "string" ? e.input.displayType : ""] ?? (t === "radio-group" ? "radio" : t === "checkbox-group" ? "checkboxes" : e.type) : t && ne[t] || e.type;
+}
+function ae(e) {
 	return e.type === "calculations";
 }
-function ae(e, t) {
+function oe(e, t) {
 	if (e.type !== "summary") return null;
 	let n = t?.summaryTokens?.[e.uid];
 	return `<div data-formie-summary-container${typeof n == "string" && n ? ` data-formie-summary-token="${n.replace(/[&"<>]/g, (e) => `&#${e.charCodeAt(0)};`)}"` : ""}><div data-formie-summary-blocks></div></div>`;
 }
-function oe(e, t) {
+function se(e, t) {
 	let [n, ...r] = t.split(".");
 	return [b(e, n)?.handle ?? n, ...r].join(".");
 }
-var se = {
+var ce = {
 	"address-auto-complete": "data-formie-address-autocomplete-input",
 	address1: "data-formie-address-line1-input",
 	address2: "data-formie-address-line2-input",
@@ -3031,13 +3031,13 @@ var se = {
 	"address-zip": "data-formie-address-zip-input",
 	"address-country": "data-formie-address-country-input"
 };
-function ce(e) {
-	return se[e.type] ?? null;
+function le(e) {
+	return ce[e.type] ?? null;
 }
-function E(e) {
+function T(e) {
 	return e.type === "address-auto-complete";
 }
-function le(e, t) {
+function ue(e, t) {
 	let n = (e) => e.replace(/[&"<>]/g, (e) => `&#${e.charCodeAt(0)};`), r = typeof e.input.defaultValue == "string" ? e.input.defaultValue : "";
 	return `<input ${Object.entries({
 		type: "search",
@@ -3049,19 +3049,19 @@ function le(e, t) {
 		"data-formie-address-autocomplete-input": !0
 	}).filter(([, e]) => e != null && e !== !1).map(([e, t]) => t === !0 ? e : `${e}="${n(String(t))}"`).join(" ")}>${typeof e.input.currentLocationLabel == "string" && e.input.currentLocationLabel ? `<button type="button" data-formie-address-location>${n(e.input.currentLocationLabel)}</button>` : ""}`;
 }
-function D(e, t) {
+function E(e, t) {
 	return Object.fromEntries(R(t).flatMap((t) => {
-		let n = ce(t), r = n ? e.querySelector(`[${n}]`) : null;
+		let n = le(t), r = n ? e.querySelector(`[${n}]`) : null;
 		return r instanceof HTMLInputElement || r instanceof HTMLSelectElement ? [[t.handle, r.value]] : [];
 	}));
 }
-function ue(e) {
+function de(e) {
 	return e.type === "address";
 }
-function de(e) {
+function fe(e) {
 	return F(e) && e.input.displayType === "uploadManager" && typeof e.input.html == "string" ? e.input.html : null;
 }
-function fe(e) {
+function pe(e) {
 	let t = /* @__PURE__ */ new Map();
 	return e.querySelectorAll("input[type=\"hidden\"][name]").forEach((e) => {
 		let n = e.name.match(/\[(\d+)\]\[(uploadUid|attachToken|assetId)\]$/);
@@ -3074,40 +3074,40 @@ function fe(e) {
 		attachToken: e.attachToken
 	}] : e.assetId && /^\d+$/.test(e.assetId) ? [{ assetId: Number(e.assetId) }] : []);
 }
-function pe(e) {
+function me(e) {
 	return e.type === "payment" && typeof e.input.html == "string" ? e.input.html : null;
 }
-function me(e) {
+function he(e) {
 	let t = e.input.toggleCheckbox, n = typeof e.input.toggleCheckboxLabel == "string" ? e.input.toggleCheckboxLabel : "";
 	return (t === "top" || t === "bottom") && n ? {
 		position: t,
 		label: n
 	} : null;
 }
-function he(e, t) {
-	let n = je(e).filter((e) => !e.disabled);
+function ge(e, t) {
+	let n = O(e).filter((e) => !e.disabled);
 	return n.length > 0 && n.every((e) => t.includes(e.value));
 }
-function ge(e, t, n) {
-	return je(e).filter((e) => e.disabled ? t.includes(e.value) : n).map((e) => e.value);
-}
-function _e(e) {
-	return e.input.useRichText === !0;
-}
-function O(e) {
-	return e.type === "date" && e.input.displayType === "datePicker" && e.input.collectMode !== "range";
+function _e(e, t, n) {
+	return O(e).filter((e) => e.disabled ? t.includes(e.value) : n).map((e) => e.value);
 }
 function ve(e) {
+	return e.input.useRichText === !0;
+}
+function D(e) {
+	return e.type === "date" && e.input.displayType === "datePicker" && e.input.collectMode !== "range";
+}
+function ye(e) {
 	let t = e && typeof e == "object" ? e : {};
 	return typeof t.datetime == "string" ? t.datetime : [typeof t.date == "string" ? t.date : "", typeof t.time == "string" ? t.time : ""].filter(Boolean).join(" ");
 }
-function ye(e) {
+function be(e) {
 	return { datetime: e.trim() };
 }
-function be(e) {
+function xe(e) {
 	return e.type === "date" && e.input.displayType === "datePicker" && e.input.collectMode === "range";
 }
-function xe(e, t) {
+function Se(e, t) {
 	let n = (e) => e.replace(/[&"<>]/g, (e) => `&#${e.charCodeAt(0)};`), r = e.input.defaultValue && typeof e.input.defaultValue == "object" ? e.input.defaultValue : {}, i = (e) => {
 		let t = r[`${e}Datetime`];
 		return typeof t == "string" ? t : [r[`${e}Date`], r[`${e}Time`]].filter((e) => typeof e == "string" && e !== "").join(" ");
@@ -3119,7 +3119,7 @@ function xe(e, t) {
 	}).filter(([, e]) => e != null && e !== !1).map(([e, t]) => t === !0 ? e : `${e}="${n(String(t))}"`).join(" ");
 	return `<input type="hidden" value="${n(i("start"))}" data-formie-date-range-start-input><input type="hidden" value="${n(i("end"))}" data-formie-date-range-end-input><input ${a}>`;
 }
-function Se(e) {
+function Ce(e) {
 	let t = (t) => {
 		let n = e.querySelector(t);
 		return n instanceof HTMLInputElement ? n.value.trim() : "";
@@ -3129,8 +3129,8 @@ function Se(e) {
 		endDatetime: t("[data-formie-date-range-end-input]")
 	};
 }
-function Ce(e) {
-	let t = ve(e).match(/^(\d{4})-(\d{2})-(\d{2})(?: (\d{2}):(\d{2})(?::(\d{2}))?)?$/);
+function we(e) {
+	let t = ye(e).match(/^(\d{4})-(\d{2})-(\d{2})(?: (\d{2}):(\d{2})(?::(\d{2}))?)?$/);
 	if (!t) return {};
 	let [, n, r, i, a, o, s] = t;
 	return Object.fromEntries(Object.entries({
@@ -3142,23 +3142,23 @@ function Ce(e) {
 		second: s
 	}).filter(([, e]) => e !== void 0));
 }
-function we(e) {
+function Te(e) {
 	return (Array.isArray(e.input.likertRows) ? e.input.likertRows : []).filter((e) => !!e && typeof e == "object").map((e) => ({
 		label: String(e.label ?? ""),
 		value: String(e.value ?? "")
 	}));
 }
-function Te(e, t) {
-	let n = je(e).map((e) => e.value), r = (Array.isArray(t) ? t.map((e) => String(e)) : []).filter((e) => n.includes(e));
+function Ee(e, t) {
+	let n = O(e).map((e) => e.value), r = (Array.isArray(t) ? t.map((e) => String(e)) : []).filter((e) => n.includes(e));
 	return [...new Set(r), ...n.filter((e) => !r.includes(e))];
 }
-function Ee(e, t, n) {
+function De(e, t, n) {
 	if (t === n || t < 0 || n < 0 || t >= e.length || n >= e.length) return e;
 	let r = e.slice(), [i] = r.splice(t, 1);
 	return r.splice(n, 0, i), r;
 }
-var De = "formie:field:phone-country:change";
-function Oe(e) {
+var Oe = "formie:field:phone-country:change";
+function ke(e) {
 	if (typeof e == "string" || typeof e == "number") return {
 		number: String(e),
 		country: null
@@ -3169,17 +3169,17 @@ function Oe(e) {
 		country: n
 	};
 }
-function ke(e) {
+function Ae(e) {
 	return e.type === "phone" && e.input.countryEnabled === !0;
 }
-function Ae(e, t) {
+function je(e, t) {
 	let n = e?.querySelector("input[data-formie-phone-input]"), r = e?.querySelector("input[data-formie-phone-country-input]");
 	return {
 		number: n instanceof HTMLInputElement ? n.value : t.number,
 		country: r instanceof HTMLInputElement ? r.value || null : t.country
 	};
 }
-function je(e) {
+function O(e) {
 	return (Array.isArray(e.input.options) ? e.input.options : []).filter((e) => !!e && typeof e == "object" && !e.optgroup).map((e) => {
 		let t = String(e.value ?? "");
 		return {
@@ -3193,7 +3193,7 @@ function k(e) {
 	return e.input.multiple === !0 || e.client?.valueType?.kind === "relationQuery";
 }
 function Me(e) {
-	let t = je(e), n = typeof e.input.placeholder == "string" ? e.input.placeholder : "";
+	let t = O(e), n = typeof e.input.placeholder == "string" ? e.input.placeholder : "";
 	return e.input.multiple === !0 || !n || t.some((e) => e.value === "") ? t : [{
 		label: n,
 		value: "",
@@ -3204,7 +3204,7 @@ function Ne(e) {
 	return e.input.useSearchable === !0;
 }
 function A(e, t) {
-	let n = (e) => e.replace(/[&"<>]/g, (e) => `&#${e.charCodeAt(0)};`), r = e.input.multiple === !0, i = e.input.defaultValue, a = (Array.isArray(i) ? i : i == null || i === "" ? [] : [i]).map((e) => String(e)), o = r ? je(e) : Me(e);
+	let n = (e) => e.replace(/[&"<>]/g, (e) => `&#${e.charCodeAt(0)};`), r = e.input.multiple === !0, i = e.input.defaultValue, a = (Array.isArray(i) ? i : i == null || i === "" ? [] : [i]).map((e) => String(e)), o = r ? O(e) : Me(e);
 	return `<select ${Object.entries({
 		...t,
 		"data-formie-combobox-input": !0,
@@ -3238,13 +3238,13 @@ function N(e) {
 	return Object.fromEntries(M(e).filter((e) => e.type !== "heading").map((e) => e.type === "checkbox" ? [e.handle, !1] : (e.type === "select" || e.type === "dropdown") && e.options.length > 0 ? [e.handle, e.options[0].value] : [e.handle, ""]));
 }
 function P(e) {
-	return w(e) === "repeatable-parent";
+	return C(e) === "repeatable-parent";
 }
 function F(e) {
 	return e.type === "file" || e.input.fieldKind === "file";
 }
 function I(e) {
-	let t = re(e);
+	let t = ie(e);
 	return F(e) || t === "checkboxes" || t === "dropdown" && k(e) || t === "radio" && k(e);
 }
 function Pe(e) {
@@ -3279,7 +3279,7 @@ function B(e) {
 	let t = e.input, n = Le(e);
 	if (n !== null) return n;
 	if (e.type === "checkboxes") return (Array.isArray(t.options) ? t.options : []).filter((e) => e.selected === !0).map((e) => e.value ?? "");
-	let r = re(e);
+	let r = ie(e);
 	if (r === "radio" || r === "dropdown") {
 		let n = Array.isArray(t.options) ? t.options : [];
 		if (r === "dropdown" && t.multiple === !0) return n.filter((e) => e.selected === !0).map((e) => e.value ?? "");
@@ -3295,7 +3295,7 @@ function B(e) {
 		}
 	}
 	if (e.type === "agree") return t.defaultValue ?? !1;
-	if (T(e)) {
+	if (w(e)) {
 		let n = t.defaultValue && typeof t.defaultValue == "object" ? t.defaultValue : {};
 		return {
 			...Object.fromEntries(R(e).map((e) => [e.handle, B(e)])),
@@ -3362,7 +3362,7 @@ function G(e, t) {
 			return r.flatMap((e) => G(e, t[e.handle]));
 		});
 	}
-	return T(e) && t && typeof t == "object" ? Object.values(t).flatMap((t) => G(e, t)) : t == null ? [] : typeof t == "boolean" ? t ? ["true"] : ["false"] : Array.isArray(t) ? t.flatMap((t) => G(e, t)) : [String(t)];
+	return w(e) && t && typeof t == "object" ? Object.values(t).flatMap((t) => G(e, t)) : t == null ? [] : typeof t == "boolean" ? t ? ["true"] : ["false"] : Array.isArray(t) ? t.flatMap((t) => G(e, t)) : [String(t)];
 }
 function Re(e) {
 	return typeof Blob < "u" && e instanceof Blob;
@@ -3398,7 +3398,7 @@ async function Be(e, t) {
 	return n.length === 0 || !Array.isArray(t) ? [] : Promise.all(t.map(async (e) => ze(n, e)));
 }
 async function q(e, t) {
-	return F(e) ? K(t) : P(e) ? Be(e, t) : T(e) ? ze(R(e), t) : t;
+	return F(e) ? K(t) : P(e) ? Be(e, t) : w(e) ? ze(R(e), t) : t;
 }
 async function J(e, t) {
 	let n = await Promise.all(Object.entries(t).map(async ([t, n]) => {
@@ -3473,18 +3473,18 @@ function Ge(e, t, n) {
 }
 function Ke(e, t) {
 	return y(e.definition).flatMap((e) => {
-		if (ie(e)) return [{
+		if (ae(e)) return [{
 			field: e,
 			key: e.id,
 			path: [e.id]
 		}];
-		if (T(e)) return R(e).filter(ie).map((t) => ({
+		if (w(e)) return R(e).filter(ae).map((t) => ({
 			field: t,
 			key: `${e.id}.${t.handle}`,
 			path: [e.id, t.handle]
 		}));
 		if (P(e)) {
-			let n = Array.isArray(t[e.id]) ? t[e.id] : [], r = z(e).filter(ie);
+			let n = Array.isArray(t[e.id]) ? t[e.id] : [], r = z(e).filter(ae);
 			return n.flatMap((t, n) => r.map((t) => ({
 				field: t,
 				key: `${e.id}.${n}.${t.handle}`,
@@ -3885,7 +3885,7 @@ function mt(e, t, n) {
 			diagnostics: [{ code: "serverOnlyReference" }]
 		};
 		let a = ft(t, i);
-		O(i.field) && (a = Ce(a));
+		D(i.field) && (a = we(a));
 		let o = (e.source?.selector ?? "").split(/[.:]/).filter(Boolean), s = { ...e.source?.transformerParams ?? {} }, c = (e, t) => t.reduce((e, t) => e && typeof e == "object" && Object.prototype.hasOwnProperty.call(e, t) ? e[t] : void 0, e);
 		if (P(i.field) && (o.length || s.scope)) {
 			/^[0-9]+$/.test(o[0] ?? "") && !s.scope && (s.scope = "index", s.index = o.shift());
@@ -3970,8 +3970,148 @@ function gt(e) {
 	return n.pageStates[n.currentPageId]?.hidden && (n.currentPageId = n.definition.pages.find((e) => !n.pageStates[e.id]?.hidden)?.id ?? n.currentPageId), n;
 }
 //#endregion
+//#region src/request-profile.ts
+var _t = /* @__PURE__ */ new Map();
+async function vt(e, t, n = {}) {
+	let r = n.profile ?? "same-origin-browser", i = yt(e, n, t.headers), a = await fetch(e, {
+		...t,
+		headers: i,
+		credentials: r === "cross-origin-public" ? "omit" : "same-origin"
+	}), o = new URL(e, typeof location > "u" ? "http://localhost" : location.href).origin, s = a.headers.get("X-Formie-Session");
+	return r === "cross-origin-public" && s && _t.set(o, s), a;
+}
+function yt(e, t = {}, n) {
+	let r = t.profile ?? "same-origin-browser";
+	if (!["same-origin-browser", "cross-origin-public"].includes(r)) throw Error("Client-rendered forms require a public browser profile. Use administrative API mutations for trusted administration.");
+	let i = new Headers(n);
+	i.set("X-Formie-Profile", r);
+	let a = new URL(e, typeof location > "u" ? "http://localhost" : location.href).origin;
+	if (r === "cross-origin-public") {
+		let e = t.publicSession ?? _t.get(a);
+		e && i.set("X-Formie-Session", e);
+	}
+	return i;
+}
+//#endregion
+//#region src/address-state.ts
+var bt = /* @__PURE__ */ new Map(), xt = /* @__PURE__ */ new Map();
+function St(e) {
+	return e.type === "address-state" && e.input.inputMode === "dropdownWhenAvailable" && typeof e.input.subdivisionsUrl == "string";
+}
+function Ct(e, t) {
+	return [
+		e.input.subdivisionsUrl,
+		t,
+		e.input.optionLabel,
+		e.input.optionValue
+	].join("|");
+}
+function wt(e, t) {
+	return bt.get(Ct(e, t));
+}
+function Tt(e, t, n = {}) {
+	let r = Ct(e, t);
+	if (bt.has(r)) return Promise.resolve(bt.get(r) ?? null);
+	let i = xt.get(r);
+	if (!i) {
+		let a = new URL(String(e.input.subdivisionsUrl), typeof location > "u" ? "http://localhost" : location.href);
+		a.searchParams.set("country", t), a.searchParams.set("optionLabel", e.input.optionLabel === "short" ? "short" : "name"), a.searchParams.set("optionValue", e.input.optionValue === "short" ? "short" : "name"), i = vt(a.toString(), { headers: { Accept: "application/json" } }, n).then(async (e) => {
+			if (!e.ok) return null;
+			let t = await e.json(), n = Array.isArray(t.subdivisions) ? t.subdivisions : [];
+			return {
+				label: typeof t.administrativeAreaLabel == "string" && t.administrativeAreaLabel ? t.administrativeAreaLabel : "",
+				used: t.administrativeAreaUsed !== !1,
+				options: n.filter((e) => !!e && typeof e.value == "string")
+			};
+		}).catch(() => null).then((e) => (bt.set(r, e), xt.delete(r), e)), xt.set(r, i);
+	}
+	return i;
+}
+function Et(e, t) {
+	let n = e.trim().toLowerCase();
+	return n ? t.find((e) => [
+		e.value,
+		e.name,
+		e.short,
+		e.label
+	].some((e) => (e ?? "").toLowerCase() === n))?.value ?? null : null;
+}
+function Dt(e, t, n) {
+	let r = typeof n == "string" ? n : "";
+	if (!St(e)) return {
+		field: e,
+		hidden: !1,
+		value: r,
+		loading: !1
+	};
+	let i = e.input.hideWhenUnused !== !1, a = typeof t == "string" ? t.trim() : "";
+	if (!a) return i ? {
+		field: e,
+		hidden: !0,
+		value: "",
+		loading: !1
+	} : {
+		field: {
+			...e,
+			meta: {
+				...e.meta,
+				disabled: !0
+			}
+		},
+		hidden: !1,
+		value: r,
+		loading: !1
+	};
+	let o = wt(e, a);
+	if (o === void 0) return {
+		field: e,
+		hidden: !1,
+		value: r,
+		loading: !0
+	};
+	if (o && !o.used && i) return {
+		field: e,
+		hidden: !0,
+		value: "",
+		loading: !1
+	};
+	let s = o?.label || e.label, c = o?.options ?? [];
+	if (c.length === 0) return {
+		field: {
+			...e,
+			label: s
+		},
+		hidden: !1,
+		value: r,
+		loading: !1
+	};
+	let l = Et(r, c) ?? "", u = typeof e.input.placeholder == "string" && e.input.placeholder ? e.input.placeholder : "";
+	return {
+		field: {
+			...e,
+			label: s,
+			input: {
+				...e.input,
+				fieldKind: "select",
+				placeholder: u,
+				options: [{
+					label: u,
+					value: ""
+				}, ...c.map((e) => ({
+					label: e.label,
+					value: e.value
+				}))],
+				defaultValue: l
+			}
+		},
+		hidden: !1,
+		value: l,
+		loading: !1
+	};
+}
+//#endregion
 //#region src/text.ts
-var _t = (() => {
+var Ot = (() => {
 	if (typeof Intl > "u") return null;
 	let e = Intl.Segmenter;
 	if (!e) return null;
@@ -3980,48 +4120,48 @@ var _t = (() => {
 	} catch {
 		return null;
 	}
-})(), vt = /[^\s\u0085]+/gu, yt = (() => {
+})(), kt = /[^\s\u0085]+/gu, At = (() => {
 	try {
 		return /* @__PURE__ */ RegExp("(?:\\p{Regional_Indicator}{2}|\\p{Extended_Pictographic}[\\p{Emoji_Modifier}\\p{M}\\u{E0020}-\\u{E007F}]*(?:\\u{200D}\\p{Extended_Pictographic}[\\p{Emoji_Modifier}\\p{M}\\u{E0020}-\\u{E007F}]*)*|[\\s\\S])\\p{M}*", "gu");
 	} catch {
 		return null;
 	}
 })();
-function bt(e) {
+function jt(e) {
 	return typeof DOMParser < "u" ? new DOMParser().parseFromString(e, "text/html").body.textContent || "" : e.replace(/<[^>]*>/g, "");
 }
-function xt(e) {
-	return bt(e);
+function Mt(e) {
+	return jt(e);
 }
-function St(e) {
-	return xt(e).replace(/[\s\u0085]+/g, " ").trim();
+function Nt(e) {
+	return Mt(e).replace(/[\s\u0085]+/g, " ").trim();
 }
-function Ct(e) {
-	return _t ? Array.from(_t.segment(e)).length : yt ? e.match(yt)?.length || 0 : Array.from(e).length;
+function Pt(e) {
+	return Ot ? Array.from(Ot.segment(e)).length : At ? e.match(At)?.length || 0 : Array.from(e).length;
 }
-function wt(e) {
-	return e.match(vt)?.length || 0;
+function Ft(e) {
+	return e.match(kt)?.length || 0;
 }
-function Tt(e) {
-	let t = xt(e), n = St(e);
+function It(e) {
+	let t = Mt(e), n = Nt(e);
 	return {
-		graphemeCount: Ct(t),
-		wordCount: wt(n)
+		graphemeCount: Pt(t),
+		wordCount: Ft(n)
 	};
 }
 //#endregion
 //#region src/validation.ts
-var Et = /* @__PURE__ */ new Map();
-function Dt(e, t) {
-	return Et.set(e, t), () => {
-		Et.get(e) === t && Et.delete(e);
+var Lt = /* @__PURE__ */ new Map();
+function Rt(e, t) {
+	return Lt.set(e, t), () => {
+		Lt.get(e) === t && Lt.delete(e);
 	};
 }
-function Ot(e) {
+function zt(e) {
 	return e == null || e === !1 || typeof e == "string" && e.trim() === "" || Array.isArray(e) && e.length === 0;
 }
-function kt(e, t, n = {}) {
-	let r = n.empty ?? Ot(e), i = n.label ?? "This field", a = (e, n) => t.messages?.[e] ?? t.message ?? n;
+function Bt(e, t, n = {}) {
+	let r = n.empty ?? zt(e), i = n.label ?? "This field", a = (e, n) => t.messages?.[e] ?? t.message ?? n;
 	if (t.type === "required") return r ? a("required", `${i} cannot be blank.`) : null;
 	if (r) return null;
 	if (t.type === "email") return typeof e == "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) ? null : a("email", `${i} is not a valid email address.`);
@@ -4048,19 +4188,19 @@ function kt(e, t, n = {}) {
 		return typeof t.min == "number" && [...n].length < t.min ? a("minCharacters", `${i} must be no less than ${t.min} characters.`) : t.uppercase === !0 && !/[A-Z]/.test(n) ? a("passwordUppercase", `${i} must contain at least one uppercase letter.`) : t.lowercase === !0 && !/[a-z]/.test(n) ? a("passwordLowercase", `${i} must contain at least one lowercase letter.`) : t.specialCharacter === !0 && !/[^a-zA-Z0-9]/.test(n) ? a("passwordSpecialCharacter", `${i} must contain at least one special character.`) : null;
 	}
 	if (t.type === "textLimit") {
-		let n = Tt(String(e)), r = (e) => e === "words" ? n.wordCount : n.graphemeCount, o = (e) => e === "words" ? "Words" : "Characters";
+		let n = It(String(e)), r = (e) => e === "words" ? n.wordCount : n.graphemeCount, o = (e) => e === "words" ? "Words" : "Characters";
 		return typeof t.min == "number" && t.min > 0 && r(t.minType) < t.min ? a(`min${o(t.minType)}`, `${i} must be no less than ${t.min} ${o(t.minType).toLowerCase()}.`) : typeof t.max == "number" && t.max > 0 && r(t.maxType) > t.max ? a(`max${o(t.maxType)}`, `${i} must be no greater than ${t.max} ${o(t.maxType).toLowerCase()}.`) : null;
 	}
 	if (t.type === "minmaxOptions" && Array.isArray(e)) {
 		if (t.min != null && e.length < t.min) return a("minOptions", `Please select at least ${t.min} options.`);
 		if (t.max != null && e.length > t.max) return a("maxOptions", `Please select no more than ${t.max} options.`);
 	}
-	return Et.get(t.type)?.(e, t, n) ?? null;
+	return Lt.get(t.type)?.(e, t, n) ?? null;
 }
 //#endregion
 //#region src/browser-modules.ts
-var At = 2;
-function jt(e) {
+var Vt = 2;
+function Ht(e) {
 	let t = e;
 	if (!t || t.contractVersion !== 2 || ![
 		"server-rendered",
@@ -4085,49 +4225,49 @@ function jt(e) {
 }
 //#endregion
 //#region src/contract.ts
-var Mt = 1;
-function Nt(e) {
+var Ut = 1;
+function Wt(e) {
 	let t = e;
 	if (!t || t.contractVersion !== 1) throw Error("Unsupported client-rendered contractVersion. Update Formie and the client-rendered packages together.");
 	if (!t.definition || !Array.isArray(t.definition.pages) || !t.session) throw Error("Invalid client-rendered bootstrap: definition, pages and session are required.");
-	jt(t.definition.modules);
+	Ht(t.definition.modules);
 }
 //#endregion
 //#region src/date-parts-validation.ts
 function Q(e) {
 	return e == null ? "" : String(e).trim();
 }
-function Pt(e) {
+function Gt(e) {
 	return R(e).filter((e) => e.meta?.hidden !== !0).map((e) => e.handle).filter((e) => [
 		"year",
 		"month",
 		"day"
 	].includes(e));
 }
-function Ft(e, t) {
-	let n = Pt(t);
+function Kt(e, t) {
+	let n = Gt(t);
 	return n.length !== 0 && n.every((t) => Q(e[t]) !== "");
 }
-function It(e, t, n) {
+function qt(e, t, n) {
 	if (!Number.isInteger(e) || !Number.isInteger(t) || !Number.isInteger(n)) return !1;
 	let r = new Date(e, t - 1, n);
 	return r.getFullYear() === e && r.getMonth() === t - 1 && r.getDate() === n;
 }
-function Lt(e) {
+function Jt(e) {
 	let t = Number.parseInt(Q(e.year), 10), n = Number.parseInt(Q(e.month), 10), r = Number.parseInt(Q(e.day), 10), i = Q(e.hour) === "" ? 0 : Number.parseInt(Q(e.hour), 10), a = Q(e.minute) === "" ? 0 : Number.parseInt(Q(e.minute), 10), o = Q(e.second) === "" ? 0 : Number.parseInt(Q(e.second), 10);
 	return new Date(t, n - 1, r, i, a, o);
 }
-function Rt(e, t, n, r) {
+function Yt(e, t, n, r) {
 	let i = e.validation.find((e) => e.type === "dateParts");
 	if (!i || e.input.dateEnabled === !1) return;
 	let a = t && typeof t == "object" ? t : {};
-	if (!Ft(a, e)) return;
-	if (!It(Number.parseInt(Q(a.year), 10), Number.parseInt(Q(a.month), 10), Number.parseInt(Q(a.day), 10))) {
+	if (!Kt(a, e)) return;
+	if (!qt(Number.parseInt(Q(a.year), 10), Number.parseInt(Q(a.month), 10), Number.parseInt(Q(a.day), 10))) {
 		let e = `${n}.day`;
 		r[e] || (r[e] = ["Day is invalid."]);
 		return;
 	}
-	let o = Lt(a);
+	let o = Jt(a);
 	if (i.minDate) {
 		let e = new Date(i.minDate);
 		if (Number.isFinite(e.getTime()) && o < e) {
@@ -4142,7 +4282,7 @@ function Rt(e, t, n, r) {
 }
 //#endregion
 //#region src/events.ts
-var zt = class {
+var Xt = class {
 	listeners = /* @__PURE__ */ new Map();
 	on(e, t) {
 		let n = this.listeners.get(e) ?? /* @__PURE__ */ new Set();
@@ -4159,10 +4299,10 @@ var zt = class {
 };
 //#endregion
 //#region src/form-instance.ts
-function Bt(e) {
-	return Array.isArray(e) ? e.map((e) => Bt(e)) : !e || typeof e != "object" || typeof File < "u" && e instanceof File || typeof Blob < "u" && e instanceof Blob ? e : Object.fromEntries(Object.entries(e).map(([e, t]) => [e, Bt(t)]));
+function Zt(e) {
+	return Array.isArray(e) ? e.map((e) => Zt(e)) : !e || typeof e != "object" || typeof File < "u" && e instanceof File || typeof Blob < "u" && e instanceof Blob ? e : Object.fromEntries(Object.entries(e).map(([e, t]) => [e, Zt(t)]));
 }
-function Vt(e) {
+function Qt(e) {
 	return {
 		...e,
 		session: {
@@ -4170,7 +4310,7 @@ function Vt(e) {
 			tokens: { ...e.session.tokens },
 			continuation: e.session.continuation ? { ...e.session.continuation } : null
 		},
-		values: Bt(e.values),
+		values: Zt(e.values),
 		errors: {
 			form: [...e.errors.form],
 			fields: Object.fromEntries(Object.entries(e.errors.fields).map(([e, t]) => [e, [...t]]))
@@ -4192,19 +4332,19 @@ function Vt(e) {
 		} : null
 	};
 }
-function Ht(e) {
+function $t(e) {
 	return Object.fromEntries(y(e.definition).map((e) => [e.id, B(e)]));
 }
-function Ut(e) {
+function en(e) {
 	return Object.fromEntries(y(e).map((e) => [e.id, {
 		hidden: e.meta?.hidden === !0,
 		disabled: e.meta?.disabled === !0
 	}]));
 }
-function Wt(e) {
+function tn(e) {
 	return Object.fromEntries(e.pages.map((e) => [e.id, { hidden: !1 }]));
 }
-function Gt(e, t) {
+function nn(e, t) {
 	let n = e.definition.pages.find((e) => e.id === t);
 	if (!n) return [];
 	let r = [];
@@ -4217,74 +4357,74 @@ function Gt(e, t) {
 function $(e) {
 	return Xe(gt(Xe(e)));
 }
-function Kt(e, t) {
+function rn(e, t) {
 	if (e.type === "checkboxes") return !Array.isArray(t) || t.length === 0;
 	if (Pe(e)) return t !== !0;
-	if (e.type === "survey" && we(e).length > 0) {
+	if (e.type === "survey" && Te(e).length > 0) {
 		let n = t && typeof t == "object" ? t : {};
-		return we(e).some((e) => n[e.value] == null || n[e.value] === "");
+		return Te(e).some((e) => n[e.value] == null || n[e.value] === "");
 	}
-	if (e.type === "phone") return Oe(t).number.trim() === "";
+	if (e.type === "phone") return ke(t).number.trim() === "";
 	if (F(e) || P(e) || I(e)) return !Array.isArray(t) || t.length === 0;
-	if (O(e)) {
+	if (D(e)) {
 		let e = t && typeof t == "object" ? t.datetime : null;
 		return typeof e != "string" || e.trim() === "";
 	}
-	if (be(e)) {
+	if (xe(e)) {
 		let e = t && typeof t == "object" ? t : {};
 		return [e.startDatetime, e.endDatetime].some((e) => typeof e != "string" || e.trim() === "");
 	}
-	return T(e) && t && typeof t == "object" ? Object.values(t).every((e) => e == null || e === !1 || Array.isArray(e) && e.length === 0 || typeof e == "string" && e.trim() === "") : t == null || typeof t == "string" && t.trim() === "";
+	return w(e) && t && typeof t == "object" ? Object.values(t).every((e) => e == null || e === !1 || Array.isArray(e) && e.length === 0 || typeof e == "string" && e.trim() === "") : t == null || typeof t == "string" && t.trim() === "";
 }
-function qt(e) {
+function an(e) {
 	return e.label?.trim() || e.handle;
 }
-function Jt(e, t, n, r, i) {
+function on(e, t, n, r, i) {
 	if (n.fieldStates[r]?.hidden || n.fieldStates[r]?.disabled) return;
 	let a = e.validation.slice();
 	e.required && !a.some((e) => e.type === "required") && a.unshift({ type: "required" });
 	for (let o of a) {
-		let a = (o.fieldId ? b(n.definition, o.fieldId) : void 0) || (o.fieldHandle ? x(n.definition, o.fieldHandle) : void 0), s = kt(t, o, {
-			label: qt(e),
-			empty: Kt(e, t),
+		let a = (o.fieldId ? b(n.definition, o.fieldId) : void 0) || (o.fieldHandle ? ee(n.definition, o.fieldHandle) : void 0), s = Bt(t, o, {
+			label: an(e),
+			empty: rn(e, t),
 			comparison: a ? n.values[a.id] : void 0,
-			comparisonLabel: a ? qt(a) : void 0
+			comparisonLabel: a ? an(a) : void 0
 		});
 		if (s) {
 			i[r] = [s];
 			return;
 		}
 	}
-	if (!(O(e) || be(e))) {
-		if (T(e)) {
+	if (!(D(e) || xe(e))) {
+		if (w(e)) {
 			let a = R(e), o = t && typeof t == "object" ? t : {};
 			a.forEach((e) => {
-				e.meta?.hidden !== !0 && Jt(e, o[e.handle], n, `${r}.${e.handle}`, i);
-			}), Rt(e, o, r, i);
+				e.meta?.hidden !== !0 && (Dt(e, o.country, o[e.handle]).hidden || on(e, o[e.handle], n, `${r}.${e.handle}`, i));
+			}), Yt(e, o, r, i);
 		} else if (P(e)) {
 			let a = Array.isArray(t) ? t : [], o = z(e);
 			a.forEach((e, t) => {
 				let a = e && typeof e == "object" ? e : {};
 				o.forEach((e) => {
-					Jt(e, a[e.handle], n, `${r}.${t}.${e.handle}`, i);
+					on(e, a[e.handle], n, `${r}.${t}.${e.handle}`, i);
 				});
 			});
 		}
 	}
 }
-function Yt(e) {
+function sn(e) {
 	let t = {
 		form: [],
 		fields: {}
 	};
-	return Gt(e, e.currentPageId).forEach((n) => {
+	return nn(e, e.currentPageId).forEach((n) => {
 		let r = b(e.definition, n);
-		r && e.fieldStates[n]?.hidden !== !0 && e.fieldStates[n]?.disabled !== !0 && Jt(r, e.values[n], e, n, t.fields);
+		r && e.fieldStates[n]?.hidden !== !0 && e.fieldStates[n]?.disabled !== !0 && on(r, e.values[n], e, n, t.fields);
 	}), Object.keys(t.fields).length > 0 && (t.form = [e.definition.settings.validation.formErrorMessage || "Please correct the highlighted fields."]), t;
 }
-function Xt({ envelope: e, transport: t }) {
-	Nt(e);
-	let n = new zt(), r = /* @__PURE__ */ new Set(), i = Ht(e), a = 0, o = {
+function cn({ envelope: e, transport: t }) {
+	Wt(e);
+	let n = new Xt(), r = /* @__PURE__ */ new Set(), i = $t(e), a = 0, o = {
 		status: "ready",
 		definition: e.definition,
 		session: e.session,
@@ -4293,15 +4433,15 @@ function Xt({ envelope: e, transport: t }) {
 			form: [],
 			fields: {}
 		},
-		fieldStates: Ut(e.definition),
-		pageStates: Wt(e.definition),
+		fieldStates: en(e.definition),
+		pageStates: tn(e.definition),
 		currentPageId: e.session.currentPageId || e.definition.settings.initialPageId,
 		lastSubmitResult: null
 	};
 	o = $(o);
 	let s = () => {
 		if (o.status === "destroyed") return;
-		let e = Vt(o);
+		let e = Qt(o);
 		r.forEach((t) => {
 			t(e);
 		});
@@ -4322,10 +4462,10 @@ function Xt({ envelope: e, transport: t }) {
 		},
 		id: e.session.id,
 		getState() {
-			return Vt(o);
+			return Qt(o);
 		},
 		subscribe(e) {
-			return r.add(e), e(Vt(o)), () => {
+			return r.add(e), e(Qt(o)), () => {
 				r.delete(e);
 			};
 		},
@@ -4377,7 +4517,7 @@ function Xt({ envelope: e, transport: t }) {
 			};
 			let r = o.definition.pages.find((e) => e.id === o.currentPageId), i = e || r?.actions.primary.type || "submit", s = i === "next" ? "submit" : i;
 			if (s !== "back" && s !== "save" && o.definition.settings.validation.onSubmit) {
-				let e = Yt(o);
+				let e = sn(o);
 				if (e.form.length > 0 || Object.keys(e.fields).length > 0) {
 					let t = {
 						success: !1,
@@ -4533,7 +4673,7 @@ function Xt({ envelope: e, transport: t }) {
 				...t,
 				status: "ready",
 				session: e.session,
-				values: Bt(i),
+				values: Zt(i),
 				errors: {
 					form: [],
 					fields: {}
@@ -4558,7 +4698,7 @@ function Xt({ envelope: e, transport: t }) {
 }
 //#endregion
 //#region src/event-names.ts
-var Zt = [
+var ln = [
 	"formie:client:ready",
 	"formie:submit:result",
 	"formie:page:navigate",
@@ -4566,31 +4706,8 @@ var Zt = [
 	"formie:session:refreshed",
 	"formie:session:refresh:error",
 	"formie:state:reset"
-], Qt = /* @__PURE__ */ new Map();
-async function $t(e, t, n = {}) {
-	let r = n.profile ?? "same-origin-browser", i = en(e, n, t.headers), a = await fetch(e, {
-		...t,
-		headers: i,
-		credentials: r === "cross-origin-public" ? "omit" : "same-origin"
-	}), o = new URL(e, typeof location > "u" ? "http://localhost" : location.href).origin, s = a.headers.get("X-Formie-Session");
-	return r === "cross-origin-public" && s && Qt.set(o, s), a;
-}
-function en(e, t = {}, n) {
-	let r = t.profile ?? "same-origin-browser";
-	if (!["same-origin-browser", "cross-origin-public"].includes(r)) throw Error("Client-rendered forms require a public browser profile. Use administrative API mutations for trusted administration.");
-	let i = new Headers(n);
-	i.set("X-Formie-Profile", r);
-	let a = new URL(e, typeof location > "u" ? "http://localhost" : location.href).origin;
-	if (r === "cross-origin-public") {
-		let e = t.publicSession ?? Qt.get(a);
-		e && i.set("X-Formie-Session", e);
-	}
-	return i;
-}
-//#endregion
-//#region src/uploads.ts
-var tn = /* @__PURE__ */ new WeakMap();
-async function nn(e, t, n, r) {
+], un = /* @__PURE__ */ new WeakMap();
+async function dn(e, t, n, r) {
 	let i = async (n, a) => {
 		if (typeof Blob < "u" && n instanceof Blob) {
 			let i = JSON.stringify([
@@ -4598,14 +4715,14 @@ async function nn(e, t, n, r) {
 				t.tokens.render,
 				t.continuation?.draftContextToken,
 				a
-			]), o = tn.get(n) ?? /* @__PURE__ */ new Map();
-			if (tn.set(n, o), o.has(i)) return o.get(i);
+			]), o = un.get(n) ?? /* @__PURE__ */ new Map();
+			if (un.set(n, o), o.has(i)) return o.get(i);
 			let s = (async () => {
 				let i = new FormData();
 				i.set("file", n, n instanceof File ? n.name : "upload"), i.set("handle", e.handle), e.siteId && i.set("siteId", String(e.siteId)), i.set("fieldHandle", a.replace(/\.\d+$/, "")), i.set("renderId", t.tokens.render ?? ""), i.set("draftContext", String(t.continuation?.draftContext ?? "")), i.set("draftContextToken", String(t.continuation?.draftContextToken ?? "")), i.set("uploadCreateToken", t.tokens.uploadCreate ?? ""), t.continuation?.submissionId && i.set("submissionId", String(t.continuation.submissionId)), t.tokens.csrf && i.set(t.tokens.csrf.name, t.tokens.csrf.value);
 				let o = e.submission.uploadEndpoint;
 				if (!o) throw Error("The form bootstrap does not provide a staged upload endpoint.");
-				let s = await $t(o, {
+				let s = await vt(o, {
 					method: "POST",
 					headers: { Accept: "application/json" },
 					body: i
@@ -4629,7 +4746,7 @@ async function nn(e, t, n, r) {
 }
 //#endregion
 //#region src/grants.ts
-function rn(e) {
+function fn(e) {
 	if (!e || typeof window > "u") return;
 	let t = new URL(window.location.href), n = !1;
 	for (let r of [
@@ -4641,7 +4758,7 @@ function rn(e) {
 }
 //#endregion
 //#region src/rest.ts
-function an(e, t) {
+function pn(e, t) {
 	if (t.startsWith("http://") || t.startsWith("https://")) return t;
 	let n = t.startsWith("/") ? t : `/${t}`;
 	if (e.startsWith("http://") || e.startsWith("https://")) {
@@ -4651,8 +4768,8 @@ function an(e, t) {
 	let r = e.trim();
 	return !r || r === "/" ? n : `${r.replace(/\/+$/, "")}${n}`;
 }
-async function on(e, t, n) {
-	let r = await $t(e, t, n), i = await r.json();
+async function mn(e, t, n) {
+	let r = await vt(e, t, n), i = await r.json();
 	if (!r.ok && !(typeof i.outcome == "string" && [
 		403,
 		409,
@@ -4661,34 +4778,34 @@ async function on(e, t, n) {
 	].includes(r.status))) throw Error(`Request failed with status ${r.status}.`);
 	return i;
 }
-function sn(e, t) {
+function hn(e, t) {
 	let n = t?.tokens?.csrf;
 	n?.name && n.value && (e[n.name] = n.value);
 }
-async function cn(e) {
-	let t = an(e.endpoint, "/actions/formie/client/forms/load"), n = JSON.stringify({
+async function gn(e) {
+	let t = pn(e.endpoint, "/actions/formie/client/forms/load"), n = JSON.stringify({
 		handle: e.formHandle,
 		siteId: e.siteId,
 		grantToken: e.grantToken,
 		grantPurpose: e.grantPurpose,
 		draftContext: e.draftContext,
 		query: e.query
-	}), r = await on(t, {
+	}), r = await mn(t, {
 		method: "POST",
 		credentials: e.credentials ?? "same-origin",
 		headers: { "Content-Type": "application/json" },
 		body: n
 	}, e);
-	return Nt(r), rn(e.grantToken), r;
+	return Wt(r), fn(e.grantToken), r;
 }
-function ln(e) {
+function _n(e) {
 	return {
 		browserRequestOptions: {
 			profile: e.profile ?? "same-origin-browser",
 			publicSession: e.publicSession
 		},
 		async submit({ definition: t, session: n, values: r, action: i, browserData: a }) {
-			let o = an(e.endpoint, "/actions/formie/client/submissions/submit"), s = await J(t, await nn(t, n, r, e)), c = {
+			let o = pn(e.endpoint, "/actions/formie/client/submissions/submit"), s = await J(t, await dn(t, n, r, e)), c = {
 				handle: e.formHandle,
 				siteId: e.siteId,
 				action: i,
@@ -4696,7 +4813,7 @@ function ln(e) {
 				session: n,
 				values: s
 			};
-			return sn(c, n), on(o, {
+			return hn(c, n), mn(o, {
 				method: "POST",
 				credentials: e.credentials ?? "same-origin",
 				headers: { "Content-Type": "application/json" },
@@ -4704,12 +4821,12 @@ function ln(e) {
 			}, e);
 		},
 		async refreshSession({ session: t }) {
-			let n = an(e.endpoint, "/actions/formie/client/sessions/refresh"), r = {
+			let n = pn(e.endpoint, "/actions/formie/client/sessions/refresh"), r = {
 				handle: e.formHandle,
 				siteId: e.siteId,
 				session: t
 			};
-			return sn(r, t), on(n, {
+			return hn(r, t), mn(n, {
 				method: "POST",
 				credentials: e.credentials ?? "same-origin",
 				headers: { "Content-Type": "application/json" },
@@ -4717,7 +4834,7 @@ function ln(e) {
 			}, e);
 		},
 		async setPage({ definition: t, session: n, values: r, currentPageId: i, targetPageId: a }) {
-			let o = an(e.endpoint, "/actions/formie/client/forms/page"), s = await J(t, await nn(t, n, r, e)), c = {
+			let o = pn(e.endpoint, "/actions/formie/client/forms/page"), s = await J(t, await dn(t, n, r, e)), c = {
 				handle: e.formHandle,
 				siteId: e.siteId,
 				currentPageId: i,
@@ -4725,7 +4842,7 @@ function ln(e) {
 				session: n,
 				values: s
 			};
-			return sn(c, n), on(o, {
+			return hn(c, n), mn(o, {
 				method: "POST",
 				credentials: e.credentials ?? "same-origin",
 				headers: { "Content-Type": "application/json" },
@@ -4736,7 +4853,7 @@ function ln(e) {
 }
 //#endregion
 //#region src/graphql.ts
-var un = "\n    id\n    version\n    currentPageId\n    tokens\n    continuation\n", dn = `
+var vn = "\n    id\n    version\n    currentPageId\n    tokens\n    continuation\n", yn = `
     success
     outcome
     version
@@ -4754,19 +4871,19 @@ var un = "\n    id\n    version\n    currentPageId\n    tokens\n    continuation
     payment
     summaryTokens
     session {
-        ${un}
+        ${vn}
     }
     quizResult
     completion
     redirect
 `;
-function fn(e) {
+function bn(e) {
 	if (e.startsWith("http://") || e.startsWith("https://")) return e;
 	let t = e.trim();
 	return !t || t === "/" ? "/api" : t;
 }
-async function pn(e, t, n) {
-	let r = await $t(fn(e.endpoint), {
+async function xn(e, t, n) {
+	let r = await vt(bn(e.endpoint), {
 		method: "POST",
 		credentials: e.credentials ?? "same-origin",
 		headers: {
@@ -4784,14 +4901,14 @@ async function pn(e, t, n) {
 	if (!i.data) throw Error("GraphQL returned no data.");
 	return i.data;
 }
-async function mn(e) {
-	let t = await pn(e, `
+async function Sn(e) {
+	let t = await xn(e, `
             query ClientForm($handle: String!, $siteId: Int, $grantToken: String, $grantPurpose: String, $draftContext: String, $query: Json) {
                 formieClientForm(handle: $handle, siteId: $siteId, grantToken: $grantToken, grantPurpose: $grantPurpose, draftContext: $draftContext, query: $query) {
                     contractVersion
                     definition
                     session {
-                        ${un}
+                        ${vn}
                     }
                 }
             }
@@ -4804,21 +4921,21 @@ async function mn(e) {
 		query: e.query
 	});
 	if (!t.formieClientForm) throw Error("No client form definition was returned.");
-	return Nt(t.formieClientForm), rn(e.grantToken), t.formieClientForm;
+	return Wt(t.formieClientForm), fn(e.grantToken), t.formieClientForm;
 }
-function hn(e) {
+function Cn(e) {
 	return {
 		browserRequestOptions: {
 			profile: e.profile ?? "same-origin-browser",
 			publicSession: e.publicSession
 		},
 		async submit({ definition: t, session: n, values: r, action: i, browserData: a }) {
-			let o = await J(t, await nn(t, n, r, e)), s = await pn(e, `
+			let o = await J(t, await dn(t, n, r, e)), s = await xn(e, `
                     mutation SubmitFormieClientForm(
                         $input: FormieClientSubmitInput!
                     ) {
                         submitFormieClientForm(input: $input) {
-                            ${dn}
+                            ${yn}
                         }
                     }
                 `, { input: {
@@ -4833,12 +4950,12 @@ function hn(e) {
 			return s.submitFormieClientForm;
 		},
 		async refreshSession({ session: t }) {
-			let n = await pn(e, `
+			let n = await xn(e, `
                     mutation RefreshFormieClientSession(
                         $input: FormieClientSessionRefreshInput!
                     ) {
                         refreshFormieClientSession(input: $input) {
-                            ${un}
+                            ${vn}
                         }
                     }
                 `, { input: {
@@ -4850,12 +4967,12 @@ function hn(e) {
 			return n.refreshFormieClientSession;
 		},
 		async setPage({ definition: t, session: n, values: r, currentPageId: i, targetPageId: a }) {
-			let o = await J(t, await nn(t, n, r, e)), s = await pn(e, `
+			let o = await J(t, await dn(t, n, r, e)), s = await xn(e, `
                     mutation SetFormieClientPage(
                         $input: FormieClientSetPageInput!
                     ) {
                         setFormieClientPage(input: $input) {
-                            success outcome httpStatus errors messages currentPageId nextPageId version session { ${un} }
+                            success outcome httpStatus errors messages currentPageId nextPageId version session { ${vn} }
                         }
                     }
                 `, { input: {
@@ -4873,7 +4990,7 @@ function hn(e) {
 }
 //#endregion
 //#region src/reorder.ts
-function gn(e, t, n) {
+function wn(e, t, n) {
 	let r = -1, i = 0, a = !1, o = -1, s = () => Array.from(e.querySelectorAll(t)).filter((t) => t.parentElement === e), c = (e) => {
 		let t = s(), n = t.findIndex((t) => {
 			let n = t.getBoundingClientRect();
@@ -4906,14 +5023,14 @@ function gn(e, t, n) {
 }
 //#endregion
 //#region src/accessibility.ts
-function _n(e) {
+function Tn(e) {
 	return e.settings.validation.errorAriaLive || "polite";
 }
-function vn(e, t) {
-	return `${Sn(e, t)}-errors`;
+function En(e, t) {
+	return `${An(e, t)}-errors`;
 }
-function yn(e, t) {
-	let n = Sn(e, t);
+function Dn(e, t) {
+	let n = An(e, t);
 	return {
 		input: `${n}-input`,
 		label: `${n}-label`,
@@ -4921,8 +5038,8 @@ function yn(e, t) {
 		errors: `${n}-errors`
 	};
 }
-function bn(e, t) {
-	return H(e) || t === "signature" || t === "section" || e.type === "payment" || e.type === "summary" ? "none" : O(e) || be(e) ? "control" : [
+function On(e, t) {
+	return H(e) || t === "signature" || t === "section" || e.type === "payment" || e.type === "summary" ? "none" : D(e) || xe(e) ? "control" : [
 		"radio",
 		"checkboxes",
 		"agree",
@@ -4930,16 +5047,16 @@ function bn(e, t) {
 		"survey-likert",
 		"survey-rank",
 		"survey-rating"
-	].includes(t) || T(e) || P(e) ? "group" : "control";
+	].includes(t) || w(e) || P(e) ? "group" : "control";
 }
-function xn(...e) {
+function kn(...e) {
 	let t = e.filter((e) => typeof e == "string" && e !== "");
 	return t.length > 0 ? t.join(" ") : void 0;
 }
-function Sn(e, t) {
+function An(e, t) {
 	return `formie-${e.tokens.render || e.id}-${t}`;
 }
-var Cn = {
+var jn = {
 	addRow: "Add another row",
 	remove: "Remove",
 	removeRow: "Remove row",
@@ -4955,13 +5072,13 @@ var Cn = {
 	textLimitWordsLeft: "{count, plural, one{word left} other{words left}}",
 	textLimitWordsOver: "{count, plural, one{word over limit} other{words over limit}}"
 };
-function wn(e, t) {
-	return e?.settings?.strings?.[t] || Cn[t];
+function Mn(e, t) {
+	return e?.settings?.strings?.[t] || jn[t];
 }
-function Tn(e) {
+function Nn(e) {
 	return e.input.labelPosition === "hidden";
 }
-var En = {
+var Pn = {
 	position: "absolute",
 	width: "1px",
 	height: "1px",
@@ -4971,13 +5088,13 @@ var En = {
 	clip: "rect(0, 0, 0, 0)",
 	whiteSpace: "nowrap",
 	border: "0"
-}, Dn = "position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0";
-function On(e, t) {
+}, Fn = "position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0";
+function In(e, t) {
 	if (!e) return;
 	let n = e.querySelector("[aria-invalid=\"true\"]"), r = e.querySelector("[data-formie-form-message]"), i = e.querySelector("[data-page-id]"), a = t != null && i?.getAttribute("data-page-id") !== t;
 	(n || r || (a && i ? i.hasAttribute("tabindex") ? i : i.querySelector("input:not([type=\"hidden\"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])") : null))?.focus();
 }
-function kn(e, t) {
+function Ln(e, t) {
 	let n = e.settings.progress, r = e.pages.length;
 	if (!n?.display || r < 2) return null;
 	let i = Math.max(0, e.pages.findIndex((e) => e.id === t)), a = n.calculation === "page-position" ? i + 1 : i;
@@ -4987,12 +5104,12 @@ function kn(e, t) {
 		valuePosition: n.valuePosition || "inside-center"
 	};
 }
-function An(e) {
+function Rn(e) {
 	return e.settings.displayCurrentPageTitle === !0;
 }
 //#endregion
 //#region src/text-limit.ts
-function jn(e) {
+function zn(e) {
 	let t = e.input.textLimit;
 	if (!t || typeof t != "object") return null;
 	let n = t, r = (e) => typeof e == "number" && e > 0 ? e : null;
@@ -5003,7 +5120,7 @@ function jn(e) {
 		maxType: n.maxType === "words" ? "words" : "characters"
 	};
 }
-function Mn(e, t, n) {
+function Bn(e, t, n) {
 	let r = "", i = 0;
 	for (; i < e.length;) {
 		let a = e[i] === "{" ? e.slice(i).match(/^\{\w+,\s*plural,\s*/) : null;
@@ -5032,19 +5149,19 @@ function Mn(e, t, n) {
 	}
 	return r;
 }
-function Nn(e, t, n) {
-	let r = jn(e);
+function Vn(e, t, n) {
+	let r = zn(e);
 	if (!r?.max) return null;
-	let i = typeof t == "string" ? t : "", a = r.maxType === "words", o = Tt(i), s = r.max - (a ? o.wordCount : o.graphemeCount), c = (a ? i.trim() === "" : i === "") ? "Allowed" : s < 0 ? "Over" : "Left", l = c === "Allowed" ? r.max : Math.abs(s), u = `textLimit${a ? "Words" : "Characters"}${c}`, d = n?.locale ?? void 0;
+	let i = typeof t == "string" ? t : "", a = r.maxType === "words", o = It(i), s = r.max - (a ? o.wordCount : o.graphemeCount), c = (a ? i.trim() === "" : i === "") ? "Allowed" : s < 0 ? "Over" : "Left", l = c === "Allowed" ? r.max : Math.abs(s), u = `textLimit${a ? "Words" : "Characters"}${c}`, d = n?.locale ?? void 0;
 	return {
 		count: l,
-		text: Mn(wn(n, u), l, d),
+		text: Bn(Mn(n, u), l, d),
 		over: c === "Over"
 	};
 }
 //#endregion
 //#region src/references.ts
-var Pn = { username: "user:name" };
+var Hn = { username: "user:name" };
 Object.entries({
 	form: ["name", "handle"],
 	submission: [
@@ -5065,7 +5182,7 @@ Object.entries({
 	]
 }).forEach(([e, t]) => {
 	t.forEach((t) => {
-		Pn[`${e}.${t}`] = `${e}:${t}`;
+		Hn[`${e}.${t}`] = `${e}:${t}`;
 	});
 }), Object.entries({
 	form: ["Name", "Handle"],
@@ -5100,7 +5217,7 @@ Object.entries({
 	]
 }).forEach(([e, t]) => {
 	t.forEach((t) => {
-		Pn[e + t] = `${e}:${t[0].toLowerCase()}${t.slice(1)}`;
+		Hn[e + t] = `${e}:${t[0].toLowerCase()}${t.slice(1)}`;
 	});
 }), Object.entries({
 	dateUs: "m/d/Y",
@@ -5108,9 +5225,9 @@ Object.entries({
 	time12: "h:i a",
 	time24: "H:i"
 }).forEach(([e, t]) => {
-	Pn[e] = `timestamp;transform=format;preset=custom;pattern=${encodeURIComponent(t)}`;
+	Hn[e] = `timestamp;transform=format;preset=custom;pattern=${encodeURIComponent(t)}`;
 });
-function Fn(e) {
+function Un(e) {
 	let t = {
 		raw: e,
 		target: "",
@@ -5129,7 +5246,7 @@ function Fn(e) {
 	let i = r[1].replace(/^field\./, "field:"), a = i.indexOf("|"), o = a < 0 ? "" : i.slice(a + 1);
 	i = a < 0 ? i : i.slice(0, a);
 	let s = i.indexOf(";"), c = s < 0 ? i : i.slice(0, s);
-	i = (Object.prototype.hasOwnProperty.call(Pn, c) ? Pn[c] : c) + (s < 0 ? "" : i.slice(s));
+	i = (Object.prototype.hasOwnProperty.call(Hn, c) ? Hn[c] : c) + (s < 0 ? "" : i.slice(s));
 	let [l, ...u] = i.split(";"), d = Object.create(null);
 	try {
 		for (let e of u) {
@@ -5167,15 +5284,15 @@ function Fn(e) {
 		return n("invalidEncoding");
 	}
 }
-function In(e) {
+function Wn(e) {
 	if (!e.isValid || e.version !== 1) throw Error("Cannot serialize an invalid reference expression.");
 	let t = (e) => encodeURIComponent(e).replace(/[!'()*]/g, (e) => `%${e.charCodeAt(0).toString(16).toUpperCase()}`), n = (e) => t(e).replace(/%2F/g, "/"), r = e.target;
 	e.identifier && (r += `:${n(e.identifier)}`), e.selector && (r += `:${n(e.selector).replace(/%3A/g, ":")}`), e.transformerId && (r += `;transform=${t(e.transformerId)}`);
 	for (let [n, i] of Object.entries(e.transformerParams)) r += `;${n}=${t(i)}`;
 	return e.default && (r += `|${t(e.default)}`), `{${r}}`;
 }
-function Ln(e, t) {
-	let n = Fn(e);
+function Gn(e, t) {
+	let n = Un(e);
 	if (!n.isValid) return {
 		expression: n,
 		diagnostic: "invalidExpression"
@@ -5232,4 +5349,4 @@ function Ln(e, t) {
 	};
 }
 //#endregion
-export { At as BROWSER_MODULE_CONTRACT_VERSION, Mt as CLIENT_FORM_CONTRACT_VERSION, Zt as CLIENT_FORM_EVENT_NAMES, De as PHONE_COUNTRY_CHANGE_EVENT, Dn as VISUALLY_HIDDEN_CSS, En as VISUALLY_HIDDEN_STYLE, le as addressAutocompleteMarkup, ce as addressPartMarker, y as allFields, he as allOptionsSelected, jt as assertBrowserModuleManifest, Nt as assertClientFormBootstrap, gn as attachPointerReorder, $t as browserRequest, en as browserRequestHeaders, Ot as browserValueEmpty, an as buildActionUrl, me as checkboxToggle, ht as clientActionAllowed, m as coerceCalculationVariables, st as combineConditions, R as compositePartDefinitions, rt as conditionNumber, Ct as countGraphemes, Xt as createClientFormInstance, hn as createGraphqlClientTransport, W as createRepeaterRowValue, ln as createRestClientTransport, N as createTableRowValue, ve as datePickerInputValue, Ce as datePickerParts, ye as datePickerValue, xe as dateRangePickerMarkup, Se as dateRangePickerValue, B as defaultValueForField, Xe as deriveCalculationValues, H as displayFieldContent, Me as dropdownOptions, _ as evaluateCalculationExpression, mt as evaluateClientCondition, ot as evaluateCondition, ct as evaluateConditionDefinition, oe as fieldContentPath, je as fieldOptions, jn as fieldTextLimit, G as fieldValueAsStrings, C as fieldValueContract, w as fieldValueStructure, lt as finalizeConditionEvaluation, x as findFieldByHandle, b as findFieldById, On as focusClientFormResult, h as formatCalculationValue, Mn as formatPluralMessage, f as getCalculationFormula, p as getCalculationVariableEntries, _n as getClientErrorAriaLive, vn as getClientFieldErrorId, yn as getClientFieldIds, bn as getClientFieldLabelTarget, kn as getClientPageProgress, wn as getClientString, Tt as getTextLimitMetrics, wt as getWordCount, E as isAddressAutocompletePart, ue as isAddressField, k as isArrayValuedField, Pe as isBooleanField, ie as isCalculationField, T as isCompositeField, O as isDatePickerField, be as isDateRangePickerField, Fe as isEmailField, U as isFieldLabelHidden, Tn as isFieldLabelVisuallyHidden, F as isFileField, S as isKnownClientFieldType, I as isMultiValueField, L as isNumericField, ke as isPhoneCountryEnabled, P as isRepeatableField, _e as isRichTextField, Ne as isSearchableDropdown, xn as joinIdReferences, cn as loadClientFormBootstrap, mn as loadGraphqlClientFormBootstrap, Ee as moveListItem, St as normalizeText, Fn as parseReference, We as parseRowsExpression, pe as paymentFieldMarkup, Oe as phoneFieldValue, Qe as projectElementConditionValues, D as readAddressParts, g as readCalculationVariableValue, Ae as readPhoneFieldControls, fe as readUploadManagerEntries, Dt as registerBrowserValidationRule, z as repeaterFieldDefinitions, Ie as repeaterRowDefinitions, re as resolveClientRendererType, Ln as resolveReference, A as searchableDropdownMarkup, j as searchableDropdownValue, Ze as selectConditionRows, ee as serializeFieldValues, In as serializeReference, J as serializeTransportFieldValues, An as showsClientPageTitle, ae as summaryFieldMarkup, we as surveyLikertRows, Te as surveyRankOrder, M as tableColumns, Nn as textLimitCounter, ge as toggleAllOptions, de as uploadManagerMarkup, kt as validateBrowserValue };
+export { Vt as BROWSER_MODULE_CONTRACT_VERSION, Ut as CLIENT_FORM_CONTRACT_VERSION, ln as CLIENT_FORM_EVENT_NAMES, Oe as PHONE_COUNTRY_CHANGE_EVENT, Fn as VISUALLY_HIDDEN_CSS, Pn as VISUALLY_HIDDEN_STYLE, ue as addressAutocompleteMarkup, le as addressPartMarker, Dt as addressStatePart, y as allFields, ge as allOptionsSelected, Ht as assertBrowserModuleManifest, Wt as assertClientFormBootstrap, wn as attachPointerReorder, vt as browserRequest, yt as browserRequestHeaders, zt as browserValueEmpty, pn as buildActionUrl, wt as cachedAddressSubdivisions, he as checkboxToggle, ht as clientActionAllowed, m as coerceCalculationVariables, st as combineConditions, R as compositePartDefinitions, rt as conditionNumber, Pt as countGraphemes, cn as createClientFormInstance, Cn as createGraphqlClientTransport, W as createRepeaterRowValue, _n as createRestClientTransport, N as createTableRowValue, ye as datePickerInputValue, we as datePickerParts, be as datePickerValue, Se as dateRangePickerMarkup, Ce as dateRangePickerValue, B as defaultValueForField, Xe as deriveCalculationValues, H as displayFieldContent, Me as dropdownOptions, _ as evaluateCalculationExpression, mt as evaluateClientCondition, ot as evaluateCondition, ct as evaluateConditionDefinition, se as fieldContentPath, O as fieldOptions, zn as fieldTextLimit, G as fieldValueAsStrings, S as fieldValueContract, C as fieldValueStructure, lt as finalizeConditionEvaluation, ee as findFieldByHandle, b as findFieldById, In as focusClientFormResult, h as formatCalculationValue, Bn as formatPluralMessage, f as getCalculationFormula, p as getCalculationVariableEntries, Tn as getClientErrorAriaLive, En as getClientFieldErrorId, Dn as getClientFieldIds, On as getClientFieldLabelTarget, Ln as getClientPageProgress, Mn as getClientString, It as getTextLimitMetrics, Ft as getWordCount, T as isAddressAutocompletePart, de as isAddressField, k as isArrayValuedField, Pe as isBooleanField, ae as isCalculationField, w as isCompositeField, D as isDatePickerField, xe as isDateRangePickerField, St as isDynamicAddressStatePart, Fe as isEmailField, U as isFieldLabelHidden, Nn as isFieldLabelVisuallyHidden, F as isFileField, x as isKnownClientFieldType, I as isMultiValueField, L as isNumericField, Ae as isPhoneCountryEnabled, P as isRepeatableField, ve as isRichTextField, Ne as isSearchableDropdown, kn as joinIdReferences, Tt as loadAddressSubdivisions, gn as loadClientFormBootstrap, Sn as loadGraphqlClientFormBootstrap, De as moveListItem, Nt as normalizeText, Un as parseReference, We as parseRowsExpression, me as paymentFieldMarkup, ke as phoneFieldValue, Qe as projectElementConditionValues, E as readAddressParts, g as readCalculationVariableValue, je as readPhoneFieldControls, pe as readUploadManagerEntries, Rt as registerBrowserValidationRule, z as repeaterFieldDefinitions, Ie as repeaterRowDefinitions, ie as resolveClientRendererType, Gn as resolveReference, A as searchableDropdownMarkup, j as searchableDropdownValue, Ze as selectConditionRows, te as serializeFieldValues, Wn as serializeReference, J as serializeTransportFieldValues, Rn as showsClientPageTitle, oe as summaryFieldMarkup, Te as surveyLikertRows, Ee as surveyRankOrder, M as tableColumns, Vn as textLimitCounter, _e as toggleAllOptions, fe as uploadManagerMarkup, Bt as validateBrowserValue };

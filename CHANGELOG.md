@@ -68,6 +68,7 @@
 - Fixed the Submissions index **Export…** dialog combining each Name and Address field into one column. Each part now has its own column, as in Formie 3, and the combined column can still be ticked. ([#3055](https://github.com/verbb/formie/issues/3055))
 - Fixed client-rendered forms built with `@verbb/formie-react` moving focus to the error message on every keystroke after a submit that failed validation, so only the first character typed was kept.
 - Fixed Single-line Text, Multi-line Text and Survey text fields with **Limit Value** not checking their limits or showing the limit counter in client-rendered forms built with `@verbb/formie-vue`, `@verbb/formie-react` or the Formie web components. They now count down to the limit as server-rendered forms do, and don’t submit while an answer is outside its limits. ([#3146](https://github.com/verbb/formie/issues/3146))
+- Fixed Address fields with **Input Mode** set to **Dropdown when available** showing a plain text input for **State / Province** in client-rendered forms built with `@verbb/formie-vue`, `@verbb/formie-react` or the Formie web components. It now lists the chosen country’s subdivisions, takes the name the country uses for them, such as Prefecture, and hides for countries that don’t use them, as in server-rendered forms. ([#3146](https://github.com/verbb/formie/issues/3146))
 
 ## 4.0.10 - 2026-11-17
 

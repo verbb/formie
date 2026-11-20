@@ -27,6 +27,9 @@ import {
     addressAutocompleteMarkup,
     readAddressParts,
     isAddressField,
+    addressStatePart,
+    isDynamicAddressStatePart,
+    loadAddressSubdivisions,
     isSearchableDropdown,
     searchableDropdownMarkup,
     searchableDropdownValue,
@@ -802,9 +805,12 @@ const CompositeFieldInput = defineComponent({
     props: fieldComponentProps,
     setup(props) {
         const context = useDefinitionContext();
+        // Bumped when a country's State / Province subdivisions finish loading, so the part renders with them.
+        const subdivisionsLoaded = ref(0);
 
         return () => {
             const state = context.state.value;
+            void subdivisionsLoaded.value;
 
             if (!state) {
                 return null;
@@ -827,8 +833,23 @@ const CompositeFieldInput = defineComponent({
                     onInput: (event: Event) => props.setValue({ ...currentValue, ...readAddressParts(event.currentTarget as HTMLElement, props.field) }),
                     onChange: (event: Event) => props.setValue({ ...currentValue, ...readAddressParts(event.currentTarget as HTMLElement, props.field) }),
                 } : {}),
-            }, parts.filter((part) => part.meta?.hidden !== true).map((part) => {
-                const partErrorKey = `${props.errorKey}.${part.handle}`;
+            }, parts.filter((part) => part.meta?.hidden !== true).map((definitionPart) => {
+                const partErrorKey = `${props.errorKey}.${definitionPart.handle}`;
+                // State / Province can follow the chosen country with its subdivisions, label and visibility.
+                const statePart = addressStatePart(definitionPart, currentValue.country, currentValue[definitionPart.handle]);
+                const part = statePart.field;
+
+                if (statePart.loading) {
+                    void loadAddressSubdivisions(definitionPart, String(currentValue.country), context.instance.value?.getBrowserRequestOptions()).then(() => {
+                        subdivisionsLoaded.value++;
+                    });
+                } else if (isDynamicAddressStatePart(definitionPart) && (currentValue[part.handle] ?? '') !== statePart.value) {
+                    queueMicrotask(() => props.setValue({ ...(props.value as Record<string, unknown> || {}), [part.handle]: statePart.value }));
+                }
+
+                if (statePart.hidden) {
+                    return null;
+                }
 
                 return h(ConfigFieldNode, {
                     key: `${props.field.id}:${part.handle}`,
@@ -1285,7 +1306,7 @@ function renderNestedFieldInput(field: ClientFieldDefinition, value: unknown, di
                 const target = event.target;
                 if (target instanceof HTMLSelectElement) setValue(searchableDropdownValue(field, target));
             },
-        }, h('div', { innerHTML: searchableDropdownMarkup(field, { id: labelling.inputId || undefined, 'aria-required': field.required ? 'true' : undefined, disabled }) }));
+        }, h('div', { innerHTML: searchableDropdownMarkup(field, { id: labelling.inputId || undefined, 'aria-required': field.required ? 'true' : undefined, disabled, ...(addressPartMarker(field) ? { [addressPartMarker(field)!]: true } : {}) }) }));
     }
 
     if (rendererType === 'dropdown') {

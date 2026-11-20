@@ -27,6 +27,9 @@ import {
     addressAutocompleteMarkup,
     readAddressParts,
     isAddressField,
+    addressStatePart,
+    isDynamicAddressStatePart,
+    loadAddressSubdivisions,
     isSearchableDropdown,
     searchableDropdownMarkup,
     searchableDropdownValue,
@@ -560,7 +563,7 @@ function renderNestedFieldInput(field: ClientFieldDefinition, value: unknown, di
             onInput: (event: { target: EventTarget }) => {
                 if (event.target instanceof HTMLSelectElement) setValue(searchableDropdownValue(field, event.target));
             },
-        }, createElement('div', { dangerouslySetInnerHTML: { __html: searchableDropdownMarkup(field, { id: labelling.inputId || undefined, 'aria-required': field.required ? 'true' : undefined, disabled }) } }));
+        }, createElement('div', { dangerouslySetInnerHTML: { __html: searchableDropdownMarkup(field, { id: labelling.inputId || undefined, 'aria-required': field.required ? 'true' : undefined, disabled, ...(addressPartMarker(field) ? { [addressPartMarker(field)!]: true } : {}) }) } }));
     }
 
     if (rendererType === 'dropdown') {
@@ -1109,9 +1112,32 @@ function CompositeFieldInput({
     disabled,
     setValue,
 }: Pick<FormieFieldComponentProps, 'field' | 'value' | 'errorKey' | 'disabled' | 'setValue'> & { labelling: ControlLabelling }) {
-    const { state } = useDefinitionContext();
+    const { state, instance } = useDefinitionContext();
+    // Bumped when a country's State / Province subdivisions finish loading, so the part renders with them.
+    const [, setSubdivisionsLoaded] = useState(0);
     const parts = compositePartDefinitions(field);
     const currentValue = value && typeof value === 'object' ? value as Record<string, unknown> : {};
+    // State / Province can follow the chosen country with its subdivisions, label and visibility.
+    const stateParts = parts.map((part) => addressStatePart(part, currentValue.country, currentValue[part.handle]));
+    const pendingState = stateParts.find((part) => part.loading);
+    const staleState = stateParts.find((part) => isDynamicAddressStatePart(part.field) && !part.loading && (currentValue[part.field.handle] ?? '') !== part.value);
+
+    useEffect(() => {
+        if (pendingState) {
+            let active = true;
+            void loadAddressSubdivisions(pendingState.field, String(currentValue.country), instance.getBrowserRequestOptions()).then(() => {
+                if (active) setSubdivisionsLoaded((count) => count + 1);
+            });
+
+            return () => { active = false; };
+        }
+
+        if (staleState) {
+            setValue({ ...currentValue, [staleState.field.handle]: staleState.value });
+        }
+
+        return undefined;
+    });
 
     if (parts.length === 0) {
         return createElement('div', {
@@ -1128,7 +1154,7 @@ function CompositeFieldInput({
         className: 'formie-react-name-grid',
         ...groupAttributes(field, labelling, 'group'),
         ...(isAddressField(field) ? { onInput: readParts, onChange: readParts } : {}),
-    }, parts.filter((part) => part.meta?.hidden !== true).map((part) => {
+    }, stateParts.filter((statePart) => statePart.field.meta?.hidden !== true && !statePart.hidden).map(({ field: part }) => {
         const partErrorKey = `${errorKey}.${part.handle}`;
 
         return createElement(ConfigFieldNode, {

@@ -1,5 +1,6 @@
 import { deriveCalculationValues } from './client-calculations.js';
 import { deriveConditionState, clientActionAllowed } from './condition-state.js';
+import { addressStatePart } from './address-state.js';
 import { validateBrowserValue } from './validation.js';
 import { assertClientFormBootstrap } from './contract.js';
 import { validateCompositeDateParts } from './date-parts-validation.js';
@@ -228,6 +229,11 @@ function validateFieldValue(
 
         parts.forEach((part) => {
             if (part.meta?.hidden === true) {
+                return;
+            }
+
+            // A State / Province part hidden for a country that doesn't use it isn't checked, as on the server.
+            if (addressStatePart(part, currentValue.country, currentValue[part.handle]).hidden) {
                 return;
             }
 

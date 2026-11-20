@@ -18,6 +18,9 @@ import {
     addressAutocompleteMarkup,
     readAddressParts,
     isAddressField,
+    addressStatePart,
+    isDynamicAddressStatePart,
+    loadAddressSubdivisions,
     isSearchableDropdown,
     searchableDropdownMarkup,
     searchableDropdownValue,
@@ -324,7 +327,7 @@ function renderNestedInput(
             <div class="starter-component-combobox" @input=${(e: Event) => {
                 if (e.target instanceof HTMLSelectElement) setValue(searchableDropdownValue(field, e.target));
             }}>
-                <div>${unsafeHTML(searchableDropdownMarkup(field, { id: labelling.ids.input, 'aria-required': field.required ? 'true' : undefined, disabled }))}</div>
+                <div>${unsafeHTML(searchableDropdownMarkup(field, { id: labelling.ids.input, 'aria-required': field.required ? 'true' : undefined, disabled, ...(addressPartMarker(field) ? { [addressPartMarker(field)!]: true } : {}) }))}</div>
             </div>
         `;
     }
@@ -992,8 +995,21 @@ function renderComposite(ctx: RenderViewContext, props: FieldNodeProps, labellin
         }}>
             ${parts
                 .filter((part) => part.meta?.hidden !== true)
-                .map((part) => {
-                    const partErrorKey = `${errorKey}.${part.handle}`;
+                .map((definitionPart) => {
+                    const partErrorKey = `${errorKey}.${definitionPart.handle}`;
+                    // State / Province can follow the chosen country with its subdivisions, label and visibility.
+                    const statePart = addressStatePart(definitionPart, current.country, current[definitionPart.handle]);
+                    const part = statePart.field;
+
+                    if (statePart.loading) {
+                        void loadAddressSubdivisions(definitionPart, String(current.country), ctx.instance.getBrowserRequestOptions()).then(() => ctx.host.requestUpdate());
+                    } else if (isDynamicAddressStatePart(definitionPart) && (current[part.handle] ?? '') !== statePart.value) {
+                        queueMicrotask(() => setValue({ ...current, [part.handle]: statePart.value }));
+                    }
+
+                    if (statePart.hidden) {
+                        return nothing;
+                    }
 
                     return renderFieldNode(
                         ctx,
