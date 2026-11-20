@@ -22,6 +22,11 @@ import {
     isCalculationField,
     isFieldLabelVisuallyHidden,
     isPhoneCountryEnabled,
+    addressPartMarker,
+    isAddressAutocompletePart,
+    addressAutocompleteMarkup,
+    readAddressParts,
+    isAddressField,
     isSearchableDropdown,
     searchableDropdownMarkup,
     searchableDropdownValue,
@@ -815,6 +820,11 @@ const CompositeFieldInput = defineComponent({
             return h('div', {
                 class: 'formie-vue-name-grid',
                 ...groupAttributes(props.field, controlLabelling(props, isDefaultFieldWrapper(context)), 'group'),
+                // Auto-complete providers fill the parts and fire `input` and `change`, so the parts are read back together.
+                ...(isAddressField(props.field) ? {
+                    onInput: (event: Event) => props.setValue({ ...currentValue, ...readAddressParts(event.currentTarget as HTMLElement, props.field) }),
+                    onChange: (event: Event) => props.setValue({ ...currentValue, ...readAddressParts(event.currentTarget as HTMLElement, props.field) }),
+                } : {}),
             }, parts.filter((part) => part.meta?.hidden !== true).map((part) => {
                 const partErrorKey = `${props.errorKey}.${part.handle}`;
 
@@ -1189,6 +1199,8 @@ function controlAttributes(field: ClientFieldDefinition, labelling: ControlLabel
         'aria-errormessage': hasErrors ? labelling.errorId : undefined,
         'aria-describedby': joinIdReferences(instructionsReference(field, labelling), hasErrors && labelling.errorId),
         autocomplete: typeof field.input.autocomplete === 'string' ? field.input.autocomplete : undefined,
+        // Address auto-complete providers find each part of the address by its marker.
+        ...(addressPartMarker(field) ? { [addressPartMarker(field)!]: 'true' } : {}),
     };
 }
 
@@ -1636,6 +1648,16 @@ const DefaultFieldInput = defineComponent({
 
             if (isDatePickerField(props.field)) {
                 return h(DatePickerFieldInput, props);
+            }
+
+            // Some auto-complete providers replace this input with their own element, so it's HTML Vue sets once.
+            if (isAddressAutocompletePart(props.field)) {
+                return h('div', { class: 'formie-vue-address-autocomplete' }, h('div', { innerHTML: addressAutocompleteMarkup(props.field, {
+                    id: labelling.inputId || undefined,
+                    'aria-label': labelling.labelledByWrapper ? undefined : props.field.label || props.field.handle,
+                    'aria-required': props.field.required ? 'true' : undefined,
+                    placeholder: typeof contract.placeholder === 'string' ? contract.placeholder : undefined,
+                }) }));
             }
 
             if (isCompositeField(props.field)) {

@@ -9,6 +9,7 @@
 - Client-rendered forms now leave Calculations and Table fields to the form state and the framework adapter, instead of running the server-rendered modules on markup they don’t produce.
 
 ### Fixed
+- Fixed Loqate address auto-complete not attaching in client-rendered forms, whose inputs have no names. It now finds an input by id when no input has the namespaced name. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Fixed Summary fields in client-rendered forms requesting their content from the current page, which fails when the form is on another site. They now use the action URL in the module config and the form’s request profile. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Fixed client-rendered forms ignoring the server’s payment decision, so payments that needed confirmation, such as 3D Secure, or a redirect to the provider’s checkout never continued. The payment provider’s action event is now dispatched after modules finish their own after-submit work, as in server-rendered forms. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Fixed the Friendly Captcha v1 and v2 modules treating the widget’s state value, such as `.UNSTARTED`, as a solution, which let the form submit before the challenge was solved. They now start the challenge on submit and wait up to two minutes for the solution. ([#3151](https://github.com/verbb/formie/issues/3151))

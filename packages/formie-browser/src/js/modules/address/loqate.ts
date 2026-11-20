@@ -64,8 +64,9 @@ export const loqateModule = defineAddressModule<
         }
 
         // Loqate PCA expects element to be an id string, name string, or RegExp matching ids – not CSS selectors
+        // Server-rendered inputs are named by the namespace. Client-rendered ones have no names, so they're found by id.
         const getLoqateElementRef = (handle: AddressFieldInputKey): string => {
-            if (namespace) {
+            if (namespace && field.querySelector(`[name="${CSS.escape(`${namespace}[${handle}]`)}"]`)) {
                 return `${namespace}[${handle}]`;
             }
 

@@ -19,6 +19,7 @@
 - Repeater and Table **Remove** buttons are now named “Remove row 1”, “Remove row 2” and so on, and Repeater, Table and Signature buttons use the text the server translates for the site.
 
 ### Fixed
+- Fixed Address fields with an auto-complete provider stopping the form from being submitted. Each part now carries the `data-formie-address-*` marker providers look for, the auto-complete input renders in `.formie-vue-address-autocomplete` with **Use my location** when it’s turned on, and the address the provider fills is saved. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Fixed File Upload fields with the **Upload Manager (Advanced)** display type showing a plain file input. They now show the Upload Manager in `.formie-vue-upload-manager`, which uploads each file as soon as it’s chosen and submits the finished uploads. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Fixed Dropdown, Recipients and element fields with **Use Searchable Dropdown** showing a plain select. They now render the select the searchable dropdown attaches to, in `.formie-vue-combobox`. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Fixed Date fields with the **Calendar (Advanced)** display type showing separate date and time inputs. They now render the input the date picker attaches to in `.formie-vue-date-picker`, or the start, end and picker inputs in `.formie-vue-date-range-picker` for date ranges, and the field label names the picker. ([#3146](https://github.com/verbb/formie/issues/3146))

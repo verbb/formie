@@ -156,8 +156,12 @@ class AddressAutoComplete extends SingleLineText implements ChildFieldInterface
 
     protected function defineClientRenderedInput(): array
     {
+        $parent = $this->getParentField();
+
         return array_merge(parent::defineClientRenderedInput(), [
             'inputType' => 'search',
+            // The "Use my location" control, when the provider supports it, as in server-rendered forms.
+            'currentLocationLabel' => $parent instanceof Address && $parent->hasCurrentLocation() ? Craft::t('formie', 'Use my location') : null,
         ]);
     }
 

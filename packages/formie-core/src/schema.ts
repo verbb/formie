@@ -142,6 +142,64 @@ export function fieldContentPath(definition: Pick<ClientFormDefinition, 'pages'>
     return [field?.handle ?? root, ...rest].join('.');
 }
 
+// Address auto-complete providers find the parts of an Address field by these attributes, as in server-rendered forms.
+const ADDRESS_PART_MARKERS: Record<string, string> = {
+    'address-auto-complete': 'data-formie-address-autocomplete-input',
+    address1: 'data-formie-address-line1-input',
+    address2: 'data-formie-address-line2-input',
+    address3: 'data-formie-address-line3-input',
+    'address-city': 'data-formie-address-city-input',
+    'address-state': 'data-formie-address-state-input',
+    'address-zip': 'data-formie-address-zip-input',
+    'address-country': 'data-formie-address-country-input',
+};
+
+export function addressPartMarker(field: ClientFieldDefinition): string | null {
+    return ADDRESS_PART_MARKERS[field.type] ?? null;
+}
+
+export function isAddressAutocompletePart(field: ClientFieldDefinition): boolean {
+    return field.type === 'address-auto-complete';
+}
+
+// The auto-complete input, built from the definition alone so it stays the same between renders. Adapters set it as
+// HTML, because some providers replace the input with their own element.
+export function addressAutocompleteMarkup(field: ClientFieldDefinition, attributes: Record<string, string | boolean | null | undefined>): string {
+    const escape = (text: string) => text.replace(/[&"<>]/g, (character) => `&#${character.charCodeAt(0)};`);
+    const initial = typeof field.input.defaultValue === 'string' ? field.input.defaultValue : '';
+    const attributeHtml = Object.entries({
+        type: 'search',
+        ...attributes,
+        value: initial,
+        autocomplete: 'autocomplete',
+        'aria-autocomplete': 'list',
+        'data-autocomplete': true,
+        'data-formie-address-autocomplete-input': true,
+    }).filter(([, value]) => value !== undefined && value !== null && value !== false)
+        .map(([name, value]) => (value === true ? name : `${name}="${escape(String(value))}"`))
+        .join(' ');
+    const location = typeof field.input.currentLocationLabel === 'string' && field.input.currentLocationLabel
+        ? `<button type="button" data-formie-address-location>${escape(field.input.currentLocationLabel)}</button>`
+        : '';
+
+    return `<input ${attributeHtml}>${location}`;
+}
+
+// An Address field's parts as the inputs inside `container` hold them. Providers fill the parts and fire `input`
+// before the framework re-renders, so the answer is read from the inputs.
+export function readAddressParts(container: Element, field: ClientFieldDefinition): Record<string, string> {
+    return Object.fromEntries(compositePartDefinitions(field).flatMap((part) => {
+        const marker = addressPartMarker(part);
+        const input = marker ? container.querySelector(`[${marker}]`) : null;
+
+        return input instanceof HTMLInputElement || input instanceof HTMLSelectElement ? [[part.handle, input.value]] : [];
+    }));
+}
+
+export function isAddressField(field: ClientFieldDefinition): boolean {
+    return field.type === 'address';
+}
+
 // File Upload fields using the Upload Manager show its markup from the server, which the `formie:upload-manager`
 // browser module drives: it uploads each file straight away and keeps hidden inputs with the uploads' references.
 export function uploadManagerMarkup(field: ClientFieldDefinition): string | null {

@@ -8,6 +8,8 @@ import {
     isCompositeField,
     isMultiValueField,
     isPhoneCountryEnabled,
+    addressAutocompleteMarkup,
+    addressPartMarker,
     searchableDropdownMarkup,
     datePickerInputValue,
     datePickerValue,
@@ -347,5 +349,20 @@ describe('searchable dropdowns', () => {
         expect(searchableDropdownMarkup(single, { id: 'x', disabled: false, 'aria-required': undefined }))
             .toBe('<select id="x" data-formie-combobox-input><option value="">Pick</option><option value="a">A &#38; &#34;a&#34;</option><option value="b" selected>b</option></select>');
         expect(searchableDropdownMarkup(multiple, {})).toBe('<select data-formie-combobox-input multiple><option value="a" selected>a</option><option value="b">b</option></select>');
+    });
+});
+
+describe('address auto-complete', () => {
+    it('marks each Address part the way provider modules find it', () => {
+        expect(['address-auto-complete', 'address1', 'address-city', 'address-zip', 'address-country', 'address-state'].map((type) => addressPartMarker(field(type))))
+            .toEqual(['data-formie-address-autocomplete-input', 'data-formie-address-line1-input', 'data-formie-address-city-input', 'data-formie-address-zip-input', 'data-formie-address-country-input', 'data-formie-address-state-input']);
+        expect(addressPartMarker(field('single-line-text'))).toBeNull();
+    });
+
+    it('builds the auto-complete input with its location control when the provider offers one', () => {
+        const part = field('address-auto-complete', { defaultValue: '', currentLocationLabel: 'Use my location' });
+
+        expect(addressAutocompleteMarkup(part, { id: 'home-auto' })).toBe('<input type="search" id="home-auto" value="" autocomplete="autocomplete" aria-autocomplete="list" data-autocomplete data-formie-address-autocomplete-input><button type="button" data-formie-address-location>Use my location</button>');
+        expect(addressAutocompleteMarkup(field('address-auto-complete', { defaultValue: '' }), {})).not.toContain('data-formie-address-location');
     });
 });

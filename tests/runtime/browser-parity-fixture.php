@@ -146,3 +146,40 @@ foreach ($paymentProviders as $class => $settings) {
     ->onPage(2)
     ->summaryField('review', ['label' => 'Review'])
     ->create();
+
+// Address fields with each auto-complete provider and fake credentials, for tests/browser/client-address.spec.ts.
+$addressProviders = [
+    'Google' => ['apiKey' => 'parity-key'],
+    'Loqate' => ['apiKey' => 'parity-key'],
+    'AddressFinder' => ['apiKey' => 'parity-key', 'countryCode' => 'AU'],
+    'PlaceKit' => ['apiKey' => 'parity-key'],
+];
+
+foreach ($addressProviders as $class => $settings) {
+    $providerHandle = 'parity' . $class . 'Address';
+    $providerClass = 'verbb\\formie\\integrations\\addressproviders\\' . $class;
+    $provider = new $providerClass(array_merge(['name' => 'Parity ' . $class . ' address', 'handle' => $providerHandle, 'enabled' => true], $settings));
+
+    if (!\verbb\formie\Formie::$plugin->getIntegrations()->saveIntegration($provider, false)) {
+        throw new RuntimeException('Cannot save parity ' . $class . ' address provider.');
+    }
+
+    $addressRows = (new fields\Address())->getSubFields();
+
+    foreach ($addressRows as &$addressRow) {
+        foreach ($addressRow['fields'] as &$addressSubField) {
+            if (($addressSubField['handle'] ?? null) === 'autoComplete') {
+                $addressSubField['enabled'] = true;
+                $addressSubField['integrationHandle'] = $providerHandle;
+            }
+        }
+    }
+
+    unset($addressRow, $addressSubField);
+
+    \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Parity ' . $class . ' address', 'handle' => 'parityAddress' . $class])
+        ->settings(['disableCaptchas' => true, 'submitMethod' => 'ajax'])
+        ->singleLineTextField('visitorName', ['label' => 'Visitor name'])
+        ->addressField('home', ['label' => 'Home', 'rows' => $addressRows])
+        ->create();
+}

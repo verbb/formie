@@ -15,6 +15,11 @@ export declare function resolveClientRendererType(field: ClientFieldDefinition):
 export declare function isCalculationField(field: ClientFieldDefinition): boolean;
 export declare function summaryFieldMarkup(field: ClientFieldDefinition, lastSubmitResult: ClientSubmitResult | null | undefined): string | null;
 export declare function fieldContentPath(definition: Pick<ClientFormDefinition, 'pages'>, errorKey: string): string;
+export declare function addressPartMarker(field: ClientFieldDefinition): string | null;
+export declare function isAddressAutocompletePart(field: ClientFieldDefinition): boolean;
+export declare function addressAutocompleteMarkup(field: ClientFieldDefinition, attributes: Record<string, string | boolean | null | undefined>): string;
+export declare function readAddressParts(container: Element, field: ClientFieldDefinition): Record<string, string>;
+export declare function isAddressField(field: ClientFieldDefinition): boolean;
 export declare function uploadManagerMarkup(field: ClientFieldDefinition): string | null;
 export type UploadManagerEntry = {
     uploadUid: string;

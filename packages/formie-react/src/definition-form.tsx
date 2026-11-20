@@ -22,6 +22,11 @@ import {
     isCalculationField,
     isFieldLabelVisuallyHidden,
     isPhoneCountryEnabled,
+    addressPartMarker,
+    isAddressAutocompletePart,
+    addressAutocompleteMarkup,
+    readAddressParts,
+    isAddressField,
     isSearchableDropdown,
     searchableDropdownMarkup,
     searchableDropdownValue,
@@ -472,6 +477,8 @@ function controlAttributes(field: ClientFieldDefinition, labelling: ControlLabel
         'aria-errormessage': hasErrors ? labelling.errorId : undefined,
         'aria-describedby': joinIdReferences(instructionsReference(field, labelling), hasErrors && labelling.errorId),
         autoComplete: typeof field.input.autocomplete === 'string' ? field.input.autocomplete : undefined,
+        // Address auto-complete providers find each part of the address by its marker.
+        ...(addressPartMarker(field) ? { [addressPartMarker(field)!]: 'true' } : {}),
     };
 }
 
@@ -1102,9 +1109,15 @@ function CompositeFieldInput({
         }, `Unsupported field type: ${field.type}`);
     }
 
+    // Auto-complete providers fill the parts and fire `input` and `change`, so the parts are read back together. React's
+    // onInput sees those events from text inputs, unlike onChange. A select's onChange still runs for the country, and
+    // the wrapper's runs after it, so the full read is the one that sticks.
+    const readParts = (event: { currentTarget: HTMLElement }) => setValue({ ...currentValue, ...readAddressParts(event.currentTarget, field) });
+
     return createElement('div', {
         className: 'formie-react-name-grid',
         ...groupAttributes(field, labelling, 'group'),
+        ...(isAddressField(field) ? { onInput: readParts, onChange: readParts } : {}),
     }, parts.filter((part) => part.meta?.hidden !== true).map((part) => {
         const partErrorKey = `${errorKey}.${part.handle}`;
 
@@ -1279,6 +1292,16 @@ function defaultFieldRenderer(props: FormieFieldComponentProps, labelledByWrappe
 
     if (isDatePickerField(field)) {
         return createElement(DatePickerFieldInput, { field, value, disabled, setValue, labelling });
+    }
+
+    // Some auto-complete providers replace this input with their own element, so it's HTML React leaves alone.
+    if (isAddressAutocompletePart(field)) {
+        return createElement('div', { className: 'formie-react-address-autocomplete' }, createElement('div', { dangerouslySetInnerHTML: { __html: addressAutocompleteMarkup(field, {
+            id: labelling.inputId || undefined,
+            'aria-label': labelling.labelledByWrapper ? undefined : field.label || field.handle,
+            'aria-required': field.required ? 'true' : undefined,
+            placeholder: typeof contract.placeholder === 'string' ? contract.placeholder : undefined,
+        }) } }));
     }
 
     if (isCompositeField(field)) {

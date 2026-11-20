@@ -13,6 +13,11 @@ import {
     isCalculationField,
     isFieldLabelVisuallyHidden,
     isPhoneCountryEnabled,
+    addressPartMarker,
+    isAddressAutocompletePart,
+    addressAutocompleteMarkup,
+    readAddressParts,
+    isAddressField,
     isSearchableDropdown,
     searchableDropdownMarkup,
     searchableDropdownValue,
@@ -241,6 +246,16 @@ function autocomplete(field: ClientFieldDefinition) {
     return typeof field.input.autocomplete === 'string' ? field.input.autocomplete : nothing;
 }
 
+// Address auto-complete providers find each part of the address by its marker. Lit can't bind an attribute whose
+// name varies, so the marker is set on the element itself.
+function addressMarker(field: ClientFieldDefinition) {
+    const marker = addressPartMarker(field);
+
+    return ref((element) => {
+        if (marker && element) element.setAttribute(marker, 'true');
+    });
+}
+
 function renderNestedInput(
     field: ClientFieldDefinition,
     value: unknown,
@@ -289,6 +304,7 @@ function renderNestedInput(
             aria-describedby=${describedBy(field, labelling)}
             autocomplete=${autocomplete(field)}
                 class="starter-component-control"
+                ${addressMarker(field)}
                 .value=${typeof value === 'string' ? value : ''}
                 ?disabled=${disabled}
                 placeholder=${typeof contract.placeholder === 'string' ? contract.placeholder : ''}
@@ -323,6 +339,7 @@ function renderNestedInput(
 
         return html`
             <select
+            ${addressMarker(field)}
             id=${labelling.ids.input}
             aria-label=${ownName(field, labelling)}
             aria-required=${field.required ? 'true' : nothing}
@@ -380,6 +397,7 @@ function renderNestedInput(
             aria-describedby=${describedBy(field, labelling)}
             autocomplete=${autocomplete(field)}
             class="starter-component-control"
+            ${addressMarker(field)}
             type=${inputType}
             data-formie-phone-input=${isPhoneCountryEnabled(field) ? 'true' : nothing}
             .value=${typeof value === 'string' || typeof value === 'number' ? String(value) : ''}
@@ -628,6 +646,16 @@ function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps & { 
     };
     const groupLabelledBy = labelling.labelledByWrapper ? props.ids.label : nothing;
     const groupDescribedBy = joinIdReferences(instructionsReference(field, labelling)) ?? nothing;
+
+    // Some auto-complete providers replace this input with their own element, so it's HTML Lit leaves alone.
+    if (isAddressAutocompletePart(field)) {
+        return html`<div class="starter-component-address-autocomplete"><div>${unsafeHTML(addressAutocompleteMarkup(field, {
+            id: labelling.ids.input,
+            'aria-label': labelling.labelledByWrapper ? undefined : field.label || field.handle,
+            'aria-required': field.required ? 'true' : undefined,
+            placeholder: typeof contract.placeholder === 'string' ? contract.placeholder : undefined,
+        }))}</div></div>`;
+    }
 
     // The range picker fills a start and an end input and fires `input`, when the wrapper reads both. Its markup only
     // depends on the definition, so Lit leaves it alone.
@@ -915,6 +943,7 @@ function renderFile(
                 aria-errormessage=${errors.length > 0 ? errorId : nothing}
                 aria-describedby=${describedBy(field, labelling)}
                 class="starter-component-control"
+                ${addressMarker(field)}
                 ?disabled=${disabled}
                 ?multiple=${multiple}
                 @change=${(e: Event) => {
@@ -952,7 +981,13 @@ function renderComposite(ctx: RenderViewContext, props: FieldNodeProps, labellin
     const naming = groupNaming(field, labelling);
 
     return html`
-        <div class="starter-component-name-grid" role="group" aria-labelledby=${naming.labelledBy} aria-label=${naming.label} aria-describedby=${naming.describedBy}>
+        <div class="starter-component-name-grid" role="group" aria-labelledby=${naming.labelledBy} aria-label=${naming.label} aria-describedby=${naming.describedBy} @input=${(e: Event) => {
+            // Auto-complete providers fill the parts and fire `input` and `change`, so the parts are read back together.
+            // This runs after a part's own handler, so the full read is the one that sticks.
+            if (isAddressField(field)) setValue({ ...current, ...readAddressParts(e.currentTarget as HTMLElement, field) });
+        }} @change=${(e: Event) => {
+            if (isAddressField(field)) setValue({ ...current, ...readAddressParts(e.currentTarget as HTMLElement, field) });
+        }}>
             ${parts
                 .filter((part) => part.meta?.hidden !== true)
                 .map((part) => {

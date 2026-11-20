@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Added `addressPartMarker()`, `isAddressAutocompletePart()`, `addressAutocompleteMarkup()`, `readAddressParts()` and `isAddressField()`, and the client definition’s `input.currentLocationLabel` on the Address auto-complete part. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Added `uploadManagerMarkup()`, `readUploadManagerEntries()` and `fieldContentPath()` for File Upload fields using the Upload Manager. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Added `isSearchableDropdown()`, `searchableDropdownMarkup()` and `searchableDropdownValue()` for fields with **Use Searchable Dropdown**. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Added `isDatePickerField()`, `datePickerInputValue()`, `datePickerValue()`, `datePickerParts()`, `isDateRangePickerField()`, `dateRangePickerMarkup()` and `dateRangePickerValue()`, and the client definition’s `input.displayType` for Date fields. A date picker’s answer is `{ datetime }`, and a range’s is `{ startDatetime, endDatetime }`, as server-rendered date pickers post them, and conditions compare it by its parts. ([#3146](https://github.com/verbb/formie/issues/3146))
