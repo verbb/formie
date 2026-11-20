@@ -84,10 +84,11 @@ const STEPS: Step[] = [
     },
     {
         handle: 'pEntriesSearch',
-        // The test runtime's entries have no title, so their options have no text to click. Enter picks the first.
+        // The test runtime's entries have no title, so their options have no text to click. Enter picks the first. The
+        // options load from a request, which can be slow late in a full run.
         fill: async (f, page) => {
             await f.locator('.ts-control').first().click();
-            await expect(page.locator('.ts-dropdown:visible .option').first()).toBeAttached();
+            await expect(page.locator('.ts-dropdown:visible .option').first()).toBeAttached({ timeout: 15000 });
             await page.keyboard.press('Enter');
         },
     },
