@@ -358,7 +358,7 @@ Event::on(MultiLineText::class, MultiLineText::EVENT_MODIFY_VALUE_FOR_INTEGRATIO
 ### The `modifyValueForSummary` Event
 The event that is triggered when preparing a field's value to be represented in the Summary field. You can use this on any class that extends the `verbb\formie\base\Field` class.
 
-Modify the `value` event property to set the value used.
+Modify the `value` event property to set the value used. Set it to `false` to leave the field out of the summary.
 
 ```php
 use verbb\formie\fields\Dropdown;

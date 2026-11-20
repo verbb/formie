@@ -129,6 +129,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
         if (!is_array($incoming) || $incoming === []) {
             return $incoming;
         }
+
         $previous = is_array($previous) ? $previous : [];
         $rows = $incoming['rows'] ?? $incoming;
         $result = [];
@@ -136,8 +137,10 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
         foreach ($rows as $index => $row) {
             if (!is_array($row)) {
                 $result[] = $row;
+
                 continue;
             }
+
             $merged = [];
 
             foreach ($this->getFields($index) as $field) {
@@ -147,8 +150,10 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
                     ? $field->mergePartialRequestValue($prior, $row[$key])
                     : $prior;
             }
+
             $result[] = $merged;
         }
+
         return $result;
     }
 
@@ -163,6 +168,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
         }
 
         $parts = $this->projectChildValues($value, $element, fn($field, $child) => $field->normalizeValueFromRequest($child, $element));
+
         return $this->normalizeValue($parts, $element);
     }
 
@@ -178,6 +184,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
         if (!is_array($value)) {
             return $value;
         }
+
         return $this->projectChildValues($value, null, fn($field, $child) => $field->decodeValueFromStorage($child));
     }
 
@@ -263,10 +270,12 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
                 if ($field->getIsCosmetic()) {
                     continue;
                 }
+
                 $child = $row[$field->uid] ?? $row[$field->handle] ?? null;
                 $result[$rowKey][$field->handle] = $project($field, $child);
             }
         }
+
         return array_values($result);
     }
 
@@ -386,6 +395,12 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
 
                 $subValue = $field->normalizeFieldValue($row[$field->handle] ?? $row[$field->uid] ?? null, $element);
                 $summary = $field->getValueForSummary($subValue, $element);
+
+                // A field can opt out of summaries.
+                if ($summary === false || $summary === null) {
+                    continue;
+                }
+
                 $summaryHtml = $summary instanceof Markup ? (string)$summary : Html::encode((string)$summary);
 
                 $values .= Html::tag('strong', $field->label) . ' ' . $summaryHtml . Html::tag('br');

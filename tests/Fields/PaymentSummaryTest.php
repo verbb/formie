@@ -34,5 +34,26 @@ it('keeps provider IDs out of a Group summary', function (): void {
     $submission = new Submission();
     $submission->setForm($form);
 
-    expect((string)$field->getValueForSummary(['name' => 'Jane', 'payment' => ['stripePaymentId' => 'pm_123']], $submission))->not->toContain('pm_123');
+    $summary = (string)$field->getValueForSummary(['name' => 'Jane', 'payment' => ['stripePaymentId' => 'pm_123']], $submission);
+
+    expect($summary)->not->toContain('pm_123')
+        ->and($summary)->toContain('<strong>Name</strong> Jane')
+        ->and($summary)->not->toContain('Card');
+});
+
+it('leaves payment fields out of a Repeater summary', function (): void {
+    $form = formie()->form()->repeaterField('rows', ['rows' => [['fields' => [
+        ['type' => SingleLineText::class, 'handle' => 'name', 'label' => 'Name'],
+        ['type' => Payment::class, 'handle' => 'payment', 'label' => 'Card'],
+    ]]]])->create();
+    $form = Form::find()->id($form->id)->one();
+    $field = $form->getFieldByHandle('rows');
+    $submission = new Submission();
+    $submission->setForm($form);
+    $value = $field->normalizeValue([['name' => 'Jane', 'payment' => ['stripePaymentId' => 'pm_123']]], $submission);
+    $summary = (string)$field->getValueForSummary($value, $submission);
+
+    expect($summary)->not->toContain('pm_123')
+        ->and($summary)->toContain('<strong>Name</strong> Jane')
+        ->and($summary)->not->toContain('Card');
 });

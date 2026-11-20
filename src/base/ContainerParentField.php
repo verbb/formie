@@ -38,6 +38,7 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
         if (!is_array($incoming) || $incoming === []) {
             return $incoming;
         }
+
         $previous = $this->nestedValueParts($previous);
         $result = [];
 
@@ -48,12 +49,14 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
                 ? $field->mergePartialRequestValue($prior, $incoming[$key])
                 : $prior;
         }
+
         return $result;
     }
 
     public function normalizeValueFromRequest(mixed $value, ?ElementInterface $element): mixed
     {
         $parts = $this->projectChildValues($value, $element, fn($field, $child) => $field->normalizeValueFromRequest($child, $element));
+
         return $this->normalizeValue($parts, $element);
     }
 
@@ -69,6 +72,7 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
         if (!is_array($value)) {
             return $value;
         }
+
         return $this->projectChildValues($value, null, fn($field, $child) => $field->decodeValueFromStorage($child));
     }
 
@@ -182,10 +186,12 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
                 if ($field->getIsCosmetic()) {
                     continue;
                 }
+
                 $child = $row[$field->uid] ?? $row[$field->handle] ?? null;
                 $result[$rowKey][$field->handle] = $project($field, $child);
             }
         }
+
         return $result[0] ?? [];
     }
 
@@ -300,6 +306,12 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
             $parts = $this->nestedValueParts($value);
             $subValue = $field->normalizeFieldValue($parts[$field->handle] ?? $parts[$field->uid] ?? null, $element);
             $summary = $field->getValueForSummary($subValue, $element);
+
+            // A field can opt out of summaries.
+            if ($summary === false || $summary === null) {
+                continue;
+            }
+
             $summaryHtml = $summary instanceof Markup ? (string)$summary : Html::encode((string)$summary);
 
             $values .= Html::tag('strong', $field->label) . ' ' . $summaryHtml . Html::tag('br');

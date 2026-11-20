@@ -286,7 +286,7 @@ Reports expose each declared child as `parentHandle.childHandle`, labelled with 
 ::: reference
 ### `defineValueForSummary()`
 
-Defines the field value used in summaries.
+Defines the field value used in summaries. Return `false` to leave the field out of summaries, including when it’s inside a Group or Repeater field.
 :::
 
 ::: reference
