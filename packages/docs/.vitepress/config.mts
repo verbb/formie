@@ -261,6 +261,7 @@ export default defineConfig({
                     text: 'Client-Rendered',
                     items: [
                         { text: 'Overview', link: '/react/client-rendered/overview' },
+                        { text: 'Field Support', link: '/react/client-rendered/field-support' },
                         { text: 'Component Customisation', link: '/react/client-rendered/component-customization' },
                     ],
                 },
@@ -284,6 +285,7 @@ export default defineConfig({
                     text: 'Client-Rendered',
                     items: [
                         { text: 'Overview', link: '/vue/client-rendered/overview' },
+                        { text: 'Field Support', link: '/vue/client-rendered/field-support' },
                         { text: 'Component Customisation', link: '/vue/client-rendered/component-customization' },
                     ],
                 },
@@ -297,17 +299,18 @@ export default defineConfig({
                     ],
                 },
                 {
-                    text: 'HTML Mode',
+                    text: 'Server-Rendered',
                     items: [
-                        { text: 'Overview', link: '/web-components/html-mode/overview' },
-                        { text: 'Styling', link: '/web-components/html-mode/styling' },
+                        { text: 'Overview', link: '/web-components/server-rendered/overview' },
+                        { text: 'Styling', link: '/web-components/server-rendered/styling' },
                     ],
                 },
                 {
-                    text: 'Component Mode',
+                    text: 'Client-Rendered',
                     items: [
-                        { text: 'Overview', link: '/web-components/component-mode/overview' },
-                        { text: 'Component Customisation', link: '/web-components/component-mode/component-customization' },
+                        { text: 'Overview', link: '/web-components/client-rendered/overview' },
+                        { text: 'Field Support', link: '/web-components/client-rendered/field-support' },
+                        { text: 'Component Customisation', link: '/web-components/client-rendered/component-customization' },
                     ],
                 },
             ],
