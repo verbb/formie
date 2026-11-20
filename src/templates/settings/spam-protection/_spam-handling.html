@@ -9,6 +9,7 @@
             first: true,
             label: 'Save Spam Submissions' | t('formie'),
             instructions: 'Whether to save spam submissions, so they can be viewed in the control panel. Otherwise, spam submissions will be discarded.' | t('formie'),
+            tip: 'Requests rejected by **Submission Guards**, such as a filled-in honeypot, are never saved. Their reasons are written to the Formie log instead.' | t('formie'),
             name: 'saveSpam',
             on: settings.saveSpam,
             toggle: 'save-spam',

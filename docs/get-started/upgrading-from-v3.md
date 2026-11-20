@@ -1986,6 +1986,8 @@ Categories fields use their saved **Sources** again, including **All** and sever
 
 The [removed captcha types](#removed-legacy-captchas) are replaced automatically by Honeypot, Minimum submit time and Replay protection guards. All three are enabled by default, with a three-second minimum submit time. They apply to every form, and standard rendering supplies the required inputs.
 
+Requests a guard rejects are no longer saved as spam submissions, even with **Save Spam Submissions** on. In Formie 3, a filled-in Honeypot field created a submission marked as spam that you could review in the control panel. Formie 4 rejects the request before any submission exists and writes the reason to the Formie log (`storage/logs/formie-*.log`). If you checked spam submissions for honeypot catches, check the log instead. **Save Spam Submissions** still applies to spam rules and captcha providers.
+
 Review **Formie → Spam Protection → Spam Rules → Submission Guards** after upgrading, and follow [Local Spam Protection Settings](#local-spam-protection-settings) when deploying to other installations.
 
 ### Encrypted Submission Fields

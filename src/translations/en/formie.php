@@ -2407,6 +2407,7 @@ To review it please log into your control panel.
   'Requester Name' => 'Requester Name',
   'Request token has already been used.' => 'Request token has already been used.',
   'Request Type' => 'Request Type',
+  'Requests rejected by **Submission Guards**, such as a filled-in honeypot, are never saved. Their reasons are written to the Formie log instead.' => 'Requests rejected by **Submission Guards**, such as a filled-in honeypot, are never saved. Their reasons are written to the Formie log instead.',
   'Require a minimum delay between the form loading and submission.' => 'Require a minimum delay between the form loading and submission.',
   'Require a minimum wait time between submissions from the same IP address on the same form. This is separate from **Per IP address** submission limits in the form builder, which cap how many entries an IP can submit over a period.' => 'Require a minimum wait time between submissions from the same IP address on the same form. This is separate from **Per IP address** submission limits in the form builder, which cap how many entries an IP can submit over a period.',
   'Require an explicit unlock before editing this field\\\'s settings. Any editor can unlock — not a permission lock.' => 'Require an explicit unlock before editing this field\\\'s settings. Any editor can unlock — not a permission lock.',
