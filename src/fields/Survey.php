@@ -988,6 +988,11 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
 
     protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
     {
+        // A Likert scale with rows answers each row, as `{ row: column }`.
+        if ($value instanceof LikertMultipleRowsFieldValue) {
+            return $value->values();
+        }
+
         return !$this->usesOptions() ? $this->getDisplayTypeField()->resolveValueAsData($value, $element) : parent::defineValueAsData($value, $element);
     }
 
