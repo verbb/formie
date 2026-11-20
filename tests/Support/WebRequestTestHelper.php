@@ -108,6 +108,15 @@ final class WebRequestTestHelper
                 }
 
                 $app->getErrorHandler()->unregister();
+                // Craft holds lock releases until the shared connection's transaction
+                // ends or the request finishes. Simulated requests never finish, so a
+                // later rollback reopened db2 to release them, and each request's
+                // connection stayed open until shutdown.
+                $mutex = $app->getComponents(false)['mutex'] ?? null;
+                if ($mutex instanceof \craft\mutex\Mutex && $mutex !== ($originalApp->getComponents(false)['mutex'] ?? null)) {
+                    $mutex->releaseQueuedLocks();
+                }
+
                 // Craft uses db2 for database locks. Retained web application
                 // listeners must not keep either request-owned connection open.
                 $originalComponents = $originalApp->getComponents(false);
