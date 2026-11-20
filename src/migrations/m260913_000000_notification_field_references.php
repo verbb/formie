@@ -10,6 +10,13 @@ use craft\helpers\Json;
 
 class m260913_000000_notification_field_references extends Migration
 {
+    // Properties
+    // =========================================================================
+
+    /** Limits a rerun to these form IDs. Every form when null. */
+    public ?array $formIds = null;
+
+
     // Public Methods
     // =========================================================================
 
@@ -17,8 +24,15 @@ class m260913_000000_notification_field_references extends Migration
     {
         $this->_normalizeFormSettingsForHydration();
 
-        foreach ((new Query())->from(Table::FORMIE_NOTIFICATIONS)->each() as $row) {
-            $form = Form::find()->id($row['formId'])->status(null)->one();
+        $query = (new Query())->from(Table::FORMIE_NOTIFICATIONS);
+
+        if ($this->formIds !== null) {
+            $query->where(['formId' => $this->formIds]);
+        }
+
+        foreach ($query->each() as $row) {
+            // Formie 3 forms weren't localized, so a form may have no row on the current primary site.
+            $form = Form::find()->id($row['formId'])->site('*')->unique()->status(null)->trashed(null)->one();
 
             if (!$form) {
                 continue;

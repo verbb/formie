@@ -10,6 +10,13 @@ use craft\helpers\Json;
 
 class m260913_000001_integration_field_references extends Migration
 {
+    // Properties
+    // =========================================================================
+
+    /** Limits a rerun to these form IDs. Every form when null. */
+    public ?array $formIds = null;
+
+
     // Public Methods
     // =========================================================================
 
@@ -17,14 +24,21 @@ class m260913_000001_integration_field_references extends Migration
     {
         $this->_normalizeFormSettingsForHydration();
 
-        foreach ((new Query())->select(['id', 'settings'])->from(Table::FORMIE_FORMS)->each() as $row) {
+        $query = (new Query())->select(['id', 'settings'])->from(Table::FORMIE_FORMS);
+
+        if ($this->formIds !== null) {
+            $query->where(['id' => $this->formIds]);
+        }
+
+        foreach ($query->each() as $row) {
             $settings = Json::decode($row['settings']) ?: [];
 
             if (empty($settings['integrations'])) {
                 continue;
             }
 
-            $form = Form::find()->id($row['id'])->status(null)->one();
+            // Formie 3 forms weren't localized, so a form may have no row on the current primary site.
+            $form = Form::find()->id($row['id'])->site('*')->unique()->status(null)->trashed(null)->one();
 
             if (!$form) {
                 continue;

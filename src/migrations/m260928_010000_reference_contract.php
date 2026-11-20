@@ -15,6 +15,13 @@ use craft\helpers\ProjectConfig;
 
 class m260928_010000_reference_contract extends Migration
 {
+    // Properties
+    // =========================================================================
+
+    /** Limits a rerun to these form IDs. Every form when null. */
+    public ?array $formIds = null;
+
+
     // Public Methods
     // =========================================================================
 
@@ -22,14 +29,23 @@ class m260928_010000_reference_contract extends Migration
     {
         $this->_normalizeFormSettingsForHydration();
 
-        foreach (Form::find()->status(null)->each() as $form) {
+        // Formie 3 forms weren't localized, so a form may have no row on the current primary site.
+        $query = Form::find()->site('*')->unique()->status(null)->trashed(null);
+
+        if ($this->formIds !== null) {
+            $query->id($this->formIds ?: [0]);
+        }
+
+        foreach ($query->each() as $form) {
             $this->_migrateFormSettings($form);
             $this->_migrateFieldSettings($form);
             $this->_migratePageSettings($form);
             $this->_migrateNotifications($form);
         }
 
-        $this->_migrateStencils();
+        if ($this->formIds === null) {
+            $this->_migrateStencils();
+        }
 
         return true;
     }
