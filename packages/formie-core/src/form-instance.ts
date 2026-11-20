@@ -21,6 +21,7 @@ import {
     findFieldById,
     phoneFieldValue,
     repeaterFieldDefinitions,
+    surveyLikertRows,
 } from './schema.js';
 import type {
     ClientFieldDefinition,
@@ -141,6 +142,13 @@ function isEmptyValue(field: ClientFieldDefinition, value: unknown): boolean {
 
     if (isBooleanField(field)) {
         return value !== true;
+    }
+
+    // A Likert scale with multiple rows is answered once every row is, as server-rendered forms require.
+    if (field.type === 'survey' && surveyLikertRows(field).length > 0) {
+        const answers = value && typeof value === 'object' ? value as Record<string, unknown> : {};
+
+        return surveyLikertRows(field).some((row) => answers[row.value] == null || answers[row.value] === '');
     }
 
     // A selected country on its own isn't an answer.

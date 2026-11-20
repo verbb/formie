@@ -17,7 +17,7 @@ export type KnownClientFieldType =
     | 'signature'
     | 'file';
 
-export type ClientStringKey = 'addRow' | 'remove' | 'removeRow' | 'clear' | 'clearSignature' | 'progress';
+export type ClientStringKey = 'addRow' | 'remove' | 'removeRow' | 'clear' | 'clearSignature' | 'progress' | 'moveUp' | 'moveDown';
 
 export type ClientFieldType = KnownClientFieldType | (string & {});
 

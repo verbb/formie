@@ -222,6 +222,30 @@ for (const adapter of ['react', 'vue', 'web-components']) {
         expect(errors).toEqual([]);
     });
 
+    test(`${adapter}: reorders Rank with its buttons and clears a Rating chosen again`, async ({ page }) => {
+        // The form's Phone field loads the picker's flag image, which the fixture bundle doesn't rewrite.
+        await page.route('**/img/flags*.webp', route => route.fulfill({ status: 200, contentType: 'image/webp', body: '' }));
+        const { host, errors } = await openForm(page, adapter, 'parityFields');
+        const rank = field(page, 'pSurveyRank');
+        const rating = field(page, 'pSurveyRating');
+
+        await rank.getByRole('button', { name: 'Move down: Alpha' }).click();
+        await expect(rank.locator('li > span')).toHaveText(['Beta', 'Alpha', 'Gamma']);
+        await expect(rank.getByRole('button', { name: 'Move up: Beta' })).toBeDisabled();
+        await rank.getByRole('button', { name: 'Move up: Gamma' }).click();
+        await expect(rank.locator('li > span')).toHaveText(['Beta', 'Gamma', 'Alpha']);
+
+        await rating.getByRole('radio', { name: 'Gamma' }).click();
+        await expect(rating.getByRole('radio', { name: 'Gamma' })).toBeChecked();
+        await rating.getByRole('radio', { name: 'Gamma' }).click();
+        await expect(rating.getByRole('radio', { checked: true })).toHaveCount(0);
+
+        const values = await submittedValues(page, () => host.locator('button[type="submit"]').last().click());
+        expect(values.pSurveyRank).toEqual(['beta', 'gamma', 'alpha']);
+        expect(values.pSurveyRating ?? null).toBeNull();
+        expect(errors).toEqual([]);
+    });
+
     test(`${adapter}: shows the Phone country picker and submits the chosen country`, async ({ page }) => {
         // The fixture bundle loads the picker's CSS as text, so its flag image URL isn't rewritten as in the package builds.
         await page.route('**/img/flags*.webp', route => route.fulfill({ status: 200, contentType: 'image/webp', body: '' }));

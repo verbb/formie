@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Added `surveyLikertRows()`, `surveyRankOrder()`, `moveListItem()` and `attachPointerReorder()` for Survey fields, and the client definition’s `input.displayType`, `input.likertRows`, `input.starColor` and `settings.strings.moveUp`/`moveDown`. `resolveClientRendererType()` now picks a Survey field’s control from its display type: `survey-likert`, `survey-rank`, `survey-rating`, or the matching dropdown, radio, checkboxes or text control. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Added `paymentFieldMarkup()`, which returns the provider markup a client-rendered Payment field shows. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Added `phoneFieldValue()`, `readPhoneFieldControls()`, `isPhoneCountryEnabled()` and `PHONE_COUNTRY_CHANGE_EVENT` for rendering Phone fields and their country picker. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Added `getClientFieldIds()`, `getClientFieldLabelTarget()` and `joinIdReferences()` for linking a field’s label, instructions and errors to its control. ([#3140](https://github.com/verbb/formie/issues/3140))
@@ -23,6 +24,7 @@
 - `isFieldLabelHidden()` now hides the label of Section fields.
 
 ### Fixed
+- Fixed a required Likert scale with multiple rows counting as answered once one row was. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Fixed a required Phone field with a country but no number counting as answered. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Fixed client-rendered conditions on an element field’s **Title** or **Public URL** never matching. ([#3133](https://github.com/verbb/formie/issues/3133))
 

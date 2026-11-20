@@ -14,6 +14,13 @@ export declare function isCompositeField(field: ClientFieldDefinition): boolean;
 export declare function resolveClientRendererType(field: ClientFieldDefinition): string;
 export declare function isCalculationField(field: ClientFieldDefinition): boolean;
 export declare function paymentFieldMarkup(field: ClientFieldDefinition): string | null;
+export type SurveyLikertRow = {
+    label: string;
+    value: string;
+};
+export declare function surveyLikertRows(field: ClientFieldDefinition): SurveyLikertRow[];
+export declare function surveyRankOrder(field: ClientFieldDefinition, value: unknown): string[];
+export declare function moveListItem<T>(items: T[], from: number, to: number): T[];
 export type PhoneFieldValue = {
     number: string;
     country: string | null;

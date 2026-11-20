@@ -22,6 +22,10 @@ import {
     isCalculationField,
     isFieldLabelVisuallyHidden,
     isPhoneCountryEnabled,
+    moveListItem,
+    surveyLikertRows,
+    surveyRankOrder,
+    attachPointerReorder,
     paymentFieldMarkup,
     PHONE_COUNTRY_CHANGE_EVENT,
     phoneFieldValue,
@@ -647,6 +651,119 @@ function PhoneFieldInput({
     );
 }
 
+type SurveyInputProps = FormieFieldComponentProps & { labelling: ControlLabelling };
+
+// A Likert scale: one radio per column in each row. With multiple rows the answer is `{ row: column }`.
+function SurveyLikertFieldInput({ field, value, disabled, setValue, labelling, inputId, errors, errorId }: SurveyInputProps) {
+    const columns = fieldOptions(field);
+    const rows = surveyLikertRows(field);
+    const multiple = rows.length > 0;
+    const answers = multiple && value && typeof value === 'object' ? value as Record<string, unknown> : {};
+    const base = inputId || `${field.id}-likert`;
+
+    return createElement('div', { className: 'formie-react-likert', ...groupAttributes(field, labelling, 'group') },
+        createElement('table', null,
+            createElement('thead', null, createElement('tr', null,
+                createElement('td', { key: 'corner' }),
+                ...columns.map((column, index) => createElement('th', { key: column.value, id: `${base}-col-${index}`, scope: 'col' }, column.label)),
+            )),
+            createElement('tbody', null, (multiple ? rows : [{ label: '', value: '' }]).map((row, rowIndex) => {
+                const current = multiple ? String(answers[row.value] ?? '') : (value == null ? '' : String(value));
+                const rowId = `${base}-row-${rowIndex}`;
+
+                return createElement('tr', { key: row.value || 'answer' },
+                    multiple ? createElement('th', { id: rowId, scope: 'row' }, row.label) : createElement('td'),
+                    ...columns.map((column, index) => createElement('td', { key: column.value }, createElement('input', {
+                        type: 'radio',
+                        // One name per row groups its radios for keyboard use.
+                        name: `${base}-${rowIndex}`,
+                        value: column.value,
+                        checked: current === column.value,
+                        disabled: disabled || column.disabled,
+                        'aria-labelledby': multiple ? `${base}-col-${index} ${rowId}` : `${base}-col-${index}`,
+                        ...errorReferenceAttributes(errors, errorId),
+                        onChange: () => setValue(multiple ? { ...answers, [row.value]: column.value } : column.value),
+                    }))),
+                );
+            })),
+        ),
+    );
+}
+
+// A Rank answer lists every option in order. Items reorder by dragging or with their move buttons, through state.
+function SurveyRankFieldInput({ field, value, disabled, setValue, labelling }: SurveyInputProps) {
+    const { state } = useDefinitionContext();
+    const list = useRef<HTMLOListElement | null>(null);
+    const latest = useRef({ field, value, setValue });
+    const labels = Object.fromEntries(fieldOptions(field).map((option) => [option.value, option.label]));
+    const order = surveyRankOrder(field, value);
+
+    useEffect(() => {
+        latest.current = { field, value, setValue };
+    }, [field, value, setValue]);
+
+    useEffect(() => {
+        if (!list.current) return undefined;
+
+        return attachPointerReorder(list.current, 'li', (from, to) => {
+            const { field: currentField, value: currentValue, setValue: update } = latest.current;
+            update(moveListItem(surveyRankOrder(currentField, currentValue), from, to));
+        });
+    }, []);
+
+    const move = (from: number, to: number) => setValue(moveListItem(order, from, to));
+
+    return createElement('ol', { ref: list, className: 'formie-react-rank', ...groupAttributes(field, labelling, 'group') }, order.map((item, index) => createElement('li', { key: item },
+        createElement('span', null, labels[item] ?? item),
+        createElement('button', {
+            type: 'button',
+            disabled: disabled || index === 0,
+            'aria-label': `${getClientString(state.definition, 'moveUp')}: ${labels[item] ?? item}`,
+            onClick: () => move(index, index - 1),
+        }, getClientString(state.definition, 'moveUp')),
+        createElement('button', {
+            type: 'button',
+            disabled: disabled || index === order.length - 1,
+            'aria-label': `${getClientString(state.definition, 'moveDown')}: ${labels[item] ?? item}`,
+            onClick: () => move(index, index + 1),
+        }, getClientString(state.definition, 'moveDown')),
+    )));
+}
+
+// Each rating radio covers its star but can't be seen, so the star is what's clicked and the radio keeps focus.
+const RATING_INPUT_STYLE = { position: 'absolute', inset: 0, width: '100%', height: '100%', margin: 0, opacity: 0, cursor: 'pointer' } as const;
+
+// A star rating: radios shown as stars, filled up to the answer. Choosing the current star again clears it, as in
+// server-rendered forms.
+function SurveyRatingFieldInput({ field, value, disabled, setValue, labelling, inputId, errors, errorId }: SurveyInputProps) {
+    const options = fieldOptions(field);
+    const current = value == null ? '' : String(value);
+    const answered = options.findIndex((option) => option.value === current);
+    const color = typeof field.input.starColor === 'string' && field.input.starColor ? field.input.starColor : undefined;
+
+    return createElement('div', { className: 'formie-react-rating', style: color ? { color } : undefined, ...groupAttributes(field, labelling, 'radiogroup') }, options.map((option, index) => createElement('label', {
+        key: option.value,
+        style: { position: 'relative', display: 'inline-block' },
+        'data-formie-rating-filled': index <= answered ? 'true' : undefined,
+    },
+        createElement('input', {
+            type: 'radio',
+            name: inputId || `${field.id}-rating`,
+            value: option.value,
+            checked: current === option.value,
+            disabled: disabled || option.disabled,
+            style: RATING_INPUT_STYLE,
+            ...errorReferenceAttributes(errors, errorId),
+            onChange: () => setValue(option.value),
+            onClick: () => {
+                if (current === option.value) setValue(null);
+            },
+        }),
+        createElement('span', { 'aria-hidden': 'true' }, index <= answered ? '★' : '☆'),
+        createElement('span', { style: VISUALLY_HIDDEN_STYLE }, option.label),
+    )));
+}
+
 function TableFieldInput({
     field,
     value,
@@ -1072,6 +1189,18 @@ function defaultFieldRenderer(props: FormieFieldComponentProps, labelledByWrappe
             disabled,
             setValue,
         });
+    }
+
+    if (rendererType === 'survey-likert') {
+        return createElement(SurveyLikertFieldInput, { ...props, labelling });
+    }
+
+    if (rendererType === 'survey-rank') {
+        return createElement(SurveyRankFieldInput, { ...props, labelling });
+    }
+
+    if (rendererType === 'survey-rating') {
+        return createElement(SurveyRatingFieldInput, { ...props, labelling });
     }
 
     if (rendererType === 'table') {

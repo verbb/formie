@@ -82,6 +82,17 @@ const FIELD_KIND_RENDERERS: Record<string, string> = {
     table: 'table',
 };
 
+const SURVEY_RENDERERS: Record<string, string> = {
+    likert: 'survey-likert',
+    rank: 'survey-rank',
+    rating: 'survey-rating',
+    dropdown: 'dropdown',
+    radio: 'radio',
+    checkboxes: 'checkboxes',
+    singleLineText: 'single-line-text',
+    multiLineText: 'multi-line-text',
+};
+
 /**
  * The default control for a field. Fields without a built-in type, such as Recipients, Entries, Calculations or
  * Date and Address parts, use the control their field kind describes.
@@ -93,9 +104,11 @@ export function resolveClientRendererType(field: ClientFieldDefinition): string 
 
     const fieldKind = typeof field.input.fieldKind === 'string' ? field.input.fieldKind : null;
 
-    // Survey's Likert, Rank, Rating and text display types report a select kind but need their own control.
-    if (field.type === 'survey' && fieldKind !== 'radio-group' && fieldKind !== 'checkbox-group') {
-        return field.type;
+    // Survey fields pick their control from the display type, as the server-rendered template does.
+    if (field.type === 'survey') {
+        const displayType = typeof field.input.displayType === 'string' ? field.input.displayType : '';
+
+        return SURVEY_RENDERERS[displayType] ?? (fieldKind === 'radio-group' ? 'radio' : (fieldKind === 'checkbox-group' ? 'checkboxes' : field.type));
     }
 
     return (fieldKind && FIELD_KIND_RENDERERS[fieldKind]) || field.type;
@@ -109,6 +122,40 @@ export function isCalculationField(field: ClientFieldDefinition): boolean {
 // The provider's browser module mounts into it and keeps its hidden inputs up to date.
 export function paymentFieldMarkup(field: ClientFieldDefinition): string | null {
     return field.type === 'payment' && typeof field.input.html === 'string' ? field.input.html : null;
+}
+
+export type SurveyLikertRow = {
+    label: string;
+    value: string;
+};
+
+// A Likert scale with multiple rows answers each row, as `{ row: column }`. Without rows it's one row answered with
+// a single column value, like a Radio field.
+export function surveyLikertRows(field: ClientFieldDefinition): SurveyLikertRow[] {
+    const rows = Array.isArray(field.input.likertRows) ? field.input.likertRows as Array<Record<string, unknown>> : [];
+
+    return rows.filter((row) => !!row && typeof row === 'object').map((row) => ({ label: String(row.label ?? ''), value: String(row.value ?? '') }));
+}
+
+// A Rank answer lists every option, in the order the visitor put them. Options missing from the answer keep their
+// place at the end, so the list always matches what's shown.
+export function surveyRankOrder(field: ClientFieldDefinition, value: unknown): string[] {
+    const options = fieldOptions(field).map((option) => option.value);
+    const ranked = (Array.isArray(value) ? value.map((item) => String(item)) : []).filter((item) => options.includes(item));
+
+    return [...new Set(ranked), ...options.filter((option) => !ranked.includes(option))];
+}
+
+export function moveListItem<T>(items: T[], from: number, to: number): T[] {
+    if (from === to || from < 0 || to < 0 || from >= items.length || to >= items.length) {
+        return items;
+    }
+
+    const next = items.slice();
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+
+    return next;
 }
 
 export type PhoneFieldValue = {

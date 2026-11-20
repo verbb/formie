@@ -683,6 +683,17 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
             return $value->values();
         }
 
+        // A Rank answer is every option in order, and server-rendered forms submit the shown order even when untouched.
+        if ($this->displayType === self::DISPLAY_RANK) {
+            $ranked = parent::serializeValueForClientInput($value, $element);
+
+            if (!is_array($ranked) || $ranked === []) {
+                return array_values(array_map(static fn(array $option): string => (string)($option['value'] ?? ''), $this->getFieldOptions()));
+            }
+
+            return $ranked;
+        }
+
         return !$this->usesOptions() ? $this->getDisplayTypeField()->serializeValueForClientInput($value, $element) : parent::serializeValueForClientInput($value, $element);
     }
 
@@ -777,6 +788,27 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
     // Protected Methods
     // =========================================================================
 
+    protected function defineClientRenderedInput(): array
+    {
+        // Text display types answer like the text field they show, with its limits and placeholder.
+        if (!$this->usesOptions()) {
+            return array_merge($this->getDisplayTypeField()->getClientRenderedInput(), ['displayType' => $this->displayType]);
+        }
+
+        $input = array_merge(parent::defineClientRenderedInput(), ['displayType' => $this->displayType]);
+
+        if ($this->displayType === self::DISPLAY_LIKERT) {
+            // Without multiple rows, a Likert scale is one row answered with a single column value.
+            $input['likertRows'] = $this->usesLikertMultipleRows() ? $this->getEffectiveLikertRows() : [];
+        }
+
+        if ($this->displayType === self::DISPLAY_RATING) {
+            $input['starColor'] = $this->starColor;
+        }
+
+        return $input;
+    }
+
     protected function _syncMultiFromDisplayType(?string $displayType = null): void
     {
         $displayType ??= $this->displayType;
@@ -802,6 +834,7 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
         if ($value instanceof LikertMultipleRowsFieldValue) {
             return (string)$value;
         }
+
         return !$this->usesOptions() ? $this->getDisplayTypeField()->defineValueAsString($value, $element) : parent::defineValueAsString($value, $element);
     }
 
@@ -813,6 +846,7 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
                 $integrationField,
             );
         }
+
         return !$this->usesOptions()
             ? $this->getDisplayTypeField()->defineValueForIntegration($value, $integrationField, $integration, $element, $fieldKey)
             : parent::defineValueForIntegration($value, $integrationField, $integration, $element, $fieldKey);
@@ -823,6 +857,7 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
         if (!$this->usesOptions() || $value instanceof LikertMultipleRowsFieldValue) {
             return $this->defineValueAsString($value, $element);
         }
+
         return parent::defineValueForSummary($value, $element);
     }
 
@@ -938,6 +973,7 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
         if ($this->displayType === self::DISPLAY_LIKERT && $this->usesLikertMultipleRows()) {
             return FieldValueType::object(LikertMultipleRowsFieldValue::class);
         }
+
         return parent::defineValueType();
     }
 
@@ -1052,6 +1088,7 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
             $row['value'] = $value;
             $usedValues[] = $value;
         }
+
         unset($row);
 
         $this->likertRows = $rows;
@@ -1075,6 +1112,7 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
         foreach ($options as $option) {
             if (!is_array($option) || !empty($option['optgroup'])) {
                 $resolved[] = $option;
+
                 continue;
             }
 
@@ -1082,6 +1120,7 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
 
             if ($label === '') {
                 $resolved[] = $option;
+
                 continue;
             }
 
@@ -1200,6 +1239,7 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
                 $values[$value] = true;
             }
         }
+
         unset($row);
 
         if ($hasDuplicateLabels) {
@@ -1528,6 +1568,7 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
         foreach ($fieldOptions as $option) {
             if (isset($option['optgroup'])) {
                 $orderedOptions[] = $option;
+
                 continue;
             }
 

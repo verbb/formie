@@ -1,7 +1,7 @@
 import type { BrowserValidationRule } from './validation.js';
 import type { BrowserModuleManifest } from './browser-modules.js';
 export type KnownClientFieldType = 'single-line-text' | 'multi-line-text' | 'number' | 'email' | 'phone' | 'dropdown' | 'radio' | 'checkboxes' | 'agree' | 'date' | 'name' | 'address' | 'repeater' | 'signature' | 'file';
-export type ClientStringKey = 'addRow' | 'remove' | 'removeRow' | 'clear' | 'clearSignature' | 'progress';
+export type ClientStringKey = 'addRow' | 'remove' | 'removeRow' | 'clear' | 'clearSignature' | 'progress' | 'moveUp' | 'moveDown';
 export type ClientFieldType = KnownClientFieldType | (string & {});
 export type ClientFieldValueStructure = 'scalar' | 'fixed-parent' | 'container-parent' | 'repeatable-parent';
 export type ClientFieldValueType = {

@@ -215,13 +215,6 @@ const KNOWN_GAPS: Record<string, string> = {
     pCheckboxesToggle: 'The “Select all” checkbox isn’t rendered.',
     pDatePicker: 'The date picker isn’t attached; native date and time inputs are shown.',
     pTable: 'Checkbox cells save true instead of the "1" server-rendered forms save.',
-    pSurveyLikert: 'Survey Likert display isn’t supported.',
-    pSurveyLikertRows: 'Survey Likert display isn’t supported.',
-    pSurveyRank: 'Survey Rank display isn’t supported.',
-    pSurveyRating: 'Survey Rating display isn’t supported.',
-    pSurveyDropdown: 'Survey Dropdown display isn’t supported.',
-    pSurveySingleLineText: 'Survey Single-line Text display isn’t supported.',
-    pSurveyMultiLineText: 'Survey Multi-line Text display isn’t supported.',
     pSignature: 'The server-rendered signature pad doesn’t save the drawn signature in this fixture, so the baseline is empty.',
 };
 

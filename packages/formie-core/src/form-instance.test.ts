@@ -496,6 +496,28 @@ describe('createClientFormInstance', () => {
         expect(submit).toHaveBeenCalledTimes(1);
     });
 
+    it('treats a required Likert scale with rows as unanswered until every row is', async() => {
+        const submit = vi.fn<ClientTransport['submit']>(async() => ({
+            success: true, outcome: 'completed', currentPageId: 'page-1', errors: { form: [], fields: {} }, messages: {}, session: {},
+        }) as Awaited<ReturnType<ClientTransport['submit']>>);
+        const runtime = createClientFormInstance({
+            envelope: createEnvelope([createTextField('likert', 'likert', {
+                type: 'survey',
+                required: true,
+                input: { kind: 'select', fieldKind: 'select', displayType: 'likert', likertRows: [{ label: 'One', value: 'one' }, { label: 'Two', value: 'two' }], options: [{ label: 'Yes', value: 'yes' }], defaultValue: null },
+            })]),
+            transport: createTransport({ submit }),
+        });
+
+        runtime.setValue('likert', { one: 'yes' });
+        await runtime.submit('submit');
+        expect(submit).not.toHaveBeenCalled();
+
+        runtime.setValue('likert', { one: 'yes', two: 'yes' });
+        await runtime.submit('submit');
+        expect(submit).toHaveBeenCalledTimes(1);
+    });
+
     it('resets values and navigation back to the initial session state', async() => {
         const runtime = createClientFormInstance({
             envelope: createEnvelope([createTextField('trigger', 'trigger')]),

@@ -8,6 +8,8 @@ import {
     isCompositeField,
     isMultiValueField,
     isPhoneCountryEnabled,
+    moveListItem,
+    surveyRankOrder,
     phoneFieldValue,
     resolveClientRendererType,
     tableColumns,
@@ -257,5 +259,28 @@ describe('phone values', () => {
         expect(isPhoneCountryEnabled(field('phone', { countryEnabled: true }))).toBe(true);
         expect(isPhoneCountryEnabled(field('phone', { countryEnabled: false }))).toBe(false);
         expect(isPhoneCountryEnabled(field('single-line-text', { countryEnabled: true }))).toBe(false);
+    });
+});
+
+describe('survey display types', () => {
+    const survey = (displayType: string, input: Record<string, unknown> = {}) => field('survey', { displayType, fieldKind: displayType === 'radio' ? 'radio-group' : (displayType === 'checkboxes' ? 'checkbox-group' : 'select'), options: [option('a'), option('b'), option('c')], ...input });
+
+    it('picks the control from the display type', () => {
+        expect(['likert', 'rank', 'rating', 'dropdown', 'radio', 'checkboxes', 'singleLineText', 'multiLineText'].map((type) => resolveClientRendererType(survey(type))))
+            .toEqual(['survey-likert', 'survey-rank', 'survey-rating', 'dropdown', 'radio', 'checkboxes', 'single-line-text', 'multi-line-text']);
+    });
+
+    it('keeps every option in a Rank answer, in the visitor’s order', () => {
+        expect(surveyRankOrder(survey('rank'), ['c', 'a'])).toEqual(['c', 'a', 'b']);
+        expect(surveyRankOrder(survey('rank'), ['c', 'missing', 'c'])).toEqual(['c', 'a', 'b']);
+        expect(surveyRankOrder(survey('rank'), null)).toEqual(['a', 'b', 'c']);
+    });
+
+    it('moves list items without changing the list it was given', () => {
+        const items = ['a', 'b', 'c'];
+        expect(moveListItem(items, 2, 0)).toEqual(['c', 'a', 'b']);
+        expect(moveListItem(items, 0, 1)).toEqual(['b', 'a', 'c']);
+        expect(moveListItem(items, 0, 5)).toBe(items);
+        expect(items).toEqual(['a', 'b', 'c']);
     });
 });

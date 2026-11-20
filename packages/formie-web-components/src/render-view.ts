@@ -13,6 +13,10 @@ import {
     isCalculationField,
     isFieldLabelVisuallyHidden,
     isPhoneCountryEnabled,
+    moveListItem,
+    surveyLikertRows,
+    surveyRankOrder,
+    attachPointerReorder,
     paymentFieldMarkup,
     PHONE_COUNTRY_CHANGE_EVENT,
     phoneFieldValue,
@@ -43,6 +47,7 @@ import {
 import { html, nothing, type TemplateResult } from 'lit';
 import { html as staticHtml, unsafeStatic } from 'lit/static-html.js';
 import { ref } from 'lit/directives/ref.js';
+import { repeat } from 'lit/directives/repeat.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { assertValidCustomElementName, type FormieRegistry } from './registry.js';
 import { resolveFieldRendererType } from './field-utils.js';
@@ -377,6 +382,117 @@ function renderPhone(field: ClientFieldDefinition, value: unknown, disabled: boo
     `;
 }
 
+// A Likert scale: one radio per column in each row. With multiple rows the answer is `{ row: column }`.
+function renderSurveyLikert(field: ClientFieldDefinition, value: unknown, disabled: boolean, setValue: (v: unknown) => void, labelling: ControlLabelling, errorId: string): TemplateResult {
+    const columns = fieldOptions(field);
+    const rows = surveyLikertRows(field);
+    const multiple = rows.length > 0;
+    const answers = multiple && value && typeof value === 'object' ? value as Record<string, unknown> : {};
+    const base = labelling.ids.input;
+    const naming = groupNaming(field, labelling);
+    const hasErrors = labelling.errors.length > 0;
+
+    return html`
+        <div class="starter-component-likert" role="group" aria-labelledby=${naming.labelledBy} aria-label=${naming.label} aria-describedby=${naming.describedBy}>
+            <table>
+                <thead><tr><td></td>${columns.map((column, index) => html`<th id=${`${base}-col-${index}`} scope="col">${column.label}</th>`)}</tr></thead>
+                <tbody>
+                    ${(multiple ? rows : [{ label: '', value: '' }]).map((row, rowIndex) => {
+                        const current = multiple ? String(answers[row.value] ?? '') : (value == null ? '' : String(value));
+                        const rowId = `${base}-row-${rowIndex}`;
+
+                        return html`<tr>
+                            ${multiple ? html`<th id=${rowId} scope="row">${row.label}</th>` : html`<td></td>`}
+                            ${columns.map((column, index) => html`<td><input
+                                type="radio"
+                                name=${`${base}-${rowIndex}`}
+                                value=${column.value}
+                                .checked=${current === column.value}
+                                ?disabled=${disabled || column.disabled}
+                                aria-labelledby=${multiple ? `${base}-col-${index} ${rowId}` : `${base}-col-${index}`}
+                                aria-invalid=${hasErrors ? 'true' : nothing}
+                                aria-errormessage=${hasErrors ? errorId : nothing}
+                                @change=${() => setValue(multiple ? { ...answers, [row.value]: column.value } : column.value)}
+                            /></td>`)}
+                        </tr>`;
+                    })}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+// Lit can't hand a callback to code that outlives one render, so each list gets one drag listener that calls its
+// latest handler.
+const rankHandlers = new WeakMap<Element, (from: number, to: number) => void>();
+
+function listenForRankDrag(handler: (from: number, to: number) => void) {
+    return ref((element) => {
+        if (!element) {
+            return;
+        }
+
+        if (!rankHandlers.has(element)) {
+            attachPointerReorder(element as HTMLElement, 'li', (from, to) => rankHandlers.get(element)?.(from, to));
+        }
+
+        rankHandlers.set(element, handler);
+    });
+}
+
+// A Rank answer lists every option in order. Items reorder by dragging or with their move buttons, through state.
+function renderSurveyRank(ctx: RenderViewContext, field: ClientFieldDefinition, value: unknown, disabled: boolean, setValue: (v: unknown) => void, labelling: ControlLabelling): TemplateResult {
+    const definition = ctx.state.definition;
+    const labels = Object.fromEntries(fieldOptions(field).map((option) => [option.value, option.label]));
+    const order = surveyRankOrder(field, value);
+    const naming = groupNaming(field, labelling);
+    const move = (from: number, to: number) => setValue(moveListItem(order, from, to));
+
+    return html`
+        <ol class="starter-component-rank" role="group" aria-labelledby=${naming.labelledBy} aria-label=${naming.label} aria-describedby=${naming.describedBy} ${listenForRankDrag(move)}>
+            ${repeat(order, (item) => item, (item, index) => html`<li>
+                <span>${labels[item] ?? item}</span>
+                <button type="button" ?disabled=${disabled || index === 0} aria-label=${`${getClientString(definition, 'moveUp')}: ${labels[item] ?? item}`} @click=${() => move(index, index - 1)}>${getClientString(definition, 'moveUp')}</button>
+                <button type="button" ?disabled=${disabled || index === order.length - 1} aria-label=${`${getClientString(definition, 'moveDown')}: ${labels[item] ?? item}`} @click=${() => move(index, index + 1)}>${getClientString(definition, 'moveDown')}</button>
+            </li>`)}
+        </ol>
+    `;
+}
+
+// A star rating: radios shown as stars, filled up to the answer. Choosing the current star again clears it, as in
+// server-rendered forms.
+function renderSurveyRating(field: ClientFieldDefinition, value: unknown, disabled: boolean, setValue: (v: unknown) => void, labelling: ControlLabelling, errorId: string): TemplateResult {
+    const options = fieldOptions(field);
+    const current = value == null ? '' : String(value);
+    const answered = options.findIndex((option) => option.value === current);
+    const color = typeof field.input.starColor === 'string' && field.input.starColor ? `color: ${field.input.starColor}` : nothing;
+    const naming = groupNaming(field, labelling);
+    const hasErrors = labelling.errors.length > 0;
+
+    return html`
+        <div class="starter-component-rating" style=${color} role="radiogroup" aria-labelledby=${naming.labelledBy} aria-label=${naming.label} aria-describedby=${naming.describedBy}>
+            ${options.map((option, index) => html`<label style="position: relative; display: inline-block" data-formie-rating-filled=${index <= answered ? 'true' : nothing}>
+                <input
+                    type="radio"
+                    name=${labelling.ids.input}
+                    value=${option.value}
+                    .checked=${current === option.value}
+                    ?disabled=${disabled || option.disabled}
+                    style="position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer"
+                    aria-invalid=${hasErrors ? 'true' : nothing}
+                    aria-errormessage=${hasErrors ? errorId : nothing}
+                    @change=${() => setValue(option.value)}
+                    @click=${() => {
+                        if (current === option.value) setValue(null);
+                    }}
+                />
+                <span aria-hidden="true">${index <= answered ? '★' : '☆'}</span>
+                <span style=${VISUALLY_HIDDEN_CSS}>${option.label}</span>
+            </label>`)}
+        </div>
+    `;
+}
+
 function renderTableCell(column: ClientTableColumn, value: unknown, disabled: boolean, setValue: (v: unknown) => void): TemplateResult {
     if (column.type === 'heading') {
         return html`<span>${typeof value === 'string' ? value : ''}</span>`;
@@ -473,6 +589,18 @@ function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps & { 
 
     if (rendererType === 'phone') {
         return renderPhone(field, value, disabled, setValue, labelling);
+    }
+
+    if (rendererType === 'survey-likert') {
+        return renderSurveyLikert(field, value, disabled, setValue, labelling, labelling.ids.errors);
+    }
+
+    if (rendererType === 'survey-rank') {
+        return renderSurveyRank(ctx, field, value, disabled, setValue, labelling);
+    }
+
+    if (rendererType === 'survey-rating') {
+        return renderSurveyRating(field, value, disabled, setValue, labelling, labelling.ids.errors);
     }
 
     if (rendererType === 'section') {

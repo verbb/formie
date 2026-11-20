@@ -22,6 +22,10 @@ import {
     isCalculationField,
     isFieldLabelVisuallyHidden,
     isPhoneCountryEnabled,
+    moveListItem,
+    surveyLikertRows,
+    surveyRankOrder,
+    attachPointerReorder,
     paymentFieldMarkup,
     PHONE_COUNTRY_CHANGE_EVENT,
     phoneFieldValue,
@@ -1280,6 +1284,139 @@ const PhoneFieldInput = defineComponent({
     },
 });
 
+// A Likert scale: one radio per column in each row. With multiple rows the answer is `{ row: column }`.
+const SurveyLikertFieldInput = defineComponent({
+    name: 'FormieVueSurveyLikertFieldInput',
+    props: fieldComponentProps,
+    setup(props) {
+        const context = useDefinitionContext();
+
+        return () => {
+            const labelling = controlLabelling(props, isDefaultFieldWrapper(context));
+            const columns = fieldOptions(props.field);
+            const rows = surveyLikertRows(props.field);
+            const multiple = rows.length > 0;
+            const answers = multiple && props.value && typeof props.value === 'object' ? props.value as Record<string, unknown> : {};
+            const base = props.inputId || `${props.field.id}-likert`;
+
+            return h('div', { class: 'formie-vue-likert', ...groupAttributes(props.field, labelling, 'group') }, [
+                h('table', null, [
+                    h('thead', null, h('tr', null, [
+                        h('td', { key: 'corner' }),
+                        ...columns.map((column, index) => h('th', { key: column.value, id: `${base}-col-${index}`, scope: 'col' }, column.label)),
+                    ])),
+                    h('tbody', null, (multiple ? rows : [{ label: '', value: '' }]).map((row, rowIndex) => {
+                        const current = multiple ? String(answers[row.value] ?? '') : (props.value == null ? '' : String(props.value));
+                        const rowId = `${base}-row-${rowIndex}`;
+
+                        return h('tr', { key: row.value || 'answer' }, [
+                            multiple ? h('th', { id: rowId, scope: 'row' }, row.label) : h('td'),
+                            ...columns.map((column, index) => h('td', { key: column.value }, h('input', {
+                                type: 'radio',
+                                // One name per row groups its radios for keyboard use.
+                                name: `${base}-${rowIndex}`,
+                                value: column.value,
+                                checked: current === column.value,
+                                disabled: props.disabled || column.disabled,
+                                'aria-labelledby': multiple ? `${base}-col-${index} ${rowId}` : `${base}-col-${index}`,
+                                ...errorReferenceAttributes(props.errors, props.errorId),
+                                onChange: () => {
+                                    props.setValue(multiple ? { ...answers, [row.value]: column.value } : column.value);
+                                },
+                            }))),
+                        ]);
+                    })),
+                ]),
+            ]);
+        };
+    },
+});
+
+// A Rank answer lists every option in order. Items reorder by dragging or with their move buttons, through state.
+const SurveyRankFieldInput = defineComponent({
+    name: 'FormieVueSurveyRankFieldInput',
+    props: fieldComponentProps,
+    setup(props) {
+        const context = useDefinitionContext();
+        const list = ref<HTMLElement | null>(null);
+        let detach: (() => void) | undefined;
+        const move = (from: number, to: number) => {
+            props.setValue(moveListItem(surveyRankOrder(props.field, props.value), from, to));
+        };
+
+        onMounted(() => {
+            if (list.value) detach = attachPointerReorder(list.value, 'li', move);
+        });
+        onBeforeUnmount(() => detach?.());
+
+        return () => {
+            const labelling = controlLabelling(props, isDefaultFieldWrapper(context));
+            const definition = context.state.value?.definition;
+            const labels = Object.fromEntries(fieldOptions(props.field).map((option) => [option.value, option.label]));
+            const order = surveyRankOrder(props.field, props.value);
+
+            return h('ol', { ref: list, class: 'formie-vue-rank', ...groupAttributes(props.field, labelling, 'group') }, order.map((value, index) => h('li', { key: value }, [
+                h('span', null, labels[value] ?? value),
+                h('button', {
+                    type: 'button',
+                    disabled: props.disabled || index === 0,
+                    'aria-label': `${getClientString(definition, 'moveUp')}: ${labels[value] ?? value}`,
+                    onClick: () => move(index, index - 1),
+                }, getClientString(definition, 'moveUp')),
+                h('button', {
+                    type: 'button',
+                    disabled: props.disabled || index === order.length - 1,
+                    'aria-label': `${getClientString(definition, 'moveDown')}: ${labels[value] ?? value}`,
+                    onClick: () => move(index, index + 1),
+                }, getClientString(definition, 'moveDown')),
+            ])));
+        };
+    },
+});
+
+// Each rating radio covers its star but can't be seen, so the star is what's clicked and the radio keeps focus.
+const RATING_INPUT_STYLE = { position: 'absolute', inset: '0', width: '100%', height: '100%', margin: '0', opacity: '0', cursor: 'pointer' } as const;
+
+// A star rating: radios shown as stars, filled up to the answer. Choosing the current star again clears it, as in
+// server-rendered forms.
+const SurveyRatingFieldInput = defineComponent({
+    name: 'FormieVueSurveyRatingFieldInput',
+    props: fieldComponentProps,
+    setup(props) {
+        const context = useDefinitionContext();
+
+        return () => {
+            const labelling = controlLabelling(props, isDefaultFieldWrapper(context));
+            const options = fieldOptions(props.field);
+            const current = props.value == null ? '' : String(props.value);
+            const answered = options.findIndex((option) => option.value === current);
+            const color = typeof props.field.input.starColor === 'string' && props.field.input.starColor ? props.field.input.starColor : undefined;
+
+            return h('div', { class: 'formie-vue-rating', style: color ? { color } : undefined, ...groupAttributes(props.field, labelling, 'radiogroup') }, options.map((option, index) => h('label', {
+                key: option.value,
+                style: { position: 'relative', display: 'inline-block' },
+                'data-formie-rating-filled': index <= answered ? 'true' : undefined,
+            }, [
+                h('input', {
+                    type: 'radio',
+                    name: props.inputId || `${props.field.id}-rating`,
+                    value: option.value,
+                    checked: current === option.value,
+                    disabled: props.disabled || option.disabled,
+                    style: RATING_INPUT_STYLE,
+                    ...errorReferenceAttributes(props.errors, props.errorId),
+                    onChange: () => props.setValue(option.value),
+                    onClick: () => {
+                        if (current === option.value) props.setValue(null);
+                    },
+                }),
+                h('span', { 'aria-hidden': 'true' }, index <= answered ? '★' : '☆'),
+                h('span', { style: VISUALLY_HIDDEN_STYLE }, option.label),
+            ])));
+        };
+    },
+});
+
 const TableFieldInput = defineComponent({
     name: 'FormieVueTableFieldInput',
     props: fieldComponentProps,
@@ -1415,6 +1552,18 @@ const DefaultFieldInput = defineComponent({
 
             if (rendererType === 'phone') {
                 return h(PhoneFieldInput, props);
+            }
+
+            if (rendererType === 'survey-likert') {
+                return h(SurveyLikertFieldInput, props);
+            }
+
+            if (rendererType === 'survey-rank') {
+                return h(SurveyRankFieldInput, props);
+            }
+
+            if (rendererType === 'survey-rating') {
+                return h(SurveyRatingFieldInput, props);
             }
 
             if (rendererType === 'section') {

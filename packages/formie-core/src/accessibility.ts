@@ -73,6 +73,8 @@ const CLIENT_STRING_FALLBACKS: Record<ClientStringKey, string> = {
     clear: 'Clear',
     clearSignature: 'Clear signature',
     progress: 'Progress',
+    moveUp: 'Move up',
+    moveDown: 'Move down',
 };
 
 /**

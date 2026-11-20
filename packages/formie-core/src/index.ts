@@ -27,6 +27,9 @@ export {
     isArrayValuedField,
     isCalculationField,
     isPhoneCountryEnabled,
+    moveListItem,
+    surveyLikertRows,
+    surveyRankOrder,
     paymentFieldMarkup,
     PHONE_COUNTRY_CHANGE_EVENT,
     phoneFieldValue,
@@ -54,7 +57,8 @@ export {
     serializeFieldValues,
     serializeTransportFieldValues,
 } from './schema.js';
-export type { ClientFieldOption, ClientTableColumn, PhoneFieldValue } from './schema.js';
+export type { ClientFieldOption, ClientTableColumn, PhoneFieldValue, SurveyLikertRow } from './schema.js';
+export { attachPointerReorder } from './reorder.js';
 export { deriveCalculationValues, parseRowsExpression } from './client-calculations.js';
 export { countGraphemes, getTextLimitMetrics, getWordCount, normalizeText } from './text.js';
 export {

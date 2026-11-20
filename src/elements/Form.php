@@ -968,6 +968,8 @@ class Form extends Element implements FormInterface
                     'clear' => Craft::t('formie', 'Clear'),
                     'clearSignature' => Craft::t('formie', 'Clear signature'),
                     'progress' => Craft::t('formie', 'Progress'),
+                    'moveUp' => Craft::t('formie', 'Move up'),
+                    'moveDown' => Craft::t('formie', 'Move down'),
                 ],
             ],
             'pages' => $pages,
