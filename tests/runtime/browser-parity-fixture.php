@@ -49,6 +49,7 @@ $factory = \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Pari
     ->numberField('pCalcSource', ['label' => 'P calc source'])
     ->calculationsField('pCalculations', ['label' => 'P calculations'])
     ->recipientsField('pRecipientsDropdown', ['label' => 'P recipients dropdown', 'displayType' => 'dropdown', 'options' => $recipients])
+    ->recipientsField('pRecipientsSearch', ['label' => 'P recipients searchable', 'displayType' => 'dropdown', 'useSearchable' => true, 'options' => $recipients])
     ->recipientsField('pRecipientsRadio', ['label' => 'P recipients radio', 'displayType' => 'radio', 'options' => $recipients])
     ->recipientsField('pRecipientsCheckboxes', ['label' => 'P recipients checkboxes', 'displayType' => 'checkboxes', 'options' => $recipients])
     ->recipientsField('pRecipientsHidden', ['label' => 'P recipients hidden', 'displayType' => 'hidden', 'options' => [['label' => 'Sales', 'value' => 'sales@example.test', 'isDefault' => true]]])

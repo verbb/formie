@@ -172,6 +172,13 @@ const STEPS: Step[] = [
     { handle: 'pCalcSource', fill: (f) => f.getByRole('spinbutton').first().fill('4') },
     { handle: 'pCalculations' },
     { handle: 'pRecipientsDropdown', fill: (f) => pickOption(f, 'Support') },
+    {
+        handle: 'pRecipientsSearch',
+        fill: async (f, page) => {
+            await f.locator('.ts-control').first().click();
+            await page.locator('.ts-dropdown:visible .option', { hasText: 'Support' }).first().click();
+        },
+    },
     { handle: 'pRecipientsRadio', fill: (f) => f.getByRole('radio', { name: 'Support' }).check() },
     {
         handle: 'pRecipientsCheckboxes',
