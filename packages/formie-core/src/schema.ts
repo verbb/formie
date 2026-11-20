@@ -166,6 +166,44 @@ export function isRichTextField(field: ClientFieldDefinition): boolean {
     return field.input.useRichText === true;
 }
 
+// Date fields shown as a date picker use the `formie:date-picker` browser module on one input, which it fills with
+// the picked date and time.
+export function isDatePickerField(field: ClientFieldDefinition): boolean {
+    return field.type === 'date' && field.input.displayType === 'datePicker' && field.input.collectMode !== 'range';
+}
+
+// The picker's answer is posted as `{ datetime }`, exactly as server-rendered date pickers post it, so both save the
+// same answer. Values from other display types or older states are read from their date and time parts.
+export function datePickerInputValue(value: unknown): string {
+    const parts = value && typeof value === 'object' ? value as Record<string, unknown> : {};
+
+    if (typeof parts.datetime === 'string') {
+        return parts.datetime;
+    }
+
+    const date = typeof parts.date === 'string' ? parts.date : '';
+    const time = typeof parts.time === 'string' ? parts.time : '';
+
+    return [date, time].filter(Boolean).join(' ');
+}
+
+export function datePickerValue(inputValue: string): { datetime: string } {
+    return { datetime: inputValue.trim() };
+}
+
+// Conditions compare dates by their parts, so a picked `datetime` is split into them.
+export function datePickerParts(value: unknown): Record<string, string> {
+    const match = datePickerInputValue(value).match(/^(\d{4})-(\d{2})-(\d{2})(?: (\d{2}):(\d{2})(?::(\d{2}))?)?$/);
+
+    if (!match) {
+        return {};
+    }
+
+    const [, year, month, day, hour, minute, second] = match;
+
+    return Object.fromEntries(Object.entries({ year, month, day, hour, minute, second }).filter(([, part]) => part !== undefined)) as Record<string, string>;
+}
+
 export type SurveyLikertRow = {
     label: string;
     value: string;

@@ -22,6 +22,9 @@ import {
     isCalculationField,
     isFieldLabelVisuallyHidden,
     isPhoneCountryEnabled,
+    isDatePickerField,
+    datePickerInputValue,
+    datePickerValue,
     isRichTextField,
     checkboxToggle,
     allOptionsSelected,
@@ -744,6 +747,37 @@ const SignatureFieldInput = defineComponent({
                 class: 'formie-vue-unsupported',
             }, loadError.value) : null,
         ]);
+    },
+});
+
+// The date picker turns its input hidden and adds its own visible input next to it, so the input gets a container of
+// its own. It fires `input` with the picked date and time, which the wrapper stores as the answer.
+const DatePickerFieldInput = defineComponent({
+    name: 'FormieVueDatePickerFieldInput',
+    props: fieldComponentProps,
+    setup(props) {
+        const context = useDefinitionContext();
+
+        return () => {
+            const labelling = controlLabelling(props, isDefaultFieldWrapper(context));
+
+            return h('div', {
+                class: 'formie-vue-date-picker',
+                onInput: (event: Event) => {
+                    // The picker moves the field's attributes to its visible input. The value to submit stays in the
+                    // original input, which it turns hidden.
+                    const input = (event.currentTarget as HTMLElement).querySelector('input[type="hidden"]');
+                    if (input instanceof HTMLInputElement) props.setValue(datePickerValue(input.value));
+                },
+            }, h('div', null, h('input', {
+                type: 'text',
+                ...controlAttributes(props.field, labelling),
+                'data-formie-date-datepicker-input': 'true',
+                value: datePickerInputValue(props.value),
+                disabled: props.disabled,
+                placeholder: typeof props.field.input.placeholder === 'string' ? props.field.input.placeholder : undefined,
+            })));
+        };
     },
 });
 
@@ -1565,6 +1599,10 @@ const DefaultFieldInput = defineComponent({
             const contract = props.field.input;
             const rendererType = resolveFieldRendererType(props.field);
             const labelling = controlLabelling(props, isDefaultFieldWrapper(context));
+
+            if (isDatePickerField(props.field)) {
+                return h(DatePickerFieldInput, props);
+            }
 
             if (isCompositeField(props.field)) {
                 return h(CompositeFieldInput, props);

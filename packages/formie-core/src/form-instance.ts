@@ -12,6 +12,7 @@ import {
     fieldValueAsStrings,
     isBooleanField,
     isCompositeField,
+    isDatePickerField,
     isEmailField,
     isFileField,
     isMultiValueField,
@@ -160,6 +161,12 @@ function isEmptyValue(field: ClientFieldDefinition, value: unknown): boolean {
         return !Array.isArray(value) || value.length === 0;
     }
 
+    if (isDatePickerField(field)) {
+        const answer = value && typeof value === 'object' ? (value as Record<string, unknown>).datetime : null;
+
+        return typeof answer !== 'string' || answer.trim() === '';
+    }
+
     if (isCompositeField(field) && value && typeof value === 'object') {
         // Unchecked parts and empty lists, such as a Group's Agree or Checkboxes field, don't count as an answer.
         return Object.values(value as Record<string, unknown>).every((item) => {
@@ -200,6 +207,11 @@ function validateFieldValue(
             comparisonLabel: source ? fieldLabel(source) : undefined,
         });
         if (message) { output[errorKey] = [message]; return; }
+    }
+
+    // A date picker is one control, so its answer is checked as a whole, as in server-rendered forms.
+    if (isDatePickerField(field)) {
+        return;
     }
 
     if (isCompositeField(field)) {

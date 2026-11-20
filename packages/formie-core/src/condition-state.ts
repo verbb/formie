@@ -1,7 +1,7 @@
 import { projectElementConditionValues, selectConditionRows } from './condition-projections.js';
 import { combineConditions, evaluateCondition } from './conditions.js';
 import type { ConditionEvaluation, ConditionValueType } from './conditions.js';
-import { allFields, compositePartDefinitions, isRepeatableField, repeaterFieldDefinitions } from './schema.js';
+import { allFields, compositePartDefinitions, isRepeatableField, repeaterFieldDefinitions, datePickerParts, isDatePickerField } from './schema.js';
 import type { ClientFieldDefinition, ClientFormState } from './types.js';
 
 const conditionEffect = (effect?: string): string => ['show', 'hide', 'enable', 'disable'].includes(effect ?? '') ? effect! : 'show';
@@ -37,6 +37,7 @@ export function evaluateClientCondition(condition: ClientFieldDefinition['condit
         if (rule.browserSafe === false || !source) return { value: null, diagnostics: [{ code: rule.browserSafe === false ? 'serverOnlyReference' : 'unresolvedReference' }] };
         if (rule.source?.transformerId) return { value: null, diagnostics: [{ code: 'serverOnlyReference' }] };
         let value = getValue(state, source);
+        if (isDatePickerField(source.field)) value = datePickerParts(value);
         let selector = (rule.source?.selector ?? '').split(/[.:]/).filter(Boolean);
         const params = { ...(rule.source?.transformerParams ?? {}) };
         const read = (input: unknown, keys: string[]): unknown => keys.reduce<unknown>((item, key) => item && typeof item === 'object' && Object.prototype.hasOwnProperty.call(item, key) ? (item as Record<string, unknown>)[key] : undefined, input);

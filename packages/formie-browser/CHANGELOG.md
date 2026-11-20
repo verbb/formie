@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Changed
+- Client-rendered forms now run the date picker module instead of leaving Date fields to the framework adapter. ([#3146](https://github.com/verbb/formie/issues/3146))
 - The Phone country picker now dispatches `formie:field:phone-country:change` from its country input, with the country in `detail.country`, when the country changes. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Client-rendered forms now leave Calculations and Table fields to the form state and the framework adapter, instead of running the server-rendered modules on markup they don’t produce.
 

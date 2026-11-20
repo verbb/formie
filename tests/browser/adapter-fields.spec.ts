@@ -237,6 +237,18 @@ for (const adapter of ['react', 'vue', 'web-components']) {
         expect(errors).toEqual([]);
     });
 
+    test(`${adapter}: shows the date picker named by the field label`, async ({ page }) => {
+        // The form's Phone field loads the picker's flag image, which the fixture bundle doesn't rewrite.
+        await page.route('**/img/flags*.webp', route => route.fulfill({ status: 200, contentType: 'image/webp', body: '' }));
+        const { errors } = await openForm(page, adapter, 'parityFields');
+        const picker = field(page, 'pDatePicker').getByRole('textbox', { name: 'P date picker' });
+
+        await expect(picker).toBeVisible();
+        await picker.click();
+        await expect(page.locator('.flatpickr-calendar.open')).toBeVisible();
+        expect(errors).toEqual([]);
+    });
+
     test(`${adapter}: reorders Rank with its buttons and clears a Rating chosen again`, async ({ page }) => {
         // The form's Phone field loads the picker's flag image, which the fixture bundle doesn't rewrite.
         await page.route('**/img/flags*.webp', route => route.fulfill({ status: 200, contentType: 'image/webp', body: '' }));

@@ -22,6 +22,9 @@ import {
     isCalculationField,
     isFieldLabelVisuallyHidden,
     isPhoneCountryEnabled,
+    isDatePickerField,
+    datePickerInputValue,
+    datePickerValue,
     isRichTextField,
     checkboxToggle,
     allOptionsSelected,
@@ -800,6 +803,38 @@ function SummaryFieldInput({ field }: Pick<FormieFieldComponentProps, 'field'>) 
     return createElement('div', { className: 'formie-react-summary', dangerouslySetInnerHTML: { __html: summaryFieldMarkup(field, state.lastSubmitResult) ?? '' } });
 }
 
+// Builds an element's HTML from React-style attributes, for markup React must not manage.
+function attributeHtml(attributes: Record<string, string | boolean | undefined>): string {
+    const escape = (text: string) => text.replace(/[&"<>]/g, (character) => `&#${character.charCodeAt(0)};`);
+
+    return Object.entries(attributes).filter(([, value]) => value !== undefined && value !== false).map(([name, value]) => {
+        const attribute = name === 'autoComplete' ? 'autocomplete' : name;
+        return value === true ? attribute : `${attribute}="${escape(String(value))}"`;
+    }).join(' ');
+}
+
+// The date picker turns its input hidden and adds its own visible input next to it. React would set the input's type
+// back on every render, so the input is HTML React sets once and never manages. The picker fires `input` with the
+// picked date and time, which the wrapper reads from the original, hidden input and stores as the answer.
+function DatePickerFieldInput({ field, value, disabled, setValue, labelling }: Pick<FormieFieldComponentProps, 'field' | 'value' | 'disabled' | 'setValue'> & { labelling: ControlLabelling }) {
+    const [markup] = useState(() => `<input ${attributeHtml({
+        type: 'text',
+        ...controlAttributes(field, labelling),
+        'data-formie-date-datepicker-input': 'true',
+        value: datePickerInputValue(value),
+        placeholder: typeof field.input.placeholder === 'string' ? field.input.placeholder : undefined,
+        disabled,
+    })}>`);
+
+    return createElement('div', {
+        className: 'formie-react-date-picker',
+        onInput: (event: { currentTarget: HTMLElement }) => {
+            const input = event.currentTarget.querySelector('input[type="hidden"]');
+            if (input instanceof HTMLInputElement) setValue(datePickerValue(input.value));
+        },
+    }, createElement('div', { dangerouslySetInnerHTML: { __html: markup } }));
+}
+
 function TableFieldInput({
     field,
     value,
@@ -1194,6 +1229,10 @@ function defaultFieldRenderer(props: FormieFieldComponentProps, labelledByWrappe
     const contract = field.input;
     const rendererType = resolveFieldRendererType(field);
     const labelling = controlLabelling(props, labelledByWrapper);
+
+    if (isDatePickerField(field)) {
+        return createElement(DatePickerFieldInput, { field, value, disabled, setValue, labelling });
+    }
 
     if (isCompositeField(field)) {
         return createElement(CompositeFieldInput, {

@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Added `isDatePickerField()`, `datePickerInputValue()`, `datePickerValue()` and `datePickerParts()`, and the client definition’s `input.displayType` for Date fields. A date picker’s answer is `{ datetime }`, as server-rendered date pickers post it, and conditions compare it by its parts. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Added `isRichTextField()` and the client definition’s `input.useRichText`. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Added `checkboxToggle()`, `allOptionsSelected()` and `toggleAllOptions()`, and the client definition’s `input.toggleCheckbox` and `input.toggleCheckboxLabel`, for the “Select all” checkbox. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Added `summaryFieldMarkup()` and `summaryTokens` on submit results, which client-rendered Summary fields use to show the answers saved so far. ([#3146](https://github.com/verbb/formie/issues/3146))
@@ -27,6 +28,7 @@
 - `isFieldLabelHidden()` now hides the label of Section fields.
 
 ### Fixed
+- Fixed labels pointing at a control that doesn’t exist for Survey Likert, Rank and Rating fields, and Payment and Summary fields, in `getClientFieldLabelTarget()`. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Fixed a required Likert scale with multiple rows counting as answered once one row was. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Fixed a required Phone field with a country but no number counting as answered. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Fixed client-rendered conditions on an element field’s **Title** or **Public URL** never matching. ([#3133](https://github.com/verbb/formie/issues/3133))

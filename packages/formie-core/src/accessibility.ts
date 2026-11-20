@@ -1,4 +1,4 @@
-import { displayFieldContent, isCompositeField, isRepeatableField } from './schema.js';
+import { displayFieldContent, isCompositeField, isRepeatableField, isDatePickerField } from './schema.js';
 import type { ClientFieldDefinition, ClientFormDefinition, ClientFormSession, ClientStringKey } from './types.js';
 
 export type ClientErrorAriaLive = 'polite' | 'assertive' | 'off';
@@ -39,12 +39,18 @@ export function getClientFieldIds(session: ClientFormSession, errorKey: string):
  * `rendererType` is the adapter's resolved renderer, which maps custom fields onto the built-in controls.
  */
 export function getClientFieldLabelTarget(field: ClientFieldDefinition, rendererType: string): ClientFieldLabelTarget {
-    if (displayFieldContent(field) || rendererType === 'signature' || rendererType === 'section') {
+    // Payment and Summary fields show markup from the server or a browser module, with no control of their own.
+    if (displayFieldContent(field) || rendererType === 'signature' || rendererType === 'section' || field.type === 'payment' || field.type === 'summary') {
         return 'none';
     }
 
-    // Name, Address, Date, Group, Repeater and Table fields name the set of controls they hold.
-    if (rendererType === 'radio' || rendererType === 'checkboxes' || rendererType === 'agree' || rendererType === 'table' || isCompositeField(field) || isRepeatableField(field)) {
+    // A date picker is one control, even though its answer has parts.
+    if (isDatePickerField(field)) {
+        return 'control';
+    }
+
+    // Name, Address, Date, Group, Repeater and Table fields, and Survey scales, name the set of controls they hold.
+    if (['radio', 'checkboxes', 'agree', 'table', 'survey-likert', 'survey-rank', 'survey-rating'].includes(rendererType) || isCompositeField(field) || isRepeatableField(field)) {
         return 'group';
     }
 

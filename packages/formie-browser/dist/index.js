@@ -1,17 +1,17 @@
 import { n as e } from "./chunks/request-profile-DhwkeCpS.js";
-import { _ as t, c as n, m as r } from "./chunks/dist-48vXklkC.js";
+import { d as t, i as n, m as r } from "./chunks/dist-BLDYcpqW.js";
 import { c as i, d as a, l as o, o as s, r as c, t as l, u } from "./chunks/event-names-BCI2FLD8.js";
-import { _ as d, a as f, c as p, d as m, f as h, g, h as _, i as v, l as y, m as b, o as x, p as S, r as C, s as w, t as ee, u as T, v as E, y as D } from "./chunks/api-C-lg4fTV.js";
+import { _ as d, a as f, c as p, d as m, f as h, g, h as _, i as v, l as y, m as b, o as x, p as S, r as C, s as w, t as ee, u as T, v as E, y as D } from "./chunks/api-CTIdFLY2.js";
 import { a as O, i as k, n as A, r as j, t as M } from "./chunks/debug-rhzqP1j2.js";
 import { i as N, r as te, t as P } from "./chunks/theme-classes-DAQuEqdP.js";
 import { n as F } from "./chunks/skip-CEW89ExY.js";
 import { i as ne, t as re } from "./chunks/csrf-DxHg_ZYt.js";
-import { n as ie, t as ae } from "./chunks/http-DycUz32U.js";
+import { n as ie, t as ae } from "./chunks/http-B_uW5B9v.js";
 import { i as oe } from "./chunks/async-2GdXNFCE.js";
 import { a as se, i as ce, n as le, r as ue, t as de } from "./chunks/i18n-BY1ds1BL.js";
 import { n as fe, t as pe } from "./chunks/api-BPtH5RBA.js";
 import { n as me, r as he, t as ge } from "./chunks/field-references.keys-58ZSTrCW.js";
-import { i as _e, n as ve, r as ye, t as be } from "./chunks/field-references.resolver-DopkKhy1.js";
+import { i as _e, n as ve, r as ye, t as be } from "./chunks/field-references.resolver-BTYYSkH9.js";
 import { t as xe } from "./chunks/api-CmuOZ0i3.js";
 //#region src/js/compatibility/event-map.ts
 var Se = [
@@ -690,7 +690,7 @@ async function Ft(e, t, n) {
 	}
 	return B.log("requestSetPage complete.", a), a;
 }
-function It(e, n) {
+function It(e, t) {
 	let r = new URL(e, window.location.origin), i = new FormData();
 	[
 		"handle",
@@ -698,29 +698,29 @@ function It(e, n) {
 		"draftContextToken",
 		"draftContext"
 	].forEach((e) => {
-		let t = n.querySelector(`input[name="${e}"]`)?.value?.trim();
-		t && i.append(e, t);
-	}), re(i, n), B.log("clearSubmissionOnUnload start.", { requestUrl: r.toString() });
+		let n = t.querySelector(`input[name="${e}"]`)?.value?.trim();
+		n && i.append(e, n);
+	}), re(i, t), B.log("clearSubmissionOnUnload start.", { requestUrl: r.toString() });
 	try {
-		if (n.dataset.formieRequestProfile !== "cross-origin-public" && typeof navigator.sendBeacon == "function" && navigator.sendBeacon(r.toString(), i)) return;
+		if (t.dataset.formieRequestProfile !== "cross-origin-public" && typeof navigator.sendBeacon == "function" && navigator.sendBeacon(r.toString(), i)) return;
 	} catch {}
-	t(r.toString(), {
+	n(r.toString(), {
 		method: "POST",
 		body: i,
 		keepalive: !0,
 		headers: { Accept: "application/json" }
-	}, { profile: n.dataset.formieRequestProfile });
+	}, { profile: t.dataset.formieRequestProfile });
 }
-async function Lt(e, n) {
+async function Lt(e, t) {
 	let r = (e.getAttribute("method") || "POST").toUpperCase(), i = e.getAttribute("action") || window.location.href, a = e.dataset.formieErrorMessage?.trim() || "Submission failed.";
 	B.log("submitForm start.", {
 		method: r,
 		action: i,
-		submitAction: n.get("submitAction")
+		submitAction: t.get("submitAction")
 	});
-	let o = await t(i, {
+	let o = await n(i, {
 		method: r,
-		body: n,
+		body: t,
 		headers: { Accept: "application/json" }
 	}, { profile: e.dataset.formieRequestProfile }), s = o.headers.get("content-type") || "";
 	if (!s.includes("application/json")) return o.ok ? (B.log("submitForm non-JSON success response.", {
@@ -1149,7 +1149,7 @@ var en = class {
 	}
 }, nn = new tn(), rn = {
 	"address-finder": () => import("./chunks/address-finder-ChSNCcm_.js").then((e) => e.addressFinderModule),
-	"google-address": () => import("./chunks/google-address-BLNG5vkZ.js").then((e) => e.googleAddressModule),
+	"google-address": () => import("./chunks/google-address-0s7C8hgL.js").then((e) => e.googleAddressModule),
 	loqate: () => import("./chunks/loqate-DkxXoKs4.js").then((e) => e.loqateModule),
 	"place-kit": () => import("./chunks/place-kit-BUOGAm6N.js").then((e) => e.placeKitModule)
 }, an = {
@@ -1164,42 +1164,42 @@ var en = class {
 	snaptcha: () => import("./chunks/snaptcha-P3EoSQud.js").then((e) => e.snaptchaModule),
 	turnstile: () => import("./chunks/turnstile-DQF_MuTJ.js").then((e) => e.turnstileModule)
 }, on = {
-	calculations: () => import("./chunks/calculations-DT7g_6yZ.js").then((e) => e.calculationsModule),
+	calculations: () => import("./chunks/calculations-CUaADjnf.js").then((e) => e.calculationsModule),
 	"checkbox-radio": () => import("./chunks/checkbox-radio-CSXo6svm.js").then((e) => e.checkboxRadioModule),
 	combobox: () => import("./chunks/combobox-By3jpAIt.js").then((e) => e.comboboxModule),
-	conditions: () => import("./chunks/conditions-4mR7gz8b.js").then((e) => e.conditionsModule),
+	conditions: () => import("./chunks/conditions-BWLBFzmK.js").then((e) => e.conditionsModule),
 	"custom-google-maps": () => import("./chunks/custom-google-maps-rNm5VFbb.js").then((e) => e.customGoogleMapsModule),
 	"custom-link": () => import("./chunks/custom-link-CLqFCssQ.js").then((e) => e.customLinkModule),
 	"custom-maps": () => import("./chunks/custom-maps-uV8HdZBv.js").then((e) => e.customMapsModule),
 	"date-picker": () => import("./chunks/date-picker-CGPnDsea.js").then((e) => e.datePickerModule),
-	"file-upload": () => import("./chunks/file-upload-BuJaO6aK.js").then((e) => e.fileUploadModule),
-	"upload-manager": () => import("./chunks/upload-manager-BrZjF7G7.js").then((e) => e.uploadManagerModule),
+	"file-upload": () => import("./chunks/file-upload-BUCWR3J6.js").then((e) => e.fileUploadModule),
+	"upload-manager": () => import("./chunks/upload-manager-Cf9voywF.js").then((e) => e.uploadManagerModule),
 	hidden: () => import("./chunks/hidden-Bc2TpcgF.js").then((e) => e.hiddenModule),
-	"phone-country": () => import("./chunks/phone-country-D4u4-pVs.js").then((e) => e.phoneCountryModule),
-	"password-validation": () => import("./chunks/password-validation-DzLYvgZG.js").then((e) => e.passwordValidationModule),
-	"address-country": () => import("./chunks/address-country-DlbZ6a33.js").then((e) => e.addressCountryModule),
-	"address-state": () => import("./chunks/address-state-DOzfAYHP.js").then((e) => e.addressStateModule),
+	"phone-country": () => import("./chunks/phone-country-BPUwxnPs.js").then((e) => e.phoneCountryModule),
+	"password-validation": () => import("./chunks/password-validation-DiCXIB0_.js").then((e) => e.passwordValidationModule),
+	"address-country": () => import("./chunks/address-country-BZoSt8u6.js").then((e) => e.addressCountryModule),
+	"address-state": () => import("./chunks/address-state-DGWaxfGV.js").then((e) => e.addressStateModule),
 	repeater: () => import("./chunks/repeater-Lk2Gl3jn.js").then((e) => e.repeaterModule),
 	"rich-text": () => import("./chunks/rich-text-BKkG6TDM.js").then((e) => e.richTextModule),
 	signature: () => import("./chunks/signature-BbCtOQuJ.js").then((e) => e.signatureModule),
-	summary: () => import("./chunks/summary-BW_mSFgq.js").then((e) => e.summaryModule),
+	summary: () => import("./chunks/summary-DrZFtc7M.js").then((e) => e.summaryModule),
 	"survey-likert": () => import("./chunks/survey-likert-Cs6ZyCzO.js").then((e) => e.surveyLikertModule),
 	"survey-rank": () => import("./chunks/survey-rank-BR3gY0Wx.js").then((e) => e.surveyRankModule),
 	"survey-rating": () => import("./chunks/survey-rating-CHgNcPVS.js").then((e) => e.surveyRatingModule),
 	table: () => import("./chunks/table-cRBJYL_P.js").then((e) => e.tableModule),
-	"text-limit": () => import("./chunks/text-limit-CYsGt1jT.js").then((e) => e.textLimitModule)
+	"text-limit": () => import("./chunks/text-limit-YaXWx3QG.js").then((e) => e.textLimitModule)
 }, sn = {
-	bpoint: () => import("./chunks/bpoint-CelHQlNv.js").then((e) => e.bpointModule),
-	eway: () => import("./chunks/eway-JLlGIcS1.js").then((e) => e.ewayModule),
-	"go-cardless": () => import("./chunks/go-cardless-BFqbcwVj.js").then((e) => e.goCardlessModule),
-	mollie: () => import("./chunks/mollie-BLB3E_X5.js").then((e) => e.mollieModule),
-	moneris: () => import("./chunks/moneris-CcQMJ9wr.js").then((e) => e.monerisModule),
-	opayo: () => import("./chunks/opayo-B6f5X0-p.js").then((e) => e.opayoModule),
-	paddle: () => import("./chunks/paddle-DJlsZJLp.js").then((e) => e.paddleModule),
-	paypal: () => import("./chunks/paypal-DE0otUmK.js").then((e) => e.paypalModule),
-	payway: () => import("./chunks/payway-Du96Yvfo.js").then((e) => e.paywayModule),
-	square: () => import("./chunks/square-C2kyB2ZP.js").then((e) => e.squareModule),
-	stripe: () => import("./chunks/stripe-BLs0ggbX.js").then((e) => e.stripeModule)
+	bpoint: () => import("./chunks/bpoint-wGbymSJ_.js").then((e) => e.bpointModule),
+	eway: () => import("./chunks/eway-Bfh8YF6M.js").then((e) => e.ewayModule),
+	"go-cardless": () => import("./chunks/go-cardless-FucgMt1R.js").then((e) => e.goCardlessModule),
+	mollie: () => import("./chunks/mollie-Cy0SxibM.js").then((e) => e.mollieModule),
+	moneris: () => import("./chunks/moneris-CgMcRcNI.js").then((e) => e.monerisModule),
+	opayo: () => import("./chunks/opayo-BK6tAsEP.js").then((e) => e.opayoModule),
+	paddle: () => import("./chunks/paddle-85_JGzvL.js").then((e) => e.paddleModule),
+	paypal: () => import("./chunks/paypal-BCitidCh.js").then((e) => e.paypalModule),
+	payway: () => import("./chunks/payway-DdbeqJUD.js").then((e) => e.paywayModule),
+	square: () => import("./chunks/square-vyR50rRF.js").then((e) => e.squareModule),
+	stripe: () => import("./chunks/stripe-C5u-1kop.js").then((e) => e.stripeModule)
 }, cn = {
 	...on,
 	...rn,
@@ -1581,9 +1581,9 @@ function Sn(e, t = {}) {
 //#endregion
 //#region src/js/validation/rules/email.ts
 var Cn = {
-	rule: ({ input: e, getRule: t }) => {
-		let r = t("email");
-		return !r || n(e.value, {
+	rule: ({ input: e, getRule: n }) => {
+		let r = n("email");
+		return !r || t(e.value, {
 			...typeof r == "object" ? r : {},
 			type: "email"
 		}) === null;
@@ -1607,8 +1607,8 @@ function Tn(e) {
 //#region src/js/validation/rules.ts
 var En = {
 	required: {
-		rule: ({ input: e, getRule: t }) => {
-			if (!t("required") || e.type === "hidden" || e.closest("[data-formie-field-handle]")?.getAttribute("data-formie-field-type") === "table") return !0;
+		rule: ({ input: e, getRule: n }) => {
+			if (!n("required") || e.type === "hidden" || e.closest("[data-formie-field-handle]")?.getAttribute("data-formie-field-type") === "table") return !0;
 			if (e instanceof HTMLInputElement && e.type === "file") {
 				if (e.files?.length) return !0;
 				let t = e.closest("[data-formie-field-handle]"), n = e.name.replace(/\[\]$/, "");
@@ -1618,15 +1618,15 @@ var En = {
 				let t = e.form?.querySelectorAll(`[name="${e.name}"]:not([type="hidden"]):not([disabled])`) || [];
 				return t.length ? Array.from(t).some((e) => e instanceof HTMLInputElement && e.checked) : e instanceof HTMLInputElement ? e.checked : !0;
 			}
-			return n(e.value, { type: "required" }) === null;
+			return t(e.value, { type: "required" }) === null;
 		},
 		message: ({ input: e, label: t, t: n }) => e.getAttribute("data-formie-required-message") ?? e.getAttribute("data-required-message") ?? n("{label} cannot be blank.", { label: t })
 	},
 	email: Cn,
 	url: {
-		rule: ({ input: e, getRule: t }) => {
-			let r = t("url");
-			return !r || n(e.value, {
+		rule: ({ input: e, getRule: n }) => {
+			let r = n("url");
+			return !r || t(e.value, {
 				...typeof r == "object" ? r : {},
 				type: "url"
 			}) === null;
@@ -1634,25 +1634,25 @@ var En = {
 		message: ({ input: e, label: t, t: n }) => e.getAttribute("data-formie-pattern-url-message") ?? e.getAttribute("data-pattern-url-message") ?? n("{label} is not a valid URL.", { label: t })
 	},
 	number: {
-		rule: ({ input: e, getRule: t }) => {
-			let r = t("number");
-			return !r || n(e.value, {
+		rule: ({ input: e, getRule: n }) => {
+			let r = n("number");
+			return !r || t(e.value, {
 				...typeof r == "object" ? r : {},
 				type: "number"
 			}) === null;
 		},
-		message: ({ input: e, label: t, getRule: r, t: i }) => {
+		message: ({ input: e, label: n, getRule: r, t: i }) => {
 			let a = r("number");
-			return n(e.value, {
+			return t(e.value, {
 				...typeof a == "object" ? a : {},
 				type: "number"
-			}, { label: t }) ?? i("{label} is not a valid number.", { label: t });
+			}, { label: n }) ?? i("{label} is not a valid number.", { label: n });
 		}
 	},
 	match: {
 		rule: (e) => {
-			let t = Tn(e);
-			return !t || n(e.input.value, { type: "match" }, { comparison: t.value }) === null;
+			let n = Tn(e);
+			return !n || t(e.input.value, { type: "match" }, { comparison: n.value }) === null;
 		},
 		message: (e) => {
 			let t = Tn(e)?.closest("[data-formie-field-handle]"), n = wn(t);
@@ -2959,10 +2959,6 @@ var Lr = {
 	"text-limit": {
 		kind: "field",
 		reason: "Core validation enforces the structured minimum and maximum rules."
-	},
-	"date-picker": {
-		kind: "field",
-		reason: "The adapter renders the structured date input contract."
 	},
 	calculations: {
 		kind: "field",

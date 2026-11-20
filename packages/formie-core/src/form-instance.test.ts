@@ -166,6 +166,25 @@ describe('createClientFormInstance', () => {
         expect(runtime.getState().pageStates['page-2'].hidden).toBe(false);
     });
 
+    it('compares a date picker’s answer by its date in conditions', () => {
+        const runtime = createClientFormInstance({
+            envelope: createEnvelope([
+                createTextField('when', 'when', {
+                    type: 'date',
+                    input: { kind: 'date', fieldKind: 'date', displayType: 'datePicker', collectMode: 'single', defaultValue: null },
+                }),
+                createTextField('conditional', 'conditional', {
+                    condition: { mode: 'all', effect: 'show', rules: [{ fieldId: 'when', operator: '=', value: '2026-11-15', valueType: 'date' }] },
+                }),
+            ]),
+            transport: createTransport(),
+        });
+
+        expect(runtime.getState().fieldStates.conditional.hidden).toBe(true);
+        runtime.setValue('when', { datetime: '2026-11-15 12:00:00' });
+        expect(runtime.getState().fieldStates.conditional.hidden).toBe(false);
+    });
+
     it('clears newly hidden values when conditions hide a field', () => {
         const runtime = createClientFormInstance({
             envelope: createEnvelope([
@@ -514,6 +533,28 @@ describe('createClientFormInstance', () => {
         expect(submit).not.toHaveBeenCalled();
 
         runtime.setValue('likert', { one: 'yes', two: 'yes' });
+        await runtime.submit('submit');
+        expect(submit).toHaveBeenCalledTimes(1);
+    });
+
+    it('checks a required date picker as one answer', async() => {
+        const submit = vi.fn<ClientTransport['submit']>(async() => ({
+            success: true, outcome: 'completed', currentPageId: 'page-1', errors: { form: [], fields: {} }, messages: {}, session: {},
+        }) as Awaited<ReturnType<ClientTransport['submit']>>);
+        const runtime = createClientFormInstance({
+            envelope: createEnvelope([createTextField('when', 'when', {
+                type: 'date',
+                required: true,
+                input: { kind: 'date', fieldKind: 'date', displayType: 'datePicker', collectMode: 'single', defaultValue: null },
+            })]),
+            transport: createTransport({ submit }),
+        });
+
+        await runtime.submit('submit');
+        expect(submit).not.toHaveBeenCalled();
+        expect(runtime.getState().errors.fields.when).toHaveLength(1);
+
+        runtime.setValue('when', { datetime: '2026-11-15 12:00:00' });
         await runtime.submit('submit');
         expect(submit).toHaveBeenCalledTimes(1);
     });

@@ -103,3 +103,9 @@ it('preserves scalar zero and normalized option values for client inputs', funct
         ])))->toBe(['l', 's'])
         ->and($field->serializeValueForClientInput(new MultiOptionFieldValue()))->toBe([]);
 });
+
+it('sends the display type, so client-rendered forms can show the date picker', function(string $displayType): void {
+    $field = new Date(['handle' => 'eventDate', 'displayType' => $displayType]);
+
+    expect($field->getClientRenderedInput()['displayType'])->toBe($displayType);
+})->with(['calendar', 'datePicker', 'dropdowns', 'inputs']);

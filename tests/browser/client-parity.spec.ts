@@ -211,7 +211,6 @@ const STEPS: Step[] = [
 // here, so this list can only shrink. The plan is in the private Formie context (plans/client-rendered-parity.md).
 const KNOWN_GAPS: Record<string, string> = {
     pDropdownSearch: 'The searchable dropdown isn’t attached; a native select is shown.',
-    pDatePicker: 'The date picker isn’t attached; native date and time inputs are shown.',
     pSignature: 'The server-rendered signature pad doesn’t save the drawn signature in this fixture, so the baseline is empty.',
 };
 

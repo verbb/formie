@@ -8,6 +8,10 @@ import {
     isCompositeField,
     isMultiValueField,
     isPhoneCountryEnabled,
+    datePickerInputValue,
+    datePickerValue,
+    datePickerParts,
+    isDatePickerField,
     checkboxToggle,
     allOptionsSelected,
     toggleAllOptions,
@@ -302,5 +306,26 @@ describe('select all', () => {
         expect(toggleAllOptions(checkboxes(), ['a', 'c'], false)).toEqual(['c']);
         expect(allOptionsSelected(checkboxes(), ['a', 'b'])).toBe(true);
         expect(allOptionsSelected(checkboxes(), ['a'])).toBe(false);
+    });
+});
+
+describe('date pickers', () => {
+    it('only treats single date pickers as one control', () => {
+        expect(isDatePickerField(field('date', { displayType: 'datePicker', collectMode: 'single' }))).toBe(true);
+        expect(isDatePickerField(field('date', { displayType: 'datePicker', collectMode: 'range' }))).toBe(false);
+        expect(isDatePickerField(field('date', { displayType: 'calendar' }))).toBe(false);
+    });
+
+    it('posts the picked value as server-rendered date pickers do, and reads earlier part values', () => {
+        expect(datePickerValue(' 2026-11-15 12:00:00 ')).toEqual({ datetime: '2026-11-15 12:00:00' });
+        expect(datePickerInputValue({ datetime: '2026-11-15 12:00:00' })).toBe('2026-11-15 12:00:00');
+        expect(datePickerInputValue({ date: '2026-11-15', time: '09:30' })).toBe('2026-11-15 09:30');
+        expect(datePickerInputValue(null)).toBe('');
+    });
+
+    it('splits a picked value into the parts conditions compare', () => {
+        expect(datePickerParts({ datetime: '2026-11-15 12:30:00' })).toEqual({ year: '2026', month: '11', day: '15', hour: '12', minute: '30', second: '00' });
+        expect(datePickerParts({ datetime: '2026-11-15' })).toEqual({ year: '2026', month: '11', day: '15' });
+        expect(datePickerParts({ datetime: '' })).toEqual({});
     });
 });

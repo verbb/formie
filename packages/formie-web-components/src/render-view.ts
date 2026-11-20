@@ -13,6 +13,9 @@ import {
     isCalculationField,
     isFieldLabelVisuallyHidden,
     isPhoneCountryEnabled,
+    isDatePickerField,
+    datePickerInputValue,
+    datePickerValue,
     isRichTextField,
     checkboxToggle,
     allOptionsSelected,
@@ -604,6 +607,31 @@ function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps & { 
     };
     const groupLabelledBy = labelling.labelledByWrapper ? props.ids.label : nothing;
     const groupDescribedBy = joinIdReferences(instructionsReference(field, labelling)) ?? nothing;
+
+    // The date picker turns its input hidden and adds its own visible input next to it, so the input gets a container
+    // of its own. It fires `input` with the picked date and time, which the wrapper stores as the answer.
+    if (isDatePickerField(field)) {
+        return html`
+            <div class="starter-component-date-picker" @input=${(e: Event) => {
+                // The picker moves the field's attributes to its visible input. The value to submit stays in the
+                // original input, which it turns hidden.
+                const input = (e.currentTarget as HTMLElement).querySelector('input[type="hidden"]');
+                if (input instanceof HTMLInputElement) setValue(datePickerValue(input.value));
+            }}>
+                <div><input
+                    type="text"
+                    id=${labelling.ids.input}
+                    data-formie-date-datepicker-input
+                    aria-label=${ownName(field, labelling)}
+                    aria-required=${field.required ? 'true' : nothing}
+                    aria-describedby=${describedBy(field, labelling)}
+                    .value=${datePickerInputValue(value)}
+                    ?disabled=${disabled}
+                    placeholder=${typeof contract.placeholder === 'string' ? contract.placeholder : ''}
+                /></div>
+            </div>
+        `;
+    }
 
     if (isCompositeField(field)) {
         return renderComposite(ctx, props, labelling);

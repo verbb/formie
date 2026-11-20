@@ -2175,6 +2175,8 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             'collectMode' => $this->collectMode,
             'dateEnabled' => $this->getIsDate(),
             'timeEnabled' => $this->getIsTime(),
+            // A date picker is the `formie:date-picker` browser module, which attaches to one input the adapter renders.
+            'displayType' => $this->displayType,
         ]);
 
         if ($placeholder = $this->getEffectivePlaceholder()) {

@@ -22,6 +22,12 @@ export declare function checkboxToggle(field: ClientFieldDefinition): {
 export declare function allOptionsSelected(field: ClientFieldDefinition, selected: string[]): boolean;
 export declare function toggleAllOptions(field: ClientFieldDefinition, selected: string[], checked: boolean): string[];
 export declare function isRichTextField(field: ClientFieldDefinition): boolean;
+export declare function isDatePickerField(field: ClientFieldDefinition): boolean;
+export declare function datePickerInputValue(value: unknown): string;
+export declare function datePickerValue(inputValue: string): {
+    datetime: string;
+};
+export declare function datePickerParts(value: unknown): Record<string, string>;
 export type SurveyLikertRow = {
     label: string;
     value: string;
