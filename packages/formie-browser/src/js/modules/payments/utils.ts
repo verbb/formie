@@ -35,9 +35,17 @@ export function findPaymentInputBySuffix(root: Element, suffix: string): HTMLInp
         root.querySelector(`input[name$="${escapedSuffix}"]`)) as HTMLInputElement | null;
 }
 
-export function hasRequiredPaymentInputs(root: Element, requiredInputSuffixes: string[]): { ok: boolean; missingSuffix?: string } {
+/**
+ * A form can hold several Payment fields with the same inputs, such as two Stripe fields switched by conditions.
+ * Use the field's own input, and only search the rest of the form when the field doesn't render one.
+ */
+export function findFieldPaymentInput(field: Element | null | undefined, root: Element, suffix: string): HTMLInputElement | null {
+    return (field ? findPaymentInputBySuffix(field, suffix) : null) ?? findPaymentInputBySuffix(root, suffix);
+}
+
+export function hasRequiredPaymentInputs(root: Element, requiredInputSuffixes: string[], field?: Element | null): { ok: boolean; missingSuffix?: string } {
     const missingSuffix = requiredInputSuffixes.find((suffix) => {
-        const input = findPaymentInputBySuffix(root, suffix);
+        const input = findFieldPaymentInput(field, root, suffix);
         return !input || String(input.value || '').trim() === '';
     });
 
@@ -51,8 +59,9 @@ export async function waitForRequiredPaymentInputs(
     root: Element,
     requiredInputSuffixes: string[],
     waitForValueMs: number,
+    field?: Element | null,
 ): Promise<{ ok: boolean; missingSuffix?: string }> {
-    const initial = hasRequiredPaymentInputs(root, requiredInputSuffixes);
+    const initial = hasRequiredPaymentInputs(root, requiredInputSuffixes, field);
 
     if (initial.ok) {
         return initial;
@@ -63,12 +72,12 @@ export async function waitForRequiredPaymentInputs(
     while (Date.now() < deadline) {
         await sleep(120);
 
-        const current = hasRequiredPaymentInputs(root, requiredInputSuffixes);
+        const current = hasRequiredPaymentInputs(root, requiredInputSuffixes, field);
 
         if (current.ok) {
             return current;
         }
     }
 
-    return hasRequiredPaymentInputs(root, requiredInputSuffixes);
+    return hasRequiredPaymentInputs(root, requiredInputSuffixes, field);
 }

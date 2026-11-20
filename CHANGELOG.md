@@ -13,6 +13,8 @@
 - A form’s **Usage** tab and **Usage Count** column now load the elements that select the form, and their owners, in batches. Forms selected in Matrix entries or Content Blocks no longer need several database queries for each usage. One test form with 372 usages went from 1,720 queries to 55. ([#3150](https://github.com/verbb/formie/issues/3150))
 
 ### Fixed
+- Fixed forms with two Stripe Payment fields switched by conditions charging the card but never finishing the submission when the second field was the one shown. The hidden field confirmed the payment and kept the payment ID in its own input, so the submission was left incomplete and the form kept loading. ([#3153](https://github.com/verbb/formie/issues/3153))
+- Fixed “This Element has already been destroyed.” errors in the browser console after a Stripe payment on forms that hide after submitting. ([#3153](https://github.com/verbb/formie/issues/3153))
 - Fixed Payment fields inside Group and Repeater fields still showing their label with an empty value in submission summaries.
 - Fixed saving an integration clearing the fields it had fetched from the provider, such as Salesforce, which made its mappings show **No fields available.** in the form builder and sent submissions without their mapped values. Integrations now keep their fields unless a connection setting changes. Click **Refresh** on each mapping of an integration that’s already affected to show its mappings again.
 - Fixed CRM, email marketing, help desk, Monday, ClickUp and Recruitee integrations sending submissions without any of their mapped values when the provider’s fields hadn’t been fetched, such as after connecting a different account. Mapped values are now sent as they were in Formie 3 until **Refresh** fetches the fields.

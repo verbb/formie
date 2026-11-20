@@ -1,6 +1,7 @@
 import stripeCss from '#theme-css/integrations/_stripe.css?inline';
 
 import { definePaymentModule } from '#modules/payments/api';
+import { isPaymentFieldActive } from '#modules/payments/utils';
 import { ensureModuleStyles } from '#modules/styles';
 import { addThemeClasses, removeThemeClasses } from '#theme/theme-classes';
 import { getPaymentProviderActionEventName } from '#utils/event-names';
@@ -278,8 +279,11 @@ export const stripeModule = definePaymentModule<StripeProviderOptions, StripeIns
         return stripeField.__formieStripeWidget || null;
     },
     unmount: async (args) => {
-        args.widget?.paymentElement?.destroy();
         const stripeField = args.field as StripeFieldState;
+
+        // Destroy the field's current element rather than the one first mounted. Dynamic amounts replace it, and a
+        // completed payment has already destroyed it, which Stripe rejects if done twice.
+        stripeField.__formieStripeWidget?.paymentElement?.destroy();
         stripeField.__formieStripeWidget = null;
         stripeField.__formieStripeElements = undefined;
         stripeField.__formieStripeInstance = null;
@@ -326,6 +330,12 @@ export const stripeModule = definePaymentModule<StripeProviderOptions, StripeIns
                 const data = e.detail?.data;
 
                 if (!data?.clientSecret) {
+                    return;
+                }
+
+                // Every Stripe field on the form hears this event. The server only processes visible Payment fields,
+                // so a field hidden by conditions must leave the confirmation to the visible one.
+                if (!isPaymentFieldActive(field)) {
                     return;
                 }
 

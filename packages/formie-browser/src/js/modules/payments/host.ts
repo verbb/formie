@@ -164,8 +164,10 @@ export function createPaymentHostServices(
         const names = Array.isArray(name) ? name : [name];
 
         for (const n of names) {
-            const input = findPaymentInputBySuffix(tokenRoot, n)
-                ?? field.querySelector(`input[name*="${n}"]`) as HTMLInputElement | null;
+            // Write to this field's input, since the form may have other Payment fields with the same suffix.
+            const input = findPaymentInputBySuffix(field, n)
+                ?? field.querySelector<HTMLInputElement>(`input[name*="${n}"]`)
+                ?? findPaymentInputBySuffix(tokenRoot, n);
 
             if (input) {
                 input.value = value;
@@ -386,9 +388,9 @@ export function createPaymentHostServices(
         removeError,
         addSuccess,
         removeSuccess,
-        hasToken: () => hasRequiredPaymentInputs(tokenRoot, suffixes).ok,
+        hasToken: () => hasRequiredPaymentInputs(tokenRoot, suffixes, field).ok,
         waitForToken: (timeoutMs = options.transport.waitForValueMs) => {
-            return waitForRequiredPaymentInputs(tokenRoot, suffixes, timeoutMs).then((r) => r.ok);
+            return waitForRequiredPaymentInputs(tokenRoot, suffixes, timeoutMs, field).then((r) => r.ok);
         },
         getFieldValue: (handle: string, type: 'string' | 'float' | 'int' | 'number' = 'string') => {
             const raw = getReferenceValue(handle);

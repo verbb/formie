@@ -337,10 +337,12 @@ export function createManagedPaymentModule<
                     }
 
                     const tokenRoot = ctx.form || ctx.root;
+                    // Check the inputs updateInputs() wrote to, which belong to this field.
                     const result = await waitForRequiredPaymentInputs(
                         tokenRoot,
                         options.transport.requiredInputSuffixes,
                         options.transport.waitForValueMs,
+                        ctx.target,
                     );
 
                     if (!result.ok) {
