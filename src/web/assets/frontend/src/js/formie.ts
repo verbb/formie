@@ -9,7 +9,18 @@ type BrowserStartupConfig = {
 
 const debug = createDebug('general', 'browser');
 const PLUGIN_FORM_SELECTOR = '[data-formie]:not([data-formie-init="false"]), [data-formie-form]:not([data-formie-init="false"])';
-let pluginFormsApp: FormieApp | null = null;
+
+// A page can load this script under more than one URL, such as cached markup
+// that still points at an earlier asset build. Each URL is a separate module
+// instance, so the running app is shared through a page-level key. Otherwise
+// every copy mounts every form, duplicating CAPTCHA widgets and submit handling.
+const PLUGIN_FORMS_KEY = Symbol.for('verbb.formie.pluginForms');
+
+type PluginFormsHost = typeof globalThis & {
+    [PLUGIN_FORMS_KEY]?: Promise<FormieApp>;
+};
+
+const pluginFormsHost = globalThis as PluginFormsHost;
 
 function resolveBrowserStartupScript(): HTMLScriptElement | null {
     const currentModuleUrl = new URL(import.meta.url, document.baseURI).href;
@@ -30,11 +41,28 @@ function getBrowserStartupConfig(): BrowserStartupConfig {
     };
 }
 
-export async function startPluginForms(): Promise<FormieApp> {
-    if (pluginFormsApp) {
-        return pluginFormsApp;
+export function startPluginForms(): Promise<FormieApp> {
+    const running = pluginFormsHost[PLUGIN_FORMS_KEY];
+
+    if (running) {
+        return running;
     }
 
+    // Store the pending start straight away, because copies loaded together
+    // start before either has finished mounting.
+    const starting = createPluginForms();
+    pluginFormsHost[PLUGIN_FORMS_KEY] = starting;
+
+    starting.catch(() => {
+        if (pluginFormsHost[PLUGIN_FORMS_KEY] === starting) {
+            delete pluginFormsHost[PLUGIN_FORMS_KEY];
+        }
+    });
+
+    return starting;
+}
+
+async function createPluginForms(): Promise<FormieApp> {
     const config = getBrowserStartupConfig();
     setFormieDebugEnabled(config.debug);
     debug.log('Starting plugin-rendered Formie forms.', {
@@ -42,7 +70,7 @@ export async function startPluginForms(): Promise<FormieApp> {
     });
 
     const craftFormsApp = craftForms({ observe: config.useObserver });
-    pluginFormsApp = await formie({
+    const pluginFormsApp = await formie({
         element: PLUGIN_FORM_SELECTOR,
         observe: config.useObserver,
         allowEmpty: true,
@@ -52,7 +80,7 @@ export async function startPluginForms(): Promise<FormieApp> {
     pluginFormsApp.destroy = async() => {
         craftFormsApp.destroy();
         await destroy();
-        pluginFormsApp = null;
+        delete pluginFormsHost[PLUGIN_FORMS_KEY];
     };
     const rescan = pluginFormsApp.rescan.bind(pluginFormsApp);
     pluginFormsApp.rescan = async() => {
@@ -69,6 +97,11 @@ export async function startPluginForms(): Promise<FormieApp> {
 }
 
 function bootstrap(): void {
+    // Leave another copy's running app, and its debug setting, alone.
+    if (pluginFormsHost[PLUGIN_FORMS_KEY]) {
+        return;
+    }
+
     const config = getBrowserStartupConfig();
     setFormieDebugEnabled(config.debug);
     debug.log('Browser startup invoked.', config);
