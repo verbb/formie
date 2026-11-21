@@ -6,7 +6,8 @@
             "get-started/installation-setup",
             "get-started/requirements",
             "get-started/configuration",
-            "feature-tour/permissions",
+            "get-started/permissions",
+            "get-started/privacy-data",
             "get-started/troubleshooting",
             "get-started/get-form-support",
             "get-started/upgrading-from-v3"
