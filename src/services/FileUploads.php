@@ -595,17 +595,63 @@ class FileUploads extends Component
         return !$submission->hasErrors();
     }
 
+    /**
+     * Removes asset IDs that `bindAccepted()` would refuse, before validation or a re-rendered form reads those assets.
+     * The refusal is kept, so the command still fails with the same error when the submission is saved.
+     */
+    public function removeUnauthorizedAssetIds(SubmissionCommand $command): void
+    {
+        $submission = $command->submission;
+        $form = $command->form;
+        $contentState = $submission->getContentState();
+        $contentState->uploadRejection = null;
+        $existing = null;
+
+        foreach ($submission->getFieldValuesForField(FileUpload::class) as $contentKey => $value) {
+            $field = FileUploadRetentionHelper::resolveFileUploadFieldForContentKey($form, $contentKey);
+
+            if (!$field || !$value instanceof AssetQuery || !is_array($value->id)) {
+                continue;
+            }
+
+            // Assets that don't exist are ignored when binding, so only existing ones are checked.
+            $ids = $this->_extractAssetIds($value);
+
+            if (!$ids) {
+                continue;
+            }
+
+            $existing ??= $this->_getSavedSubmission($command);
+            $retained = $existing ? $this->_extractAssetIds($existing->getFieldValue($contentKey)) : [];
+            $refusedIds = [];
+
+            foreach ($ids as $id) {
+                try {
+                    $this->_authorizeAssetId($command, $field, $contentKey, $id, $retained);
+                } catch (ForbiddenHttpException $e) {
+                    $contentState->uploadRejection ??= $e->getMessage();
+                    $refusedIds[] = $id;
+                }
+            }
+
+            if ($refusedIds) {
+                $keptIds = array_values(array_filter($value->id, static fn($id) => !in_array((int)$id, $refusedIds, true)));
+                $value->id($keptIds ?: false);
+            }
+        }
+    }
+
     public function bindAccepted(SubmissionCommand $command): array
     {
         $submission = $command->submission;
         $form = $command->form;
-        $existing = $submission->id ? Submission::find()->id($submission->id)->siteId((int)$form->siteId)->isIncomplete(null)->isSpam(null)->status(null)->one() : null;
+
+        if ($rejection = $submission->getContentState()->uploadRejection) {
+            throw new ForbiddenHttpException($rejection);
+        }
+
+        $existing = $this->_getSavedSubmission($command);
         $toBind = [];
-        $canAttachOwnedUpload = in_array($command->authority->type, [
-            SubmissionAuthorityType::CONTROL_PANEL,
-            SubmissionAuthorityType::GRAPHQL_ADMIN,
-            SubmissionAuthorityType::TRUSTED_INTERNAL,
-        ], true);
 
         foreach ($submission->getFieldValuesForField(FileUpload::class) as $contentKey => $value) {
             $field = FileUploadRetentionHelper::resolveFileUploadFieldForContentKey($form, $contentKey);
@@ -623,44 +669,7 @@ class FileUploads extends Component
             $retained = $existing ? $this->_extractAssetIds($existing->getFieldValue($contentKey)) : [];
 
             foreach ($ids as $id) {
-                // Stable Formie 3 ID payloads are accepted only after proving actual ownership.
-                $upload = $this->getTrackedUploadByAssetId($id, (int)$form->id, $field->uid);
-                $uploadSubmissionId = $upload && $upload['submissionId'] !== null ? (int)$upload['submissionId'] : null;
-                $availableState = $upload && (
-                    $upload['state'] === SubmissionUploadStatus::STAGED->value
-                    || ($upload['state'] === SubmissionUploadStatus::BOUND->value
-                        && $submission->id
-                        && $uploadSubmissionId === (int)$submission->id)
-                );
-                $requestContentKey = $submission->getContentState()->requestFieldPaths[$contentKey] ?? $contentKey;
-                $claim = $command->uploadClaims->get($requestContentKey, $id) ?? $command->uploadClaims->get($contentKey, $id);
-                $owned = $upload && (int)$upload['siteId'] === (int)$form->siteId
-                    && $upload['contentKey'] === ($claim?->contentKey ?? $contentKey)
-                    && hash_equals((string)$upload['browserHash'], Formie::$plugin->getSubmissionGrants()->browserHash($form))
-                    && (int)$upload['expiresAt'] > time() && $availableState
-                    && (!$uploadSubmissionId || $uploadSubmissionId === (int)$submission->id);
-                $retainedAsset = in_array($id, $retained, true);
-                $legacyOwned = $command->allowLegacyUploadIds && $owned;
-                $picked = !$upload && $this->_isPickedInControlPanel($command, $field, $id);
-
-                if ($command->operation === SubmissionOperation::PAYMENT_REPLAY && !$retainedAsset) {
-                    throw new ForbiddenHttpException('Payment replay cannot introduce an upload.');
-                }
-
-                if (!$retainedAsset && !$claim && !$legacyOwned && !$canAttachOwnedUpload) {
-                    throw new ForbiddenHttpException('A valid upload attachment capability is required.');
-                }
-
-                if ($claim && (!$upload || $claim->uploadId !== (int)$upload['id'] || !$owned)) {
-                    throw new ForbiddenHttpException('Upload authorization no longer matches the staged asset.');
-                }
-
-                // Trusted workflows may omit a browser capability, but they never bypass
-                // Formie ownership, field scope, expiry, or lifecycle-state checks.
-                if (!$retainedAsset && !$owned && !$picked) {
-                    throw new ForbiddenHttpException('Invalid upload ownership.');
-                }
-
+                [$upload, $claim, $owned, $retainedAsset] = $this->_authorizeAssetId($command, $field, $contentKey, $id, $retained);
                 $asset = Asset::find()->id($id)->status(null)->one();
 
                 if (!$asset || $field->exceedsMaxUploadSize((int)$asset->size) || ($field->minFileSize && $asset->size < $field->minFileSize * 1000000) || $field->getUploadTypeValidationErrors($asset->filename, $asset->getCopyOfFile())) {
@@ -1319,6 +1328,70 @@ class FileUploads extends Component
     private function _fieldValueHasAssets(mixed $value): bool
     {
         return $this->_extractAssetIds($value) !== [];
+    }
+
+    private function _getSavedSubmission(SubmissionCommand $command): ?Submission
+    {
+        $submission = $command->submission;
+
+        return $submission->id ? Submission::find()->id($submission->id)->siteId((int)$command->form->siteId)->isIncomplete(null)->isSpam(null)->status(null)->one() : null;
+    }
+
+    /**
+     * Checks that the command may attach this asset to the field, and returns the tracked upload row, the upload claim,
+     * whether the browser owns the upload and whether the saved submission already holds the asset.
+     *
+     * @throws ForbiddenHttpException
+     */
+    private function _authorizeAssetId(SubmissionCommand $command, FileUpload $field, string $contentKey, int $id, array $retained): array
+    {
+        $submission = $command->submission;
+        $form = $command->form;
+        $canAttachOwnedUpload = in_array($command->authority->type, [
+            SubmissionAuthorityType::CONTROL_PANEL,
+            SubmissionAuthorityType::GRAPHQL_ADMIN,
+            SubmissionAuthorityType::TRUSTED_INTERNAL,
+        ], true);
+
+        // Stable Formie 3 ID payloads are accepted only after proving actual ownership.
+        $upload = $this->getTrackedUploadByAssetId($id, (int)$form->id, $field->uid);
+        $uploadSubmissionId = $upload && $upload['submissionId'] !== null ? (int)$upload['submissionId'] : null;
+        $availableState = $upload && (
+            $upload['state'] === SubmissionUploadStatus::STAGED->value
+            || ($upload['state'] === SubmissionUploadStatus::BOUND->value
+                && $submission->id
+                && $uploadSubmissionId === (int)$submission->id)
+        );
+        $requestContentKey = $submission->getContentState()->requestFieldPaths[$contentKey] ?? $contentKey;
+        $claim = $command->uploadClaims->get($requestContentKey, $id) ?? $command->uploadClaims->get($contentKey, $id);
+        $owned = $upload && (int)$upload['siteId'] === (int)$form->siteId
+            && $upload['contentKey'] === ($claim?->contentKey ?? $contentKey)
+            && hash_equals((string)$upload['browserHash'], Formie::$plugin->getSubmissionGrants()->browserHash($form))
+            && (int)$upload['expiresAt'] > time() && $availableState
+            && (!$uploadSubmissionId || $uploadSubmissionId === (int)$submission->id);
+        $retainedAsset = in_array($id, $retained, true);
+        $legacyOwned = $command->allowLegacyUploadIds && $owned;
+        $picked = !$upload && $this->_isPickedInControlPanel($command, $field, $id);
+
+        if ($command->operation === SubmissionOperation::PAYMENT_REPLAY && !$retainedAsset) {
+            throw new ForbiddenHttpException('Payment replay cannot introduce an upload.');
+        }
+
+        if (!$retainedAsset && !$claim && !$legacyOwned && !$canAttachOwnedUpload) {
+            throw new ForbiddenHttpException('A valid upload attachment capability is required.');
+        }
+
+        if ($claim && (!$upload || $claim->uploadId !== (int)$upload['id'] || !$owned)) {
+            throw new ForbiddenHttpException('Upload authorization no longer matches the staged asset.');
+        }
+
+        // Trusted workflows may omit a browser capability, but they never bypass
+        // Formie ownership, field scope, expiry, or lifecycle-state checks.
+        if (!$retainedAsset && !$owned && !$picked) {
+            throw new ForbiddenHttpException('Invalid upload ownership.');
+        }
+
+        return [$upload, $claim, $owned, $retainedAsset];
     }
 
     private function _extractAssetIds(mixed $value): array

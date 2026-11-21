@@ -19,6 +19,8 @@ class SubmissionContentState
     public array $uploadedDataFiles = [];
     public bool $isMergingPartialPayload = false;
     public ?SubmissionUploadClaims $uploadClaims = null;
+    /** The first posted asset ID refusal, found before validation and raised again when the submission is saved. */
+    public ?string $uploadRejection = null;
     /** Normalized field paths mapped to the original request paths before repeater compaction. */
     public array $requestFieldPaths = [];
     public ConditionState $conditions;

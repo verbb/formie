@@ -53,6 +53,9 @@ class SubmissionProcessor extends Component
                 WorkflowContext::pop();
             }
 
+            // Refuse asset IDs the command can't attach before validation reads their filenames.
+            Formie::$plugin->getFileUploads()->removeUnauthorizedAssetIds($command);
+
             return Formie::$plugin->getSubmissionWorkflow()->process($command);
         });
     }
