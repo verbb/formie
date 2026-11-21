@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.11 - 2026-11-21
 
 ### Added
 - Added `summaryTokens` to client-rendered form submission results, including the `submitFormieClientForm` GraphQL mutation, so Summary fields can show the answers saved so far. ([#3146](https://github.com/verbb/formie/issues/3146))
