@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 4.0.11 - 2026-11-21
+
 ### Added
 - Added the `password` browser validation rule, with `min`, `uppercase`, `lowercase` and `specialCharacter`, which Password fields now send. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Added `addressPartMarker()`, `isAddressAutocompletePart()`, `addressAutocompleteMarkup()`, `readAddressParts()` and `isAddressField()`, and the client definition’s `input.currentLocationLabel` on the Address auto-complete part. ([#3146](https://github.com/verbb/formie/issues/3146))

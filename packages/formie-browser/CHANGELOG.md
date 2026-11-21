@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 4.0.11 - 2026-11-21
+
 ### Changed
 - Client-rendered forms now run the Upload Manager module instead of leaving it to the framework adapter, and add the form’s render ID, upload token and draft context as hidden inputs for modules that talk to Formie. The Upload Manager reads a nested field’s path from `data-formie-upload-field-handle` when the adapter provides it. ([#3146](https://github.com/verbb/formie/issues/3146))
 - Client-rendered forms now run the date picker module instead of leaving Date fields to the framework adapter. ([#3146](https://github.com/verbb/formie/issues/3146))
