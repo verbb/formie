@@ -187,7 +187,7 @@ class Form extends Element
         // Remove some actions Craft adds by default
         foreach ($actions as $key => $action) {
             if (is_array($action) && isset($action['type']) && ($action['type'] === Edit::class || is_subclass_of($action['type'], Edit::class))) {
-                    unset($actions[$key]);
+                unset($actions[$key]);
             }
         }
 
@@ -368,7 +368,7 @@ class Form extends Element
 
         return parent::getScenario();
     }
-    
+
     public function canView(User $user): bool
     {
         return true;
@@ -1165,7 +1165,26 @@ class Form extends Element
     {
         $value = (string)Craft::$app->getRequest()->getBodyParam('extraFields', '');
 
-        return Json::decode(StringHelper::decdec($value));
+        // Only accept values this site encrypted in `getPopulatedFieldValues()`. Plain values come from the visitor.
+        if (!str_starts_with($value, 'base64:')) {
+            return [];
+        }
+
+        $value = (string)base64_decode(substr($value, 7), true);
+
+        if (!str_starts_with($value, 'crypt:')) {
+            return [];
+        }
+
+        try {
+            $value = Craft::$app->getSecurity()->decryptByKey(substr($value, 6));
+        } catch (Throwable) {
+            return [];
+        }
+
+        $values = is_string($value) ? Json::decodeIfJson($value) : null;
+
+        return is_array($values) ? $values : [];
     }
 
     /**
@@ -1273,9 +1292,9 @@ class Form extends Element
         // Allow settings to statically set the redirect URL (from templates)
         if ($this->settings->redirectUrl) {
             $url = $this->settings->redirectUrl;
-        } else if ($this->settings->submitAction == 'entry' && $this->getRedirectEntry()) {
+        } elseif ($this->settings->submitAction == 'entry' && $this->getRedirectEntry()) {
             $url = $this->getRedirectEntry()->url;
-        } else if ($this->settings->submitAction == 'url' && $this->settings->submitActionUrl) {
+        } elseif ($this->settings->submitAction == 'url' && $this->settings->submitActionUrl) {
             // Submission placeholders are resolved after a submission exists.
             $url = $this->settings->submitActionUrl;
         }
@@ -1339,7 +1358,7 @@ class Form extends Element
     public function renderTemplate(array|string $components, array $variables = []): string
     {
         $view = Craft::$app->getView();
-        
+
         // Normalise the components to allow for a single component
         if (!is_array($components)) {
             $components = [$components];
@@ -1427,7 +1446,7 @@ class Form extends Element
         }
 
         if ($key === 'form') {
-            $defaultLabelPosition = new $this->settings->defaultLabelPosition;
+            $defaultLabelPosition = new $this->settings->defaultLabelPosition();
 
             return new HtmlTag('form', [
                 'id' => $this->getFormId(),
@@ -1631,7 +1650,7 @@ class Form extends Element
             $page = $context['page'] ?? null;
             $inputAttributes = $page->settings->getInputAttributes() ?? [];
             $saveButtonStyle = $page->settings->saveButtonStyle ?? 'link';
-            
+
             return new HtmlTag('button', [
                 'class' => [
                     'fui-btn fui-save',
@@ -1724,7 +1743,7 @@ class Form extends Element
         // If set for both, `setThemeConfig()` will merge.
         if ($templateConfig) {
             $this->setThemeConfig($templateConfig);
-        } else if ($pluginConfig) {
+        } elseif ($pluginConfig) {
             // Pass in an empty array, because we already merge in plugin settings config
             $this->setThemeConfig([]);
         }
@@ -1908,7 +1927,7 @@ class Form extends Element
 
                 $allAttributes[$configKey] = Html::getTagAttributes($tag->attributes);
                 $allAttributes[$configKey]['class'] = implode(' ', $classes);
-            } else if ($fieldTag) {
+            } elseif ($fieldTag) {
                 $classes = $fieldTag->attributes['class'] ?? $fallback;
 
                 if (!is_array($classes)) {
@@ -1939,6 +1958,7 @@ class Form extends Element
     public function getFrontEndTemplateLocation($location)
     {
         $output = null;
+
         if ($location === 'outputCssLocation') {
             $output = FormTemplate::PAGE_HEADER;
         }
@@ -1992,7 +2012,7 @@ class Form extends Element
     public function setFieldSettings($handle, $settings, $updateSnapshot = true): void
     {
         $field = null;
-        
+
         // Check for nested fields so we can use `group.dropdown` or `dropdown`.
         $handles = explode('.', $handle);
 
@@ -2023,7 +2043,7 @@ class Form extends Element
     {
         // Get the integration settings so we only override what we want
         $integrationSettings = $this->settings->integrations[$handle] ?? [];
-        
+
         // Update the integration settings
         $this->settings->integrations[$handle] = array_merge($integrationSettings, $settings);
 
@@ -2112,7 +2132,7 @@ class Form extends Element
         if ($this->settings->scheduleForm && $this->settings->scheduleFormStart) {
             return !DateTimeHelper::isInThePast($this->settings->scheduleFormStart);
         }
-        
+
         return false;
     }
 
@@ -2121,7 +2141,7 @@ class Form extends Element
         if ($this->settings->scheduleForm && $this->settings->scheduleFormEnd) {
             return DateTimeHelper::isInThePast($this->settings->scheduleFormEnd);
         }
-        
+
         return false;
     }
 
@@ -2151,18 +2171,18 @@ class Form extends Element
                 $endDate = DateTimeHelper::toDateTime(new DateTime('tomorrow'));
 
                 $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)]);
-            } else if ($limitSubmissionsType === 'week') {
+            } elseif ($limitSubmissionsType === 'week') {
                 // PHP dates start on a Monday, but we assume to backtrack to Sunday
                 $startDate = DateTimeHelper::toDateTime(new DateTime('monday this week'))->modify('-1 day');
                 $endDate = DateTimeHelper::toDateTime(new DateTime('monday next week'))->modify('-1 day');
 
                 $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)]);
-            } else if ($limitSubmissionsType === 'month') {
+            } elseif ($limitSubmissionsType === 'month') {
                 $startDate = DateTimeHelper::toDateTime(new DateTime('first day of this month'))->setTime(0, 0, 0);
                 $endDate = DateTimeHelper::toDateTime(new DateTime('first day of next month'))->setTime(0, 0, 0);
 
                 $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)]);
-            } else if ($limitSubmissionsType === 'year') {
+            } elseif ($limitSubmissionsType === 'year') {
                 $startDate = DateTimeHelper::toDateTime(new DateTime('first day of January'))->setTime(0, 0, 0);
                 $endDate = DateTimeHelper::toDateTime(new DateTime('first day of January next year'))->setTime(0, 0, 0);
 
@@ -2175,7 +2195,7 @@ class Form extends Element
                 return false;
             }
         }
-        
+
         return true;
     }
 
@@ -2202,6 +2222,7 @@ class Form extends Element
                 $validates = false;
 
                 $this->addError('notifications.' . $notification->handle, $notification->getErrors());
+
                 break;
             }
         }
@@ -2224,6 +2245,7 @@ class Form extends Element
                 foreach ($this->getNotifications() as $notification) {
                     if ($notification->hasErrors()) {
                         $hasErrors = true;
+
                         break;
                     }
                 }
@@ -2297,6 +2319,7 @@ class Form extends Element
 
         $i = 0;
         $handle = $this->handle;
+
         while (Form::find()->handle($handle)->exists()) {
             $i++;
             $handle = $this->handle . $i;
@@ -2374,6 +2397,7 @@ class Form extends Element
         $rules[] = [
             'handle', function($attribute, $params, Validator $validator): void {
                 $query = static::find()->handle($this->$attribute);
+
                 if ($this->id) {
                     $query = $query->id("not {$this->id}");
                 }

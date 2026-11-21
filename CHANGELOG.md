@@ -4,9 +4,11 @@
 
 ### Changed
 - GraphQL submission mutations now only accept an `assetId` for File Upload fields when the GraphQL schema can create or save assets in that asset’s volume, or the asset is already saved on the submission.
+- Front-end submissions now ignore posted values for fields with **Disabled** visibility. Set them with `craft.formie.populateFormValues()` instead, as before.
 
 ### Fixed
 - Fixed a critical-severity authorization vulnerability.
+- Fixed a moderate-severity authorization vulnerability.
 
 ## 2.2.42 - 2026-11-11
 

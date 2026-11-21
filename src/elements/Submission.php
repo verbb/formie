@@ -164,7 +164,7 @@ class Submission extends Element
                 if (!in_array($form->id, $ids)) {
                     continue;
                 }
-            } else if ($ids === 0) {
+            } elseif ($ids === 0) {
                 continue;
             }
 
@@ -302,7 +302,7 @@ class Submission extends Element
 
         return $editableIds;
     }
-    
+
 
     // Properties
     // =========================================================================
@@ -328,6 +328,7 @@ class Submission extends Element
     private ?array $_pagesForField = null;
     private ?array $_assetsToDelete = [];
     private array $_captchaData = [];
+    private bool $_ignoreDisabledFieldInput = false;
 
 
     // Public Methods
@@ -337,7 +338,7 @@ class Submission extends Element
     {
         return (string)$this->title;
     }
-    
+
     public function canView(User $user): bool
     {
         return true;
@@ -607,7 +608,7 @@ class Submission extends Element
             'color' => 'green',
             'sortOrder' => 1,
             'isDefault' => 1,
-        ]);;
+        ]);
     }
 
     /**
@@ -620,7 +621,7 @@ class Submission extends Element
                 $status = $foundStatus;
             }
         }
-        
+
         $this->_status = $status;
         $this->statusId = $status->id;
     }
@@ -709,6 +710,11 @@ class Submission extends Element
 
             if ($disabledValues && is_array($disabledValues)) {
                 foreach ($disabledValues as $key => $value) {
+                    // These values are only for fields the template populated while they're disabled
+                    if ($form->getFieldByHandle((string)$key)?->visibility !== 'disabled') {
+                        continue;
+                    }
+
                     try {
                         // Special handling for group/repeater which would be otherwise pretty verbose to supply
                         $value = $form->getFieldByHandle($key)->parsePopulatedFieldValues($value, $this);
@@ -768,7 +774,28 @@ class Submission extends Element
             }
         }
 
+        if ($this->_ignoreDisabledFieldInput) {
+            $field = $this->getFieldByHandle($fieldHandle);
+
+            // Disabled fields are never rendered, so a posted value can only be tampering. They keep their
+            // populated, saved or default value instead.
+            if ($field?->visibility === 'disabled') {
+                return;
+            }
+
+            $value = $this->_removeDisabledNestedValues($field, $value);
+        }
+
         parent::setFieldValueFromRequest($fieldHandle, $value);
+    }
+
+    /**
+     * Ignores posted values for fields with Disabled visibility, for submissions made from the front end.
+     * Control panel saves can still edit them.
+     */
+    public function setIgnoreDisabledFieldInput(bool $ignore): void
+    {
+        $this->_ignoreDisabledFieldInput = $ignore;
     }
 
     /**
@@ -1087,6 +1114,7 @@ class Submission extends Element
 
                 foreach ($field->getElementValidationRules() as $rule) {
                     $validator = $this->_callPrivateMethod('_normalizeFieldValidator', $attribute, $rule, $field, $isEmpty);
+
                     if (
                         in_array($scenario, $validator->on) ||
                         (empty($validator->on) && !in_array($scenario, $validator->except))
@@ -1163,10 +1191,11 @@ class Submission extends Element
                 return $form->title ?? '';
             case 'userId':
                 $user = $this->getUser();
+
                 return $user ? Cp::elementHtml($user) : '';
             case 'status':
                 $status = $this->getStatusModel();
-                
+
                 return Html::tag('span', Html::tag('span', '', [
                         'class' => array_filter([
                             'status',
@@ -1219,6 +1248,30 @@ class Submission extends Element
     // Private methods
     // =========================================================================
 
+    private function _removeDisabledNestedValues(?FormFieldInterface $field, mixed $value): mixed
+    {
+        if (!$field instanceof NestedFieldInterface || !is_array($value) || !isset($value['rows']) || !is_array($value['rows'])) {
+            return $value;
+        }
+
+        $handles = [];
+
+        foreach ($field->getCustomFields() as $nestedField) {
+            if ($nestedField->visibility === 'disabled') {
+                $handles[] = $nestedField->handle;
+            }
+        }
+
+        // Group and Repeater rows are posted as `rows[<id>][fields][<handle>]`. Existing rows keep their saved value.
+        foreach ($handles ? $value['rows'] : [] as $rowId => $row) {
+            if (isset($row['fields']) && is_array($row['fields'])) {
+                $value['rows'][$rowId]['fields'] = array_diff_key($row['fields'], array_flip($handles));
+            }
+        }
+
+        return $value;
+    }
+
     private function _callPrivateMethod(string $methodName): mixed
     {
         // Required to be able to call private methods in this class for `afterValidate()`.
@@ -1228,6 +1281,7 @@ class Submission extends Element
         $reflectionMethod->setAccessible(true);
 
         $params = array_slice(func_get_args(), 1);
+
         return $reflectionMethod->invokeArgs($object, $params);
     }
 }
