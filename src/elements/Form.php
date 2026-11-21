@@ -991,7 +991,26 @@ class Form extends Element
     {
         $value = (string)Craft::$app->getRequest()->getBodyParam('extraFields', '');
 
-        return Json::decode(StringHelper::decdec($value));
+        // Only accept values this site encrypted in `getPopulatedFieldValues()`. Plain values come from the visitor.
+        if (!str_starts_with($value, 'base64:')) {
+            return [];
+        }
+
+        $value = (string)base64_decode(substr($value, 7), true);
+
+        if (!str_starts_with($value, 'crypt:')) {
+            return [];
+        }
+
+        try {
+            $value = Craft::$app->getSecurity()->decryptByKey(substr($value, 6));
+        } catch (Throwable) {
+            return [];
+        }
+
+        $values = is_string($value) ? Json::decodeIfJson($value) : null;
+
+        return is_array($values) ? $values : [];
     }
 
     public function getNotifications(): ?array

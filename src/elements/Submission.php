@@ -335,6 +335,7 @@ class Submission extends CustomElement
     private ?int $_previousStatusId = null;
     private array $_captchaData = [];
     private bool $_updateTitle = false;
+    private bool $_ignoreDisabledFieldInput = false;
 
 
     // Public Methods
@@ -920,6 +921,11 @@ class Submission extends CustomElement
 
             if ($disabledValues && is_array($disabledValues)) {
                 foreach ($disabledValues as $key => $value) {
+                    // These values are only for fields the template populated while they're disabled
+                    if ($form->getFieldByHandle((string)$key)?->visibility !== 'disabled') {
+                        continue;
+                    }
+
                     try {
                         $this->setFieldValue($key, $value);
                     } catch (Throwable) {
@@ -972,7 +978,28 @@ class Submission extends CustomElement
             }
         }
 
+        if ($this->_ignoreDisabledFieldInput) {
+            $field = $this->getFieldByHandle($fieldHandle);
+
+            // Disabled fields are never rendered, so a posted value can only be tampering. They keep their
+            // populated, saved or default value instead.
+            if ($field?->visibility === 'disabled') {
+                return;
+            }
+
+            $value = $this->_removeDisabledNestedValues($field, $value);
+        }
+
         parent::setFieldValueFromRequest($fieldHandle, $value);
+    }
+
+    /**
+     * Ignores posted values for fields with Disabled visibility, for submissions made from the front end.
+     * Control panel saves can still edit them.
+     */
+    public function setIgnoreDisabledFieldInput(bool $ignore): void
+    {
+        $this->_ignoreDisabledFieldInput = $ignore;
     }
 
     public function getValues($page): array
@@ -1564,6 +1591,49 @@ class Submission extends CustomElement
     // Private Methods
     // =========================================================================
 
+    private function _removeDisabledNestedValues(?FieldInterface $field, mixed $value): mixed
+    {
+        if (!is_array($value) || !($field instanceof SingleNestedFieldInterface || $field instanceof MultiNestedFieldInterface)) {
+            return $value;
+        }
+
+        $keys = [];
+
+        foreach ($field->getFields() as $nestedField) {
+            if ($nestedField->visibility === 'disabled') {
+                $keys[] = $nestedField->handle;
+                $keys[] = $nestedField->uid;
+            }
+        }
+
+        if (!$keys) {
+            return $value;
+        }
+
+        $removeKeys = fn(array $row): array => array_diff_key($row, array_flip(array_filter($keys)));
+
+        if ($field instanceof SingleNestedFieldInterface) {
+            return $removeKeys($value);
+        }
+
+        // Repeater rows are posted keyed by row, or under `rows`
+        $rows = isset($value['rows']) && is_array($value['rows']) ? $value['rows'] : $value;
+
+        foreach ($rows as $rowKey => $row) {
+            if (is_array($row)) {
+                $rows[$rowKey] = $removeKeys($row);
+            }
+        }
+
+        if (isset($value['rows']) && is_array($value['rows'])) {
+            $value['rows'] = $rows;
+
+            return $value;
+        }
+
+        return $rows;
+    }
+
     private function _callPrivateMethod(string $methodName): mixed
     {
         // Required to be able to call private methods in this class for `afterValidate()`.
@@ -1573,6 +1643,7 @@ class Submission extends CustomElement
         $reflectionMethod->setAccessible(true);
 
         $params = array_slice(func_get_args(), 1);
+
         return $reflectionMethod->invokeArgs($object, $params);
     }
 }

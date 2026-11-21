@@ -1266,6 +1266,9 @@ class SubmissionsController extends Controller
         $siteId = $siteId ?: null;
         $submission->siteId = $siteId ?? $submission->siteId ?? Craft::$app->getSites()->getCurrentSite()->id;
 
+        // Public submissions can't change fields with Disabled visibility, which only the template can populate.
+        $submission->setIgnoreDisabledFieldInput($authorizeExistingSubmission);
+
         $submission->setFieldValuesFromRequest($this->_namespace);
         $submission->setFieldParamNamespace($this->_namespace);
 
