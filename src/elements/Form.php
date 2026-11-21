@@ -1142,9 +1142,7 @@ class Form extends Element
             return null;
         }
 
-        $value = (string)Craft::$app->getRequest()->getBodyParam('relations', '');
-
-        return Json::decode(StringHelper::decdec($value));
+        return $this->_getEncryptedValuesFromRequest('relations');
     }
 
     public function getPopulatedFieldValues(): string
@@ -1163,28 +1161,7 @@ class Form extends Element
 
     public function getPopulatedFieldValuesFromRequest()
     {
-        $value = (string)Craft::$app->getRequest()->getBodyParam('extraFields', '');
-
-        // Only accept values this site encrypted in `getPopulatedFieldValues()`. Plain values come from the visitor.
-        if (!str_starts_with($value, 'base64:')) {
-            return [];
-        }
-
-        $value = (string)base64_decode(substr($value, 7), true);
-
-        if (!str_starts_with($value, 'crypt:')) {
-            return [];
-        }
-
-        try {
-            $value = Craft::$app->getSecurity()->decryptByKey(substr($value, 6));
-        } catch (Throwable) {
-            return [];
-        }
-
-        $values = is_string($value) ? Json::decodeIfJson($value) : null;
-
-        return is_array($values) ? $values : [];
+        return $this->_getEncryptedValuesFromRequest('extraFields');
     }
 
     /**
@@ -2427,6 +2404,35 @@ class Form extends Element
 
     // Private methods
     // =========================================================================
+
+    /**
+     * Returns the values in a body param encrypted with `StringHelper::encenc()`, such as `getRelations()` and
+     * `getPopulatedFieldValues()`. Plain values come from the visitor, so they're ignored.
+     */
+    private function _getEncryptedValuesFromRequest(string $name): array
+    {
+        $value = (string)Craft::$app->getRequest()->getBodyParam($name, '');
+
+        if (!str_starts_with($value, 'base64:')) {
+            return [];
+        }
+
+        $value = (string)base64_decode(substr($value, 7), true);
+
+        if (!str_starts_with($value, 'crypt:')) {
+            return [];
+        }
+
+        try {
+            $value = Craft::$app->getSecurity()->decryptByKey(substr($value, 6));
+        } catch (Throwable) {
+            return [];
+        }
+
+        $values = is_string($value) ? Json::decodeIfJson($value) : null;
+
+        return is_array($values) ? $values : [];
+    }
 
     private function _getSessionKey($key, $useSubmissionId = true): string
     {

@@ -9,6 +9,7 @@
 ### Fixed
 - Fixed a critical-severity authorization vulnerability.
 - Fixed a moderate-severity authorization vulnerability.
+- Fixed a low-severity authorization vulnerability.
 
 ## 2.2.42 - 2026-11-11
 
