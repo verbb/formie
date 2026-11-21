@@ -454,7 +454,9 @@ abstract class Payment extends Integration
             $url = UrlHelper::siteUrl('formie/payment-webhooks/process-webhook', ['integrationUid' => $this->uid]);
         }
 
-        return self::applyPaymentWebhookProxy($url);
+        // Never use the dev proxy here. It can only redirect, and providers either don't follow a redirect or drop
+        // the signed POST body when they do, so a proxied webhook never arrives.
+        return $url;
     }
 
     /** @return SubscriptionCancellationMode[] */

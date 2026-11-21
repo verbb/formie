@@ -325,6 +325,40 @@ it('recovers a lost Mollie creation response only with its signed URL and authen
     });
 })->with(['valid', 'missing', 'tampered', 'wrong-owner', 'metadata', 'amount']);
 
+// Mollie rejects a payment with a 422 when its webhook URL is one Mollie can't reach, such as localhost or a .test
+// domain, so it's left out there. Other sites get their own URL, never the dev proxy, which can't deliver webhooks.
+it('sends Mollie the site webhook URL only when Mollie can reach it', function (string $baseUrl, bool $sent): void {
+    [$integration, $submission] = paymentAttemptFixture('mollie');
+
+    WebRequestTestHelper::withWebRequestContext(function () use ($integration, $submission, $baseUrl): void {
+        $site = Craft::$app->getSites()->getCurrentSite();
+        $originalBaseUrl = $site->getBaseUrl(false);
+        $site->setBaseUrl($baseUrl);
+
+        try {
+            $integration->processPayment($submission);
+        } finally {
+            $site->setBaseUrl($originalBaseUrl);
+        }
+    });
+
+    $json = $integration->requests[0][2]['json'];
+
+    if ($sent) {
+        expect($json['webhookUrl'])->toStartWith($baseUrl)->toContain('formie/payment-webhooks/process-webhook')->toContain('recoveryToken=');
+    } else {
+        expect($json)->not->toHaveKey('webhookUrl');
+    }
+})->with([
+    ['https://formie.test/', false],
+    ['http://localhost/', false],
+    ['http://127.0.0.1/', false],
+    ['http://192.168.1.20/', false],
+    ['https://intranet.local/', false],
+    ['https://staging.example.com/', true],
+    ['https://formie.ddev.site/', true],
+]);
+
 it('distinguishes explicit Mollie API rejections from ambiguous HTTP failures', function (int $status, bool $validBody, bool $rejected): void {
     [$integration, $submission] = paymentAttemptFixture('mollie');
     WebRequestTestHelper::withWebRequestContext(function () use ($integration, $submission, $status, $validBody, $rejected): void {

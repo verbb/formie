@@ -174,6 +174,7 @@ class Mollie extends Payment
         if (!$this->_isValidWebhookRecoveryToken(new PaymentModel($row), $secret)) {
             throw new ForbiddenHttpException('Invalid webhook secret.');
         }
+
         $payment = new PaymentModel($row);
         $molliePayment = $this->request('GET', 'payments/' . rawurlencode($paymentId));
 
@@ -432,17 +433,22 @@ class Mollie extends Payment
             'redirectUrl' => $this->getReturnUrl([
                 'returnToken' => PaymentAccess::issueReturnToken($payment),
             ]),
-            'webhookUrl' => UrlHelper::urlWithParams($this->getWebhookUrl(), [
+            'metadata' => [
+                'formiePaymentId' => $payment->id,
+            ],
+        ];
+
+        $webhookUrl = $this->getWebhookUrl();
+
+        if ($this->_canMollieReachUrl($webhookUrl)) {
+            $payload['webhookUrl'] = UrlHelper::urlWithParams($webhookUrl, [
                 'formiePaymentId' => $payment->id,
                 'recoveryToken' => PaymentCapabilities::issue(PaymentCapabilityPurpose::WEBHOOK_RECOVERY, (int)$payment->id, [
                     'integrationId' => (int)$payment->integrationId,
                     'paymentUid' => (string)$payment->uid,
                 ], 86400 * 7),
-            ]),
-            'metadata' => [
-                'formiePaymentId' => $payment->id,
-            ],
-        ];
+            ]);
+        }
 
         // Add in extra settings configured at the field level
         $this->_setPayloadDetails($payload, $submission);
@@ -539,6 +545,30 @@ class Mollie extends Payment
                 }
             }
         }
+    }
+
+    private function _canMollieReachUrl(string $url): bool
+    {
+        // Mollie rejects the whole payment when its webhook URL is one it can't reach, such as localhost, a private
+        // IP address or a .test or .local domain. Local sites leave the webhook out, and their payments are
+        // confirmed from Mollie when the visitor returns.
+        $host = strtolower(trim((string)parse_url($url, PHP_URL_HOST), '[]'));
+
+        if ($host === '' || $host === 'localhost') {
+            return false;
+        }
+
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            return (bool)filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
+        }
+
+        foreach (['.localhost', '.test', '.local', '.invalid'] as $suffix) {
+            if (str_ends_with($host, $suffix)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private function _isValidWebhookRecoveryToken(PaymentModel $payment, string $token): bool

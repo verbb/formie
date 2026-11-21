@@ -546,7 +546,9 @@ Overrides the OAuth redirect URI for integration connections. When omitted, Form
 
 **Type:** `string|null` · **Default:** `null`
 
-Controls the dev-mode proxy used for payment webhook and return URLs (for example Mollie webhooks and redirect status pages). When omitted in dev mode, Formie uses `https://proxy.verbb.io?return=...`. Set to a custom base URL to use your own tunnel/proxy, or set to an empty string to disable the proxy and use local URLs directly. Ignored when Craft dev mode is off. Environment variables are supported.
+Controls the dev-mode proxy for the URLs that Mollie and GoCardless send visitors back to after paying. While Craft’s `devMode` is on, Formie sends these through `https://proxy.verbb.io?return=...`, which redirects the visitor’s browser to the URL in `return`. Set this to an empty string to use your site’s own URLs, or to the base URL of another service that redirects the same way. A tunnel such as ngrok won’t work here, because it forwards the request to your site’s homepage instead of redirecting. To use a tunnel, set your site’s base URL to the tunnel’s URL and set this to an empty string. This setting is ignored when `devMode` is off, and environment variables are supported.
+
+Payment webhook URLs never use the proxy, because a redirect can’t carry a provider’s webhook. A provider can only reach your site’s webhook URL when your site is publicly reachable, such as through a tunnel. Mollie rejects a payment whose webhook URL it can’t reach, so on a local site, such as `localhost` or a `.test` or `.local` domain, Formie leaves Mollie’s webhook URL out and checks the payment with Mollie when the visitor returns.
 :::
 
 
