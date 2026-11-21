@@ -967,7 +967,7 @@ mutation saveSubmission($fileUploadField:[FileUploadInput]) {
 }
 ```
 
-If you have already uploaded your asset through other means, you can provide an `assetId` in the same fashion.
+If you have already uploaded your asset through other means, you can provide an `assetId` in the same fashion. Your GraphQL schema needs permission to create or save assets in that asset’s volume, as it does to upload with Craft’s own asset mutations. Other asset IDs are ignored, unless the asset is already saved on the submission you’re updating.
 
 ```graphql
 // Query

@@ -107,6 +107,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
                 if ($paramName = $this->requestParamName($event->element)) {
                     $event->files = $this->_uploadedDataFiles[$paramName] ?? $event->files ?? [];
                 }
+
                 // Sanitize filenames to prevent path traversal - user-provided filenames must never
                 // be used directly as they can contain ../../../ or other path injection (SEC-001)
                 foreach ($event->files as &$file) {
@@ -163,6 +164,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     public function getValue(ElementInterface $element): mixed
     {
         $values = [];
+
         foreach ($element->getFieldValue($this->handle)->all() as $asset) {
             /* @var Asset $asset */
             $values[] = $asset->filename;
@@ -377,7 +379,8 @@ class FileUpload extends CraftAssets implements FormFieldInterface
                 if ($volume->getFs()->hasUrls) {
                     $conditions[] = '$get(uploadLocationSource).value == "' . $option['value'] . '"';
                 }
-            } catch (\Throwable $e) {}
+            } catch (\Throwable $e) {
+            }
         }
 
         $publicCondition = implode(' || ', $conditions);
@@ -536,10 +539,13 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         $uploadedFiles = $this->_getUploadedFiles($element);
 
         if ($uploadedFiles) {
-            // Get any already saved assets to delete later
+            // Get any already saved assets to delete later. Only assets stored on this submission are
+            // replaced, never another asset whose ID was added to the value.
             $value = $element->getFieldValue($this->handle);
+            $submission = $element instanceof NestedFieldRow ? $element->getOwner() : $element;
+            $savedAssetIds = $submission instanceof Submission ? Formie::$plugin->getSubmissions()->getSavedFileUploadAssetIds($submission) : [];
 
-            $this->_assetsToDelete = $value->ids();
+            $this->_assetsToDelete = array_values(array_intersect(array_map('intval', $value->ids()), $savedAssetIds));
         }
 
         // Check if there are any invalid assets, likely done by bots. This is where the POST
@@ -816,6 +822,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     {
         for ($i = 0; ($size / 1024) > 0.9; $i++, $size /= 1024) {
         }
+
         return round($size, $precision) . ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'][$i];
     }
 

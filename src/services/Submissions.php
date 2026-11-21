@@ -3,6 +3,7 @@ namespace verbb\formie\services;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
+use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\controllers\SubmissionsController;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\NestedFieldRow;
@@ -30,7 +31,9 @@ use verbb\formie\models\Settings;
 use Craft;
 use craft\db\Query;
 use craft\db\Table;
+use craft\elements\db\AssetQuery;
 use craft\elements\db\ElementQuery;
+use craft\elements\db\ElementQueryInterface;
 use craft\elements\Asset;
 use craft\elements\User;
 use craft\events\DefineUserContentSummaryEvent;
@@ -169,7 +172,7 @@ class Submissions extends Component
 
                 // Trigger any integrations
                 $this->triggerIntegrations($event->submission);
-            } else if ($submission->isSpam && $settings->spamEmailNotifications) {
+            } elseif ($submission->isSpam && $settings->spamEmailNotifications) {
                 // Special-case for wanting to send emails for spam
                 $this->sendNotifications($event->submission);
             }
@@ -304,7 +307,7 @@ class Submissions extends Component
                 if ($field->isConditionallyHidden($submission)) {
                     continue;
                 }
-                
+
                 if ($paymentIntegration = $field->getPaymentIntegration()) {
                     // Set the payment field on the integration, for ease-of-use
                     $paymentIntegration->setField($field);
@@ -328,6 +331,105 @@ class Submissions extends Component
     /**
      * Deletes incomplete submissions older than the configured interval.
      */
+    /**
+     * Removes asset IDs from File Upload values that a visitor isn't allowed to attach.
+     *
+     * Visitors add files by uploading them, and can keep the assets already saved on the submission
+     * (multi-page forms post those back). Any other asset ID would relate someone else's asset to the
+     * submission. `$canAttach` lets a caller allow extra assets, such as GraphQL schemas that can
+     * upload to the asset's volume.
+     */
+    public function removeUnownedFileUploadAssets(Submission $submission, ?callable $canAttach = null): void
+    {
+        $savedAssetIds = null;
+        $allowedAssetIds = [];
+
+        foreach ($this->_getFileUploadValues($submission) as $fieldKey => $value) {
+            if (!$value instanceof AssetQuery || !is_array($value->id)) {
+                continue;
+            }
+
+            $savedAssetIds ??= $this->getSavedFileUploadAssetIds($submission);
+            $keptIds = [];
+            $removedIds = [];
+
+            foreach ($value->id as $postedId) {
+                // Malformed IDs are left for the field to reject when saving
+                if (!(int)$postedId) {
+                    $keptIds[] = $postedId;
+
+                    continue;
+                }
+
+                $assetId = filter_var($postedId, FILTER_VALIDATE_INT);
+
+                if ($assetId === false) {
+                    $removedIds[] = $postedId;
+
+                    continue;
+                }
+
+                if (!isset($allowedAssetIds[$assetId])) {
+                    $asset = null;
+
+                    if (!in_array($assetId, $savedAssetIds, true) && $canAttach) {
+                        $asset = Asset::find()->id($assetId)->status(null)->one();
+                    }
+
+                    $allowedAssetIds[$assetId] = in_array($assetId, $savedAssetIds, true) || ($asset && $canAttach($asset));
+                }
+
+                if ($allowedAssetIds[$assetId]) {
+                    $keptIds[] = $assetId;
+                } else {
+                    $removedIds[] = $assetId;
+                }
+            }
+
+            if ($removedIds) {
+                Formie::log('Removed asset IDs {ids} from “{field}” because they don’t belong to the submission.', [
+                    'ids' => implode(', ', $removedIds),
+                    'field' => $fieldKey,
+                ]);
+
+                $value->id($keptIds ?: false);
+            }
+        }
+    }
+
+    /**
+     * Returns the IDs of assets saved in any File Upload field of this submission, including Group and Repeater fields.
+     */
+    public function getSavedFileUploadAssetIds(Submission $submission): array
+    {
+        if (!$submission->id) {
+            return [];
+        }
+
+        // Read the stored submission, not the one passed in, which may hold unsaved values.
+        $savedSubmission = Submission::find()
+            ->id($submission->id)
+            ->siteId($submission->siteId)
+            ->status(null)
+            ->isIncomplete(null)
+            ->isSpam(null)
+            ->one();
+
+        if (!$savedSubmission) {
+            return [];
+        }
+
+        $assetIds = [];
+
+        foreach ($this->_getFileUploadValues($savedSubmission) as $value) {
+            if ($value instanceof AssetQuery) {
+                $assetIds = array_merge($assetIds, (clone $value)->status(null)->ids());
+            }
+        }
+
+        return array_values(array_unique(array_map('intval', $assetIds)));
+    }
+
     public function pruneIncompleteSubmissions($consoleInstance = null): void
     {
         /* @var Settings $settings */
@@ -786,9 +888,9 @@ class Submissions extends Component
                     if ($field->displayType === 'checkboxes') {
                         $values = $faker->randomElement($field->options)['value'] ?? '';
                         $fieldContent[$field->handle] = [$values];
-                    } else if ($field->displayType === 'dropdown' || $field->displayType === 'radio') {
+                    } elseif ($field->displayType === 'dropdown' || $field->displayType === 'radio') {
                         $fieldContent[$field->handle] = $faker->randomElement($field->options)['value'] ?? '';
-                    } else if ($field->displayType === 'hidden') {
+                    } elseif ($field->displayType === 'hidden') {
                         $fieldContent[$field->handle] = $faker->email;
                     }
 
@@ -850,6 +952,40 @@ class Submissions extends Component
      * @param $submission
      * @return string
      */
+    /**
+     * Returns every File Upload value on a submission, keyed by its field path, including fields in Group and Repeater rows.
+     */
+    private function _getFileUploadValues(Submission $submission): array
+    {
+        $values = [];
+        $form = $submission->getForm();
+
+        if (!$form) {
+            return $values;
+        }
+
+        foreach ($form->getCustomFields() as $field) {
+            if ($field instanceof formfields\FileUpload) {
+                $values[$field->handle] = $submission->getFieldValue($field->handle);
+            }
+
+            if ($field instanceof NestedFieldInterface) {
+                $rows = $submission->getFieldValue($field->handle);
+                $rows = $rows instanceof ElementQueryInterface ? $rows->all() : (is_iterable($rows) ? $rows : []);
+
+                foreach ($rows as $rowIndex => $row) {
+                    foreach ($field->getCustomFields() as $nestedField) {
+                        if ($nestedField instanceof formfields\FileUpload) {
+                            $values["$field->handle.$rowIndex.$nestedField->handle"] = $row->getFieldValue($nestedField->handle);
+                        }
+                    }
+                }
+            }
+        }
+
+        return $values;
+    }
+
     private function _getContentAsString($submission): string
     {
         $fieldValues = [];

@@ -1240,6 +1240,11 @@ class SubmissionsController extends Controller
         $submission->setFieldValuesFromRequest($this->_namespace);
         $submission->setFieldParamNamespace($this->_namespace);
 
+        // Public submissions can only keep their own uploaded files, never another asset's ID.
+        if ($authorizeExistingSubmission) {
+            Formie::$plugin->getSubmissions()->removeUnownedFileUploadAssets($submission);
+        }
+
         // Only ever set for a brand-new submission
         if (!$submission->id && $form->settings->collectIp) {
             $submission->ipAddress = $request->userIP;

@@ -9,6 +9,7 @@ use verbb\formie\models\Settings;
 use Craft;
 use craft\base\Element;
 use craft\base\ElementInterface;
+use craft\elements\Asset;
 use craft\gql\base\ElementMutationResolver;
 use craft\helpers\Db;
 use craft\helpers\Json;
@@ -78,6 +79,13 @@ class SubmissionResolver extends ElementMutationResolver
         }
 
         $submission = $this->populateElementWithData($submission, $arguments, $resolveInfo);
+
+        // An `assetId` must be a file already on the submission, or one this schema could have uploaded itself.
+        Formie::$plugin->getSubmissions()->removeUnownedFileUploadAssets($submission, function(Asset $asset): bool {
+            $volumeUid = $asset->getVolume()->uid;
+
+            return Gql::canSchema("volumes.$volumeUid", 'create') || Gql::canSchema("volumes.$volumeUid", 'save');
+        });
 
         // Handle any captchas
         $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($form);

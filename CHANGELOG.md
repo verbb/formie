@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- GraphQL submission mutations now only accept an `assetId` for File Upload fields when the GraphQL schema can create or save assets in that asset’s volume, or the asset is already saved on the submission.
+
+### Fixed
+- Fixed a critical-severity authorization vulnerability.
+
 ## 2.2.42 - 2026-11-11
 
 ### Fixed
