@@ -35,6 +35,7 @@ use Craft;
 use craft\base\PreviewableFieldInterface;
 use craft\base\SortableFieldInterface;
 use craft\db\Query;
+use craft\elements\db\AssetQuery;
 use craft\elements\db\ElementQuery;
 use craft\elements\Asset;
 use craft\elements\User;
@@ -342,6 +343,105 @@ class Submissions extends Component
         }
 
         return true;
+    }
+
+    /**
+     * Removes asset IDs from File Upload values that a visitor isn't allowed to attach.
+     *
+     * Visitors add files by uploading them, and can keep the assets already saved on the submission
+     * (multi-page forms post those back). Any other asset ID would relate someone else's asset to the
+     * submission. `$canAttach` lets a caller allow extra assets, such as GraphQL schemas that can
+     * upload to the asset's volume.
+     */
+    public function removeUnownedFileUploadAssets(Submission $submission, ?callable $canAttach = null): void
+    {
+        $savedAssetIds = null;
+        $allowedAssetIds = [];
+
+        foreach ($submission->getFieldValuesForField(formiefields\FileUpload::class) as $fieldKey => $value) {
+            if (!$value instanceof AssetQuery || !is_array($value->id)) {
+                continue;
+            }
+
+            $savedAssetIds ??= $this->getSavedFileUploadAssetIds($submission);
+            $keptIds = [];
+            $removedIds = [];
+
+            foreach ($value->id as $postedId) {
+                // Malformed IDs are left for the field to reject when saving
+                if (!(int)$postedId) {
+                    $keptIds[] = $postedId;
+
+                    continue;
+                }
+
+                $assetId = filter_var($postedId, FILTER_VALIDATE_INT);
+
+                if ($assetId === false) {
+                    $removedIds[] = $postedId;
+
+                    continue;
+                }
+
+                if (!isset($allowedAssetIds[$assetId])) {
+                    $asset = null;
+
+                    if (!in_array($assetId, $savedAssetIds, true) && $canAttach) {
+                        $asset = Asset::find()->id($assetId)->status(null)->one();
+                    }
+
+                    $allowedAssetIds[$assetId] = in_array($assetId, $savedAssetIds, true) || ($asset && $canAttach($asset));
+                }
+
+                if ($allowedAssetIds[$assetId]) {
+                    $keptIds[] = $assetId;
+                } else {
+                    $removedIds[] = $assetId;
+                }
+            }
+
+            if ($removedIds) {
+                Formie::info('Removed asset IDs {ids} from “{field}” because they don’t belong to the submission.', [
+                    'ids' => implode(', ', $removedIds),
+                    'field' => $fieldKey,
+                ]);
+
+                $value->id($keptIds ?: false);
+            }
+        }
+    }
+
+    /**
+     * Returns the IDs of assets saved in any File Upload field of this submission.
+     */
+    public function getSavedFileUploadAssetIds(Submission $submission): array
+    {
+        if (!$submission->id) {
+            return [];
+        }
+
+        // Read the stored submission, not the one passed in, which may hold unsaved values.
+        $savedSubmission = Submission::find()
+            ->id($submission->id)
+            ->siteId($submission->siteId)
+            ->status(null)
+            ->isIncomplete(null)
+            ->isSpam(null)
+            ->one();
+
+        if (!$savedSubmission) {
+            return [];
+        }
+
+        $assetIds = [];
+
+        foreach ($savedSubmission->getFieldValuesForField(formiefields\FileUpload::class) as $value) {
+            if ($value instanceof AssetQuery) {
+                $assetIds = array_merge($assetIds, (clone $value)->status(null)->ids());
+            }
+        }
+
+        return array_values(array_unique(array_map('intval', $assetIds)));
     }
 
     public function pruneIncompleteSubmissions($consoleInstance = null): void

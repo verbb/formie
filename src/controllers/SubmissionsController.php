@@ -299,9 +299,9 @@ class SubmissionsController extends Controller
             // Determine the next page to navigate to
             if (is_numeric($goToPageId)) {
                 $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $goToPageId);
-            } else if ($submitAction === 'back') {
+            } elseif ($submitAction === 'back') {
                 $nextPage = $form->getPreviousPage(null, $submission, true);
-            } else if ($submitAction === 'save') {
+            } elseif ($submitAction === 'save') {
                 $nextPage = $form->getCurrentPage();
             } else {
                 $nextPage = $form->getNextPage(null, $submission);
@@ -551,9 +551,9 @@ class SubmissionsController extends Controller
         // signifies the end of the form.
         if (is_numeric($goToPageId)) {
             $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $goToPageId) ?? $form->getCurrentPage();
-        } else if ($submitAction === 'back') {
+        } elseif ($submitAction === 'back') {
             $nextPage = $form->getPreviousPage(null, $submission, true) ?? $form->getCurrentPage();
-        } else if ($submitAction === 'save') {
+        } elseif ($submitAction === 'save') {
             $nextPage = $form->getCurrentPage();
         } else {
             $nextPage = $form->getNextPage(null, $submission);
@@ -1066,11 +1066,12 @@ class SubmissionsController extends Controller
                 foreach ($origins as $origin) {
                     if (in_array($origin, $generalConfig->allowedGraphqlOrigins)) {
                         $headers->setDefault('Access-Control-Allow-Origin', $origin);
+
                         break;
                     }
                 }
             }
-        } else if ($generalConfig->allowedGraphqlOrigins !== false) {
+        } elseif ($generalConfig->allowedGraphqlOrigins !== false) {
             $headers->setDefault('Access-Control-Allow-Origin', '*');
         }
 
@@ -1082,6 +1083,7 @@ class SubmissionsController extends Controller
         if ($this->request->getIsOptions()) {
             $this->response->format = Response::FORMAT_RAW;
             $this->response->data = '';
+
             return $this->response;
         }
 
@@ -1178,6 +1180,7 @@ class SubmissionsController extends Controller
             // Make sure they were requesting a valid site
             /** @var Site $site */
             $site = $variables['site'];
+
             if (!in_array($site->id, $variables['siteIds'], false)) {
                 throw new ForbiddenHttpException('User not permitted to edit content in this site');
             }
@@ -1265,6 +1268,11 @@ class SubmissionsController extends Controller
 
         $submission->setFieldValuesFromRequest($this->_namespace);
         $submission->setFieldParamNamespace($this->_namespace);
+
+        // Public submissions can only keep their own uploaded files, never another asset's ID.
+        if ($authorizeExistingSubmission) {
+            Formie::$plugin->getSubmissions()->removeUnownedFileUploadAssets($submission);
+        }
 
         // Only ever set for a brand-new submission
         if (!$submission->id && $form->settings->collectIp) {

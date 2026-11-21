@@ -42,6 +42,7 @@ use craft\helpers\Gql as GqlHelper;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\Template;
+use craft\helpers\UrlHelper;
 use craft\models\Volume;
 use craft\models\VolumeFolder;
 use craft\services\Gql as GqlService;
@@ -502,10 +503,12 @@ class FileUpload extends ElementField
         $uploadedFiles = $this->_getUploadedFiles($element);
 
         if ($uploadedFiles) {
-            // Get any already saved assets to delete later
+            // Get any already saved assets to delete later. Only assets stored on this submission are
+            // replaced, never another asset whose ID was added to the value.
             $value = $element->getFieldValue($this->fieldKey);
+            $savedAssetIds = $element instanceof Submission ? Formie::$plugin->getSubmissions()->getSavedFileUploadAssetIds($element) : [];
 
-            $this->_assetsToDelete = $value->ids();
+            $this->_assetsToDelete = array_values(array_intersect(array_map('intval', $value->ids()), $savedAssetIds));
         }
 
         // Check if there are any invalid assets, likely done by bots. This is where the POST
@@ -791,12 +794,15 @@ class FileUpload extends ElementField
                 switch ($file['type']) {
                     case 'data':
                         FileHelper::writeToFile($tempPath, $file['data']);
+
                         break;
                     case 'file':
                         rename($file['path'], $tempPath);
+
                         break;
                     case 'upload':
                         move_uploaded_file($file['path'], $tempPath);
+
                         break;
                 }
 
@@ -910,6 +916,7 @@ class FileUpload extends ElementField
     {
         for ($i = 0; ($size / 1024) > 0.9; $i++, $size /= 1024) {
         }
+
         return round($size, $precision) . ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'][$i];
     }
 
