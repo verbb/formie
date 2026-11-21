@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed payment webhooks never arriving on sites with Craft’s `devMode` on, including publicly reachable staging sites. Stripe and Mollie webhook URLs were sent through Verbb’s development proxy, which can only redirect, so every webhook failed. If you copied a webhook URL starting with `https://proxy.verbb.io` into your Stripe dashboard, replace it with the one now shown in the integration’s settings. Mollie payments on local sites that Mollie can’t reach, such as `localhost` or a `.test` domain, are now created without a webhook URL and checked with Mollie when the visitor returns.
 - Fixed Brevo multiple-choice contact attributes staying empty, because mapped answers were sent as a comma-separated string instead of a list. Refresh the integration to pick up existing attributes. ([#3147](https://github.com/verbb/formie/issues/3147))
 - Fixed integration settings and other control panel links to the documentation opening missing or Formie 4 pages instead of the Formie 3 guides. ([#3113](https://github.com/verbb/formie/issues/3113))
 

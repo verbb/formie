@@ -143,11 +143,16 @@ class Mollie extends Payment
                 'redirectUrl' => $this->getReturnUrl([
                     'paymentUid' => $payment->uid,
                 ]),
-                'webhookUrl' => $this->getRedirectUri(),
                 'metadata' => [
                     'formiePaymentId' => $payment->id,
                 ],
             ];
+
+            $webhookUrl = $this->getRedirectUri();
+
+            if ($this->_canMollieReachUrl($webhookUrl)) {
+                $payload['webhookUrl'] = $webhookUrl;
+            }
 
             // Add in extra settings configured at the field level
             $this->_setPayloadDetails($payload, $submission);
@@ -407,7 +412,7 @@ class Mollie extends Payment
             ]),
         ];
     }
-    
+
 
     // Protected Methods
     // =========================================================================
@@ -432,10 +437,34 @@ class Mollie extends Payment
             ],
         ]);
     }
-    
+
 
     // Private Methods
     // =========================================================================
+
+    private function _canMollieReachUrl(string $url): bool
+    {
+        // Mollie rejects the whole payment when its webhook URL is one it can't reach, such as localhost, a private
+        // IP address or a .test or .local domain. Local sites leave the webhook out, and their payments are
+        // confirmed from Mollie when the visitor returns.
+        $host = strtolower(trim((string)parse_url($url, PHP_URL_HOST), '[]'));
+
+        if ($host === '' || $host === 'localhost') {
+            return false;
+        }
+
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            return (bool)filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
+        }
+
+        foreach (['.localhost', '.test', '.local', '.invalid'] as $suffix) {
+            if (str_ends_with($host, $suffix)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     private function _setPayloadDetails(array &$payload, Submission $submission): void
     {
@@ -474,16 +503,19 @@ class Mollie extends Payment
         switch ($status) {
             case 'paid':
                 $payment->status = PaymentModel::STATUS_SUCCESS;
+
                 break;
             case 'failed':
             case 'expired':
             case 'canceled':
                 $payment->status = PaymentModel::STATUS_FAILED;
+
                 break;
             case 'pending':
             case 'open':
             default:
                 $payment->status = PaymentModel::STATUS_PENDING;
+
                 break;
         }
 

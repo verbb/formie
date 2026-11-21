@@ -18,7 +18,6 @@ use verbb\formie\models\Notification;
 use verbb\formie\models\Payment as PaymentModel;
 
 use Craft;
-use craft\helpers\App;
 use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
@@ -217,11 +216,8 @@ abstract class Payment extends Integration
             $url = UrlHelper::siteUrl('formie/payment-webhooks/process-webhook', ['handle' => $this->handle]);
         }
 
-        // For local development, we should use a proxy to ensure it works
-        if (App::devMode()) {
-            return "https://proxy.verbb.io?return=$url";
-        }
-
+        // Never use the dev proxy here. It can only redirect, and providers either don't follow a redirect or drop
+        // the signed POST body when they do, so a proxied webhook never arrives.
         return $url;
     }
 
