@@ -110,6 +110,48 @@ it('shows translated Dropdown option labels in the builder for each site', funct
         ->and($canonicalForm->getFieldByHandle('colour')->options[1]['label'])->toBe('Red');
 });
 
+it('translates the label of a Dropdown option with an empty value for each site', function (): void {
+    $service = Formie::$plugin->getFormSiteOverrides();
+
+    $form = formie()
+        ->form(['title' => 'Empty Option Value Translations Form'])
+        ->dropdownField('language', ['label' => 'Language', 'options' => [
+            ['label' => 'Gewünschte Sprache*', 'value' => ''],
+            ['optgroup' => 'Sprachen'],
+            ['label' => 'Deutsch', 'value' => 'de'],
+        ]])
+        ->create();
+
+    $sourceSiteId = $service->getSourceSiteId($form);
+    $canonicalForm = Formie::$plugin->getForms()->getFormById((int)$form->id, $sourceSiteId);
+    $secondarySiteId = current(array_filter(
+        Formie::$plugin->getFormSitePropagation()->resolveSiteIdsForForm($canonicalForm),
+        static fn(int $siteId): bool => $siteId !== $sourceSiteId,
+    ));
+    $field = $canonicalForm->getFieldByHandle('language');
+
+    expect($secondarySiteId)->not->toBeFalse();
+
+    $service->saveTranslationBundle((int)$form->id, (int)$secondarySiteId, [
+        'fieldOverrides' => [
+            (string)$field->definitionId => [
+                'options' => [['value' => '', 'label' => 'Preferred language*']],
+            ],
+        ],
+    ]);
+
+    $canonicalBuilder = $canonicalForm->getFormBuilderConfig();
+    $builderOptions = $service->applyToBuilderData($canonicalBuilder, (int)$secondarySiteId)['pages'][0]['rows'][0]['fields'][0]['options'];
+    $applied = $service->applyToForm($canonicalForm, (int)$secondarySiteId, true)->getFieldByHandle('language');
+
+    expect(array_column($builderOptions, 'label'))->toBe(['Preferred language*', 'Sprachen', 'Deutsch'])
+        ->and(array_map(static fn(array $option): ?string => $option['value'] ?? null, $builderOptions))->toBe(['', null, 'de'])
+        ->and(array_map(static fn(array $option): ?string => $option['label'] ?? $option['optgroup'] ?? null, $applied->options))->toBe(['Preferred language*', 'Sprachen', 'Deutsch'])
+        ->and($applied->options[0]['value'])->toBe('')
+        ->and($canonicalForm->getFieldByHandle('language')->options[0]['label'])->toBe('Gewünschte Sprache*')
+        ->and(array_column($service->applyToForm($canonicalForm, $sourceSiteId, true)->getFieldByHandle('language')->options, 'label'))->toBe(['Gewünschte Sprache*', 'Deutsch']);
+});
+
 it('applies required overrides to the field placement for each site', function (): void {
     $service = Formie::$plugin->getFormSiteOverrides();
 

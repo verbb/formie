@@ -1208,15 +1208,12 @@ class FormSiteOverrides extends Component
         $overridesByCanonicalValue = [];
 
         foreach ($optionOverrides as $option) {
-            if (!is_array($option)) {
+            // An empty value is still a key, such as a prompt option like "Choose a language".
+            if (!is_array($option) || !array_key_exists('value', $option)) {
                 continue;
             }
 
-            $value = (string)($option['value'] ?? '');
-
-            if ($value !== '') {
-                $overridesByCanonicalValue[$value] = $option;
-            }
+            $overridesByCanonicalValue[(string)$option['value']] = $option;
         }
 
         $legacyOverrides = array_values(array_filter(

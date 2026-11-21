@@ -565,6 +565,98 @@ describe('siteOverrides', () => {
         expect(merged.pages[0].rows[0].fields[0].options[1].value).toBe('red');
     });
 
+    it('translates the label of an option with an empty value', () => {
+        const canonicalWithPrompt = {
+            ...canonicalData,
+            pages: [
+                {
+                    ...canonicalData.pages[0],
+                    rows: [
+                        {
+                            fields: [
+                                {
+                                    uid: 'dropdown-field',
+                                    fieldId: 602,
+                                    type: 'verbb\\formie\\fields\\Dropdown',
+                                    label: 'Language',
+                                    handle: 'language',
+                                    options: [
+                                        { label: 'Gewünschte Sprache*', value: '', optgroup: false, default: false },
+                                        { label: 'Sprachen', value: '', optgroup: true, default: false },
+                                        { label: 'Deutsch', value: 'de', optgroup: false, default: false },
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+        };
+        const translated = structuredClone(canonicalWithPrompt);
+        translated.pages[0].rows[0].fields[0].options[0].label = 'Preferred language*';
+        translated.pages[0].rows[0].fields[0].options[1].label = 'Languages';
+
+        const translations = extractSiteTranslationsFromFormData(canonicalWithPrompt, translated);
+        const options = (data) => {
+            return data.pages[0].rows[0].fields[0].options.map((option) => {
+                return [option.label, option.value];
+            });
+        };
+
+        expect(translations.fieldOverrides[602].options).toEqual([
+            { value: '', label: 'Preferred language*' },
+        ]);
+
+        const stripped = stripTranslatableValuesToCanonical(translated, canonicalWithPrompt);
+
+        expect(options(stripped)).toEqual([['Gewünschte Sprache*', ''], ['Languages', ''], ['Deutsch', 'de']]);
+
+        const merged = mergeSiteOverridesIntoFormData(canonicalWithPrompt, {}, translations.fieldOverrides);
+
+        expect(options(merged)).toEqual([['Preferred language*', ''], ['Sprachen', ''], ['Deutsch', 'de']]);
+    });
+
+    it('stores a new value for an option whose source value is empty as its translated value', () => {
+        const canonicalWithPrompt = {
+            ...canonicalData,
+            pages: [
+                {
+                    ...canonicalData.pages[0],
+                    rows: [
+                        {
+                            fields: [
+                                {
+                                    uid: 'dropdown-field',
+                                    fieldId: 603,
+                                    type: 'verbb\\formie\\fields\\Dropdown',
+                                    label: 'Language',
+                                    handle: 'language',
+                                    options: [
+                                        { label: 'Gewünschte Sprache*', value: '', optgroup: false, default: false },
+                                        { label: 'Deutsch', value: 'de', optgroup: false, default: false },
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+        };
+        const translated = structuredClone(canonicalWithPrompt);
+        translated.pages[0].rows[0].fields[0].options[0].label = 'Preferred language*';
+        translated.pages[0].rows[0].fields[0].options[0].value = 'preferred';
+
+        const translations = extractSiteTranslationsFromFormData(canonicalWithPrompt, translated);
+
+        expect(translations.fieldOverrides[603].options).toEqual([
+            { value: '', label: 'Preferred language*', optionValue: 'preferred' },
+        ]);
+
+        const merged = mergeSiteOverridesIntoFormData(canonicalWithPrompt, {}, translations.fieldOverrides);
+
+        expect(merged.pages[0].rows[0].fields[0].options[0]).toMatchObject({ label: 'Preferred language*', value: 'preferred' });
+    });
+
     it('strips translatable values back to canonical for save payload', () => {
         const formData = mergeSiteOverridesIntoFormData(canonicalData, {
             title: 'French title',

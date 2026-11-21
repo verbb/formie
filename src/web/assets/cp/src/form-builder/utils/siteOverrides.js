@@ -848,9 +848,10 @@ const diffOptions = (canonicalOptions = [], postedOptions = []) => {
             return;
         }
 
-        const storageValue = canonicalValue !== '' ? canonicalValue : postedValue;
+        // Existing options are keyed by their source value, even an empty one like a "Choose a language" prompt.
+        const storageValue = canonicalOption ? canonicalValue : postedValue;
 
-        if (storageValue === '') {
+        if (storageValue === '' && !canonicalOption) {
             return;
         }
 
@@ -862,7 +863,7 @@ const diffOptions = (canonicalOptions = [], postedOptions = []) => {
             entry.label = postedLabel;
         }
 
-        if (postedValue !== canonicalValue && canonicalValue !== '') {
+        if (postedValue !== canonicalValue && canonicalOption) {
             entry.optionValue = option.value ?? null;
         }
 
