@@ -334,13 +334,21 @@ class Rendering extends Component
         $this->pushRenderFrame($form, $renderOptions);
         $output = [];
 
+        // The deprecated `registerAssets()` helpers discard what this returns, so they register
+        // the assets with the page head and footer instead, as Formie 3 did.
+        $register = (bool)($renderOptions['_registerAssets'] ?? false);
+        $assetOptions = $register ? array_merge($renderOptions, [
+            'outputCssLocation' => FormTemplate::PAGE_HEADER,
+            'outputJsLocation' => FormTemplate::PAGE_FOOTER,
+        ]) : $renderOptions;
+
         try {
             if ($renderOptions['includeCss'] ?? true) {
-                $output[] = $this->_renderResolvedFormAssets($form, self::RENDER_TYPE_CSS, true, $renderOptions);
+                $output[] = $this->_renderResolvedFormAssets($form, self::RENDER_TYPE_CSS, !$register, $assetOptions);
             }
 
             if ($renderOptions['includeJs'] ?? true) {
-                $output[] = $this->_renderResolvedFormAssets($form, self::RENDER_TYPE_JS, true, $renderOptions);
+                $output[] = $this->_renderResolvedFormAssets($form, self::RENDER_TYPE_JS, !$register, $assetOptions);
             }
         } finally {
             $this->popRenderFrame();

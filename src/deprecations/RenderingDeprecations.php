@@ -17,7 +17,9 @@ trait RenderingDeprecations
         // Deprecated in 4.0.0
         Craft::$app->getDeprecator()->log(__METHOD__, 'Rendering `registerAssets()` has been deprecated. Use `formAssets()` instead.');
 
-        $this->formAssets($form, $renderOptions);
+        $this->formAssets($form, array_merge($renderOptions, [
+            '_registerAssets' => true,
+        ]));
     }
 
     public function renderFormCss(Form|string|null $form, array $renderOptions = []): ?Markup
@@ -67,7 +69,9 @@ trait RenderingDeprecations
         // Deprecated in 4.0.0
         Craft::$app->getDeprecator()->log(__METHOD__, 'Rendering `registerFormAssets()` has been deprecated. Use `formAssets()` instead.');
 
-        $this->formAssets($form, $renderOptions);
+        $this->formAssets($form, array_merge($renderOptions, [
+            '_registerAssets' => true,
+        ]));
     }
 
     public function renderFormAssets(Form|string|null $form, array $renderOptions = []): ?Markup

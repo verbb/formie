@@ -18,7 +18,9 @@ trait FormieVariableDeprecations
         // Deprecated in 4.0.0
         Craft::$app->getDeprecator()->log(__METHOD__, '`craft.formie.registerAssets()` has been deprecated. Use `craft.formie.formAssets()` instead.');
 
-        FormiePlugin::$plugin->getRendering()->formAssets($form, $renderOptions);
+        FormiePlugin::$plugin->getRendering()->formAssets($form, array_merge($renderOptions, [
+            '_registerAssets' => true,
+        ]));
     }
 
     public function renderFormCss(Form|string|null $form, array $renderOptions = []): ?Markup
@@ -68,7 +70,9 @@ trait FormieVariableDeprecations
         // Deprecated in 4.0.0
         Craft::$app->getDeprecator()->log(__METHOD__, '`craft.formie.registerFormAssets()` has been deprecated. Use `craft.formie.formAssets()` instead.');
 
-        FormiePlugin::$plugin->getRendering()->formAssets($form, $renderOptions);
+        FormiePlugin::$plugin->getRendering()->formAssets($form, array_merge($renderOptions, [
+            '_registerAssets' => true,
+        ]));
     }
 
     public function renderFormAssets(Form|string|null $form, array $renderOptions = []): ?Markup
