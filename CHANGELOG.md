@@ -4,6 +4,7 @@
 
 ### Fixed
 - Fixed optional Checkboxes fields, and Dropdown fields that allow multiple options, failing validation with “The input value must be an array.” when **Limit Options** was turned on and no options were selected. ([#3154](https://github.com/verbb/formie/issues/3154))
+- Fixed page reload submissions and page tab navigation adding Craft’s path parameter to the page URL, such as `?p=events/my-event`, on servers that route requests through `index.php?p=`, including Apache with Craft’s default `.htaccess`. ([#3155](https://github.com/verbb/formie/issues/3155))
 
 ## 4.0.11 - 2026-11-21
 

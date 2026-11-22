@@ -1010,7 +1010,7 @@ class SubmissionsController extends Controller
 
     private function _currentUrlWithoutParams(array $paramsToRemove): string
     {
-        $queryParams = $this->request->getQueryParams();
+        $queryParams = $this->request->getQueryParamsWithoutPath();
 
         foreach ($paramsToRemove as $paramName) {
             unset($queryParams[$paramName]);

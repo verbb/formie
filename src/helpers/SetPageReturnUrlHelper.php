@@ -76,7 +76,7 @@ final class SetPageReturnUrlHelper
             $path = rtrim($path, '/');
         }
 
-        $params = $request->getQueryParams();
+        $params = $request->getQueryParamsWithoutPath();
         $query = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
 
         return $path . ($query !== '' ? '?' . $query : '');
