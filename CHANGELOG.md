@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed optional Checkboxes fields, and Dropdown fields that allow multiple options, failing validation with “The input value must be an array.” when **Limit Options** was turned on and no options were selected. ([#3154](https://github.com/verbb/formie/issues/3154))
+
 ## 4.0.11 - 2026-11-21
 
 ### Added

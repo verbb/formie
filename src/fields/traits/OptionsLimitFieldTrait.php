@@ -42,7 +42,8 @@ trait OptionsLimitFieldTrait
             'skipOnEmpty' => false,
         ]);
 
-        $value = $element->getFieldValue($this->valueKey());
+        // An empty selection normalizes to null, which counts as no options rather than an invalid value.
+        $value = $element->getFieldValue($this->valueKey()) ?? [];
 
         if (!$arrayValidator->validate($value, $error)) {
             $element->addError($this->valueKey(), $error);
