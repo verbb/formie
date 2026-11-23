@@ -23,6 +23,10 @@ function storeLegacyTokenConditions(\verbb\formie\base\Field $field, array $cond
     $settings = Json::decode((new Query())->select('settings')->from(Table::FORMIE_FIELDS)->where(['id' => $field->definitionId])->scalar());
 
     Craft::$app->getDb()->createCommand()->update(Table::FORMIE_FIELDS, ['settings' => Json::encode(['enableConditions' => true, 'conditions' => $conditions] + $settings)], ['id' => $field->definitionId])->execute();
+
+    // Before 4.0.114 conditions lived only on the definition, so clear the form field's own copy too.
+    $instance = Json::decode((new Query())->select('settings')->from(Table::FORMIE_FORM_FIELDS)->where(['id' => $field->id])->scalar());
+    Craft::$app->getDb()->createCommand()->update(Table::FORMIE_FORM_FIELDS, ['settings' => Json::encode(array_diff_key($instance, array_flip(['enableConditions', 'conditions'])))], ['id' => $field->id])->execute();
 }
 
 function storedLegacyToken(\verbb\formie\base\Field $field): string

@@ -1777,6 +1777,17 @@ class Fields extends Component
                     $definitionRecord->uid = $field->definitionUid;
                 }
 
+                // A definition saved before conditions and formulas moved to placements can still hold them, such as for
+                // a field type that was unavailable during the update. Give the other placements their copy first.
+                if ($definitionId && !($field instanceof MissingField) && is_array($previousDefinitionSettings)) {
+                    $previous = is_array($previousDefinitionSettings['__formieMissingSettings'] ?? null) ? $previousDefinitionSettings['__formieMissingSettings'] : $previousDefinitionSettings;
+                    $leftover = array_intersect_key($previous, $field->getInstanceSettings());
+
+                    if ($leftover) {
+                        $this->_copyDefinitionSettingsToInstances((int)$definitionId, $field->id ? (int)$field->id : null, $leftover);
+                    }
+                }
+
                 $definitionRecord->save(false);
                 $context->syncedFieldImport?->didSave($field, (int)$definitionRecord->id);
                 $context->savedDefinitions[$definitionRecord->id] = true;
@@ -2709,6 +2720,32 @@ class Fields extends Component
 
         if ($this->_fieldSaveBatchDepth === 0 && $this->_fieldCachesDirty) {
             $this->_flushFieldCaches();
+        }
+    }
+
+    private function _copyDefinitionSettingsToInstances(int $definitionId, ?int $exceptId, array $settings): void
+    {
+        $query = (new Query())
+            ->select(['id', 'settings'])
+            ->from(Table::FORMIE_FORM_FIELDS)
+            ->where(['fieldId' => $definitionId]);
+
+        if ($exceptId) {
+            $query->andWhere(['not', ['id' => $exceptId]]);
+        }
+
+        foreach ($query->all() as $row) {
+            $instance = Json::decodeIfJson($row['settings'] ?? null);
+            $instance = is_array($instance) ? $instance : [];
+
+            // Only fill gaps. A placement that has its own value already keeps it.
+            $merged = $instance + $settings;
+
+            if ($merged !== $instance) {
+                Craft::$app->getDb()->createCommand()
+                    ->update(Table::FORMIE_FORM_FIELDS, ['settings' => Json::encode($merged)], ['id' => $row['id']])
+                    ->execute();
+            }
         }
     }
 

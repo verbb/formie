@@ -164,6 +164,8 @@ it('converts old condition tokens when importing an export from an older version
                     if (($field['handle'] ?? $field['settings']['handle'] ?? '') === 'bare') {
                         $field['settings']['enableConditions'] = true;
                         $field['settings']['conditions'] = stencilTokenRule('{plain}');
+                        // Exports before 4.0.114 only had Required as a per-form setting.
+                        unset($field['instanceSettings']['enableConditions'], $field['instanceSettings']['conditions']);
                     }
                 }
             }

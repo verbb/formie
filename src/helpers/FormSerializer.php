@@ -330,6 +330,12 @@ class FormSerializer
             $this->warnings[] = "Missing field type: $type. Original settings retained.";
             $config = ['type' => MissingField::class, 'expectedType' => $type, 'settings' => $settings ?: $source,
                 'label' => $source['label'] ?? 'Missing Field', 'handle' => $source['handle'] ?? 'missingField'];
+
+            // Per-form settings such as conditions or a formula aren't in the definition settings. The builder doesn't
+            // post them for a field it can't edit, so keep the saved ones. Copies carry them in the document.
+            $config['instanceSettings'] = $operation === 'builder' && $existing instanceof MissingField
+                ? $existing->getInstanceSettings()
+                : (is_array($node['instanceSettings'] ?? null) ? $node['instanceSettings'] : null);
         } else {
             if ($existing instanceof ChildFieldInterface && ($this->_parentsById[$existing->id] ?? null) !== $parent?->id && !($operation === 'import' && $this->syncedFieldImport?->ownsField($existing))) {
                 throw new InvalidConfigException('Fixed child instances cannot move to a different parent.');

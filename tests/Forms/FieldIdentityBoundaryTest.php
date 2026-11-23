@@ -91,7 +91,7 @@ it('uses explicit records and APIs for definition and instance persistence', fun
     expect(FieldDefinitionRecord::tableName())->toBe(Table::FORMIE_FIELDS)
         ->and(FieldInstanceRecord::tableName())->toBe(Table::FORMIE_FORM_FIELDS)
         ->and(is_subclass_of(LegacyFieldDefinitionRecord::class, FieldDefinitionRecord::class))->toBeTrue()
-        ->and($field->getInstanceSettings())->toBe(['required' => true])
+        ->and($field->getInstanceSettings())->toBe(['required' => true, 'enableConditions' => false, 'conditions' => null])
         ->and(method_exists($field, 'getFormFieldSettings'))->toBeFalse()
         ->and(method_exists($field, 'applyFormFieldSettings'))->toBeFalse();
 
@@ -114,7 +114,7 @@ it('hydrates custom per-instance settings through the field contract', function 
 
         expect($field->required)->toBeTrue()
             ->and($field->instanceNote)->toBe('Per form')
-            ->and($field->getInstanceSettings())->toBe(['required' => true, 'instanceNote' => 'Per form'])
+            ->and($field->getInstanceSettings())->toBe(['required' => true, 'enableConditions' => false, 'conditions' => null, 'instanceNote' => 'Per form'])
             ->and($field->getDefinitionSettings())->not->toHaveKey('instanceNote');
     } finally {
         Event::off(Fields::class, Fields::EVENT_REGISTER_FIELDS, $listener);

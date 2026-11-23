@@ -35,6 +35,8 @@ function storeLegacySettings(string $table, int $id, callable $update, string $c
 function storeLegacyFieldConditions(\verbb\formie\base\Field $field, array $conditions): void
 {
     storeLegacySettings(Table::FORMIE_FIELDS, $field->definitionId, fn($settings) => ['enableConditions' => true, 'conditions' => $conditions] + $settings);
+    // Before 4.0.114 conditions lived only on the definition, so clear the form field's own copy too.
+    storeLegacySettings(Table::FORMIE_FORM_FIELDS, $field->id, fn($settings) => array_diff_key($settings, array_flip(['enableConditions', 'conditions'])));
 }
 
 function freshConditionForm(int $id): \verbb\formie\elements\Form

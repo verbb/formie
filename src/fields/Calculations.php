@@ -141,6 +141,7 @@ class Calculations extends Field implements PreviewableFieldInterface
                 foreach ($form->getFields() as $field) {
                     if ((string)($field->reference ?? '') === $expression->identifier) {
                         $referencedField = $field;
+
                         break;
                     }
                 }
@@ -216,6 +217,26 @@ class Calculations extends Field implements PreviewableFieldInterface
         $settings['formula'] = $this->formula->getSchema();
 
         return $settings;
+    }
+
+    public function getInstanceSettings(): array
+    {
+        // The formula references other fields in this form, so each placement keeps its own.
+        return array_merge(parent::getInstanceSettings(), [
+            'formula' => $this->formula->getSchema(),
+        ]);
+    }
+
+    public function applyInstanceSettings(array|string|null $settings): void
+    {
+        parent::applyInstanceSettings($settings);
+
+        $settings = is_string($settings) ? Json::decodeIfJson($settings) : $settings;
+
+        if (is_array($settings) && array_key_exists('formula', $settings)) {
+            $this->formula = RichText::from($settings['formula']);
+            $this->_renderedFormula = null;
+        }
     }
 
     public function getSettingGqlTypes(): array

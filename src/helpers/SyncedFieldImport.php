@@ -379,7 +379,19 @@ class SyncedFieldImport
         // belong to a shared parent's layout, so only the outer placement is excluded.
         $normalizeField = function(array $field, bool $root = false) use (&$normalizeField): array {
             $settings = Json::decodeIfJson($field['settings'] ?? []) ?: [];
+            $instanceSettings = is_array($field['instanceSettings'] ?? null) ? $field['instanceSettings'] : [];
             unset($settings['nestedLayoutId']);
+
+            // Exports before 4.0.114 kept conditions and formulas with the definition settings. Compare them as
+            // per-form settings, as current exports store them, so an unchanged older export still matches.
+            $prototype = is_string($field['type'] ?? null) ? Formie::$plugin->getFields()->getRegisteredFieldByType($field['type'], false) : null;
+
+            foreach (array_keys($prototype?->getInstanceSettings() ?? []) as $key) {
+                if (array_key_exists($key, $settings)) {
+                    $instanceSettings[$key] ??= $settings[$key];
+                    unset($settings[$key]);
+                }
+            }
 
             if (isset($settings['rows'])) {
                 $settings['rows'] = array_map(fn($row) => [
@@ -387,7 +399,7 @@ class SyncedFieldImport
                 ], $settings['rows']);
             }
 
-            return ['type' => $field['type'] ?? '', 'settings' => $settings] + ($root ? [] : ['instanceSettings' => $field['instanceSettings'] ?? []]);
+            return ['type' => $field['type'] ?? '', 'settings' => $settings] + ($root ? [] : ['instanceSettings' => $instanceSettings]);
         };
         $sort = function(array $value) use (&$sort): array {
             foreach ($value as $key => $item) {

@@ -12,6 +12,7 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\base\MissingComponentInterface;
 use craft\base\MissingComponentTrait;
+use craft\helpers\Json;
 
 use Throwable;
 
@@ -38,8 +39,32 @@ class MissingField extends Field implements MissingComponentInterface
     use MissingComponentTrait;
 
 
+    // Properties
+    // =========================================================================
+
+    private array $_instanceSettings = [];
+
+
     // Public Methods
     // =========================================================================
+
+    public function getInstanceSettings(): array
+    {
+        // Write back exactly what was stored for this placement, such as a Calculations formula or conditions.
+        // This class can't evaluate them, and empty defaults would overwrite the real type's settings once it's available again.
+        return array_merge($this->_instanceSettings, ['required' => $this->required]);
+    }
+
+    public function applyInstanceSettings(array|string|null $settings): void
+    {
+        parent::applyInstanceSettings($settings);
+
+        $settings = is_string($settings) ? Json::decodeIfJson($settings) : $settings;
+
+        if (is_array($settings)) {
+            $this->_instanceSettings = $settings;
+        }
+    }
 
     public function getFormBuilderSettings(): array
     {
