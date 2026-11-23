@@ -80,6 +80,7 @@ class Stripe extends Payment
     public static function toStripeAmount(string|int|float $amount, string $currency): int
     {
         $money = PaymentMoney::fromDecimal((string)$amount, $currency);
+
         // Stripe retains two-decimal API units for these zero-decimal currencies.
         return in_array(strtoupper($currency), ['ISK', 'UGX'], true) ? PaymentMoney::fromMinor($money->minor . '00', $currency)->integer() : $money->integer();
     }
@@ -90,8 +91,10 @@ class Stripe extends Payment
             if (!str_ends_with((string)$amount, '00') && (string)$amount !== '0') {
                 throw new InvalidArgumentException('Invalid Stripe zero-decimal amount.');
             }
+
             $amount = (string)$amount === '0' ? '0' : substr((string)$amount, 0, -2);
         }
+
         return PaymentMoney::fromMinor((string)$amount, $currency)->decimal();
     }
 
@@ -165,14 +168,17 @@ class Stripe extends Payment
             $currency = $currencyVariable;
         }
 
+        // A dynamic currency is only known in the browser, which converts decimal amounts to Stripe units once it's chosen.
+        $convertAmount = fn(string|int|float $value) => $currencyType === Payment::VALUE_TYPE_DYNAMIC ? (string)$value : self::toStripeAmount($value, $currency);
+
         // Set a default amount for when using dynamic values. This is changed on the front-end when updated there.
-        $amount = self::toStripeAmount(100, $currency);
+        $amount = $convertAmount(100);
         $amountType = $this->getFieldSetting('amountType');
         $amountFixed = $this->getFieldSetting('amountFixed');
         $amountVariable = $this->normalizeBrowserFieldReference($this->getFieldSetting('amountVariable'));
 
         if ($amountType === Payment::VALUE_TYPE_FIXED) {
-            $amount = self::toStripeAmount((string)$amountFixed, $currency);
+            $amount = $convertAmount((string)$amountFixed);
         } elseif ($amountType === Payment::VALUE_TYPE_DYNAMIC) {
             $amount = $amountVariable;
         }
@@ -354,6 +360,7 @@ class Stripe extends Payment
                 }
 
                 $this->_setSubscriptionConfirmationAction($submission, $stripeSubscription);
+
                 return in_array($stripeSubscription->status, ['active', 'trialing'], true);
             }
 
@@ -545,6 +552,7 @@ class Stripe extends Payment
                         $payment->message = Craft::t('formie', 'Payment requires additional confirmation, but no client secret was returned.');
                         Formie::$plugin->getPayments()->savePayment($payment);
                         $this->addFieldError($submission, $payment->message);
+
                         return false;
                     } elseif ($paymentIntent->status === PaymentIntent::STATUS_PROCESSING) {
                         $payment->status = PaymentModel::STATUS_PROCESSING;
@@ -555,6 +563,7 @@ class Stripe extends Payment
                         Formie::$plugin->getPayments()->savePayment($payment);
 
                         $this->addFieldError($submission, $payment->message);
+
                         return false;
                     } else {
                         $payment->status = $this->_getPaymentStatusFromPaymentIntentStatus($paymentIntent->status);
@@ -567,6 +576,7 @@ class Stripe extends Payment
                         Formie::$plugin->getPayments()->savePayment($payment);
 
                         $this->addFieldError($submission, $payment->message);
+
                         return false;
                     }
                 } else {
@@ -1175,21 +1185,25 @@ class Stripe extends Payment
             if (!$subscription?->reference) {
                 return;
             }
+
             $remote = $this->getStripe()->subscriptions->retrieve($subscription->reference);
             $subscription = $this->_applySubscriptionSnapshot($subscription, $remote->toArray(), 'stripeReconcile');
             $this->_syncInitialSubscriptionPayment($subscription);
+
             return;
         }
 
         if (!$payment->reference) {
             return;
         }
+
         $remote = $this->getStripe()->paymentIntents->retrieve($payment->reference);
 
         if ($remote->id !== $payment->reference
             || !PaymentMoney::fromDecimal(self::fromStripeAmount((string)$remote->amount, strtoupper($remote->currency)), strtoupper($remote->currency))->equals(PaymentMoney::fromDecimal($payment->amount, (string)$payment->currency))) {
             throw new Exception('Stripe payment snapshot mismatch.');
         }
+
         $payment->status = $this->_getPaymentStatusFromPaymentIntentStatus($remote->status);
         $payment->response = $remote->toArray();
         Formie::$plugin->getPayments()->savePayment($payment);
@@ -1364,6 +1378,7 @@ class Stripe extends Payment
         if (empty($invoice['paid'])) {
             return;
         }
+
         $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference((string)($invoice['subscription'] ?? ''), $this->id);
 
         if (!$subscription) {
@@ -1378,6 +1393,7 @@ class Stripe extends Payment
         if ((int)$subscription->integrationId !== (int)$this->id) {
             return;
         }
+
         Formie::$plugin->getPayments()->recordRecurring(
             $subscription,
             $invoice['id'],
@@ -1400,6 +1416,7 @@ class Stripe extends Payment
         if ($date) {
             Formie::$plugin->getSubscriptions()->receivePayment($subscription, $date, $previousPeriod);
         }
+
         $this->_syncInitialSubscriptionPayment($subscription);
     }
 
@@ -1430,6 +1447,7 @@ class Stripe extends Payment
                 $stripeInvoice
             );
         }
+
         $stripeSubscription = $this->getStripe()->subscriptions->retrieve($subscription->reference, [
             'expand' => ['latest_invoice.payment_intent'],
         ]);
@@ -1550,6 +1568,7 @@ class Stripe extends Payment
                         ->equals(PaymentMoney::fromDecimal($payment->amount, $payment->currency))) {
                     throw new Exception('Stripe webhook amount or currency mismatch.');
                 }
+
                 $payment->response = $paymentIntent;
 
                 // Stripe may deliver earlier processing/failure events after success.
@@ -1561,6 +1580,7 @@ class Stripe extends Payment
                         throw new Exception('Unable to record the payment intent status.');
                     }
                 }
+
                 Formie::$plugin->getSubmissionRequests()->replayPaymentIfSuccessful($payment);
             }
         }
@@ -1951,12 +1971,14 @@ class Stripe extends Payment
         if ($existing = $subscriptions->getSubscriptionByReference($reference, $this->id)) {
             return $existing;
         }
+
         $uid = $remote['metadata']['formieSubscriptionUid'] ?? null;
         $candidate = $uid ? $subscriptions->getSubscriptionByUid($uid) : null;
 
         if (!$candidate || $candidate->integrationId !== $this->id || $candidate->reference || !($candidate->scope['initial'] ?? false)) {
             return null;
         }
+
         $candidate->reference = $reference;
         $subscriptions->saveSubscription($candidate);
 
@@ -1973,6 +1995,7 @@ class Stripe extends Payment
             if ($payment->subscriptionId !== $subscription->id || !($payment->scope['initial'] ?? false)) {
                 continue;
             }
+
             $payment->status = match ($subscription->getState()) {
                 SubscriptionStatus::TRIALING, SubscriptionStatus::ACTIVE => PaymentModel::STATUS_SUCCEEDED,
                 SubscriptionStatus::CANCELLED, SubscriptionStatus::COMPLETED => PaymentModel::STATUS_CANCELLED,
@@ -2096,6 +2119,7 @@ class Stripe extends Payment
                 $payload['metadata']['formieSubscriptionUid'] = Formie::$plugin->getPayments()->prepareSubscription($this, $submission)->uid;
             }
         }
+
         $service = $this->getStripe()->$resource;
         $identity = $this->_getIdempotencyKey($submission, $action);
         $providerKey = $action === 'payment-intent-create' ? $this->_getIdempotencyKey($submission, $action, [

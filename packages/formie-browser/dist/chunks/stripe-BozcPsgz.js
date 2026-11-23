@@ -69,7 +69,7 @@ var h = n({
 				ok: !1,
 				error: "error" in t ? t.error : "Provide a payment currency to proceed."
 			};
-			let n = t.value.toLowerCase(), a = i.amountType === "dynamic" ? d(e.value, n) : e.value;
+			let n = t.value.toLowerCase(), a = i.amountType === "dynamic" || i.currencyType === "dynamic" ? d(e.value, n) : e.value;
 			return {
 				ok: !0,
 				value: {

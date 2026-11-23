@@ -884,7 +884,11 @@ abstract class Payment extends Integration
         $expression = References::parseReferenceExpression($raw);
 
         if ($expression->isValid && $expression->target === 'field' && $expression->identifier !== '') {
-            return FieldReferenceHelper::resolveBrowserFieldKey($expression->identifier);
+            // The browser finds fields by their input key, so map the stored reference through the form's fields.
+            $form = $this->getField()?->getForm();
+            $fieldMap = $form ? FieldReferenceHelper::getBrowserFieldReferenceMap($form->getFields()) : [];
+
+            return FieldReferenceHelper::resolveBrowserFieldKey($expression->identifier, $fieldMap);
         }
 
         return $raw;

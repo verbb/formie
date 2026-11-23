@@ -181,7 +181,8 @@ export const stripeModule = definePaymentModule<StripeProviderOptions, StripeIns
             }
 
             const currencyCode = currencyResult.value.toLowerCase();
-            const amountValue = provider.amountType === 'dynamic'
+            // The server sends Stripe units only when it knows both the amount and the currency.
+            const amountValue = provider.amountType === 'dynamic' || provider.currencyType === 'dynamic'
                 ? toStripeSubunitAmount(amountResult.value, currencyCode)
                 : amountResult.value;
 

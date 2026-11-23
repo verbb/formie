@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Fixed
+- Fixed forms with a Stripe Payment field set to a dynamic currency failing to render with “Cannot find ISO currency”. ([#3156](https://github.com/verbb/formie/issues/3156))
+- Fixed Stripe Payment fields with a dynamic amount giving Stripe’s Payment Element an amount read from the field’s ID instead of the field’s value. The amount charged wasn’t affected. ([#3156](https://github.com/verbb/formie/issues/3156))
 - Fixed optional Checkboxes fields, and Dropdown fields that allow multiple options, failing validation with “The input value must be an array.” when **Limit Options** was turned on and no options were selected. ([#3154](https://github.com/verbb/formie/issues/3154))
 - Fixed page reload submissions and page tab navigation adding Craft’s path parameter to the page URL, such as `?p=events/my-event`, on servers that route requests through `index.php?p=`, including Apache with Craft’s default `.htaccess`. ([#3155](https://github.com/verbb/formie/issues/3155))
 
