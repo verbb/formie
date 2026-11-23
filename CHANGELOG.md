@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Added
+- Added **Country (Label)** and **Country (Value)** to the choices for Address fields in integration mappings and variables, so a mapping can send the country’s name instead of its ISO code. ([#3158](https://github.com/verbb/formie/issues/3158))
+
 ### Fixed
 - Fixed file uploads in client-rendered forms always failing with “The file could not be staged. Please select it again.” when Craft’s `headlessMode` is on, including File Upload fields set to Upload Manager. Their upload URLs pointed at the control panel, where Formie couldn’t find the form for visitors. ([#3157](https://github.com/verbb/formie/issues/3157))
 - Fixed forms with a Stripe Payment field set to a dynamic currency failing to render with “Cannot find ISO currency”. ([#3156](https://github.com/verbb/formie/issues/3156))

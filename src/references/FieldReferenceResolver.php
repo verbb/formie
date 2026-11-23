@@ -5,6 +5,7 @@ use verbb\formie\base\ElementField;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\base\RepeatableParentFieldInterface;
+use verbb\formie\fields\Address;
 use verbb\formie\fields\Group;
 use verbb\formie\fields\Payment;
 use verbb\formie\fields\Phone;
@@ -222,6 +223,10 @@ final class FieldReferenceResolver
 
         if ($field instanceof Phone) {
             return $field->resolveNormalizedValuePath($value, $selector);
+        }
+
+        if ($field instanceof Address && in_array($selector, ['country.label', 'country.value'], true)) {
+            return $field->resolveCountryPath($value, $selector);
         }
 
         return $context->submission->getContentManager()->resolvePathValue($value, str_replace(':', '.', $selector));

@@ -319,6 +319,20 @@ class Address extends FixedParentField implements ReportSubfieldsInterface, Prev
         return $this->_onlyAutoComplete($value, $element) !== null;
     }
 
+    public function resolveCountryPath(mixed $value, string $path): mixed
+    {
+        $country = $value instanceof AddressFieldValue ? $value->getPathValue('country') : null;
+
+        if ($path !== 'country.label') {
+            return $country;
+        }
+
+        // Country labels depend on the sub-field's option settings, not on the stored value.
+        $countryField = $this->getFieldByHandle('country');
+
+        return $countryField && $country !== null ? $countryField->getValueAsString($country) : '';
+    }
+
     public function getAddressProviderIntegration(): ?IntegrationInterface
     {
         $autoComplete = $this->getFieldByHandle('autoComplete');
@@ -771,6 +785,8 @@ class Address extends FixedParentField implements ReportSubfieldsInterface, Prev
             FieldReferenceValue::selector('state', Craft::t('formie', 'State / Province')),
             FieldReferenceValue::selector('zip', Craft::t('formie', 'ZIP / Postal Code')),
             FieldReferenceValue::selector('country', Craft::t('formie', 'Country')),
+            FieldReferenceValue::selector('country.label', Craft::t('formie', 'Country (Label)'), supportsBrowser: false),
+            FieldReferenceValue::selector('country.value', Craft::t('formie', 'Country (Value)'), supportsBrowser: false),
         ];
     }
 

@@ -725,6 +725,8 @@ return [
   'Country' => 'Country',
   'Country (Full)' => 'Country (Full)',
   'Country (ISO)' => 'Country (ISO)',
+  'Country (Label)' => 'Country (Label)',
+  'Country (Value)' => 'Country (Value)',
   'Country Code' => 'Country Code',
   'Country Default Value' => 'Country Default Value',
   'Country Enabled' => 'Country Enabled',

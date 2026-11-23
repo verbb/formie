@@ -34,6 +34,8 @@ While subdivisions load, the country field shows a loading indicator and the sta
 
 Address stores a structured value made from its sub-fields. This is useful when templates, exports or integrations need separate address parts instead of one free-text string.
 
+The country is stored in the format set by the Country sub-field’s **Option Value** setting, which is the ISO code by default. When you map the country to an integration or insert it as a variable, **Country** and **Country (Value)** send that stored value, while **Country (Label)** sends the country as it’s labelled in the dropdown, such as “Australia”.
+
 For GraphQL mutations, Address fields use a generated input object for the field handle. Query the form’s `formFields` and include `inputTypeName`, or see [Create Submissions](/graphql/create-submissions#name-and-address-fields).
 
 ## Auto-Complete and Address Providers
