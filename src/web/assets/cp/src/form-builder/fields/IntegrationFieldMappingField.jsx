@@ -151,6 +151,27 @@ const getMappingMode = (mappingValue, fieldOptionValues) => {
     return MODE_CUSTOM;
 };
 
+export const getDefaultMappingMode = ({
+    mappingKind,
+    mappingValue,
+    comparableMappingValue,
+    fieldOptionValues,
+    providerOptionValue,
+    isEmptyOnMount,
+}) => {
+    if (providerOptionValue) {
+        return MODE_FIELD;
+    }
+
+    // Formie 3 stored unmapped slots as empty strings, which upgrades and form saves keep as empty literals.
+    // Show those as unmapped. A row that loaded with a value keeps its input when the value is cleared.
+    if (mappingKind && !(isEmptyOnMount && mappingValue === '')) {
+        return { reference: MODE_FIELD, literal: MODE_LITERAL }[mappingKind] || MODE_CUSTOM;
+    }
+
+    return getMappingMode(comparableMappingValue, fieldOptionValues);
+};
+
 export const MappingValueControl = ({
     mappingValue,
     mappingKind,
@@ -243,14 +264,17 @@ export const MappingValueControl = ({
 
     const [selectedMode, setMode] = useState(null);
 
-    // Formie 3 stored unmapped slots as empty strings, which upgrades and form saves keep as empty literals. Show them as unmapped.
     // Checked once, so clearing a value while typing keeps its input.
     const [isEmptyOnMount] = useState(() => { return mappingValue === ''; });
 
-    let defaultMode = providerOptionValue ? MODE_FIELD : getMappingMode(comparableMappingValue, fieldOptionValues);
-    if (!providerOptionValue && mappingKind && !isEmptyOnMount) {
-        defaultMode = { reference: MODE_FIELD, literal: MODE_LITERAL }[mappingKind] || MODE_CUSTOM;
-    }
+    const defaultMode = getDefaultMappingMode({
+        mappingKind,
+        mappingValue,
+        comparableMappingValue,
+        fieldOptionValues,
+        providerOptionValue,
+        isEmptyOnMount,
+    });
 
     const mode = selectedMode ?? defaultMode;
 

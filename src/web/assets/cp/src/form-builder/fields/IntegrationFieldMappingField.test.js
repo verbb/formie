@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
     MappingValueControl,
+    getDefaultMappingMode,
     normalizeMappingValue,
 } from './IntegrationFieldMappingField';
 
@@ -194,5 +195,51 @@ describe('integration provider option mappings', () => {
             },
         );
         expect(controls.picker?.value).toBe('{field:contact}');
+    });
+});
+
+describe('default mapping mode', () => {
+    const decide = (overrides) => {
+        return getDefaultMappingMode({
+            mappingKind: undefined,
+            mappingValue: '',
+            comparableMappingValue: '',
+            fieldOptionValues: new Set(['{submission:title}']),
+            providerOptionValue: '',
+            isEmptyOnMount: false,
+            ...overrides,
+        });
+    };
+
+    it.each([
+        ['an empty literal', 'literal'],
+        ['an empty text value', 'text'],
+    ])('shows %s that loaded empty as unmapped', (_name, mappingKind) => {
+        expect(decide({ mappingKind, isEmptyOnMount: true })).toBe('field');
+    });
+
+    it('keeps a picked reference in the picker on a row that loaded empty, even when the token is not in the picker list', () => {
+        const value = '{form:name;transform=lower}';
+        expect(decide({ mappingKind: 'reference', mappingValue: value, comparableMappingValue: value, isEmptyOnMount: true })).toBe('field');
+    });
+
+    it.each([
+        ['literal', 'literal'],
+        ['text', 'custom'],
+    ])('keeps the %s input when a value that loaded set is cleared', (mappingKind, mode) => {
+        expect(decide({ mappingKind, isEmptyOnMount: false })).toBe(mode);
+    });
+
+    it.each([
+        ['literal', 'abc', 'literal'],
+        ['text', 'Hello {submission:title}', 'custom'],
+        ['reference', '{submission:title}', 'field'],
+    ])('uses the stored %s kind for a set value', (mappingKind, value, mode) => {
+        expect(decide({ mappingKind, mappingValue: value, comparableMappingValue: value })).toBe(mode);
+        expect(decide({ mappingKind, mappingValue: value, comparableMappingValue: value, isEmptyOnMount: true })).toBe(mode);
+    });
+
+    it('shows a provider option in the picker', () => {
+        expect(decide({ mappingKind: 'literal', mappingValue: '2', providerOptionValue: '{providerOption:2}' })).toBe('field');
     });
 });
