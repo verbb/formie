@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed file uploads in client-rendered forms always failing with “The file could not be staged. Please select it again.” when Craft’s `headlessMode` is on, including File Upload fields set to Upload Manager. Their upload URLs pointed at the control panel, where Formie couldn’t find the form for visitors. ([#3157](https://github.com/verbb/formie/issues/3157))
 - Fixed forms with a Stripe Payment field set to a dynamic currency failing to render with “Cannot find ISO currency”. ([#3156](https://github.com/verbb/formie/issues/3156))
 - Fixed Stripe Payment fields with a dynamic amount giving Stripe’s Payment Element an amount read from the field’s ID instead of the field’s value. The amount charged wasn’t affected. ([#3156](https://github.com/verbb/formie/issues/3156))
 - Fixed optional Checkboxes fields, and Dropdown fields that allow multiple options, failing validation with “The input value must be an array.” when **Limit Options** was turned on and no options were selected. ([#3154](https://github.com/verbb/formie/issues/3154))

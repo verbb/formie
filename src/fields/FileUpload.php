@@ -17,6 +17,7 @@ use verbb\formie\helpers\FieldBuilderPolicy;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\UploadAccess;
+use verbb\formie\helpers\UrlHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\BrowserModule;
@@ -48,7 +49,6 @@ use craft\helpers\Gql as GqlHelper;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\Template;
-use craft\helpers\UrlHelper;
 use craft\models\Volume;
 use craft\models\VolumeFolder;
 use craft\services\ElementSources;
@@ -1038,7 +1038,7 @@ class FileUpload extends ElementField
                     'data-formie-size-min-limit' => $minFileSize,
                     'data-formie-size-max-limit' => $sizeMaxLimit,
                     'data-formie-file-limit' => $maxFiles,
-                    'data-formie-file-upload-hydrate-endpoint' => UrlHelper::actionUrl('formie/file-upload/hydrate'),
+                    'data-formie-file-upload-hydrate-endpoint' => UrlHelper::frontEndActionUrl('formie/file-upload/hydrate'),
                     'aria-describedby' => $this->hasInstructions() ? "{$id}-instructions" : null,
                 ], ValidationMessagesHelper::fileUploadValidationBrowserAttributes(
                     $this,
@@ -1244,9 +1244,9 @@ class FileUpload extends ElementField
                 'moduleId' => 'formie:upload-manager',
                 'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED],
                 'config' => [
-                    'uploadEndpoint' => UrlHelper::actionUrl('formie/file-upload/upload'),
-                    'deleteEndpoint' => UrlHelper::actionUrl('formie/file-upload/delete'),
-                    'hydrateEndpoint' => UrlHelper::actionUrl('formie/file-upload/hydrate'),
+                    'uploadEndpoint' => UrlHelper::frontEndActionUrl('formie/file-upload/upload'),
+                    'deleteEndpoint' => UrlHelper::frontEndActionUrl('formie/file-upload/delete'),
+                    'hydrateEndpoint' => UrlHelper::frontEndActionUrl('formie/file-upload/hydrate'),
                     'maxFiles' => $this->maxFiles !== null ? (int)$this->maxFiles : null,
                     'minFileSize' => $this->minFileSize !== null ? (float)$this->minFileSize : null,
                     'maxFileSize' => $this->maxFileSize !== null ? (float)$this->maxFileSize : null,
@@ -1862,9 +1862,9 @@ class FileUpload extends ElementField
         float|int $minFileSize,
         float|int|string|null $maxFiles,
     ): ?SlotTag {
-        $uploadEndpoint = UrlHelper::actionUrl('formie/file-upload/upload');
-        $deleteEndpoint = UrlHelper::actionUrl('formie/file-upload/delete');
-        $hydrateEndpoint = UrlHelper::actionUrl('formie/file-upload/hydrate');
+        $uploadEndpoint = UrlHelper::frontEndActionUrl('formie/file-upload/upload');
+        $deleteEndpoint = UrlHelper::frontEndActionUrl('formie/file-upload/delete');
+        $hydrateEndpoint = UrlHelper::frontEndActionUrl('formie/file-upload/hydrate');
         $validationAttributes = ValidationMessagesHelper::fileUploadValidationBrowserAttributes(
             $this,
             (int)$maxFiles,

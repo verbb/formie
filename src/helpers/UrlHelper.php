@@ -23,6 +23,25 @@ class UrlHelper extends CraftUrlHelper
     }
 
     /**
+     * Returns the site action URL for an endpoint visitors post to.
+     *
+     * Craft puts every action URL on the control panel route in headless mode, where Formie's form
+     * lookups are limited to forms the current user can manage, so guests get "Invalid form handle".
+     */
+    public static function frontEndActionUrl(string $path = '', array|string|null $params = null, ?string $scheme = null, ?bool $showScriptName = null): string
+    {
+        $generalConfig = Craft::$app->getConfig()->getGeneral();
+        $headlessMode = $generalConfig->headlessMode;
+        $generalConfig->headlessMode = false;
+
+        try {
+            return static::actionUrl($path, $params, $scheme, $showScriptName);
+        } finally {
+            $generalConfig->headlessMode = $headlessMode;
+        }
+    }
+
+    /**
      * Replaces the CP host with the site host only when the URL host matches the CP host exactly.
      *
      * Nested subdomains like `my-project.staging.example.com` must not be corrupted when the CP
@@ -106,6 +125,7 @@ class UrlHelper extends CraftUrlHelper
     public static function getRedirectQueryParams(): array
     {
         $request = Craft::$app->getRequest();
+
         return static::filterRedirectQueryParams($request->getIsConsoleRequest() ? [] : $request->getQueryParams());
     }
 
@@ -124,6 +144,7 @@ class UrlHelper extends CraftUrlHelper
                 $result[$key] = (string)$params[$key];
             }
         }
+
         return $result;
     }
 }

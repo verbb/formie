@@ -38,6 +38,7 @@ use verbb\formie\helpers\SpamProtectionEditor;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\SubmissionLimitHelper;
 use verbb\formie\helpers\Table;
+use verbb\formie\helpers\UrlHelper;
 use verbb\formie\helpers\ValidationHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\BrowserModule;
@@ -82,7 +83,6 @@ use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\Session;
-use craft\helpers\UrlHelper;
 use craft\i18n\Locale;
 use craft\models\FieldLayout;
 use craft\validators\HandleValidator;
@@ -982,10 +982,10 @@ class Form extends Element implements FormInterface
             'pages' => $pages,
             'modules' => $moduleManifest->toArray(),
             'submission' => [
-                'endpoint' => UrlHelper::actionUrl('formie/client/submissions/submit'),
+                'endpoint' => UrlHelper::frontEndActionUrl('formie/client/submissions/submit'),
                 'method' => 'POST',
                 'encoding' => 'application/json',
-                'uploadEndpoint' => UrlHelper::actionUrl('formie/file-upload/upload'),
+                'uploadEndpoint' => UrlHelper::frontEndActionUrl('formie/file-upload/upload'),
                 'actions' => ['back', 'save', 'submit'],
                 'response' => [
                     'successMessageMode' => 'inline',
