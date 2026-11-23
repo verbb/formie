@@ -47,6 +47,11 @@ test.beforeEach(async ({ page }) => {
             <option value="JPY">JPY</option>
         </select>
         <input type="number" name="fields[customAmount]" value="15">
+        <input type="number" name="fields[amount2]" value="20">
+        <select name="fields[cur]">
+            <option value="NOK" selected>NOK</option>
+            <option value="GBP">GBP</option>
+        </select>
         <div data-formie-field data-formie-field-handle="payment" data-formie-field-type="payment">
             <div data-formie-field-control>
                 <div data-formie-stripe-elements-placeholder></div>
@@ -151,5 +156,29 @@ test('a fixed amount with a fixed currency is passed through as Stripe units', a
 
     expect(await page.evaluate(() => window.stripeTest.calls)).toEqual([
         { call: 'elements', amount: 1050, currency: 'aud' },
+    ]);
+});
+
+test('a dynamic amount field whose handle contains a digit is read from the field', async ({ page }) => {
+    await page.evaluate(() => window.stripeTest.setup({
+        amountType: 'dynamic',
+        currencyType: 'fixed',
+        initialPaymentInformation: { amount: 'amount2', currency: 'aud' },
+    }));
+
+    expect(await page.evaluate(() => window.stripeTest.calls)).toEqual([
+        { call: 'elements', amount: 2000, currency: 'aud' },
+    ]);
+});
+
+test('a dynamic currency field with a three-letter handle is read from the field', async ({ page }) => {
+    await page.evaluate(() => window.stripeTest.setup({
+        amountType: 'fixed',
+        currencyType: 'dynamic',
+        initialPaymentInformation: { amount: '10', currency: 'cur' },
+    }));
+
+    expect(await page.evaluate(() => window.stripeTest.calls)).toEqual([
+        { call: 'elements', amount: 1000, currency: 'nok' },
     ]);
 });

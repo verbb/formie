@@ -164,7 +164,7 @@ export const stripeModule = definePaymentModule<StripeProviderOptions, StripeIns
             });
 
         const getResolvedPaymentInfo = (): { ok: true; value: Record<string, unknown> } | { ok: false; error: string } => {
-            const amountResult = services.resolveAmount({ value: initial.amount });
+            const amountResult = services.resolveAmount({ type: provider.amountType, value: initial.amount });
             if (!amountResult.ok) {
                 return {
                     ok: false,
@@ -172,7 +172,7 @@ export const stripeModule = definePaymentModule<StripeProviderOptions, StripeIns
                 };
             }
 
-            const currencyResult = services.resolveCurrency({ value: initial.currency });
+            const currencyResult = services.resolveCurrency({ type: provider.currencyType, value: initial.currency });
             if (!currencyResult.ok) {
                 return {
                     ok: false,

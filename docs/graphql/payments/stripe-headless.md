@@ -38,6 +38,7 @@ Find the Payment field module in `definition.fields` (or nested pages). The Stri
 - `publishableKey` — pass to `loadStripe()`
 - `paymentType` — `single` or `subscription`
 - `amountType` / `currencyType` — fixed or dynamic; use `initialPaymentInformation` as a starting amount
+- `initialPaymentInformation` — `amount` and `currency`. A fixed amount with a fixed currency is in Stripe's smallest currency unit, such as `1050` for $10.50. A dynamic amount or currency is the key of the field to read it from, such as `donation`, and with a dynamic currency a fixed amount is a decimal, such as `10.50`, for you to convert once the currency is known.
 - `requiredInputSuffixes` — `["stripePaymentIntentId"]`
 - `billingDetails` — field references for pre-filling Stripe billing details
 

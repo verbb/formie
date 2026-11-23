@@ -160,7 +160,18 @@ export function createPaymentHostServices(
         return String(value || '');
     };
 
-    const updateInputs = (name: string | string[], value: string) => {
+    // Returns null when the reference doesn't name a field in the form.
+    const getFieldValueIfFound = (reference: string): string | null => {
+        const resolved = resolveFieldReferenceLive(reference, getRegistry());
+
+        if (!resolved.found) {
+            return null;
+        }
+
+        return String((Array.isArray(resolved.value) ? resolved.value[0] : resolved.value) || '');
+    };
+
+    const updateInputs =(name: string | string[], value: string) => {
         const names = Array.isArray(name) ? name : [name];
 
         for (const n of names) {
@@ -247,14 +258,17 @@ export function createPaymentHostServices(
         const isDynamic = mode === 'dynamic' && typeof opts.variable === 'string' && opts.variable.trim() !== '';
         const source = opts.value ?? (isDynamic ? opts.variable : opts.fixed);
         const sourceString = String(source ?? '').trim();
-        const numericDirect = typeof source === 'number' ? source : currencyToFloat(sourceString);
+        // A dynamic amount names a field, so read the field before treating the text as a number. Otherwise a
+        // handle such as `amount2` would be read as 2.
+        const fieldValue = mode === 'dynamic' && sourceString !== '' ? getFieldValueIfFound(sourceString) : null;
+        const numericDirect = fieldValue !== null ? NaN : (typeof source === 'number' ? source : currencyToFloat(sourceString));
 
         if (Number.isFinite(numericDirect) && numericDirect > 0) {
             return { ok: true, value: numericDirect };
         }
 
         if (sourceString !== '') {
-            const raw = getReferenceValue(sourceString);
+            const raw = fieldValue ?? getReferenceValue(sourceString);
             const numeric = currencyToFloat(raw);
 
             if (Number.isFinite(numeric) && numeric > 0) {
@@ -290,14 +304,16 @@ export function createPaymentHostServices(
         const isDynamic = mode === 'dynamic' && typeof opts.variable === 'string' && opts.variable.trim() !== '';
         const source = opts.value ?? (isDynamic ? opts.variable : opts.fixed ?? opts.defaultCurrency ?? '');
         const sourceString = String(source ?? '').trim();
+        // A dynamic currency names a field, so a three-letter handle such as `cur` isn't a currency code.
+        const fieldValue = mode === 'dynamic' && sourceString !== '' ? getFieldValueIfFound(sourceString) : null;
 
         const direct = sourceString.toUpperCase();
-        if (/^[A-Z]{3}$/.test(direct) && !isDynamic) {
+        if (/^[A-Z]{3}$/.test(direct) && !isDynamic && fieldValue === null) {
             return { ok: true, value: direct };
         }
 
         if (sourceString !== '') {
-            const raw = String(getReferenceValue(sourceString) || '').trim();
+            const raw = String(fieldValue ?? getReferenceValue(sourceString) ?? '').trim();
             const normalized = raw.toUpperCase();
 
             if (/^[A-Z]{3}$/.test(normalized)) {
