@@ -321,16 +321,21 @@ class Address extends FixedParentField implements ReportSubfieldsInterface, Prev
 
     public function resolveCountryPath(mixed $value, string $path): mixed
     {
-        $country = $value instanceof AddressFieldValue ? $value->getPathValue('country') : null;
+        // A Repeater's Row count gives a number rather than an address, which passes through as it does for Country.
+        if ($value !== null && !$value instanceof AddressFieldValue) {
+            return $value;
+        }
 
-        if ($path !== 'country.label') {
+        $country = $value?->getPathValue('country');
+
+        if ($path !== 'country.label' || $country === null || $country === '') {
             return $country;
         }
 
         // Country labels depend on the sub-field's option settings, not on the stored value.
         $countryField = $this->getFieldByHandle('country');
 
-        return $countryField && $country !== null ? $countryField->getValueAsString($country) : '';
+        return $countryField instanceof AddressCountry ? $countryField->getLabelForValue($country) : $country;
     }
 
     public function getAddressProviderIntegration(): ?IntegrationInterface

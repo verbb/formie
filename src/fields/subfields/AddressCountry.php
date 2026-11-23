@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\ChildFieldInterface;
 use verbb\formie\fields\Address;
 use verbb\formie\fields\Dropdown;
+use verbb\formie\fields\values\AddressFieldValue;
 use verbb\formie\fields\values\SingleOptionFieldValue;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
@@ -137,6 +138,30 @@ class AddressCountry extends Dropdown implements ChildFieldInterface
                 ],
             ]),
         ];
+    }
+
+
+    /**
+     * The label for a stored country, as integration mappings and variables send it. Unlike exports and summaries,
+     * a country no longer in the dropdown (such as after narrowing Allowed Countries) still gets its name.
+     */
+    public function getLabelForValue(mixed $value): string
+    {
+        if (!is_string($value) || $value === '') {
+            return '';
+        }
+
+        if (($label = $this->_getValueLabel($value)) !== '') {
+            return $label;
+        }
+
+        $code = AddressFieldValue::codeToName($value) !== null ? $value : AddressFieldValue::nameToCode($value);
+
+        if ($code === null) {
+            return $value;
+        }
+
+        return $this->optionLabel === 'short' ? $code : (AddressFieldValue::codeToName($code) ?? $value);
     }
 
 
