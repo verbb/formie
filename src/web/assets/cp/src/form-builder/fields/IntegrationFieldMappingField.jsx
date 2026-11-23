@@ -242,8 +242,13 @@ export const MappingValueControl = ({
     }, [pickerValue]);
 
     const [selectedMode, setMode] = useState(null);
+
+    // Formie 3 stored unmapped slots as empty strings, which upgrades and form saves keep as empty literals. Show them as unmapped.
+    // Checked once, so clearing a value while typing keeps its input.
+    const [isEmptyOnMount] = useState(() => { return mappingValue === ''; });
+
     let defaultMode = providerOptionValue ? MODE_FIELD : getMappingMode(comparableMappingValue, fieldOptionValues);
-    if (!providerOptionValue && mappingKind) {
+    if (!providerOptionValue && mappingKind && !isEmptyOnMount) {
         defaultMode = { reference: MODE_FIELD, literal: MODE_LITERAL }[mappingKind] || MODE_CUSTOM;
     }
 

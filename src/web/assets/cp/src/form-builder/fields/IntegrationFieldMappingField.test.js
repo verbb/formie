@@ -172,6 +172,18 @@ describe('integration provider option mappings', () => {
         },
     );
 
+    it.each([
+        { kind: 'literal', value: '' },
+        { kind: 'text', value: '' },
+    ])(
+        'shows an empty stored slot as unmapped in the picker: %j',
+        (storedValue) => {
+            renderMapping(storedValue);
+            expect(controls.picker?.value).toBe('');
+            expect(controls.input).toBeNull();
+        },
+    );
+
     it('does not reinterpret an explicit reference as a literal option', () => {
         renderMapping(
             { kind: 'reference', value: '{field:contact}' },
