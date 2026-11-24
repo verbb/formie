@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed HTML fields whose Twig is blocked by the Twig sandbox breaking the whole page when `devMode` is off. The field now renders nothing and logs the error to the Formie log, and still shows the error when `devMode` is on.
+
 ## 3.1.52 - 2026-11-21
 
 ### Changed

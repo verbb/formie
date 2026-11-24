@@ -23,6 +23,8 @@ use GraphQL\Type\Definition\Type;
 use HTMLPurifier_Config;
 use HTMLPurifier_AttrDef_HTML_Bool;
 
+use Twig\Error\Error as TwigError;
+
 class Html extends CosmeticField
 {
     // Constants
@@ -60,7 +62,7 @@ class Html extends CosmeticField
     {
         return true;
     }
-    
+
     public function hasEmailLabel(): bool
     {
         return false;
@@ -87,7 +89,18 @@ class Html extends CosmeticField
 
         // Render Twig content first
         if ($htmlContent) {
-            $htmlContent = Formie::$plugin->getTemplates()->renderSandboxedString($this->htmlContent, $variables);
+            try {
+                $htmlContent = Formie::$plugin->getTemplates()->renderSandboxedString($this->htmlContent, $variables);
+            } catch (TwigError $e) {
+                // Show the error while developing, but don't let one field's Twig take down the page in production.
+                if (Craft::$app->getConfig()->getGeneral()->devMode) {
+                    throw $e;
+                }
+
+                Formie::error('Unable to render Twig in HTML field “' . $this->handle . '” on form “' . $this->getForm()?->handle . '”: ' . $e->getMessage());
+
+                return '';
+            }
         }
 
         if ($this->purifyContent) {
