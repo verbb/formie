@@ -17,6 +17,7 @@ use yii\db\Expression;
 
 use DateInterval;
 use DateTime;
+use DateTimeZone;
 
 class RecentSubmissions extends Widget
 {
@@ -187,23 +188,22 @@ class RecentSubmissions extends Widget
         }
 
         if ($this->displayType === 'line') {
-            $forms = Form::find()->id($formIds)->all();
+            $forms = array_filter(Form::find()->id($formIds)->all(), fn(Form $form) => $permissions->canViewSubmissions($user, $form));
 
             $combinedChartData = [];
             $formTitles = [];
 
-            foreach ($forms as $form) {
-                if (!$permissions->canViewSubmissions($user, $form)) {
-                    continue;
-                }
+            // Resolve the axis once, so every form's line shares the same dates
+            $chartDateRange = $this->_getChartDateRange($forms);
 
+            foreach ($forms as $form) {
                 $formTitles[] = $form->title;
 
-                $chartData = $this->_createChartQuery($this->_getQuery($form), [
+                $chartData = $chartDateRange ? $this->_createChartQuery($this->_getQuery($form), $chartDateRange, [
                     new Expression('COUNT([[submissions.id]]) as total'),
                 ], [
                     'total' => 0,
-                ]);
+                ]) : null;
 
                 if ($chartData) {
                     foreach ($chartData as $key => $data) {
@@ -212,7 +212,8 @@ class RecentSubmissions extends Widget
                 }
             }
 
-            ksort($combinedChartData);
+            // Month keys aren't zero-padded (`2026-10`), so sort them naturally
+            ksort($combinedChartData, SORT_NATURAL);
 
             // Normalise the chart data for multiple forms
             $normalisedData = [];
@@ -277,8 +278,9 @@ class RecentSubmissions extends Widget
         $endDate = null;
 
         if ($this->dateRange == self::DATE_RANGE_CUSTOM) {
-            $startDate = DateTimeHelper::toDateTime($this->startDate);
-            $endDate = DateTimeHelper::toDateTime($this->endDate);
+            // A custom range can be open-ended, so only bound the side that's set
+            $startDate = $this->startDate ? $this->_getStartDate(self::DATE_RANGE_CUSTOM) : null;
+            $endDate = $this->endDate ? $this->_getEndDate(self::DATE_RANGE_CUSTOM) : null;
         } elseif ($this->dateRange) {
             $startDate = $this->_getStartDate($this->dateRange);
             $endDate = $this->_getEndDate($this->dateRange);
@@ -307,6 +309,10 @@ class RecentSubmissions extends Widget
 
         if ($dateRange === self::DATE_RANGE_ALL) {
             return null;
+        }
+
+        if ($dateRange === self::DATE_RANGE_CUSTOM && $this->startDate) {
+            $date = $this->_getCustomRangeDate($this->startDate);
         }
 
         if ($dateRange === self::DATE_RANGE_THISMONTH) {
@@ -358,6 +364,11 @@ class RecentSubmissions extends Widget
     {
         $date = new DateTime();
 
+        if ($dateRange === self::DATE_RANGE_CUSTOM && $this->endDate) {
+            // The picker sends the "To" day as midnight, but the whole day should be included
+            $date = $this->_getCustomRangeDate($this->endDate);
+        }
+
         if ($dateRange === self::DATE_RANGE_THISMONTH) {
             $date = DateTimeHelper::toDateTime(strtotime('last day of this month'));
         }
@@ -378,28 +389,55 @@ class RecentSubmissions extends Widget
         return $date;
     }
 
-    private function _createChartQuery($query, array $select = [], array $resultsDefaults = []): ?array
+    private function _getCustomRangeDate(DateTime $date): DateTime
+    {
+        // Work on a copy in the site's time zone, so the day matches how presets and chart keys are calculated
+        $date = clone $date;
+        $date->setTimezone(new DateTimeZone(Craft::$app->getTimeZone()));
+
+        return $date;
+    }
+
+    private function _getChartDateRange(array $forms): ?array
+    {
+        $endDate = $this->_getEndDate($this->dateRange);
+
+        // An open-ended custom range runs from its "From" day to today, or from the earliest submission to its "To" day
+        if ($this->dateRange == self::DATE_RANGE_CUSTOM && !$this->startDate) {
+            $earliest = array_filter(array_map(fn(Form $form) => $this->_getQuery($form)->min('[[elements.dateCreated]]'), $forms));
+            $startDate = $earliest ? DateTimeHelper::toDateTime(min($earliest)) : null;
+
+            if ($startDate) {
+                $startDate->setTime(0, 0, 0);
+            }
+        } else {
+            $startDate = $this->_getStartDate($this->dateRange);
+        }
+
+        if (!$startDate || !$endDate) {
+            return null;
+        }
+
+        return [$startDate, $endDate];
+    }
+
+    private function _createChartQuery($query, array $dateRange, array $select = [], array $resultsDefaults = []): ?array
     {
         // Allow the passing in of a custom query in case we need to add extra logic
         $defaults = [];
-        $dateRangeInterval = $this->_getDateRangeInterval();
+        [$startDate, $endDate] = $dateRange;
+        $dateRangeInterval = $this->_getDateRangeInterval($startDate, $endDate);
         $options = $this->_getChartQueryOptionsByInterval($dateRangeInterval);
 
         if (!$options) {
             return null;
         }
 
-        $startDate = $this->_getStartDate($this->dateRange);
-
-        if (!$startDate) {
-            return null;
-        }
-
         $dateKeyDate = DateTimeHelper::toDateTime($startDate->format('U'));
-        $endDate = $this->_getEndDate($this->dateRange);
 
-        if (!$endDate) {
-            return null;
+        // Step through months from the 1st, so a range starting late in a month doesn't skip or drop months
+        if ($dateRangeInterval === 'month') {
+            $dateKeyDate->modify('first day of this month');
         }
 
         while ($dateKeyDate <= $endDate) {
@@ -428,10 +466,10 @@ class RecentSubmissions extends Widget
         return $return;
     }
 
-    private function _getDateRangeInterval(): string
+    private function _getDateRangeInterval(DateTime $startDate, DateTime $endDate): string
     {
         if ($this->dateRange == self::DATE_RANGE_CUSTOM) {
-            $interval = date_diff(DateTimeHelper::toDateTime($this->startDate), DateTimeHelper::toDateTime($this->endDate));
+            $interval = date_diff($startDate, $endDate);
 
             return ($interval->days > 90) ? 'month' : 'day';
         }

@@ -27,6 +27,7 @@
 - Fixed the Campaign and Snaptcha integrations, and the Calendar, Events and Commerce Product element integrations, being unavailable when their plugin is installed from a development branch such as `dev-main`. Integrations and fields that don’t set a minimum version for their required plugin no longer check its version.
 - Fixed the log entry for a submission rejected by the honeypot including what was entered into it when `logSubmissionValues` is `false`. ([#3162](https://github.com/verbb/formie/issues/3162))
 - Fixed form groups’ **Allowed Submission Statuses** and **Enabled Sites** pointing at different statuses and sites on other environments, which could save submissions with the wrong status, reject every submission, or enable forms on the wrong sites. Project config now stores them by UID. Existing settings are converted when migrations run, so run `craft up` first on the environment where you edit form groups, and check the converted settings it lists before committing `config/project`.
+- Fixed the Recent Form Submissions widget leaving out submissions made on the last day of a custom date range, its line chart showing today instead of every day in the range, months appearing out of order, and a line chart with only a From or To date breaking the dashboard.
 
 ## 4.1.0 - 2026-11-24
 
