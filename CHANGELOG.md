@@ -7,6 +7,7 @@
 - Fixed a moderate-severity information disclosure vulnerability.
 - Fixed the **Move form** action on the **Forms** index letting users move forms into form groups they can’t manage, and listing those groups in its menu.
 - Fixed the **Move form** action on multi-site installs returning an error and moving only some of the selected forms when the target form group’s site settings exclude a form.
+- Fixed updating an existing form through an import moving it into a form group the user can’t manage forms in.
 
 ## 4.1.0 - 2026-11-24
 

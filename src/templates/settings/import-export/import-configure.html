@@ -82,12 +82,16 @@
             options: [
                 { label: 'Select an option' | t('formie'), value: '' },
                 { label: 'Create a new form' | t('formie'), value: 'create' },
-                { label: 'Update existing form' | t('formie'), value: 'update', disabled: unlinkableFields is not empty },
+                { label: 'Update existing form' | t('formie'), value: 'update', disabled: unlinkableFields is not empty or plan.deniedGroup is not null },
             ],
         }) }}
 
         {% if unlinkableFields %}
             <div class="log-label color-31">{{ 'The existing form can’t be updated, because {fields} can’t be linked to the imported synced field without affecting saved answers. Create a new form instead.' | t('formie', { fields: unlinkableFields | map(field => '“' ~ field.label ~ '”') | join(', ') }) }}</div>
+        {% endif %}
+
+        {% if plan.deniedGroup is not null %}
+            <div class="log-label color-31">{{ 'The existing form can’t be updated, because the import would move it to the “{group}” form group, where you don’t have permission to manage forms. Create a new form instead.' | t('formie', { group: plan.deniedGroup }) }}</div>
         {% endif %}
 
         <div id="action-create" class="hidden">

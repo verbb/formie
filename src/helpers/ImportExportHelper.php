@@ -334,6 +334,10 @@ class ImportExportHelper
             throw new ForbiddenHttpException('User is not permitted to update this form');
         }
 
+        if ($existing && ($deniedGroup = self::_getDeniedImportGroup($data, $existing, $user)) !== null) {
+            throw new ForbiddenHttpException(Craft::t('formie', 'You don’t have permission to move this form to the “{group}” form group.', ['group' => $deniedGroup]));
+        }
+
         return self::_import($data, $existing, $user, $syncedFields);
     }
 
@@ -380,6 +384,7 @@ class ImportExportHelper
 
     public static function planImport(array $data, ?Form $form = null, ?UserElement $user = null): array
     {
+        $deniedGroup = $form && $user ? self::_getDeniedImportGroup($data, $form, $user) : null;
         $requested = $data;
         $data = self::_applyDependencyDocuments($data);
         $serializer = new FormSerializer();
@@ -456,7 +461,49 @@ class ImportExportHelper
             $removals['notifications'] = array_map(fn($notification) => (string)$notification->name, $removedNotifications);
         }
 
-        return ['removals' => $removals, 'syncedFieldRelinks' => $serializer->syncedFieldRelinks, 'syncedFields' => (new SyncedFieldImport($data, [], $user))->preview(), 'warnings' => $warnings, 'missingTypes' => array_values(array_unique($serializer->missingTypes)), 'dependencies' => $resources, 'changes' => $serializer->changes];
+        return ['removals' => $removals, 'syncedFieldRelinks' => $serializer->syncedFieldRelinks, 'syncedFields' => (new SyncedFieldImport($data, [], $user))->preview(), 'warnings' => $warnings, 'missingTypes' => array_values(array_unique($serializer->missingTypes)), 'dependencies' => $resources, 'changes' => $serializer->changes, 'deniedGroup' => $deniedGroup];
+    }
+
+    /**
+     * Returns the name of the form group an update would move the form into, when the user can't manage forms there.
+     */
+    private static function _getDeniedImportGroup(array $data, Form $form, UserElement $user): ?string
+    {
+        $permissions = Formie::$plugin->getPermissions();
+
+        foreach (self::getDependencyDocuments($data) as $dependency) {
+            if ($dependency['kind'] !== 'group') {
+                continue;
+            }
+
+            $config = $dependency['config'];
+            $group = self::_resolveResource('group', $config);
+
+            if ($group && (int)$group->id === (int)$form->groupId) {
+                continue;
+            }
+
+            // A missing group is created by the import, so check the handle it will have. Without one, saving the group reports the error.
+            if (!$group) {
+                if ((string)($config['handle'] ?? '') === '') {
+                    continue;
+                }
+
+                $group = new FormGroup([
+                    'name' => (string)($config['name'] ?? ''),
+                    'handle' => (string)$config['handle'],
+                ]);
+            }
+
+            // As in the form builder, a dedicated manage grant for the form still covers it in its new group.
+            if ($permissions->canManageFormInGroup($user, $group) || $user->can($permissions->scopedPermission(Permissions::PERM_MANAGE_FORMS, $permissions->formScope($form)))) {
+                continue;
+            }
+
+            return $group->name ?: $group->handle;
+        }
+
+        return null;
     }
 
     private static function _removedFieldLabels(array $fields, array $removed, string $prefix = ''): array

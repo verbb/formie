@@ -3807,6 +3807,8 @@ To review it please log into your control panel.
   'Create a new form' => 'Create a new form',
   'Update existing form' => 'Update existing form',
   'The existing form can’t be updated, because {fields} can’t be linked to the imported synced field without affecting saved answers. Create a new form instead.' => 'The existing form can’t be updated, because {fields} can’t be linked to the imported synced field without affecting saved answers. Create a new form instead.',
+  'The existing form can’t be updated, because the import would move it to the “{group}” form group, where you don’t have permission to manage forms. Create a new form instead.' => 'The existing form can’t be updated, because the import would move it to the “{group}” form group, where you don’t have permission to manage forms. Create a new form instead.',
+  'You don’t have permission to move this form to the “{group}” form group.' => 'You don’t have permission to move this form to the “{group}” form group.',
   'Removes these fields: {fields}.' => 'Removes these fields: {fields}.',
   'Removes these notifications: {notifications}.' => 'Removes these notifications: {notifications}.',
   'Links these fields to synced fields and keeps their saved answers: {fields}.' => 'Links these fields to synced fields and keeps their saved answers: {fields}.',
