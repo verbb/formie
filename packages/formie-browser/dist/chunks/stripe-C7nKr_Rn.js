@@ -22,30 +22,36 @@ var s = "FORMIE_STRIPE_SCRIPT", c = e("stripe", "confirm"), l = "[data-formie-st
 	"XAF",
 	"XOF",
 	"XPF"
+]), d = /* @__PURE__ */ new Set([
+	"BHD",
+	"JOD",
+	"KWD",
+	"OMR",
+	"TND"
 ]);
-function d(e, t) {
-	return u.has(t.toUpperCase()) ? Math.ceil(e) : Math.round((e + 2 ** -52) * 100);
-}
 function f(e, t) {
+	return u.has(t.toUpperCase()) ? Math.ceil(e) : d.has(t.toUpperCase()) ? Math.round((e + 2 ** -52) * 100) * 10 : Math.round((e + 2 ** -52) * 100);
+}
+function p(e, t) {
 	e && (r(e, t, "fieldErrors", "fieldError"), e.querySelectorAll("[data-payment-placeholder-error]").forEach((e) => {
 		r(e, t, "fieldError");
 	}));
 }
-function p(e, t, n = "Loading payment options...") {
+function m(e, t, n = "Loading payment options...") {
 	if (!e) return;
-	f(e, t), e.removeAttribute("hidden"), e.innerHTML = "";
+	p(e, t), e.removeAttribute("hidden"), e.innerHTML = "";
 	let r = document.createElement("div");
 	i(r, t, "loading");
 	let a = document.createElement("div");
 	a.textContent = n, e.append(r, a);
 }
-function m(e, t, n) {
+function h(e, t, n) {
 	if (!e) return;
-	f(e, t), e.removeAttribute("hidden"), i(e, t, "fieldErrors"), e.innerHTML = "";
+	p(e, t), e.removeAttribute("hidden"), i(e, t, "fieldErrors"), e.innerHTML = "";
 	let r = document.createElement("div");
 	r.setAttribute("data-payment-placeholder-error", ""), r.textContent = n, i(r, t, "fieldError"), e.appendChild(r);
 }
-var h = n({
+var g = n({
 	moduleId: "formie:stripe",
 	defaultRequiredInputSuffixes: ["stripePaymentIntentId"],
 	load: async (e) => {
@@ -58,7 +64,7 @@ var h = n({
 	mount: async (e) => {
 		let { api: t, field: n, services: r, provider: i } = e, a = n.querySelector("[data-formie-stripe-elements]"), o = n.querySelector(l), s = n, c = r.form || r.root;
 		if (!a || !t) return null;
-		let u = i.initialPaymentInformation || {}, h = [u.amount, u.currency].map((e) => String(e ?? "").trim()).filter((e, t) => (t === 0 ? i.amountType : i.currencyType) === "dynamic" && e !== ""), g = () => {
+		let u = i.initialPaymentInformation || {}, d = [u.amount, u.currency].map((e) => String(e ?? "").trim()).filter((e, t) => (t === 0 ? i.amountType : i.currencyType) === "dynamic" && e !== ""), g = () => {
 			let e = r.resolveAmount({
 				type: i.amountType,
 				value: u.amount
@@ -75,7 +81,7 @@ var h = n({
 				ok: !1,
 				error: "error" in t ? t.error : "Provide a payment currency to proceed."
 			};
-			let n = t.value.toLowerCase(), a = i.amountType === "dynamic" || i.currencyType === "dynamic" ? d(e.value, n) : e.value;
+			let n = t.value.toLowerCase(), a = i.amountType === "dynamic" || i.currencyType === "dynamic" ? f(e.value, n) : e.value;
 			return {
 				ok: !0,
 				value: {
@@ -94,28 +100,28 @@ var h = n({
 			s.__formieStripeWidget = null, s.__formieStripeElements = void 0, a.innerHTML = "";
 		}, v = () => {
 			let e = g();
-			if (!e.ok) _(), m(o, c, "error" in e ? e.error : "Unable to resolve payment details.");
+			if (!e.ok) _(), h(o, c, "error" in e ? e.error : "Unable to resolve payment details.");
 			else try {
 				if (s.__formieStripeWidget && s.__formieStripeElements) {
-					s.__formieStripeElements.update(e.value), f(o, c), o?.setAttribute("hidden", "hidden");
+					s.__formieStripeElements.update(e.value), p(o, c), o?.setAttribute("hidden", "hidden");
 					return;
 				}
-				p(o, c);
+				m(o, c);
 				let n = t.elements(e.value), r = n.create("payment", {});
 				r.mount(a), r.on?.("loaderror", (e) => {
 					let t = e?.error?.message || "Unable to load payment options.";
-					_(), m(o, c, t);
+					_(), h(o, c, t);
 				}), r.on?.("ready", () => {
-					f(o, c), o?.setAttribute("hidden", "hidden");
+					p(o, c), o?.setAttribute("hidden", "hidden");
 				}), s.__formieStripeElements = n, s.__formieStripeInstance = t, s.__formieStripeWidget = {
 					elements: n,
 					paymentElement: r
-				}, r.on || (f(o, c), o?.setAttribute("hidden", "hidden"));
+				}, r.on || (p(o, c), o?.setAttribute("hidden", "hidden"));
 			} catch (e) {
-				_(), m(o, c, e instanceof Error ? e.message : "Unable to initialize Stripe payment element.");
+				_(), h(o, c, e instanceof Error ? e.message : "Unable to initialize Stripe payment element.");
 			}
 		};
-		return s.__formieStripeEvaluateAndRender = v, s.__formieStripeDynamicUnbind?.(), h.length > 0 && (s.__formieStripeDynamicUnbind = r.watchFieldValueChanges(h, () => {
+		return s.__formieStripeEvaluateAndRender = v, s.__formieStripeDynamicUnbind?.(), d.length > 0 && (s.__formieStripeDynamicUnbind = r.watchFieldValueChanges(d, () => {
 			v();
 		}, 600)), v(), s.__formieStripeWidget || null;
 	},
@@ -182,4 +188,4 @@ var h = n({
 	}
 });
 //#endregion
-export { h as stripeModule };
+export { g as stripeModule };

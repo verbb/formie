@@ -79,20 +79,51 @@ class Stripe extends Payment
 
     public static function toStripeAmount(string|int|float $amount, string $currency): int
     {
+        $currency = strtoupper($currency);
         $money = PaymentMoney::fromDecimal((string)$amount, $currency);
+        $shift = (self::STRIPE_DECIMALS[$currency] ?? $money->digits) - $money->digits;
 
-        // Stripe retains two-decimal API units for these zero-decimal currencies.
-        return in_array(strtoupper($currency), ['ISK', 'UGX'], true) ? PaymentMoney::fromMinor($money->minor . '00', $currency)->integer() : $money->integer();
+        if ($shift > 0) {
+            return PaymentMoney::fromMinor($money->minor . str_repeat('0', $shift), $currency)->integer();
+        }
+
+        if ($shift < 0) {
+            if ($money->minor !== '0' && substr($money->minor, $shift) !== str_repeat('0', -$shift)) {
+                throw new InvalidArgumentException('Payment amount exceeds the currency precision.');
+            }
+
+            return PaymentMoney::fromMinor($money->minor === '0' ? '0' : substr($money->minor, 0, $shift), $currency)->integer();
+        }
+
+        $value = $money->integer();
+
+        if (in_array($currency, self::THREE_DECIMAL_CURRENCIES, true)) {
+            // Stripe needs the last digit to be 0, so round half away from zero to the nearest ten.
+            $remainder = $value % 10;
+            $value -= $remainder;
+
+            if (abs($remainder) >= 5) {
+                $value += $remainder > 0 ? 10 : -10;
+            }
+        }
+
+        return $value;
     }
 
     public static function fromStripeAmount(string|int|float $amount, string $currency): string
     {
-        if (in_array(strtoupper($currency), ['ISK', 'UGX'], true)) {
-            if (!str_ends_with((string)$amount, '00') && (string)$amount !== '0') {
+        $currency = strtoupper($currency);
+        $digits = PaymentMoney::fromMinor('0', $currency)->digits;
+        $shift = (self::STRIPE_DECIMALS[$currency] ?? $digits) - $digits;
+
+        if ($shift > 0) {
+            if (!str_ends_with((string)$amount, str_repeat('0', $shift)) && (string)$amount !== '0') {
                 throw new InvalidArgumentException('Invalid Stripe zero-decimal amount.');
             }
 
-            $amount = (string)$amount === '0' ? '0' : substr((string)$amount, 0, -2);
+            $amount = (string)$amount === '0' ? '0' : substr((string)$amount, 0, -$shift);
+        } elseif ($shift < 0 && (string)$amount !== '0') {
+            $amount = $amount . str_repeat('0', -$shift);
         }
 
         return PaymentMoney::fromMinor((string)$amount, $currency)->decimal();
@@ -125,6 +156,11 @@ class Stripe extends Payment
     // https://stripe.com/docs/currencies#zero-decimal
     // Stripe represents ISK and UGX using two decimal places for compatibility.
     private const ZERO_DECIMAL_CURRENCIES = ['BIF','CLP','DJF','GNF','JPY','KMF','KRW','MGA','PYG','RWF','VND','VUV','XAF','XOF','XPF'];
+    // Where Stripe's decimal places differ from ISO 4217. ISK and UGX keep two-decimal units for backwards compatibility,
+    // and MGA, which ISO gives two decimals, is charged in whole ariary.
+    private const STRIPE_DECIMALS = ['ISK' => 2, 'MGA' => 0, 'UGX' => 2];
+    // https://docs.stripe.com/currencies (three-decimal currencies)
+    private const THREE_DECIMAL_CURRENCIES = ['BHD', 'JOD', 'KWD', 'OMR', 'TND'];
     private const STRIPE_EVENT_PAYMENT_INTENT_PROCESSING = 'payment_intent.processing';
     private const STRIPE_PAYMENT_INTENT_STATUS_PROCESSING = 'processing';
 

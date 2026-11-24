@@ -1200,7 +1200,7 @@ var nn = class {
 	paypal: () => import("./chunks/paypal-3By4XBe6.js").then((e) => e.paypalModule),
 	payway: () => import("./chunks/payway-PlraCPRq.js").then((e) => e.paywayModule),
 	square: () => import("./chunks/square-8a5PBw7q.js").then((e) => e.squareModule),
-	stripe: () => import("./chunks/stripe-D9u-vEpk.js").then((e) => e.stripeModule)
+	stripe: () => import("./chunks/stripe-C7nKr_Rn.js").then((e) => e.stripeModule)
 }, ln = {
 	...sn,
 	...an,

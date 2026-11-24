@@ -70,9 +70,16 @@ const ZERO_DECIMAL_CURRENCIES = new Set([
     'RWF', 'VND', 'VUV', 'XAF', 'XOF', 'XPF',
 ]);
 
+// Stripe charges these in thousandths, but only in multiples of ten.
+const THREE_DECIMAL_CURRENCIES = new Set(['BHD', 'JOD', 'KWD', 'OMR', 'TND']);
+
 function toStripeSubunitAmount(amount: number, currency: string): number {
     if (ZERO_DECIMAL_CURRENCIES.has(currency.toUpperCase())) {
         return Math.ceil(amount);
+    }
+
+    if (THREE_DECIMAL_CURRENCIES.has(currency.toUpperCase())) {
+        return Math.round((amount + Number.EPSILON) * 100) * 10;
     }
 
     return Math.round((amount + Number.EPSILON) * 100);

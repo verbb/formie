@@ -45,6 +45,10 @@ test.beforeEach(async ({ page }) => {
             <option value="GBP" selected>GBP</option>
             <option value="NOK">NOK</option>
             <option value="JPY">JPY</option>
+            <option value="MGA">MGA</option>
+            <option value="ISK">ISK</option>
+            <option value="KWD">KWD</option>
+            <option value="BHD">BHD</option>
         </select>
         <input type="number" name="fields[customAmount]" value="15">
         <input type="number" name="fields[amount2]" value="20">
@@ -180,5 +184,39 @@ test('a dynamic currency field with a three-letter handle is read from the field
 
     expect(await page.evaluate(() => window.stripeTest.calls)).toEqual([
         { call: 'elements', amount: 1000, currency: 'nok' },
+    ]);
+});
+
+test('a three-decimal currency is converted to thousandths rounded to the nearest ten', async ({ page }) => {
+    await page.evaluate(() => window.stripeTest.setup({
+        amountType: 'fixed',
+        currencyType: 'dynamic',
+        initialPaymentInformation: { amount: '1.235', currency: 'currency' },
+    }));
+
+    await changeCurrency(page, 'KWD');
+    await changeCurrency(page, 'BHD');
+
+    expect(await page.evaluate(() => window.stripeTest.calls)).toEqual([
+        { call: 'elements', amount: 124, currency: 'gbp' },
+        { call: 'update', amount: 1240, currency: 'kwd' },
+        { call: 'update', amount: 1240, currency: 'bhd' },
+    ]);
+});
+
+test('MGA is zero-decimal and ISK keeps two-decimal units', async ({ page }) => {
+    await page.evaluate(() => window.stripeTest.setup({
+        amountType: 'fixed',
+        currencyType: 'dynamic',
+        initialPaymentInformation: { amount: '5000', currency: 'currency' },
+    }));
+
+    await changeCurrency(page, 'MGA');
+    await changeCurrency(page, 'ISK');
+
+    expect(await page.evaluate(() => window.stripeTest.calls)).toEqual([
+        { call: 'elements', amount: 500000, currency: 'gbp' },
+        { call: 'update', amount: 5000, currency: 'mga' },
+        { call: 'update', amount: 500000, currency: 'isk' },
     ]);
 });
