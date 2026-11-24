@@ -34,7 +34,7 @@ You can view spam submissions in the control panel by navigating to Formie → S
 ### Twig in a Form Causes an Error
 Some form settings accept Twig, such as an HTML field's **HTML Content**, email notification content, a File Upload field's **Upload Location**, a PDF template's **Filename Format** and webhook URLs. Anyone who can edit forms can change these settings, so Formie renders their Twig in a restricted sandbox that can't reach the rest of your site. Twig in your own templates, including email and PDF template files, isn't affected.
 
-When Twig in one of these settings uses something the sandbox doesn't allow, Formie throws an error. For an HTML field, that error stops the page containing the form from rendering. The message names what was blocked, such as:
+When Twig in one of these settings uses something the sandbox doesn't allow, Formie throws an error. For an HTML field, the page containing the form shows that error while `devMode` is on. With `devMode` off, the field renders nothing and the error is written to the Formie log. The message names what was blocked, such as:
 
 ```
 Variable "craft" does not exist in "__string_template__…" at line 1.
