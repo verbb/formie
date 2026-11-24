@@ -7,6 +7,7 @@
 - Added **Country (Label)** and **Country (Value)** to the choices for Address fields in integration mappings and variables, so a mapping can send the country’s name instead of its ISO code. ([#3158](https://github.com/verbb/formie/issues/3158))
 
 ### Changed
+- The **Form Templates**, **Email Templates** and **PDF Templates** settings pages now explain what Formie uses until you add a template of your own, instead of showing an empty table with “No data available.”
 - The **Reports** page now reads “Create your first report” before the first report is created, for people who can create reports.
 
 ### Fixed

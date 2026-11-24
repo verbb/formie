@@ -9,9 +9,18 @@
 {% endblock %}
 
 {% block settingsContent %}
-    <div id="pdf-templates-vue-admin-table"></div>
+    {% if pdfTemplates is empty %}
+        {% do craft.formie.getPlugin().registerCpEmptyStatesAssets() %}
+
+        <pk-state-panel heading="{{ 'No PDF templates yet' | t('formie') }}">
+            {{ 'PDF attachments use the notification’s email content until you add a template of your own.' | t('formie') }}
+        </pk-state-panel>
+    {% else %}
+        <div id="pdf-templates-vue-admin-table"></div>
+    {% endif %}
 {% endblock %}
 
+{% if pdfTemplates is not empty %}
 {% set tableData = [] %}
 {% for template in pdfTemplates %}
     {% set tableData = tableData | merge([{
@@ -46,6 +55,8 @@
         reorderAction: 'formie/pdf-templates/reorder',
         reorderSuccessMessage: Craft.t('formie', 'Templates reordered.'),
         reorderFailMessage: Craft.t('formie', 'Couldn’t reorder templates.'),
+        emptyMessage: Craft.t('formie', 'PDF attachments use the notification’s email content until you add a template of your own.'),
         tableData: {{ tableData | json_encode | raw }},
     });
 {% endjs %}
+{% endif %}

@@ -9,9 +9,18 @@
 {% endblock %}
 
 {% block settingsContent %}
-    <div id="email-templates-vue-admin-table"></div>
+    {% if emailTemplates is empty %}
+        {% do craft.formie.getPlugin().registerCpEmptyStatesAssets() %}
+
+        <pk-state-panel heading="{{ 'No email templates yet' | t('formie') }}">
+            {{ 'Email notifications use Formie’s built-in template until you add one of your own.' | t('formie') }}
+        </pk-state-panel>
+    {% else %}
+        <div id="email-templates-vue-admin-table"></div>
+    {% endif %}
 {% endblock %}
 
+{% if emailTemplates is not empty %}
 {% set tableData = [] %}
 {% for template in emailTemplates %}
     {% set tableData = tableData | merge([{
@@ -46,6 +55,8 @@
         reorderAction: 'formie/email-templates/reorder',
         reorderSuccessMessage: Craft.t('formie', 'Templates reordered.'),
         reorderFailMessage: Craft.t('formie', 'Couldn’t reorder templates.'),
+        emptyMessage: Craft.t('formie', 'Email notifications use Formie’s built-in template until you add one of your own.'),
         tableData: {{ tableData | json_encode | raw }},
     });
 {% endjs %}
+{% endif %}

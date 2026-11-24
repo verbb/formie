@@ -6,13 +6,17 @@ use craft\elements\User;
 use craft\services\UserPermissions;
 use craft\web\TemplateResponseBehavior;
 use craft\web\TemplateResponseFormatter;
+use craft\web\View;
 use Tests\Support\PermissionTestHelper;
 use Tests\Support\WebRequestTestHelper;
 use verbb\base\web\twig\Extension as BaseTwigExtension;
 use verbb\formie\controllers\FormsController;
 use verbb\formie\Formie;
 use verbb\formie\helpers\Table;
+use verbb\formie\models\EmailTemplate;
 use verbb\formie\models\FormGroup;
+use verbb\formie\models\FormTemplate;
+use verbb\formie\models\PdfTemplate;
 use verbb\formie\services\Permissions;
 
 /**
@@ -114,3 +118,28 @@ it('keeps the element index once a form exists, even a trashed one', function():
         Craft::$app->getElements()->deleteElement($form, true);
     }
 });
+
+it('replaces an empty template list with an empty state', function(string $path, string $variable, string $class, string $heading, string $message): void {
+    WebRequestTestHelper::withWebRequestContext(function($request) use ($path, $variable, $class, $heading, $message): void {
+        $request->setIsCpRequest(true);
+        Craft::$app->getUser()->setIdentity(User::find()->admin(true)->one());
+        $view = Craft::$app->getView();
+        $view->registerTwigExtension(new BaseTwigExtension());
+        $view->setTemplateMode(View::TEMPLATE_MODE_CP);
+
+        $empty = $view->renderTemplate('formie/settings/' . $path, [$variable => []]);
+
+        expect($empty)->toContain('<pk-state-panel heading="' . $heading . '">')
+            ->and($empty)->toContain($message)
+            ->and($empty)->not->toContain($path . '-vue-admin-table"');
+
+        $listed = $view->renderTemplate('formie/settings/' . $path, [$variable => [new $class(['id' => 1, 'name' => 'Listed', 'handle' => 'listed'])]]);
+
+        expect($listed)->toContain($path . '-vue-admin-table"')
+            ->and($listed)->not->toContain('<pk-state-panel');
+    });
+})->with([
+    ['form-templates', 'formTemplates', FormTemplate::class, 'No form templates yet', 'Forms use Formie’s built-in templates until you add one of your own.'],
+    ['email-templates', 'emailTemplates', EmailTemplate::class, 'No email templates yet', 'Email notifications use Formie’s built-in template until you add one of your own.'],
+    ['pdf-templates', 'pdfTemplates', PdfTemplate::class, 'No PDF templates yet', 'PDF attachments use the notification’s email content until you add a template of your own.'],
+]);
