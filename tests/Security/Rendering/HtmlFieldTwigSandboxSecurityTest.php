@@ -82,3 +82,62 @@ it('keeps an invalid twig preview from breaking other builder field choices', fu
     $choices = \verbb\formie\Formie::$plugin->getFields()->getExistingFields();
     expect(json_encode($choices))->toContain('usableField');
 })->group('security');
+
+function withDevModeOff(callable $callback): mixed
+{
+    $general = Craft::$app->getConfig()->getGeneral();
+    $previous = $general->devMode;
+    $general->devMode = false;
+
+    try {
+        return $callback();
+    } finally {
+        $general->devMode = $previous;
+    }
+}
+
+it('renders blocked html field twig as nothing and logs it when devMode is off', function (): void {
+    $form = formie()
+        ->form(['title' => 'HTML Field Twig Fail Soft', 'handle' => 'htmlFieldTwigFailSoft'])
+        ->htmlField('latestNews', [
+            'htmlContent' => '<p>{{ url("news") }}</p>',
+            'allowTwig' => true,
+            'purifyContent' => false,
+        ])
+        ->create();
+
+    $field = $form->getFieldByHandle('latestNews');
+    $offset = count(Craft::getLogger()->messages);
+    $html = withDevModeOff(fn() => $field?->getRenderedHtmlBlock($form, null, null));
+    $logged = implode("\n", array_filter(array_column(array_slice(Craft::getLogger()->messages, $offset), 0), 'is_string'));
+
+    expect($html)->toBe('')
+        ->and($logged)->toContain('Unable to render Twig in HTML field “latestNews” on form “htmlFieldTwigFailSoft”')
+        ->toContain('Unknown "url" function');
+})->group('security');
+
+it('still renders allowed html field twig when devMode is off', function (): void {
+    $form = formie()
+        ->form(['title' => 'HTML Field Twig Allowed'])
+        ->htmlField('notice', [
+            'htmlContent' => '<p>{{ form.title }}</p>',
+            'allowTwig' => true,
+            'purifyContent' => false,
+        ])
+        ->create();
+
+    $field = $form->getFieldByHandle('notice');
+
+    expect(withDevModeOff(fn() => $field?->getRenderedHtmlBlock($form, null, null)))
+        ->toBe('<p>HTML Field Twig Allowed</p>');
+})->group('security');
+
+it('still shows the builder preview error for blocked html field twig when devMode is off', function (): void {
+    $form = formie()->form()->htmlField('invalidPreview', [
+        'htmlContent' => '{{ url("news") }}', 'allowTwig' => true,
+    ])->create();
+    $field = $form->getFieldByHandle('invalidPreview');
+    $settings = withDevModeOff(fn() => $field->modifyFieldSettings([]));
+
+    expect(json_encode($settings))->toContain('Unable to render HTML preview.');
+})->group('security');

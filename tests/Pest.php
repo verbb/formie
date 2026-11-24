@@ -28,6 +28,7 @@ pest()->beforeEach(function (): void {
     'Integrations/SalesforceClientCredentialsTest.php',
     'Integrations/SalesforceFormSettingsFetchTest.php',
     'Integrations/SalesforceRequestDiagnosticsTest.php',
+    'Security/Rendering/HtmlFieldTwigSandboxSecurityTest.php',
     'Submissions/SubmissionLogPrivacyTest.php',
 );
 

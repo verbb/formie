@@ -107,15 +107,18 @@ class Html extends CosmeticField
      */
     public function getRenderedHtmlBlock(Form $form, mixed $value, ?ElementInterface $submission = null): string
     {
-        $templateVars = Formie::$plugin->getRendering()->getActiveRenderFrame()?->getTemplateVars() ?? [];
-        $variables = array_merge($templateVars, [
-            'field' => $this,
-            'form' => $form,
-            'submission' => $submission,
-            'value' => $value,
-        ]);
+        try {
+            return $this->_renderHtmlBlock($form, $value, $submission);
+        } catch (TwigError $e) {
+            // Show the error while developing, but don't let one field's Twig take down the page or email in production.
+            if (Craft::$app->getConfig()->getGeneral()->devMode) {
+                throw $e;
+            }
 
-        return $this->getRenderedHtmlContent($variables);
+            Formie::error('Unable to render Twig in HTML field “' . $this->handle . '” on form “' . $form->handle . '”: ' . $e->getMessage());
+
+            return '';
+        }
     }
 
     public function defineFormBuilderPreviewSchema(): array
@@ -235,7 +238,7 @@ class Html extends CosmeticField
 
         if ($form) {
             try {
-                $settings['_builderPreviewHtml'] = $this->getRenderedHtmlBlock($form, null, null);
+                $settings['_builderPreviewHtml'] = $this->_renderHtmlBlock($form, null, null);
             } catch (TwigError $e) {
                 // A broken preview must not prevent editors from opening the builder to repair it.
                 // Keep the sandbox enforced and never insert exception details into preview HTML.
@@ -327,6 +330,22 @@ class Html extends CosmeticField
 
     // Private Methods
     // =========================================================================
+
+    /**
+     * Renders the block and lets Twig errors through, so the builder preview can explain them.
+     */
+    private function _renderHtmlBlock(Form $form, mixed $value, ?ElementInterface $submission = null): string
+    {
+        $templateVars = Formie::$plugin->getRendering()->getActiveRenderFrame()?->getTemplateVars() ?? [];
+        $variables = array_merge($templateVars, [
+            'field' => $this,
+            'form' => $form,
+            'submission' => $submission,
+            'value' => $value,
+        ]);
+
+        return $this->getRenderedHtmlContent($variables);
+    }
 
     private function _getPurifierConfig(): HTMLPurifier_Config
     {
