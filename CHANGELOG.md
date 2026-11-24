@@ -40,6 +40,7 @@
 - Fixed an error when opening a submission in the control panel as a user without permission to edit any site, on multi-site installs. They now get a “forbidden” response.
 - Fixed the Sent Notifications index running a database query for every row to look up its form.
 - Fixed the User, Last Edited By, Payment Status and Send Notification columns on the Submissions index running database queries for every row.
+- Fixed an error when running `formie/forms/list` with no forms or export files and devMode enabled.
 
 ## 4.1.0 - 2026-11-24
 

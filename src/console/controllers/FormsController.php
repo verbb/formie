@@ -52,10 +52,12 @@ class FormsController extends Controller
             case 'delete':
                 $options[] = 'formId';
                 $options[] = 'formHandle';
+
                 break;
             case 'import':
             case 'import-all':
                 $options[] = 'create';
+
                 break;
         }
 
@@ -128,8 +130,11 @@ class FormsController extends Controller
             $files = FileHelper::findFiles($path, ['only' => ['*.json']]);
         } catch (Throwable $th) {
             $this->stderr("The export directory is empty or does not exist." . PHP_EOL, Console::FG_RED);
+
             return ExitCode::UNSPECIFIED_ERROR;
         }
+
+        $listEntries = [];
 
         if (!empty($files)) {
             $listEntries[] = [
@@ -181,6 +186,7 @@ class FormsController extends Controller
 
         if ($idsOrHandles === null) {
             $this->stderr('No arguments provided' . PHP_EOL, Console::FG_RED);
+
             return ExitCode::UNSPECIFIED_ERROR;
         }
 
@@ -194,6 +200,7 @@ class FormsController extends Controller
 
         if (!$formIds) {
             $this->stderr('Unable to find any matching forms.' . PHP_EOL, Console::FG_RED);
+
             return ExitCode::UNSPECIFIED_ERROR;
         }
 
@@ -217,6 +224,7 @@ class FormsController extends Controller
             } catch (Throwable $e) {
 
                 $this->stderr("Unable to export form $element->id." . PHP_EOL, Console::FG_RED);
+
                 return ExitCode::UNSPECIFIED_ERROR;
             }
         }
@@ -231,6 +239,7 @@ class FormsController extends Controller
     {
         if ($fileLocation === null) {
             $this->stderr('You must provide a path to a JSON file.' . PHP_EOL, Console::FG_RED);
+
             return ExitCode::UNSPECIFIED_ERROR;
         }
 
@@ -241,12 +250,14 @@ class FormsController extends Controller
 
             if (!is_file($fileLocation)) {
                 $this->stderr("No file exists at the given path." . PHP_EOL, Console::FG_RED);
+
                 return ExitCode::UNSPECIFIED_ERROR;
             }
         }
 
         if (strtolower(pathinfo($fileLocation, PATHINFO_EXTENSION)) !== 'json') {
             $this->stderr("The file is not of type JSON." . PHP_EOL, Console::FG_RED);
+
             return ExitCode::UNSPECIFIED_ERROR;
         }
 
@@ -254,6 +265,7 @@ class FormsController extends Controller
             $json = Json::decode(file_get_contents($fileLocation));
         } catch (Exception $e) {
             $this->stderr("Failed to decode JSON from the file." . PHP_EOL, Console::FG_RED);
+
             return ExitCode::UNSPECIFIED_ERROR;
         }
 
@@ -267,6 +279,7 @@ class FormsController extends Controller
             $this->stderr("Unable to import the form." . PHP_EOL, Console::FG_RED);
             $errors = Json::encode($form->getErrors());
             $this->stderr("Errors: $errors" . PHP_EOL, Console::FG_RED);
+
             return ExitCode::UNSPECIFIED_ERROR;
         }
 
@@ -286,11 +299,13 @@ class FormsController extends Controller
             $files = FileHelper::findFiles($path, ['only' => ['*.json']]);
         } catch (Throwable $th) {
             $this->stderr("The export directory is empty or does not exist." . PHP_EOL, Console::FG_RED);
+
             return ExitCode::UNSPECIFIED_ERROR;
         }
 
         if (empty($files)) {
             $this->stderr("No JSON files found in folder $path." . PHP_EOL, Console::FG_RED);
+
             return ExitCode::UNSPECIFIED_ERROR;
         }
 
