@@ -740,7 +740,8 @@ class Permissions extends Component
             return;
         }
 
-        $permissions = Craft::$app->getUserPermissions()->getPermissionsByUserId($user->id);
+        // Start from the user's direct permissions, so group permissions stay inherited from the group
+        $permissions = $this->_getDirectUserPermissions($user);
         $scope = $this->formUsesDedicatedPermissions($form)
             ? $this->formScope($form)
             : $this->groupScope($this->getFormGroupHandle($form));
@@ -1029,6 +1030,17 @@ class Permissions extends Component
             "formie-showFormUsage{$suffix}" => ['label' => Craft::t('formie', 'Access form usage tab')],
             "formie-showFormSettings{$suffix}" => ['label' => Craft::t('formie', 'Access form settings tab')],
         ];
+    }
+
+    private function _getDirectUserPermissions(User $user): array
+    {
+        // Craft's `getPermissionsByUserId()` also includes group permissions, which shouldn't be saved to the user
+        return (new Query())
+            ->select(['p.name'])
+            ->from(['p' => CraftTable::USERPERMISSIONS])
+            ->innerJoin(['p_u' => CraftTable::USERPERMISSIONS_USERS], '[[p_u.permissionId]] = [[p.id]]')
+            ->where(['p_u.userId' => $user->id])
+            ->column();
     }
 
     private function _appendNestedManagePermissions(User $user, array $permissions, string $scope): array
