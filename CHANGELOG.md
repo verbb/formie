@@ -38,6 +38,7 @@
 - Fixed `renderOptions` missing from custom `page.html` and `field.html` form template overrides, which threw an error with devMode on.
 - Fixed Salesforce integrations failing to send a Campaign Member, after creating the Contact or Account, on sites with devMode enabled when **Map to Lead** was off or a duplicate lead was turned into a Task.
 - Fixed an error when opening a submission in the control panel as a user without permission to edit any site, on multi-site installs. They now get a “forbidden” response.
+- Fixed the Sent Notifications index running a database query for every row to look up its form.
 
 ## 4.1.0 - 2026-11-24
 

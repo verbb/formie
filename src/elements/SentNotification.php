@@ -218,6 +218,7 @@ class SentNotification extends Element
     private ?Form $_form = null;
     private ?Submission $_submission = null;
     private ?Notification $_notification = null;
+    private static array $_formByIdCache = [];
 
 
     // Public Methods
@@ -278,7 +279,15 @@ class SentNotification extends Element
     public function getForm(): ?Form
     {
         if (!$this->_form && $this->formId) {
-            $this->_form = Form::find()->withoutCpIndexScope()->id($this->formId)->site('*')->unique()->status(null)->one();
+            // Share the lookup across the request, so an index page doesn't query the same form for every row.
+            // `unique()` prefers the current site, so that is part of the key.
+            $cacheKey = $this->formId . ':' . Craft::$app->getSites()->getCurrentSite()->id;
+
+            if (!array_key_exists($cacheKey, self::$_formByIdCache)) {
+                self::$_formByIdCache[$cacheKey] = Form::find()->withoutCpIndexScope()->id($this->formId)->site('*')->unique()->status(null)->one();
+            }
+
+            $this->_form = self::$_formByIdCache[$cacheKey];
         }
 
         return $this->_form;
