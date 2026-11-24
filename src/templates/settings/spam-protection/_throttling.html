@@ -1,5 +1,5 @@
 {% import '_includes/forms' as forms %}
-{% import 'verbb-base/_macros' as macros %}
+{% import 'formie/settings/spam-protection/_macros' as macros %}
 
 <div class="fui-spam-protection-section">
     <h3>{{ 'Submission Throttling' | t('formie') }}</h3>
@@ -12,7 +12,7 @@
             name: 'enableGlobalSubmissionThrottling',
             on: settings.enableGlobalSubmissionThrottling,
             toggle: 'enable-global-submission-throttling',
-            warning: macros.configWarning('enableGlobalSubmissionThrottling', 'formie'),
+            warning: macros.configNotice('enableGlobalSubmissionThrottling'),
         }) }}
 
         <div id="enable-global-submission-throttling" class="field {{ not settings.enableGlobalSubmissionThrottling ? 'hidden' }}">
@@ -21,7 +21,7 @@
                 instructions: 'Maximum submissions allowed across all forms during the time window below.' | t('formie'),
                 name: 'globalSubmissionThrottleLimit',
                 value: settings.globalSubmissionThrottleLimit,
-                warning: macros.configWarning('globalSubmissionThrottleLimit', 'formie'),
+                warning: macros.configNotice('globalSubmissionThrottleLimit'),
             }) }}
 
             {{ forms.textField({
@@ -29,7 +29,7 @@
                 instructions: 'How long the rate limit applies before the counter resets.' | t('formie'),
                 name: 'globalSubmissionThrottleWindowSeconds',
                 value: settings.globalSubmissionThrottleWindowSeconds,
-                warning: macros.configWarning('globalSubmissionThrottleWindowSeconds', 'formie'),
+                warning: macros.configNotice('globalSubmissionThrottleWindowSeconds'),
                 inputAttributes: {
                     'data-fui-duration-hint': true,
                 },
@@ -44,7 +44,7 @@
             name: 'enableIpSubmissionThrottling',
             on: settings.enableIpSubmissionThrottling,
             toggle: 'enable-ip-submission-throttling',
-            warning: macros.configWarning('enableIpSubmissionThrottling', 'formie'),
+            warning: macros.configNotice('enableIpSubmissionThrottling'),
         }) }}
 
         <div id="enable-ip-submission-throttling" class="field {{ not settings.enableIpSubmissionThrottling ? 'hidden' }}">
@@ -53,7 +53,7 @@
                 instructions: 'How long an IP address must wait before submitting the same form again.' | t('formie'),
                 name: 'ipSubmissionThrottleMinutes',
                 value: settings.ipSubmissionThrottleMinutes,
-                warning: macros.configWarning('ipSubmissionThrottleMinutes', 'formie'),
+                warning: macros.configNotice('ipSubmissionThrottleMinutes'),
             }) }}
         </div>
     {% endnamespace %}

@@ -1,5 +1,5 @@
 {% import '_includes/forms' as forms %}
-{% import 'verbb-base/_macros' as macros %}
+{% import 'formie/settings/spam-protection/_macros' as macros %}
 
 <div class="fui-spam-protection-section">
     <h3>{{ 'Spam Handling' | t('formie') }}</h3>
@@ -13,7 +13,7 @@
             name: 'saveSpam',
             on: settings.saveSpam,
             toggle: 'save-spam',
-            warning: macros.configWarning('saveSpam', 'formie'),
+            warning: macros.configNotice('saveSpam'),
         }) }}
 
         <div id="save-spam" class="field {{ not settings.saveSpam ? 'hidden' }}">
@@ -22,7 +22,7 @@
                 instructions: 'Set the maximum number of spam submissions to maintain. Older spam submissions will be deleted.' | t('formie'),
                 name: 'spamLimit',
                 value: settings.spamLimit,
-                warning: macros.configWarning('spamLimit', 'formie'),
+                warning: macros.configNotice('spamLimit'),
             }) }}
 
             {{ forms.lightswitchField({
@@ -30,7 +30,7 @@
                 instructions: 'Whether submissions marked as spam should still trigger email notifications.' | t('formie'),
                 name: 'spamEmailNotifications',
                 on: settings.spamEmailNotifications,
-                warning: macros.configWarning('spamEmailNotifications', 'formie'),
+                warning: macros.configNotice('spamEmailNotifications'),
             }) }}
         </div>
 
@@ -47,7 +47,7 @@
             ],
             toggle: true,
             targetPrefix: 'submit-behaviour-',
-            warning: macros.configWarning('spamBehaviour', 'formie'),
+            warning: macros.configNotice('spamBehaviour'),
         }) }}
 
         <div id="submit-behaviour-showMessage" class="field {{ settings.spamBehaviour != 'showMessage' ? 'hidden' }}">
@@ -56,7 +56,7 @@
                 instructions: 'This text will be shown as an error after submission.' | t('formie'),
                 name: 'spamBehaviourMessage',
                 value: settings.spamBehaviourMessage,
-                warning: macros.configWarning('spamBehaviourMessage', 'formie'),
+                warning: macros.configNotice('spamBehaviourMessage'),
             }) }}
         </div>
     {% endnamespace %}
@@ -72,7 +72,7 @@
             name: 'spamKeywords',
             rows: 10,
             value: settings.spamKeywords,
-            warning: macros.configWarning('spamKeywords', 'formie'),
+            warning: macros.configNotice('spamKeywords'),
         }) }}
 
         <hr>
@@ -86,7 +86,7 @@
             name: 'enableAllowedEmailDomains',
             on: settings.enableAllowedEmailDomains,
             toggle: 'enable-allowed-email-domains',
-            warning: macros.configWarning('enableAllowedEmailDomains', 'formie'),
+            warning: macros.configNotice('enableAllowedEmailDomains'),
         }) }}
 
         <div id="enable-allowed-email-domains" class="field {{ not settings.enableAllowedEmailDomains ? 'hidden' }}">
@@ -96,7 +96,7 @@
                 name: 'allowedEmailDomains',
                 rows: 6,
                 value: settings.allowedEmailDomains,
-                warning: macros.configWarning('allowedEmailDomains', 'formie'),
+                warning: macros.configNotice('allowedEmailDomains'),
             }) }}
         </div>
 
@@ -106,7 +106,7 @@
             name: 'enableBlockedEmailDomains',
             on: settings.enableBlockedEmailDomains,
             toggle: 'enable-blocked-email-domains',
-            warning: macros.configWarning('enableBlockedEmailDomains', 'formie'),
+            warning: macros.configNotice('enableBlockedEmailDomains'),
         }) }}
 
         <div id="enable-blocked-email-domains" class="field {{ not settings.enableBlockedEmailDomains ? 'hidden' }}">
@@ -116,7 +116,7 @@
                 name: 'blockedEmailDomains',
                 rows: 6,
                 value: settings.blockedEmailDomains,
-                warning: macros.configWarning('blockedEmailDomains', 'formie'),
+                warning: macros.configNotice('blockedEmailDomains'),
             }) }}
         </div>
 
@@ -125,7 +125,7 @@
             instructions: 'Mark submissions as spam when any Email Address field uses a known free or disposable email provider.' | t('formie'),
             name: 'enableBlockFreeEmailDomains',
             on: settings.enableBlockFreeEmailDomains,
-            warning: macros.configWarning('enableBlockFreeEmailDomains', 'formie'),
+            warning: macros.configNotice('enableBlockFreeEmailDomains'),
         }) }}
 
         <hr>
@@ -138,7 +138,7 @@
             name: 'enableSuspiciousTextDetection',
             on: settings.enableSuspiciousTextDetection,
             toggle: 'enable-suspicious-text-detection',
-            warning: macros.configWarning('enableSuspiciousTextDetection', 'formie'),
+            warning: macros.configNotice('enableSuspiciousTextDetection'),
         }) }}
 
         <div id="enable-suspicious-text-detection" class="field {{ not settings.enableSuspiciousTextDetection ? 'hidden' }}">
@@ -148,7 +148,7 @@
                 name: 'suspiciousTextAllowedTerms',
                 rows: 6,
                 value: settings.suspiciousTextAllowedTerms,
-                warning: macros.configWarning('suspiciousTextAllowedTerms', 'formie'),
+                warning: macros.configNotice('suspiciousTextAllowedTerms'),
             }) }}
         </div>
 
@@ -158,7 +158,7 @@
             name: 'enableMaximumLinks',
             on: settings.enableMaximumLinks,
             toggle: 'enable-maximum-links',
-            warning: macros.configWarning('enableMaximumLinks', 'formie'),
+            warning: macros.configNotice('enableMaximumLinks'),
         }) }}
 
         <div id="enable-maximum-links" class="field {{ not settings.enableMaximumLinks ? 'hidden' }}">
@@ -166,7 +166,7 @@
                 label: 'Maximum Links' | t('formie'),
                 name: 'maximumLinks',
                 value: settings.maximumLinks,
-                warning: macros.configWarning('maximumLinks', 'formie'),
+                warning: macros.configNotice('maximumLinks'),
             }) }}
         </div>
     {% endnamespace %}

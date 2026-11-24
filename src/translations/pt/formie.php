@@ -1321,6 +1321,7 @@ To review it please log into your control panel.
   'Honeypot Field Name' => 'Nome do campo «Honeypot»',
   'Honeypot input has value: {v}.' => 'A entrada do honeypot tem o valor: {v}.',
   'Honeypot input has a value.' => 'A entrada do honeypot tem um valor.',
+  'The `{setting}` setting in `config/formie.php` has no effect. Change it here instead.' => 'A configuração `{setting}` em `config/formie.php` não tem efeito. Altere-a aqui.',
   'Honeypot param missing: {v}.' => 'Falta o parâmetro do honeypot: {v}.',
   'Horizontal' => 'Horizontal',
   'Horizontal Rule' => 'Linha horizontal',

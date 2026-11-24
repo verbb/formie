@@ -1441,6 +1441,7 @@ To review it please log into your control panel.
   'Honeypot Field Name' => 'Honeypot Field Name',
   'Honeypot input has value: {v}.' => 'Honeypot input has value: {v}.',
   'Honeypot input has a value.' => 'Honeypot input has a value.',
+  'The `{setting}` setting in `config/formie.php` has no effect. Change it here instead.' => 'The `{setting}` setting in `config/formie.php` has no effect. Change it here instead.',
   'Honeypot param missing: {v}.' => 'Honeypot param missing: {v}.',
   'Horizontal' => 'Horizontal',
   'Horizontal Rule' => 'Horizontal Rule',

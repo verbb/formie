@@ -1,0 +1,9 @@
+{# Spam settings live in their own table, so `config/formie.php` only seeds them once on upgrade and never overrides them. #}
+{% macro configNotice(setting) -%}
+    {%- set configArray = craft.app.config.getConfigFromFile('formie') -%}
+    {%- if vuiGetValue(configArray, setting) is not null -%}
+        {{- 'The `{setting}` setting in `config/formie.php` has no effect. Change it here instead.' | t('formie', { setting: setting }) | raw }}
+    {%- else -%}
+        {{ false }}
+    {%- endif -%}
+{%- endmacro %}

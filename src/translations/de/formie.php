@@ -1321,6 +1321,7 @@ Zur Überprüfung bitte im Bedienfeld anmelden.
   'Honeypot Field Name' => 'Name des Honeypot-Feldes',
   'Honeypot input has value: {v}.' => 'Der Honeypot-Eingabewert lautet: {v}.',
   'Honeypot input has a value.' => 'Das Honeypot-Feld enthält einen Wert.',
+  'The `{setting}` setting in `config/formie.php` has no effect. Change it here instead.' => 'Die Einstellung `{setting}` in `config/formie.php` hat keine Wirkung. Ändern Sie sie stattdessen hier.',
   'Honeypot param missing: {v}.' => 'Honeypot-Parameter fehlt: {v}.',
   'Horizontal' => 'Horizontal',
   'Horizontal Rule' => 'Horizontale Linie',

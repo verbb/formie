@@ -1183,6 +1183,7 @@ Om het te bekijken, log in op uw controlepaneel.
   'Honeypot' => 'Honeypot',
   'Honeypot input has value: {v}.' => 'Honeypot invoer heeft waarde: {v}.',
   'Honeypot input has a value.' => 'Honeypot invoer heeft een waarde.',
+  'The `{setting}` setting in `config/formie.php` has no effect. Change it here instead.' => 'De instelling `{setting}` in `config/formie.php` heeft geen effect. Wijzig deze hier.',
   'Honeypot param missing: {v}.' => 'Honeypot parameter ontbreekt: {v}.',
   'Hong Kong' => 'Hongkong',
   'Hong Kong Dollar' => 'Hongkongse dollar',

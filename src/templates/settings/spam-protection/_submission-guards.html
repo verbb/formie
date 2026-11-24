@@ -1,5 +1,5 @@
 {% import '_includes/forms' as forms %}
-{% import 'verbb-base/_macros' as macros %}
+{% import 'formie/settings/spam-protection/_macros' as macros %}
 
 <div class="fui-spam-protection-section">
     <h3>{{ 'Submission Guards' | t('formie') }}</h3>
@@ -12,7 +12,7 @@
             name: 'enableHoneypot',
             on: settings.enableHoneypot,
             toggle: 'enable-honeypot',
-            warning: macros.configWarning('enableHoneypot', 'formie'),
+            warning: macros.configNotice('enableHoneypot'),
         }) }}
 
         <div id="enable-honeypot" class="field {{ not settings.enableHoneypot ? 'hidden' }}">
@@ -21,7 +21,7 @@
                 instructions: 'The name attribute used for the honeypot input. Avoid names that conflict with real form fields.' | t('formie'),
                 name: 'honeypotFieldName',
                 value: settings.honeypotFieldName,
-                warning: macros.configWarning('honeypotFieldName', 'formie'),
+                warning: macros.configNotice('honeypotFieldName'),
             }) }}
         </div>
 
@@ -33,7 +33,7 @@
             name: 'enableMinimumSubmitTime',
             on: settings.enableMinimumSubmitTime,
             toggle: 'enable-minimum-submit-time',
-            warning: macros.configWarning('enableMinimumSubmitTime', 'formie'),
+            warning: macros.configNotice('enableMinimumSubmitTime'),
         }) }}
 
         <div id="enable-minimum-submit-time" class="field {{ not settings.enableMinimumSubmitTime ? 'hidden' }}">
@@ -42,7 +42,7 @@
                 instructions: 'The minimum number of seconds a user must wait before submitting the form.' | t('formie'),
                 name: 'minimumSubmitTime',
                 value: settings.minimumSubmitTime,
-                warning: macros.configWarning('minimumSubmitTime', 'formie'),
+                warning: macros.configNotice('minimumSubmitTime'),
                 inputAttributes: {
                     'data-fui-duration-hint': true,
                 },
@@ -57,7 +57,7 @@
             name: 'enableFormSubmitExpiration',
             on: settings.enableFormSubmitExpiration,
             toggle: 'enable-form-submit-expiration',
-            warning: macros.configWarning('enableFormSubmitExpiration', 'formie'),
+            warning: macros.configNotice('enableFormSubmitExpiration'),
         }) }}
 
         <div id="enable-form-submit-expiration" class="field {{ not settings.enableFormSubmitExpiration ? 'hidden' }}">
@@ -66,7 +66,7 @@
                 instructions: 'The maximum number of seconds a user can take before submitting the form.' | t('formie'),
                 name: 'formSubmitExpiration',
                 value: settings.formSubmitExpiration,
-                warning: macros.configWarning('formSubmitExpiration', 'formie'),
+                warning: macros.configNotice('formSubmitExpiration'),
                 inputAttributes: {
                     'data-fui-duration-hint': true,
                 },
@@ -80,7 +80,7 @@
             instructions: 'Prevent duplicate submissions from reusing the same request token.' | t('formie'),
             name: 'enableReplayProtection',
             on: settings.enableReplayProtection,
-            warning: macros.configWarning('enableReplayProtection', 'formie'),
+            warning: macros.configNotice('enableReplayProtection'),
         }) }}
     {% endnamespace %}
 </div>
