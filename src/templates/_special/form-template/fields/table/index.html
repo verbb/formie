@@ -8,7 +8,9 @@
             {% fieldtag 'fieldTableHeaderRow' %}
                 {% for colId, col in field.columns %}
                     {% fieldtag 'fieldTableHeaderColumn' %}
-                        {{- col.heading | md(inlineOnly=true) | nl2br -}}
+                        {#- Markdown passes inline HTML through, so purify the rendered heading. Headings without tags skip the purifier. -#}
+                        {%- set headingHtml = col.heading | md(inlineOnly=true) -%}
+                        {{- ('<' in headingHtml ? headingHtml | purify : headingHtml | raw) | nl2br -}}
                     {% endfieldtag %}
                 {% endfor %}
             {% endfieldtag %}

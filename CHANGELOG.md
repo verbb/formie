@@ -3,7 +3,7 @@
 ## Unreleased
 
 ### Fixed
-- Fixed a moderate-severity cross-site scripting vulnerability.
+- Fixed two moderate-severity cross-site scripting vulnerabilities.
 
 ## 4.1.0 - 2026-11-24
 

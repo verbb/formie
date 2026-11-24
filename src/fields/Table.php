@@ -4,6 +4,7 @@ namespace verbb\formie\fields;
 use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\coercion\ScalarValueCoercer;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\values\ColorFieldValue;
@@ -1134,7 +1135,8 @@ class Table extends Field
                 $cellValue = $row[$colId] ?? $row[$col['handle'] ?? ''] ?? null;
                 $cellValue = $this->_normalizeCellValueAsString($col['type'], $cellValue);
 
-                $rowValues .= Html::tag('td', $cellValue);
+                // Cells are plain text, so encode them, as email notifications do
+                $rowValues .= Html::tag('td', Html::encode(ScalarValueCoercer::toScalarString($cellValue)));
             }
 
             $bodyValues .= Html::tag('tr', $rowValues);
@@ -1143,7 +1145,9 @@ class Table extends Field
         $tbody = Html::tag('tbody', $bodyValues);
 
         foreach ($this->columns as $colId => $col) {
-            $headValues .= Html::tag('th', $col['heading']);
+            // Headings can contain HTML, so purify them. Headings without tags skip the purifier.
+            $heading = (string)($col['heading'] ?? '');
+            $headValues .= Html::tag('th', str_contains($heading, '<') ? StringHelper::cleanString($heading) : $heading);
         }
 
         $thead = Html::tag('thead', Html::tag('tr', $headValues));
