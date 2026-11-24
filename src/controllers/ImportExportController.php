@@ -315,7 +315,23 @@ class ImportExportController extends SettingsAccessController
             return;
         }
 
-        $formElement = Formie::$plugin->getForms()->getFormById($formId);
+        // Look the form up unscoped, so a form the user can't view returns a 403 on any request type.
+        $formElement = Form::find()
+            ->withoutCpIndexScope()
+            ->id((int)$formId)
+            ->site('*')
+            ->unique()
+            ->one();
+
+        if (!$formElement) {
+            throw new NotFoundHttpException('Form not found');
+        }
+
+        $currentUser = Craft::$app->getUser()->getIdentity();
+
+        if (!Formie::$plugin->getPermissions()->canViewForm($currentUser, $formElement)) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
+        }
 
         $data = ImportExportHelper::generateFormExport($formElement);
         $json = Json::encode($data, JSON_PRETTY_PRINT);

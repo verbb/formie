@@ -243,3 +243,77 @@ it('requires manage access before an import can update an existing form', functi
 
     expect(Formie::$plugin->getForms()->getFormById((int)$target->id)?->title)->toBe('Restricted Import Target');
 })->group('security');
+
+it('requires a visible form before exporting it', function(bool $isCpRequest): void {
+    $group = new \verbb\formie\models\FormGroup([
+        'name' => 'Visible Export Group',
+        'handle' => 'visibleExportGroup' . bin2hex(random_bytes(6)),
+    ]);
+
+    expect(Formie::$plugin->getFormGroups()->saveGroup($group))->toBeTrue();
+
+    $allowed = formie()->form(['title' => 'Visible Export Form', 'groupId' => $group->id])->create();
+    $restricted = formie()->form(['title' => 'Restricted Export Form'])->create();
+    $permissions = Formie::$plugin->getPermissions();
+
+    $username = 'formExportAcl' . bin2hex(random_bytes(6));
+    $user = new \craft\elements\User(['username' => $username, 'email' => $username . '@example.test']);
+
+    expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
+
+    // Reload the permission list so the new group's scoped grant isn't dropped as unknown.
+    Craft::$app->set('userPermissions', new \craft\services\UserPermissions());
+
+    $grants = [
+        'accessCp',
+        'accessPlugin-formie',
+        Permissions::PERM_ACCESS_FORMS,
+        $permissions->scopedPermission(Permissions::PERM_VIEW_FORMS, $permissions->groupScope($group->handle)),
+        Permissions::PERM_EXPORT_FORMS,
+    ];
+
+    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, \Tests\Support\PermissionTestHelper::withParents($grants)))->toBeTrue();
+
+    $identity = \craft\elements\User::find()->id($user->id)->status(null)->one();
+
+    expect($permissions->canViewForm($identity, $allowed))->toBeTrue()
+        ->and($permissions->canExportForms($identity))->toBeTrue();
+
+    WebRequestTestHelper::withWebRequestContext(function($request, $response) use ($isCpRequest, $allowed, $restricted, $permissions, $user): void {
+        $request->setIsCpRequest($isCpRequest);
+        $identity = \craft\elements\User::find()->id($user->id)->status(null)->one();
+        Craft::$app->getUser()->setIdentity($identity);
+
+        // A sent export ends the application. Stop at its after-request event instead of exiting the test run.
+        Craft::$app->state = \yii\base\Application::STATE_HANDLING_REQUEST;
+        Craft::$app->on(\yii\base\Application::EVENT_AFTER_REQUEST, static function(): void {
+            throw new RuntimeException('Export sent');
+        });
+
+        $export = function(int $formId) use ($request): void {
+            $request->setQueryParams(['formId' => $formId]);
+            $level = ob_get_level();
+            ob_start(); // Craft closes a download buffer; preserve the test runner's buffer.
+
+            try {
+                (new ImportExportController('import-export', Formie::$plugin))->actionExport();
+            } finally {
+                while (ob_get_level() > $level) {
+                    ob_end_clean();
+                }
+            }
+        };
+
+        expect($permissions->canViewForm($identity, $restricted))->toBeFalse()
+            ->and(fn() => $export((int)$restricted->id))->toThrow(ForbiddenHttpException::class)
+            ->and(fn() => $export(2147483647))->toThrow(NotFoundHttpException::class)
+            ->and(fn() => $export((int)$allowed->id))->toThrow(RuntimeException::class, 'Export sent')
+            ->and(json_decode((string)$response->content, true)['handle'] ?? null)->toBe($allowed->handle);
+    }, [
+        'method' => 'GET',
+        'requestUri' => ($isCpRequest ? '/admin' : '') . '/actions/formie/import-export/export',
+    ]);
+})->with([
+    'control panel request' => [true],
+    'site request' => [false],
+])->group('security');
