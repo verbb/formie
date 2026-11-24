@@ -134,6 +134,10 @@ function sourceValue(state: ClientFormState, variable: CalculationVariable, row?
         return indices.length === 1 ? (cells[indices[0]] ?? '') : (indices.length === 0 ? '' : flattenCells(indices.map((index) => cells[index])));
     }
 
+    return readSourcePath(value, path);
+}
+
+function readSourcePath(value: unknown, path: string[]): string | string[] {
     let values: unknown[] = [value];
 
     for (const key of path) {
@@ -145,6 +149,21 @@ function sourceValue(state: ClientFormState, variable: CalculationVariable, row?
         .map((item) => String(item));
 
     return path.length > 0 || Array.isArray(values[0]) ? strings : (strings[0] ?? '');
+}
+
+/**
+ * Reads a field's answer by key, such as `quantity` or `group.part`, from form values keyed by field ID. Browser modules
+ * use it where a client-rendered form has no named inputs to read.
+ */
+export function readFieldValueByKey(state: ClientFormState, key: string): { found: boolean; value: string | string[] } {
+    const [handle, ...path] = String(key || '').split('.').filter(Boolean);
+    const source = handle ? allFields(state.definition).find((field) => field.handle === handle) : undefined;
+
+    if (!source) {
+        return { found: false, value: '' };
+    }
+
+    return { found: true, value: readSourcePath(state.values[source.id], path) };
 }
 
 type CalculationOccurrence = {

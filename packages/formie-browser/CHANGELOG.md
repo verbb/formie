@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Fixed
+- Fixed the Stripe and PayPal modules reading a dynamic amount or currency from the field’s ID instead of the field’s value, and reading a field handle that looks like a number or currency code, such as `amount2` or `cur`, as the value itself. ([#3156](https://github.com/verbb/formie/issues/3156))
+- Fixed the Stripe and PayPal modules not reading a dynamic amount or currency in client-rendered forms, which have no named inputs to read. Client-rendered forms now give modules the visitor’s answers from the form instance. ([#3156](https://github.com/verbb/formie/issues/3156))
+- Fixed the Stripe module giving the Payment Element a tenth of the amount for three-decimal currencies, such as KWD, when the amount or currency is dynamic.
 - Fixed the Upload Manager letting a form submit without a file that failed to upload. A failed file now sets `data-formie-upload-manager-failed` on the field’s status input, and the new `uploadManagerFailed` validator asks for it to be removed.
 - Fixed client-rendered forms submitting while an Upload Manager file had failed or was still uploading, because they have no browser validator. The module’s `beforeSubmit` hook now stops the submit with the same messages.
 

@@ -3,7 +3,8 @@ import { clearSubmitLoading } from '#core/submit-result-state';
 import { addThemeClasses } from '#theme/theme-classes';
 import { debounce } from '#utils/async';
 import { getFieldLabel, currencyToFloat } from '#utils/fields';
-import { buildFieldValueRegistry, fieldKeyToInputName, normalizeFieldKey, resolveFieldReferenceLive } from '#utils/field-references';
+import { buildFieldValueRegistry, fieldKeyToInputName, normalizeFieldKey, parseFieldReference, resolveFieldReferenceLive } from '#utils/field-references';
+import { getClientValueSource } from '#utils/client-values';
 import { DEFAULT_WAIT_FOR_VALUE_MS } from '#modules/payments/constants';
 import {
     findPaymentInputBySuffix,
@@ -149,9 +150,25 @@ export function createPaymentHostServices(
     const getRegistry = () => {
         return buildFieldValueRegistry(form || root);
     };
-    const getReferenceValue = (reference: string): string => {
+    // Client-rendered forms have no named inputs, so their answers come from the form instance.
+    const clientValues = getClientValueSource(form, root);
+    const resolveReference = (reference: string): { found: boolean; value: string | string[] } => {
         const resolved = resolveFieldReferenceLive(reference, getRegistry());
-        const value = resolved.value;
+
+        if (resolved.found || !clientValues) {
+            return resolved;
+        }
+
+        const parsed = parseFieldReference(reference);
+
+        if (!parsed.isValid || !parsed.key) {
+            return resolved;
+        }
+
+        return clientValues.read(parsed.selector ? `${parsed.key}.${parsed.selector.replace(/:/g, '.')}` : parsed.key);
+    };
+    const getReferenceValue = (reference: string): string => {
+        const value = resolveReference(reference).value;
 
         if (Array.isArray(value)) {
             return value[0] || '';
@@ -162,7 +179,7 @@ export function createPaymentHostServices(
 
     // Returns null when the reference doesn't name a field in the form.
     const getFieldValueIfFound = (reference: string): string | null => {
-        const resolved = resolveFieldReferenceLive(reference, getRegistry());
+        const resolved = resolveReference(reference);
 
         if (!resolved.found) {
             return null;
@@ -171,7 +188,7 @@ export function createPaymentHostServices(
         return String((Array.isArray(resolved.value) ? resolved.value[0] : resolved.value) || '');
     };
 
-    const updateInputs =(name: string | string[], value: string) => {
+    const updateInputs = (name: string | string[], value: string) => {
         const names = Array.isArray(name) ? name : [name];
 
         for (const n of names) {
@@ -389,9 +406,22 @@ export function createPaymentHostServices(
         searchRoot.addEventListener('input', onInput as EventListener);
         searchRoot.addEventListener('change', onInput as EventListener);
 
+        // A client-rendered form reports changes through its instance, since its inputs have no names to match.
+        const readWatched = () => JSON.stringify(normalizedHandles.map((handle) => getReferenceValue(handle)));
+        let lastWatched = clientValues ? readWatched() : '';
+        const unsubscribeClientValues = clientValues?.subscribe(() => {
+            const nextWatched = readWatched();
+
+            if (nextWatched !== lastWatched) {
+                lastWatched = nextWatched;
+                debounced();
+            }
+        });
+
         return () => {
             searchRoot.removeEventListener('input', onInput as EventListener);
             searchRoot.removeEventListener('change', onInput as EventListener);
+            unsubscribeClientValues?.();
         };
     };
 

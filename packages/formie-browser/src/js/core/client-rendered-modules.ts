@@ -1,5 +1,7 @@
 import { setFormBrowserRequestOptions } from '#utils/request-profile';
+import { readFieldValueByKey } from '@verbb/formie-core';
 import type { BrowserModuleKind, ClientFormInstance } from '@verbb/formie-core';
+import { setClientValueSource, type ClientValueSource } from '#utils/client-values';
 import { hydrateFormieModules } from './hydrate-modules.js';
 import { ModuleRegistry, clientRenderedModuleRegistry } from '#modules/registry';
 
@@ -57,6 +59,13 @@ export async function mountClientRenderedModules(root: Element, instance: Client
     };
     syncRequest();
     const unsubscribeRequest = instance.subscribe(syncRequest);
+    // Modules that read other fields get the visitor's answers from the form instance.
+    const valueSource: ClientValueSource = {
+        read: (key) => readFieldValueByKey(instance.getState(), key),
+        subscribe: (listener) => instance.subscribe(() => listener()),
+    };
+    const valueTargets = [root, form].filter((target): target is Element => !!target);
+    valueTargets.forEach((target) => setClientValueSource(target, valueSource));
     const host = await hydrateFormieModules({ root, modules: instance.getState().definition.modules, surface: 'client-rendered', registry });
     instance.setBrowserModuleGuard(host.assertReady);
     instance.setBrowserModulePreparation(host.prepare);
@@ -89,5 +98,5 @@ export async function mountClientRenderedModules(root: Element, instance: Client
             }
         });
     });
-    return { ...host, get instances() { return host.instances; }, get failures() { return host.failures; }, destroy: async() => { unsubscribe(); unsubscribeRequest(); await host.destroy(); } };
+    return { ...host, get instances() { return host.instances; }, get failures() { return host.failures; }, destroy: async() => { unsubscribe(); unsubscribeRequest(); valueTargets.forEach((target) => setClientValueSource(target, null)); await host.destroy(); } };
 }

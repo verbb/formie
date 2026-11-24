@@ -104,6 +104,26 @@ if (!Craft::$app->getElements()->saveElement($parity)) {
     ]]])
     ->create();
 
+// A dynamic amount and currency name other fields, which every surface has to read from the visitor's answers.
+$dynamicPay = \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Parity Stripe dynamic', 'handle' => 'parityPayStripeDynamic'])
+    ->settings(['disableCaptchas' => true, 'submitMethod' => 'ajax'])
+    ->singleLineTextField('payerName', ['label' => 'Payer name'])
+    ->numberField('customAmount', ['label' => 'Amount'])
+    ->dropdownField('payCurrency', ['label' => 'Currency', 'options' => [
+        ['label' => 'US dollar', 'value' => 'USD', 'isDefault' => true],
+        ['label' => 'Norwegian krone', 'value' => 'NOK'],
+    ]])
+    ->paymentField('pay', ['label' => 'Pay', 'paymentIntegration' => 'browserStripe', 'paymentIntegrationType' => \verbb\formie\integrations\payments\Stripe::class])
+    ->create();
+$dynamicPay->getFieldByHandle('pay')->providerSettings = ['browserStripe' => [
+    'amountType' => 'dynamic', 'amountVariable' => '{field:' . $dynamicPay->getFieldByHandle('customAmount')->reference . '}',
+    'currencyType' => 'dynamic', 'currencyVariable' => '{field:' . $dynamicPay->getFieldByHandle('payCurrency')->reference . '}',
+]];
+
+if (!Craft::$app->getElements()->saveElement($dynamicPay)) {
+    throw new RuntimeException('Cannot save parity dynamic payment fixture: ' . json_encode($dynamicPay->getErrors()));
+}
+
 // Every other payment provider, with fake credentials. The browser test fakes their SDKs and the server's decisions.
 $paymentProviders = [
     'PayPal' => ['clientId' => 'parity-client', 'clientSecret' => 'parity-secret'],
@@ -134,6 +154,22 @@ foreach ($paymentProviders as $class => $settings) {
             'amountType' => 'fixed', 'amountFixed' => '10', 'currencyType' => 'fixed', 'currencyFixed' => 'AUD',
         ]]])
         ->create();
+}
+
+// PayPal builds its order from the amount field when the visitor clicks its button.
+$dynamicPayPal = \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Parity PayPal dynamic', 'handle' => 'parityPayPayPalDynamic'])
+    ->settings(['disableCaptchas' => true, 'submitMethod' => 'ajax'])
+    ->singleLineTextField('payerName', ['label' => 'Payer name'])
+    ->numberField('customAmount', ['label' => 'Amount'])
+    ->paymentField('pay', ['label' => 'Pay', 'paymentIntegration' => 'parityPayPal', 'paymentIntegrationType' => \verbb\formie\integrations\payments\PayPal::class])
+    ->create();
+$dynamicPayPal->getFieldByHandle('pay')->providerSettings = ['parityPayPal' => [
+    'amountType' => 'dynamic', 'amountVariable' => '{field:' . $dynamicPayPal->getFieldByHandle('customAmount')->reference . '}',
+    'currencyType' => 'fixed', 'currencyFixed' => 'AUD',
+]];
+
+if (!Craft::$app->getElements()->saveElement($dynamicPayPal)) {
+    throw new RuntimeException('Cannot save parity dynamic PayPal fixture: ' . json_encode($dynamicPayPal->getErrors()));
 }
 
 // A Summary field after one page of answers, for the summary parity test.

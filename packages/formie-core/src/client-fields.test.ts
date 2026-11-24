@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { deriveCalculationValues } from './client-calculations';
+import { deriveCalculationValues, readFieldValueByKey } from './client-calculations';
 import {
     createTableRowValue,
     defaultValueForField,
@@ -364,5 +364,37 @@ describe('address auto-complete', () => {
 
         expect(addressAutocompleteMarkup(part, { id: 'home-auto' })).toBe('<input type="search" id="home-auto" value="" autocomplete="autocomplete" aria-autocomplete="list" data-autocomplete data-formie-address-autocomplete-input><button type="button" data-formie-address-location>Use my location</button>');
         expect(addressAutocompleteMarkup(field('address-auto-complete', { defaultValue: '' }), {})).not.toContain('data-formie-address-location');
+    });
+});
+
+describe('reading a field value by key', () => {
+    const state = (values: Record<string, unknown>) => ({
+        definition: {
+            pages: [{ id: 'p', rows: [{ fields: [
+                field('number', {}, { id: '1', handle: 'customAmount' }),
+                field('dropdown', {}, { id: '2', handle: 'payCurrency' }),
+                field('group', {}, { id: '3', handle: 'details', client: { children: { model: 'container-parent' }, valueType: { kind: 'object' } } }),
+            ] }] }],
+            modules: { entries: [] },
+        },
+        values,
+    } as unknown as ClientFormState);
+
+    it('reads a top-level field by its handle', () => {
+        expect(readFieldValueByKey(state({ 1: 25, 2: 'NOK' }), 'customAmount')).toEqual({ found: true, value: '25' });
+        expect(readFieldValueByKey(state({ 1: 25, 2: 'NOK' }), 'payCurrency')).toEqual({ found: true, value: 'NOK' });
+    });
+
+    it('reads a field inside a Group', () => {
+        expect(readFieldValueByKey(state({ 3: { amount: '12.50' } }), 'details.amount')).toEqual({ found: true, value: ['12.50'] });
+    });
+
+    it('finds an unanswered field with an empty value', () => {
+        expect(readFieldValueByKey(state({}), 'customAmount')).toEqual({ found: true, value: '' });
+    });
+
+    it('reports a key that names no field', () => {
+        expect(readFieldValueByKey(state({ 1: 25 }), 'amount2')).toEqual({ found: false, value: '' });
+        expect(readFieldValueByKey(state({ 1: 25 }), '')).toEqual({ found: false, value: '' });
     });
 });

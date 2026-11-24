@@ -84,7 +84,7 @@ export {
 } from './schema.js';
 export type { ClientFieldOption, ClientTableColumn, PhoneFieldValue, SurveyLikertRow, UploadManagerEntry } from './schema.js';
 export { attachPointerReorder } from './reorder.js';
-export { deriveCalculationValues, parseRowsExpression } from './client-calculations.js';
+export { deriveCalculationValues, parseRowsExpression, readFieldValueByKey } from './client-calculations.js';
 export { countGraphemes, getTextLimitMetrics, getWordCount, normalizeText } from './text.js';
 export { fieldTextLimit, formatPluralMessage, textLimitCounter } from './text-limit.js';
 export { addressStatePart, cachedAddressSubdivisions, isDynamicAddressStatePart, loadAddressSubdivisions } from './address-state.js';

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Added
+- Added `readFieldValueByKey()`, which reads a field’s answer from the form state by key, such as `quantity` or `group.part`.
+
 ## 4.0.11 - 2026-11-21
 
 ### Added
