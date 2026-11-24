@@ -176,6 +176,7 @@ class Fields extends Component
     private ?array $_reservedHandles = null;
     private array $_definitionIdsBeingDeleted = [];
     private int $_fieldSaveBatchDepth = 0;
+    private bool $_perFormSettingsStored = false;
     private bool $_fieldCachesDirty = false;
 
 
@@ -1751,6 +1752,9 @@ class Fields extends Component
                 $field->handle = $definitionRecord->handle;
             }
 
+            // An upgrade saves layouts before the updates that convert older tokens, which read them from definitions.
+            $storesPerFormSettings = $this->_storesPerFormSettings();
+
             $skipSharedDefinitionUpdate = $definitionId && (
                 $context->syncedFieldImport?->keepsDefinition($definitionId)
                 || isset($context->savedDefinitions[$definitionId])
@@ -1763,7 +1767,7 @@ class Fields extends Component
                 $definitionRecord->label = $field->label;
                 $definitionRecord->handle = $field->handle;
                 $definitionRecord->type = $field->type;
-                $definitionRecord->settings = Json::encode($field->getDefinitionSettings());
+                $definitionRecord->settings = Json::encode($storesPerFormSettings ? $field->getDefinitionSettings() : array_diff_key($field->getSettings(), ['required' => true]));
 
                 // Check if this is a missing field, and swap back its type.
                 // This can commonly happen during a migration, not really from normal use.
@@ -1779,7 +1783,7 @@ class Fields extends Component
 
                 // A definition saved before conditions and formulas moved to placements can still hold them, such as for
                 // a field type that was unavailable during the update. Give the other placements their copy first.
-                if ($definitionId && !($field instanceof MissingField) && is_array($previousDefinitionSettings)) {
+                if ($storesPerFormSettings && $definitionId && !($field instanceof MissingField) && is_array($previousDefinitionSettings)) {
                     $previous = is_array($previousDefinitionSettings['__formieMissingSettings'] ?? null) ? $previousDefinitionSettings['__formieMissingSettings'] : $previousDefinitionSettings;
                     $leftover = array_intersect_key($previous, $field->getInstanceSettings());
 
@@ -1810,7 +1814,7 @@ class Fields extends Component
             $instanceRecord->rowId = $field->rowId;
             $instanceRecord->sortOrder = $field->sortOrder;
             $instanceRecord->reference = $field->reference ?: StringHelper::UUID();
-            $instanceRecord->settings = Json::encode($field->getInstanceSettings());
+            $instanceRecord->settings = Json::encode($storesPerFormSettings ? $field->getInstanceSettings() : ['required' => $field->required]);
 
             if ($field->uid) {
                 $instanceRecord->uid = $field->uid;
@@ -2066,6 +2070,7 @@ class Fields extends Component
 
     public function resetFieldRegistryCache(): void
     {
+        $this->_perFormSettingsStored = false;
         $this->_resetFieldCaches();
     }
 
@@ -2721,6 +2726,19 @@ class Fields extends Component
         if ($this->_fieldSaveBatchDepth === 0 && $this->_fieldCachesDirty) {
             $this->_flushFieldCaches();
         }
+    }
+
+    /**
+     * Whether each form keeps its own conditions, formulas and other settings that refer to its fields. They stay on
+     * the field definition until the update that moves them has run, so earlier updates still find them there.
+     */
+    private function _storesPerFormSettings(): bool
+    {
+        // Once the update has run it stays run, so only keep asking while it hasn't.
+        return $this->_perFormSettingsStored = $this->_perFormSettingsStored || (new Query())
+            ->from(CraftTable::MIGRATIONS)
+            ->where(['track' => 'plugin:formie', 'name' => 'm261124_000000_per_form_field_settings'])
+            ->exists();
     }
 
     private function _copyDefinitionSettingsToInstances(int $definitionId, ?int $exceptId, array $settings): void

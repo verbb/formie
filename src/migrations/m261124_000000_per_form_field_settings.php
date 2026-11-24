@@ -21,7 +21,7 @@ class m261124_000000_per_form_field_settings extends Migration
     // Constants
     // =========================================================================
 
-    private const MOVED_KEYS = ['enableConditions', 'conditions', 'formula', 'paymentIntegration', 'paymentIntegrationType', 'providerSettings', 'defaultValue', 'uploadLocationSubpath', 'filenameFormat'];
+    private const MOVED_KEYS = ['enableConditions', 'conditions', 'matchField', 'formula', 'paymentIntegration', 'paymentIntegrationType', 'providerSettings', 'defaultValue', 'uploadLocationSubpath', 'filenameFormat'];
 
 
     // Properties
@@ -206,7 +206,9 @@ class m261124_000000_per_form_field_settings extends Migration
 
             foreach (self::MOVED_KEYS as $key) {
                 if (isset($settings[$key])) {
-                    $settings[$key] = $this->_remap($settings[$key], $resolve);
+                    $settings[$key] = $key === 'conditions' && is_array($settings[$key])
+                        ? $this->_remapConditions($settings[$key], $resolve)
+                        : $this->_remap($settings[$key], $resolve);
                 }
             }
 
@@ -241,6 +243,31 @@ class m261124_000000_per_form_field_settings extends Migration
         }
 
         return $this->_layoutContexts[$layoutId] = $context;
+    }
+
+    private function _remapConditions(array $conditions, callable $resolve): array
+    {
+        foreach ($conditions as $key => $value) {
+            if ($key !== 'conditions' || !is_array($value)) {
+                $conditions[$key] = $this->_remap($value, $resolve);
+
+                continue;
+            }
+
+            foreach ($value as $index => $rule) {
+                $repaired = $this->_remap($rule, $resolve);
+
+                // The field with the same handle can come later in this form than in the form the rule was written
+                // for. Rules from earlier versions may point at a later field, so the form keeps taking submissions.
+                if (is_array($repaired) && $repaired !== $rule) {
+                    $repaired['legacyForward'] = true;
+                }
+
+                $conditions[$key][$index] = $repaired;
+            }
+        }
+
+        return $conditions;
     }
 
     private function _remap(mixed $value, callable $resolve): mixed

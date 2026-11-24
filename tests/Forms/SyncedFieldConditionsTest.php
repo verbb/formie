@@ -296,3 +296,118 @@ it('keeps later edits to a synced field when a form is created from an older ste
         'variables' => ['amountA', 'amountB'],
     ]);
 });
+
+// A direct upgrade from Formie 2 saves each form's layout early, then converts Formie 2's tokens on field definitions.
+// Until the update that moves these settings to each form has run, saves have to keep them where those updates look.
+it('keeps conditions and formulas on the definition until the update that moves them has run', function(): void {
+    $history = ['track' => 'plugin:formie', 'name' => 'm261124_000000_per_form_field_settings'];
+    $row = (new Query())->from(\craft\db\Table::MIGRATIONS)->where($history)->one();
+    expect($row)->not->toBeNull();
+    Db::delete(\craft\db\Table::MIGRATIONS, $history);
+    \verbb\formie\Formie::$plugin->getFields()->resetFieldRegistryCache();
+
+    $stored = function(Form $form, string $handle): array {
+        $field = $form->getFieldByHandle($handle);
+
+        return [
+            Json::decode((string)(new Query())->select('settings')->from(Table::FORMIE_FIELDS)->where(['id' => $field->definitionId])->scalar()),
+            Json::decode((string)(new Query())->select('settings')->from(Table::FORMIE_FORM_FIELDS)->where(['id' => $field->id])->scalar()),
+        ];
+    };
+
+    try {
+        [$a] = syncedConditionsSource();
+        [$definition, $placement] = $stored($a, 'accountNumber');
+        [$formulaDefinition, $formulaPlacement] = $stored($a, 'total');
+
+        expect($definition)->toHaveKey('conditions')
+            ->and($placement)->not->toHaveKey('conditions')
+            ->and($formulaDefinition)->toHaveKey('formula')
+            ->and($formulaPlacement)->not->toHaveKey('formula')
+            ->and(syncedConditionsState($a)['ownTarget'])->toBeTrue();
+
+        // The update then moves them to the form, and saves follow.
+        expect((new m261124_000000_per_form_field_settings())->safeUp())->toBeTrue();
+        Db::insert(\craft\db\Table::MIGRATIONS, $row);
+        \verbb\formie\Formie::$plugin->getFields()->resetFieldRegistryCache();
+        $a = syncedConditionsReload($a->id);
+        expect(Craft::$app->getElements()->saveElement($a))->toBeTrue();
+        [$definition, $placement] = $stored(syncedConditionsReload($a->id), 'accountNumber');
+
+        expect($definition)->not->toHaveKey('conditions')
+            ->and($placement)->toHaveKey('conditions')
+            ->and(syncedConditionsState(syncedConditionsReload($a->id)))->toBe([
+                'enabled' => true,
+                'ownTarget' => true,
+                'value' => 'bankTransfer',
+                'variables' => ['amountA', 'amountB'],
+            ]);
+    } finally {
+        if (!(new Query())->from(\craft\db\Table::MIGRATIONS)->where($history)->exists()) {
+            Db::insert(\craft\db\Table::MIGRATIONS, $row);
+        }
+
+        \verbb\formie\Formie::$plugin->getFields()->resetFieldRegistryCache();
+    }
+});
+
+// The repair points a rule at the field with the same handle in its own form. Where that field comes after the
+// conditional field, a rule written in Formie 4 would make the form reject every submission.
+it('keeps a form valid when the update repairs a condition onto a later field', function(): void {
+    [$a, $stencil] = syncedConditionsSource();
+
+    // Form B has the same synced fields with the conditional field first, and no conditions of its own yet.
+    $pages = StencilData::getSerializedLayout($a->getFormLayout());
+    $handle = fn(array $field): string => (string)($field['handle'] ?? $field['settings']['handle'] ?? '');
+
+    foreach ($pages[0]['rows'] as &$row) {
+        usort($row['fields'], fn($left, $right) => (int)($handle($right) === 'accountNumber') <=> (int)($handle($left) === 'accountNumber'));
+
+        foreach ($row['fields'] as $index => &$field) {
+            $field['syncedDefinitionUid'] = $field['definitionUid'];
+
+            if (array_key_exists('sortOrder', $field)) {
+                $field['sortOrder'] = $index;
+            }
+
+            foreach (['settings', 'instanceSettings'] as $key) {
+                if (isset($field[$key]) && is_array($field[$key])) {
+                    unset($field[$key]['conditions']);
+                    $field[$key]['enableConditions'] = false;
+                }
+            }
+
+            unset($field['conditions']);
+            $field['enableConditions'] = false;
+        }
+    }
+    unset($row, $field);
+
+    $reordered = new Stencil(['name' => 'Synced Conditions reordered', 'handle' => 'syncedConditionsReordered' . uniqid(), 'scope' => StencilsService::SCOPE_SITE]);
+    $reordered->data = new StencilData(['pages' => $pages]);
+    $b = syncedConditionsFromStencil($reordered, 'B');
+    $handles = array_values(array_map(fn($field) => $field->handle, $b->getFields()));
+    expect(array_search('accountNumber', $handles, true))->toBeLessThan(array_search('paymentMethod', $handles, true));
+
+    // The stored shape before conditions moved to each form: on the definition, holding form A's references.
+    $definitionId = $a->getFieldByHandle('accountNumber')->definitionId;
+    $moved = ['enableConditions' => true, 'conditions' => syncedConditionsRule($a, 'bankTransfer')];
+    $settings = Json::decode((new Query())->select('settings')->from(Table::FORMIE_FIELDS)->where(['id' => $definitionId])->scalar());
+    Db::update(Table::FORMIE_FIELDS, ['settings' => Json::encode(array_merge($settings, $moved))], ['id' => $definitionId]);
+
+    foreach ((new Query())->select(['id', 'settings'])->from(Table::FORMIE_FORM_FIELDS)->where(['fieldId' => $definitionId])->all() as $row) {
+        Db::update(Table::FORMIE_FORM_FIELDS, ['settings' => Json::encode(array_diff_key(Json::decode($row['settings']), $moved))], ['id' => $row['id']]);
+    }
+
+    expect((new m261124_000000_per_form_field_settings())->safeUp())->toBeTrue();
+    $b = syncedConditionsReload($b->id);
+    $rule = $b->getFieldByHandle('accountNumber')->conditions['conditions'][0];
+
+    expect($rule['field'])->toBe('{field:' . $b->getFieldByHandle('paymentMethod')->reference . '}')
+        ->and(fn() => (new \verbb\formie\conditions\ConditionGraph())->orderedFields($b))->not->toThrow(RuntimeException::class);
+
+    $b->validateFormLayout();
+    expect($b->getErrors('formLayout'))->toBe([])
+        // Form A's own rule is untouched.
+        ->and(syncedConditionsReload($a->id)->getFieldByHandle('accountNumber')->conditions['conditions'][0])->not->toHaveKey('legacyForward');
+});

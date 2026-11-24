@@ -33,6 +33,7 @@ A few settings belong to each form instead, and can differ wherever the synced f
 
 - **Required**
 - The field’s conditions
+- **Match Field**
 - A Calculations field’s formula
 - A Payment field’s payment settings, such as the amount, currency, description and billing details
 - A Hidden field’s default value

@@ -16,12 +16,13 @@ function legacyMatchForm(string $stored): Form
     return storeLegacyMatchField($form, 'confirmation', str_replace('{reference}', (string)$form->getFieldByHandle('original')->reference, $stored));
 }
 
+// Match Field is kept for each form, so the stored value is on the form's own row for the field.
 function storeLegacyMatchField(Form $form, string $handle, string $stored): Form
 {
-    $definitionId = $form->getFieldByHandle($handle)->definitionId;
-    $settings = Json::decode((new Query())->select('settings')->from(Table::FORMIE_FIELDS)->where(['id' => $definitionId])->scalar());
+    $fieldId = $form->getFieldByHandle($handle)->id;
+    $settings = Json::decode((new Query())->select('settings')->from(Table::FORMIE_FORM_FIELDS)->where(['id' => $fieldId])->scalar());
     $settings['matchField'] = $stored;
-    Craft::$app->getDb()->createCommand()->update(Table::FORMIE_FIELDS, ['settings' => Json::encode($settings)], ['id' => $definitionId])->execute();
+    Craft::$app->getDb()->createCommand()->update(Table::FORMIE_FORM_FIELDS, ['settings' => Json::encode($settings)], ['id' => $fieldId])->execute();
 
     return reloadedMatchForm($form->id);
 }
@@ -45,7 +46,7 @@ function matchFieldErrors(Form $form, string $confirmation): array
 
 function storedMatchField(Form $form, string $handle = 'confirmation'): mixed
 {
-    return Json::decode((new Query())->select('settings')->from(Table::FORMIE_FIELDS)->where(['id' => $form->getFieldByHandle($handle)->definitionId])->scalar())['matchField'] ?? null;
+    return Json::decode((new Query())->select('settings')->from(Table::FORMIE_FORM_FIELDS)->where(['id' => $form->getFieldByHandle($handle)->id])->scalar())['matchField'] ?? null;
 }
 
 function builderMatchField(Form $form, string $handle = 'confirmation'): mixed

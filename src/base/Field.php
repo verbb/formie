@@ -1126,8 +1126,8 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     }
 
     /**
-     * Settings that belong to one placement rather than the shared definition. Conditions point at other
-     * fields by reference, and references only exist in one form, so a synced field keeps them per form.
+     * Settings that belong to one placement rather than the shared definition. Conditions and Match Field point at
+     * other fields by reference, and references only exist in one form, so a synced field keeps them per form.
      */
     public function getInstanceSettings(): array
     {
@@ -1135,6 +1135,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
             'required' => $this->required,
             'enableConditions' => $this->enableConditions,
             'conditions' => $this->conditions,
+            'matchField' => $this->matchField,
         ];
     }
 
@@ -1156,6 +1157,10 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
         if (array_key_exists('conditions', $settings)) {
             $this->conditions = is_array($settings['conditions']) ? $settings['conditions'] : null;
+        }
+
+        if (array_key_exists('matchField', $settings)) {
+            $this->matchField = is_string($settings['matchField']) && $settings['matchField'] !== '' ? $settings['matchField'] : null;
         }
     }
 
