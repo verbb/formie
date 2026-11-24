@@ -5,6 +5,7 @@
 ### Fixed
 - Fixed two moderate-severity cross-site scripting vulnerabilities.
 - Fixed a moderate-severity information disclosure vulnerability.
+- Fixed Date fields using the **Dropdowns** display type filling in the first year, month and day (or 0:00 AM) when left blank. Optional fields saved a date the visitor never chose, forms with a **Min Date** couldn’t be submitted, and required date dropdowns couldn’t be enforced.
 - Fixed the **Move form** action on the **Forms** index letting users move forms into form groups they can’t manage, and listing those groups in its menu.
 - Fixed the **Move form** action on multi-site installs returning an error and moving only some of the selected forms when the target form group’s site settings exclude a form.
 - Fixed updating an existing form through an import moving it into a form group the user can’t manage forms in.

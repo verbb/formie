@@ -21,6 +21,19 @@ class DateDropdown extends Dropdown implements ChildFieldInterface
     // Public Methods
     // =========================================================================
 
+    public function getFieldOptions(): array
+    {
+        $options = parent::getFieldOptions();
+
+        // Without an empty choice, an untouched date part would submit its first option.
+        // The generated empty row is a legacy `disabled` row, so option resolution hides it.
+        if (!$this->placeholder) {
+            array_unshift($options, ['label' => '', 'value' => '']);
+        }
+
+        return $options;
+    }
+
     public function validateDateRange(ElementInterface $element): void
     {
         $value = $element->getFieldValue($this->valueKey());
