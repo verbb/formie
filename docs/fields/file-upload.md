@@ -55,7 +55,7 @@ File Upload stores references to uploaded Craft assets. In templates, exports, s
 
 Both display types submit the same asset ID payload. **Upload Manager (Advanced)** stages uploads immediately and writes asset IDs into hidden inputs as each file completes. **File Input (Simple)** uploads files during submission processing.
 
-While an **Upload Manager (Advanced)** field still has files uploading, client-side validation stops the form from submitting and asks the visitor to wait. With **Disable Submit Button Until Valid** enabled, the submit button stays disabled until those uploads finish. A failed upload no longer holds up the form.
+While an **Upload Manager (Advanced)** field still has files uploading, client-side validation stops the form from submitting and asks the visitor to wait. A file that failed to upload stops the form the same way, and asks the visitor to remove it, so the form isn't sent without it. With **Disable Submit Button Until Valid** enabled, the submit button stays disabled until those uploads finish and any failed files are removed. Client-rendered forms check the same things when the visitor submits.
 
 ### Asset Retention
 

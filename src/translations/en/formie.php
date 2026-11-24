@@ -552,6 +552,7 @@ return [
   'Choose the Zoho module that owns the field.' => 'Choose the Zoho module that owns the field.',
   'Choose up to {files} files.' => 'Choose up to {files} files.',
   'Wait for {label} to finish uploading.' => 'Wait for {label} to finish uploading.',
+  'Remove the files that failed to upload from {label}.' => 'Remove the files that failed to upload from {label}.',
   'Choose when integrations should run again after the initial submission. Integration conditions still apply.' => 'Choose when integrations should run again after the initial submission. Integration conditions still apply.',
   'Choose whether the limit applies to all submissions for this form, each IP address, or each logged-in user. When limiting all submissions, the form closes once the limit is reached.' => 'Choose whether the limit applies to all submissions for this form, each IP address, or each logged-in user. When limiting all submissions, the form closes once the limit is reached.',
   'Choose whether the progress bar should reflect completed progress or current page position.' => 'Choose whether the progress bar should reflect completed progress or current page position.',

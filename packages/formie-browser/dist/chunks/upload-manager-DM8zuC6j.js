@@ -4,18 +4,19 @@ import { a as r, r as i } from "./event-names-BCI2FLD8.js";
 import { t as a } from "./debug-rhzqP1j2.js";
 import { n as o, r as s, t as c } from "./csrf-DxHg_ZYt.js";
 import { n as l } from "./http-8DCiu7P8.js";
-import { t as u } from "./field-references.keys-58ZSTrCW.js";
-import { t as d } from "./styles-CBQ_fQem.js";
-import { l as f, n as p, u as m } from "./shared-CJ1LIEh3.js";
+import { i as u } from "./i18n-BY1ds1BL.js";
+import { t as d } from "./field-references.keys-58ZSTrCW.js";
+import { t as f } from "./styles-CBQ_fQem.js";
+import { l as p, n as m, u as h } from "./shared-CJ1LIEh3.js";
 //#region ../../node_modules/@uppy/utils/lib/NetworkError.js
-var h = class extends Error {
+var g = class extends Error {
 	cause;
 	isNetworkError;
 	request;
 	constructor(e, t = null) {
 		super("This looks like a network error, the endpoint might be blocked by an internet provider or a firewall."), this.cause = e, this.isNetworkError = !0, this.request = t;
 	}
-}, g = class {
+}, _ = class {
 	#e;
 	#t = !1;
 	#n;
@@ -29,51 +30,51 @@ var h = class extends Error {
 	done() {
 		this.#t ||= (clearTimeout(this.#e), this.#e = void 0, !0);
 	}
-}, _ = () => {};
-function v(e, t = {}) {
-	let { body: n = null, headers: r = {}, method: i = "GET", onBeforeRequest: a = _, onUploadProgress: o = _, shouldRetry: s = () => !0, onAfterResponse: c = _, onTimeout: l = _, responseType: u, retries: d = 3, signal: f = null, timeout: p = 3e4, withCredentials: m = !1 } = t, v = (e) => .3 * 2 ** (e - 1) * 1e3, y = new g(p, l);
+}, v = () => {};
+function y(e, t = {}) {
+	let { body: n = null, headers: r = {}, method: i = "GET", onBeforeRequest: a = v, onUploadProgress: o = v, shouldRetry: s = () => !0, onAfterResponse: c = v, onTimeout: l = v, responseType: u, retries: d = 3, signal: f = null, timeout: p = 3e4, withCredentials: m = !1 } = t, h = (e) => .3 * 2 ** (e - 1) * 1e3, y = new _(p, l);
 	function b(t = 0) {
 		return new Promise(async (l, p) => {
-			let g = new XMLHttpRequest(), _ = (e) => {
-				s(g) && t < d ? setTimeout(() => {
+			let _ = new XMLHttpRequest(), v = (e) => {
+				s(_) && t < d ? setTimeout(() => {
 					b(t + 1).then(l, p);
-				}, v(t)) : (y.done(), p(e));
+				}, h(t)) : (y.done(), p(e));
 			};
-			g.open(i, e, !0), g.withCredentials = m, u && (g.responseType = u), g.onload = async () => {
+			_.open(i, e, !0), _.withCredentials = m, u && (_.responseType = u), _.onload = async () => {
 				try {
-					await c(g, t);
+					await c(_, t);
 				} catch (e) {
-					e.request = g, _(e);
+					e.request = _, v(e);
 					return;
 				}
-				g.status >= 200 && g.status < 300 ? (y.done(), l(g)) : s(g) && t < d ? setTimeout(() => {
+				_.status >= 200 && _.status < 300 ? (y.done(), l(_)) : s(_) && t < d ? setTimeout(() => {
 					b(t + 1).then(l, p);
-				}, v(t)) : (y.done(), p(new h(g.statusText, g)));
-			}, g.onerror = () => _(new h(g.statusText, g)), g.upload.onprogress = (e) => {
+				}, h(t)) : (y.done(), p(new g(_.statusText, _)));
+			}, _.onerror = () => v(new g(_.statusText, _)), _.upload.onprogress = (e) => {
 				y.progress(), o(e);
 			}, r && Object.keys(r).forEach((e) => {
-				g.setRequestHeader(e, r[e]);
+				_.setRequestHeader(e, r[e]);
 			});
 			function x() {
-				g.abort(), p(new DOMException("Aborted", "AbortError"));
+				_.abort(), p(new DOMException("Aborted", "AbortError"));
 			}
-			f?.addEventListener("abort", x), f?.aborted ? x() : (await a(g, t), g.send(n));
+			f?.addEventListener("abort", x), f?.aborted ? x() : (await a(_, t), _.send(n));
 		});
 	}
 	return b();
 }
 //#endregion
 //#region ../../node_modules/@uppy/utils/lib/fileFilters.js
-var y = (e) => "error" in e && !!e.error, b = (e) => e.progress.uploadComplete;
-function x(e) {
-	return e.filter((e) => !y(e) && !b(e));
-}
+var b = (e) => "error" in e && !!e.error, x = (e) => e.progress.uploadComplete;
 function S(e) {
+	return e.filter((e) => !b(e) && !x(e));
+}
+function C(e) {
 	return e.filter((e) => !e.progress?.uploadStarted || !e.isRestored);
 }
 //#endregion
 //#region ../../node_modules/@uppy/utils/lib/getFileNameAndExtension.js
-function C(e) {
+function w(e) {
 	let t = e.lastIndexOf(".");
 	return t === -1 || t === e.length - 1 ? {
 		name: e,
@@ -85,7 +86,7 @@ function C(e) {
 }
 //#endregion
 //#region ../../node_modules/@uppy/utils/lib/mimeTypes.js
-var w = {
+var T = {
 	__proto__: null,
 	md: "text/markdown",
 	markdown: "text/markdown",
@@ -142,25 +143,25 @@ var w = {
 };
 //#endregion
 //#region ../../node_modules/@uppy/utils/lib/getFileType.js
-function T(e) {
+function E(e) {
 	if (e.type) return e.type;
-	let t = e.name ? C(e.name).extension?.toLowerCase() : null;
-	return t && t in w ? w[t] : "application/octet-stream";
+	let t = e.name ? w(e.name).extension?.toLowerCase() : null;
+	return t && t in T ? T[t] : "application/octet-stream";
 }
 //#endregion
 //#region ../../node_modules/@uppy/utils/lib/generateFileID.js
-function E(e) {
+function D(e) {
 	return e.charCodeAt(0).toString(32);
 }
-function D(e) {
+function O(e) {
 	let t = "";
-	return e.replace(/[^A-Z0-9]/gi, (e) => (t += `-${E(e)}`, "/")) + t;
+	return e.replace(/[^A-Z0-9]/gi, (e) => (t += `-${D(e)}`, "/")) + t;
 }
-function O(e, t) {
+function ee(e, t) {
 	let n = t || "uppy";
-	return typeof e.name == "string" && (n += `-${D(e.name.toLowerCase())}`), e.type !== void 0 && (n += `-${e.type}`), e.meta && typeof e.meta.relativePath == "string" && (n += `-${D(e.meta.relativePath.toLowerCase())}`), e.data?.size !== void 0 && (n += `-${e.data.size}`), e.data.lastModified !== void 0 && (n += `-${e.data.lastModified}`), n;
+	return typeof e.name == "string" && (n += `-${O(e.name.toLowerCase())}`), e.type !== void 0 && (n += `-${e.type}`), e.meta && typeof e.meta.relativePath == "string" && (n += `-${O(e.meta.relativePath.toLowerCase())}`), e.data?.size !== void 0 && (n += `-${e.data.size}`), e.data.lastModified !== void 0 && (n += `-${e.data.lastModified}`), n;
 }
-function ee(e) {
+function k(e) {
 	return !e.isRemote || !e.remote ? !1 : (/* @__PURE__ */ new Set([
 		"box",
 		"dropbox",
@@ -169,27 +170,27 @@ function ee(e) {
 		"unsplash"
 	])).has(e.remote.provider);
 }
-function k(e, t) {
-	if (ee(e)) return e.id;
-	let n = T(e);
-	return O({
+function A(e, t) {
+	if (k(e)) return e.id;
+	let n = E(e);
+	return ee({
 		...e,
 		type: n
 	}, t);
 }
 //#endregion
 //#region ../../node_modules/@uppy/utils/lib/getAllowedMetaFields.js
-function A(e, t) {
+function j(e, t) {
 	return e === !0 ? Object.keys(t) : Array.isArray(e) ? e : [];
 }
 //#endregion
 //#region ../../node_modules/@uppy/utils/lib/getTimeStamp.js
-function j(e) {
+function M(e) {
 	return e < 10 ? `0${e}` : e.toString();
 }
-function M() {
+function N() {
 	let e = /* @__PURE__ */ new Date();
-	return `${j(e.getHours())}:${j(e.getMinutes())}:${j(e.getSeconds())}`;
+	return `${M(e.getHours())}:${M(e.getMinutes())}:${M(e.getSeconds())}`;
 }
 //#endregion
 //#region ../../node_modules/@uppy/utils/lib/isNetworkError.js
@@ -198,7 +199,7 @@ function te(e) {
 }
 //#endregion
 //#region ../../node_modules/@uppy/utils/lib/TaskQueue.js
-var ne = class {
+var P = class {
 	#e = [];
 	#t = 0;
 	#n;
@@ -295,18 +296,18 @@ var ne = class {
 };
 //#endregion
 //#region ../../node_modules/@uppy/utils/lib/Translator.js
-function N(e, t, n) {
+function ne(e, t, n) {
 	let r = [];
 	return e.forEach((e) => typeof e == "string" ? t[Symbol.split](e).forEach((e, t, i) => {
 		e !== "" && r.push(e), t < i.length - 1 && r.push(n);
 	}) : r.push(e)), r;
 }
-function P(e, t) {
+function F(e, t) {
 	let n = /\$/g, r = [e];
 	if (t == null) return r;
 	for (let e of Object.keys(t)) if (e !== "_") {
 		let i = t[e];
-		typeof i == "string" && (i = n[Symbol.replace](i, "$$$$")), r = N(r, RegExp(`%\\{${e}\\}`, "g"), i);
+		typeof i == "string" && (i = n[Symbol.replace](i, "$$$$")), r = ne(r, RegExp(`%\\{${e}\\}`, "g"), i);
 	}
 	return r;
 }
@@ -342,12 +343,12 @@ var re = (e) => {
 		if (n ??= (this.#e(e), e), typeof n == "object") {
 			if (t && t.smart_count !== void 0) {
 				let e = this.locale.pluralize(t.smart_count);
-				return P(n[e], t);
+				return F(n[e], t);
 			}
 			throw Error("Attempted to use a string with plural forms, but no value was given for %{smart_count}");
 		}
 		if (typeof n != "string") throw Error("string was not a string");
-		return P(n, t);
+		return F(n, t);
 	}
 }, ae = class {
 	uppy;
@@ -396,7 +397,7 @@ var re = (e) => {
 	uninstall() {}
 	update(e) {}
 	afterUpdate() {}
-}, oe = class {
+}, I = class {
 	#e;
 	#t = [];
 	constructor(e) {
@@ -448,15 +449,15 @@ var re = (e) => {
 			this.#e.getFile(e) && t();
 		});
 	}
-}, F = {
+}, L = {
 	debug: () => {},
 	warn: () => {},
-	error: (...e) => console.error(`[Uppy] [${M()}]`, ...e)
-}, I = {
-	debug: (...e) => console.debug(`[Uppy] [${M()}]`, ...e),
-	warn: (...e) => console.warn(`[Uppy] [${M()}]`, ...e),
-	error: (...e) => console.error(`[Uppy] [${M()}]`, ...e)
-}, L = /* @__PURE__ */ t(((e, t) => {
+	error: (...e) => console.error(`[Uppy] [${N()}]`, ...e)
+}, oe = {
+	debug: (...e) => console.debug(`[Uppy] [${N()}]`, ...e),
+	warn: (...e) => console.warn(`[Uppy] [${N()}]`, ...e),
+	error: (...e) => console.error(`[Uppy] [${N()}]`, ...e)
+}, se = /* @__PURE__ */ t(((e, t) => {
 	t.exports = function(e) {
 		if (typeof e != "number" || Number.isNaN(e)) throw TypeError(`Expected a number, got ${typeof e}`);
 		let t = e < 0, n = Math.abs(e);
@@ -474,7 +475,7 @@ var re = (e) => {
 		], i = Math.min(Math.floor(Math.log(n) / Math.log(1024)), r.length - 1), a = Number(n / 1024 ** i), o = r[i];
 		return `${a >= 10 || a % 1 == 0 ? Math.round(a) : a.toFixed(1)} ${o}`;
 	};
-})), se = /* @__PURE__ */ t(((e, t) => {
+})), ce = /* @__PURE__ */ t(((e, t) => {
 	function n(e, t) {
 		this.text = e ||= "", this.hasWild = ~e.indexOf("*"), this.separator = t, this.parts = e.split(t);
 	}
@@ -494,8 +495,8 @@ var re = (e) => {
 		var i = new n(e, r || /[\/\.]/);
 		return t === void 0 ? i : i.match(t);
 	};
-})), ce = /* @__PURE__ */ t(((e, t) => {
-	var n = se(), r = /[\/\+\.]/;
+})), le = /* @__PURE__ */ t(((e, t) => {
+	var n = ce(), r = /[\/\+\.]/;
 	t.exports = function(e, t) {
 		function i(t) {
 			var i = n(t, e, r);
@@ -503,7 +504,7 @@ var re = (e) => {
 		}
 		return t ? i(t.split(";")[0]) : i;
 	};
-})), R = /* @__PURE__ */ e(L(), 1), le = /* @__PURE__ */ e(ce(), 1), ue = {
+})), R = /* @__PURE__ */ e(se(), 1), ue = /* @__PURE__ */ e(le(), 1), de = {
 	maxFileSize: null,
 	minFileSize: null,
 	maxTotalFileSize: null,
@@ -518,7 +519,7 @@ var re = (e) => {
 		super(e), this.isUserFacing = t?.isUserFacing ?? !0, t?.file && (this.file = t.file);
 	}
 	isRestriction = !0;
-}, de = class {
+}, fe = class {
 	getI18n;
 	getOpts;
 	constructor(e, t) {
@@ -541,7 +542,7 @@ var re = (e) => {
 	}
 	validateSingleFile(e) {
 		let { maxFileSize: t, minFileSize: n, allowedFileTypes: r } = this.getOpts().restrictions;
-		if (r && !r.some((t) => t.includes("/") ? e.type ? (0, le.default)(e.type.replace(/;.*?$/, ""), t) : !1 : t[0] === "." && e.extension ? e.extension.toLowerCase() === t.slice(1).toLowerCase() : !1)) {
+		if (r && !r.some((t) => t.includes("/") ? e.type ? (0, ue.default)(e.type.replace(/;.*?$/, ""), t) : !1 : t[0] === "." && e.extension ? e.extension.toLowerCase() === t.slice(1).toLowerCase() : !1)) {
 			let t = r.join(", ");
 			throw new z(this.getI18n()("youCanOnlyUploadFileTypes", { types: t }), { file: e });
 		}
@@ -568,7 +569,7 @@ var re = (e) => {
 			error: t
 		};
 	}
-}, fe = {
+}, pe = {
 	name: "@uppy/store-default",
 	description: "The default simple object-based store for Uppy.",
 	version: "5.0.0",
@@ -607,8 +608,8 @@ var re = (e) => {
 		"dist",
 		"CHANGELOG.md"
 	]
-}, pe = class {
-	static VERSION = fe.version;
+}, me = class {
+	static VERSION = pe.version;
 	state = {};
 	#e = /* @__PURE__ */ new Set();
 	getState() {
@@ -631,39 +632,39 @@ var re = (e) => {
 			t(...e);
 		});
 	}
-}, me = /* @__PURE__ */ t(((e, t) => {
+}, he = /* @__PURE__ */ t(((e, t) => {
 	function n(e) {
 		var t = typeof e;
 		return e != null && (t == "object" || t == "function");
 	}
 	t.exports = n;
-})), he = /* @__PURE__ */ t(((e, t) => {
-	t.exports = typeof global == "object" && global && global.Object === Object && global;
 })), ge = /* @__PURE__ */ t(((e, t) => {
-	var n = he(), r = typeof self == "object" && self && self.Object === Object && self;
-	t.exports = n || r || Function("return this")();
+	t.exports = typeof global == "object" && global && global.Object === Object && global;
 })), _e = /* @__PURE__ */ t(((e, t) => {
-	var n = ge();
+	var n = ge(), r = typeof self == "object" && self && self.Object === Object && self;
+	t.exports = n || r || Function("return this")();
+})), ve = /* @__PURE__ */ t(((e, t) => {
+	var n = _e();
 	t.exports = function() {
 		return n.Date.now();
 	};
-})), ve = /* @__PURE__ */ t(((e, t) => {
+})), ye = /* @__PURE__ */ t(((e, t) => {
 	var n = /\s/;
 	function r(e) {
 		for (var t = e.length; t-- && n.test(e.charAt(t)););
 		return t;
 	}
 	t.exports = r;
-})), ye = /* @__PURE__ */ t(((e, t) => {
-	var n = ve(), r = /^\s+/;
+})), be = /* @__PURE__ */ t(((e, t) => {
+	var n = ye(), r = /^\s+/;
 	function i(e) {
 		return e && e.slice(0, n(e) + 1).replace(r, "");
 	}
 	t.exports = i;
-})), be = /* @__PURE__ */ t(((e, t) => {
-	t.exports = ge().Symbol;
 })), xe = /* @__PURE__ */ t(((e, t) => {
-	var n = be(), r = Object.prototype, i = r.hasOwnProperty, a = r.toString, o = n ? n.toStringTag : void 0;
+	t.exports = _e().Symbol;
+})), Se = /* @__PURE__ */ t(((e, t) => {
+	var n = xe(), r = Object.prototype, i = r.hasOwnProperty, a = r.toString, o = n ? n.toStringTag : void 0;
 	function s(e) {
 		var t = i.call(e, o), n = e[o];
 		try {
@@ -674,31 +675,31 @@ var re = (e) => {
 		return r && (t ? e[o] = n : delete e[o]), s;
 	}
 	t.exports = s;
-})), Se = /* @__PURE__ */ t(((e, t) => {
+})), Ce = /* @__PURE__ */ t(((e, t) => {
 	var n = Object.prototype.toString;
 	function r(e) {
 		return n.call(e);
 	}
 	t.exports = r;
-})), Ce = /* @__PURE__ */ t(((e, t) => {
-	var n = be(), r = xe(), i = Se(), a = "[object Null]", o = "[object Undefined]", s = n ? n.toStringTag : void 0;
+})), we = /* @__PURE__ */ t(((e, t) => {
+	var n = xe(), r = Se(), i = Ce(), a = "[object Null]", o = "[object Undefined]", s = n ? n.toStringTag : void 0;
 	function c(e) {
 		return e == null ? e === void 0 ? o : a : s && s in Object(e) ? r(e) : i(e);
 	}
 	t.exports = c;
-})), we = /* @__PURE__ */ t(((e, t) => {
+})), Te = /* @__PURE__ */ t(((e, t) => {
 	function n(e) {
 		return typeof e == "object" && !!e;
 	}
 	t.exports = n;
-})), Te = /* @__PURE__ */ t(((e, t) => {
-	var n = Ce(), r = we(), i = "[object Symbol]";
+})), Ee = /* @__PURE__ */ t(((e, t) => {
+	var n = we(), r = Te(), i = "[object Symbol]";
 	function a(e) {
 		return typeof e == "symbol" || r(e) && n(e) == i;
 	}
 	t.exports = a;
-})), Ee = /* @__PURE__ */ t(((e, t) => {
-	var n = ye(), r = me(), i = Te(), a = NaN, o = /^[-+]0x[0-9a-f]+$/i, s = /^0b[01]+$/i, c = /^0o[0-7]+$/i, l = parseInt;
+})), De = /* @__PURE__ */ t(((e, t) => {
+	var n = be(), r = he(), i = Ee(), a = NaN, o = /^[-+]0x[0-9a-f]+$/i, s = /^0b[01]+$/i, c = /^0o[0-7]+$/i, l = parseInt;
 	function u(e) {
 		if (typeof e == "number") return e;
 		if (i(e)) return a;
@@ -712,8 +713,8 @@ var re = (e) => {
 		return u || c.test(e) ? l(e.slice(2), u ? 2 : 8) : o.test(e) ? a : +e;
 	}
 	t.exports = u;
-})), De = /* @__PURE__ */ t(((e, t) => {
-	var n = me(), r = _e(), i = Ee(), a = "Expected a function", o = Math.max, s = Math.min;
+})), Oe = /* @__PURE__ */ t(((e, t) => {
+	var n = he(), r = ve(), i = De(), a = "Expected a function", o = Math.max, s = Math.min;
 	function c(e, t, c) {
 		var l, u, d, f, p, m, h = 0, g = !1, _ = !1, v = !0;
 		if (typeof e != "function") throw TypeError(a);
@@ -758,8 +759,8 @@ var re = (e) => {
 		return D.cancel = T, D.flush = E, D;
 	}
 	t.exports = c;
-})), Oe = /* @__PURE__ */ t(((e, t) => {
-	var n = De(), r = me(), i = "Expected a function";
+})), ke = /* @__PURE__ */ t(((e, t) => {
+	var n = Oe(), r = he(), i = "Expected a function";
 	function a(e, t, a) {
 		var o = !0, s = !0;
 		if (typeof e != "function") throw TypeError(i);
@@ -770,7 +771,7 @@ var re = (e) => {
 		});
 	}
 	t.exports = a;
-})), ke = /* @__PURE__ */ t(((e, t) => {
+})), Ae = /* @__PURE__ */ t(((e, t) => {
 	t.exports = function() {
 		var e = {}, t = e._fns = {};
 		e.emit = function(e, t, i, a, o, s, c) {
@@ -810,11 +811,11 @@ var re = (e) => {
 		}
 		return e;
 	};
-})), Ae = "useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict", je = (e = 21) => {
+})), je = "useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict", Me = (e = 21) => {
 	let t = "", n = e | 0;
-	for (; n-- > 0;) t += Ae[Math.random() * 64 | 0];
+	for (; n-- > 0;) t += je[Math.random() * 64 | 0];
 	return t;
-}, Me = {
+}, Ne = {
 	name: "@uppy/core",
 	description: "Core module for the extensible JavaScript file upload widget with support for drag&drop, resumable uploads, previews, restrictions, file processing/encoding, remote providers like Instagram, Dropbox, Google Drive, S3 and more :dog:",
 	version: "5.2.0",
@@ -876,12 +877,12 @@ var re = (e) => {
 };
 //#endregion
 //#region ../../node_modules/@uppy/core/lib/getFileName.js
-function Ne(e, t) {
+function Pe(e, t) {
 	return t.name ? t.name : e.split("/")[0] === "image" ? `${e.split("/")[0]}.${e.split("/")[1]}` : "noname";
 }
 //#endregion
 //#region ../../node_modules/@uppy/core/lib/locale.js
-var Pe = { strings: {
+var Fe = { strings: {
 	addBulkFilesFailed: {
 		0: "Failed to add %{smart_count} file due to an internal error",
 		1: "Failed to add %{smart_count} files due to internal errors"
@@ -945,7 +946,7 @@ var Pe = { strings: {
 } };
 //#endregion
 //#region ../../node_modules/@uppy/core/lib/supportsUploadProgress.js
-function Fe(e) {
+function Ie(e) {
 	if (e == null && typeof navigator < "u" && (e = navigator.userAgent), !e) return !0;
 	let t = /Edge\/(\d+\.\d+)/.exec(e);
 	if (!t) return !0;
@@ -954,17 +955,17 @@ function Fe(e) {
 }
 //#endregion
 //#region ../../node_modules/@uppy/core/lib/Uppy.js
-var Ie = /* @__PURE__ */ e(Oe(), 1), Le = /* @__PURE__ */ e(ke(), 1), B = {
+var Le = /* @__PURE__ */ e(ke(), 1), Re = /* @__PURE__ */ e(Ae(), 1), B = {
 	totalProgress: 0,
 	allowNewUpload: !0,
 	error: null,
 	recoveredState: null
-}, Re = class e {
-	static VERSION = Me.version;
+}, ze = class e {
+	static VERSION = Ne.version;
 	#e = Object.create(null);
 	#t;
 	#n;
-	#r = (0, Le.default)();
+	#r = (0, Re.default)();
 	#i = /* @__PURE__ */ new Set();
 	#a = /* @__PURE__ */ new Set();
 	#o = /* @__PURE__ */ new Set();
@@ -977,18 +978,18 @@ var Ie = /* @__PURE__ */ e(Oe(), 1), Le = /* @__PURE__ */ e(ke(), 1), B = {
 	scheduledAutoProceed = null;
 	wasOffline = !1;
 	constructor(t) {
-		this.defaultLocale = Pe;
+		this.defaultLocale = Fe;
 		let n = {
 			id: "uppy",
 			autoProceed: !1,
 			allowMultipleUploadBatches: !0,
 			debug: !1,
-			restrictions: ue,
+			restrictions: de,
 			meta: {},
 			onBeforeFileAdded: (e, t) => !Object.hasOwn(t, e.id),
 			onBeforeUpload: (e) => e,
-			store: new pe(),
-			logger: F,
+			store: new me(),
+			logger: L,
 			infoTimeout: 5e3
 		}, r = {
 			...n,
@@ -1000,19 +1001,19 @@ var Ie = /* @__PURE__ */ e(Oe(), 1), Le = /* @__PURE__ */ e(ke(), 1), B = {
 				...n.restrictions,
 				...t?.restrictions
 			}
-		}, t?.logger && t.debug ? this.log("You are using a custom `logger`, but also set `debug: true`, which uses built-in logger to output logs to console. Ignoring `debug: true` and using your custom `logger`.", "warning") : t?.debug && (this.opts.logger = I), this.log(`Using Core v${e.VERSION}`), this.i18nInit(), this.store = this.opts.store, this.setState({
+		}, t?.logger && t.debug ? this.log("You are using a custom `logger`, but also set `debug: true`, which uses built-in logger to output logs to console. Ignoring `debug: true` and using your custom `logger`.", "warning") : t?.debug && (this.opts.logger = oe), this.log(`Using Core v${e.VERSION}`), this.i18nInit(), this.store = this.opts.store, this.setState({
 			...B,
 			plugins: {},
 			files: {},
 			currentUploads: {},
 			capabilities: {
-				uploadProgress: Fe(),
+				uploadProgress: Ie(),
 				individualCancellation: !0,
 				resumableUploads: !1
 			},
 			meta: { ...this.opts.meta },
 			info: []
-		}), this.#t = new de(() => this.opts, () => this.i18n), this.#n = this.store.subscribe((e, t, n) => {
+		}), this.#t = new fe(() => this.opts, () => this.i18n), this.#n = this.store.subscribe((e, t, n) => {
 			this.emit("state-update", e, t, n), this.updateAll(t);
 		}), this.opts.debug && typeof window < "u" && (window[this.opts.id] = this), this.#b();
 	}
@@ -1252,7 +1253,7 @@ var Ie = /* @__PURE__ */ e(Oe(), 1), Le = /* @__PURE__ */ e(ke(), 1), B = {
 			isRemote: !1,
 			source: void 0,
 			preview: void 0
-		} : e, n = T(t), r = Ne(n, t), i = C(r).extension, a = k(t, this.getID()), o = {
+		} : e, n = E(t), r = Pe(n, t), i = w(r).extension, a = A(t, this.getID()), o = {
 			...t.meta,
 			name: r,
 			type: n
@@ -1500,7 +1501,7 @@ var Ie = /* @__PURE__ */ e(Oe(), 1), Le = /* @__PURE__ */ e(ke(), 1), B = {
 		let e = this.#y(), t = null;
 		e != null && (t = Math.round(e * 100), t > 100 ? t = 100 : t < 0 && (t = 0)), this.emit("progress", t ?? 0), this.setState({ totalProgress: t ?? 0 });
 	}
-	#v = (0, Ie.default)(() => this.#_(), 500, {
+	#v = (0, Le.default)(() => this.#_(), 500, {
 		leading: !0,
 		trailing: !0
 	});
@@ -1697,7 +1698,7 @@ var Ie = /* @__PURE__ */ e(Oe(), 1), Le = /* @__PURE__ */ e(ke(), 1), B = {
 	#C(e, t = {}) {
 		let { forceAllowNewUpload: n = !1 } = t, { allowNewUpload: r, currentUploads: i } = this.getState();
 		if (!r && !n) throw Error("Cannot create a new upload: already uploading.");
-		let a = je();
+		let a = Me();
 		return this.emit("upload", a, this.getFilesByIds(e)), this.setState({
 			allowNewUpload: this.opts.allowMultipleUploadBatches !== !1 && this.opts.allowMultipleUploads !== !1,
 			currentUploads: {
@@ -1806,7 +1807,7 @@ var Ie = /* @__PURE__ */ e(Oe(), 1), Le = /* @__PURE__ */ e(ke(), 1), B = {
 			throw this.#s([e]), e;
 		}
 	}
-}, ze = {
+}, Be = {
 	name: "@uppy/xhr-upload",
 	description: "Plain and simple classic HTML multipart form uploads with Uppy, as well as uploads using the HTTP PUT method.",
 	version: "5.2.0",
@@ -1861,17 +1862,17 @@ var Ie = /* @__PURE__ */ e(Oe(), 1), Le = /* @__PURE__ */ e(ke(), 1), B = {
 		vitest: "^3.2.4"
 	},
 	peerDependencies: { "@uppy/core": "^5.2.0" }
-}, Be = { strings: { uploadStalled: "Upload has not made any progress for %{seconds} seconds. You may want to retry it." } };
+}, Ve = { strings: { uploadStalled: "Upload has not made any progress for %{seconds} seconds. You may want to retry it." } };
 //#endregion
 //#region ../../node_modules/@uppy/xhr-upload/lib/index.js
-function Ve(e, t) {
+function He(e, t) {
 	let n = t;
-	return n ||= /* @__PURE__ */ Error("Upload error"), typeof n == "string" && (n = Error(n)), n instanceof Error || (n = Object.assign(/* @__PURE__ */ Error("Upload error"), { data: n })), te(e) ? (n = new h(n, e), n) : (n.request = e, n);
+	return n ||= /* @__PURE__ */ Error("Upload error"), typeof n == "string" && (n = Error(n)), n instanceof Error || (n = Object.assign(/* @__PURE__ */ Error("Upload error"), { data: n })), te(e) ? (n = new g(n, e), n) : (n.request = e, n);
 }
-function He(e) {
+function Ue(e) {
 	return e.data.slice(0, e.data.size, e.meta.type);
 }
-var Ue = {
+var We = {
 	formData: !0,
 	fieldName: "file",
 	method: "post",
@@ -1882,22 +1883,22 @@ var Ue = {
 	limit: 5,
 	withCredentials: !1,
 	responseType: ""
-}, We = class extends ae {
-	static VERSION = ze.version;
+}, Ge = class extends ae {
+	static VERSION = Be.version;
 	#e;
 	#t;
 	uploaderEvents;
 	constructor(e, t) {
 		if (super(e, {
-			...Ue,
+			...We,
 			fieldName: t.bundle ? "files[]" : "file",
 			...t
-		}), this.type = "uploader", this.id = this.opts.id || "XHRUpload", this.defaultLocale = Be, this.i18nInit(), this.#t = new ne({ concurrency: this.opts.limit }), this.opts.bundle && !this.opts.formData) throw Error("`opts.formData` must be true when `opts.bundle` is enabled.");
+		}), this.type = "uploader", this.id = this.opts.id || "XHRUpload", this.defaultLocale = Ve, this.i18nInit(), this.#t = new P({ concurrency: this.opts.limit }), this.opts.bundle && !this.opts.formData) throw Error("`opts.formData` must be true when `opts.bundle` is enabled.");
 		if (this.opts.bundle && typeof this.opts.headers == "function") throw Error("`opts.headers` can not be a function when the `bundle: true` option is set.");
 		if (t?.allowedMetaFields === void 0 && "metaFields" in this.opts) throw Error("The `metaFields` option has been renamed to `allowedMetaFields`.");
 		this.uploaderEvents = Object.create(null), this.#e = (e) => async (t, n) => {
 			try {
-				let r = await v(t, {
+				let r = await y(t, {
 					...n,
 					onBeforeRequest: (t, n) => this.opts.onBeforeRequest?.(t, n, e),
 					shouldRetry: this.opts.shouldRetry,
@@ -1933,7 +1934,7 @@ var Ue = {
 			} catch (t) {
 				if (t.name === "AbortError") return;
 				let n = t.request;
-				for (let r of e) this.uppy.emit("upload-error", this.uppy.getFile(r.id), Ve(n, t), n);
+				for (let r of e) this.uppy.emit("upload-error", this.uppy.getFile(r.id), He(n, t), n);
 				throw t;
 			}
 		};
@@ -1948,7 +1949,7 @@ var Ue = {
 		return typeof n == "function" ? r.headers = n(e) : Object.assign(r.headers, this.opts.headers), t && Object.assign(r.headers, t.headers), e.xhrUpload && Object.assign(r.headers, e.xhrUpload.headers), r;
 	}
 	addMetadata(e, t, n) {
-		A(n.allowedMetaFields, t).forEach((n) => {
+		j(n.allowedMetaFields, t).forEach((n) => {
 			let r = t[n];
 			Array.isArray(r) ? r.forEach((t) => e.append(n, t)) : e.append(n, r);
 		});
@@ -1956,18 +1957,18 @@ var Ue = {
 	createFormDataUpload(e, t) {
 		let n = new FormData();
 		this.addMetadata(n, e.meta, t);
-		let r = He(e);
+		let r = Ue(e);
 		return e.name ? n.append(t.fieldName, r, e.meta.name) : n.append(t.fieldName, r), n;
 	}
 	createBundledUpload(e, t) {
 		let n = new FormData(), { meta: r } = this.uppy.getState();
 		return this.addMetadata(n, r, t), e.forEach((e) => {
-			let t = this.getOptions(e), r = He(e);
+			let t = this.getOptions(e), r = Ue(e);
 			e.name ? n.append(t.fieldName, r, e.name) : n.append(t.fieldName, r);
 		}), n;
 	}
 	async #n(e) {
-		let t = new oe(this.uppy), n = new AbortController();
+		let t = new I(this.uppy), n = new AbortController();
 		t.onFileRemove(e.id, () => n.abort()), t.onCancelAll(e.id, () => n.abort());
 		try {
 			await this.#t.add(async (t) => {
@@ -2011,7 +2012,7 @@ var Ue = {
 		}
 	}
 	#i(e) {
-		let t = this.getOptions(e), n = A(t.allowedMetaFields, e.meta);
+		let t = this.getOptions(e), n = j(t.allowedMetaFields, e.meta);
 		return {
 			...e.remote?.body,
 			protocol: "multipart",
@@ -2046,7 +2047,7 @@ var Ue = {
 			return;
 		}
 		this.opts.limit === 0 && this.uppy.log("[XHRUpload] When uploading multiple files at once, consider setting the `limit` option (to `10` for example), to limit the number of concurrent uploads, which helps prevent memory and network issues: https://uppy.io/docs/xhr-upload/#limit-0", "warning"), this.uppy.log("[XHRUpload] Uploading...");
-		let t = x(this.uppy.getFilesByIds(e)), n = S(t);
+		let t = S(this.uppy.getFilesByIds(e)), n = C(t);
 		if (this.uppy.emit("upload-start", n), this.opts.bundle) {
 			if (t.some((e) => e.isRemote)) throw Error("Can’t upload remote files when the `bundle: true` option is set");
 			if (typeof this.opts.headers == "function") throw TypeError("`headers` may not be a function when the `bundle: true` option is set");
@@ -2073,68 +2074,69 @@ var Ue = {
 		}
 		this.uppy.removeUploader(this.#o);
 	}
-}, Ge = "@layer formie-theme{.formie-upload-manager{gap:var(--formie-gap-field);flex-direction:column;display:flex}.formie-upload-manager-dropzone{justify-content:center;align-items:center;gap:var(--formie-space-2);padding:var(--formie-space-4);min-height:calc(var(--formie-control-height) * 3);border:var(--formie-border-width) dashed var(--formie-color-border-control);border-radius:var(--formie-radius-sm);background:var(--formie-color-surface-subtle);color:var(--formie-color-text);text-align:center;cursor:pointer;flex-direction:column;transition:border-color .15s,background-color .15s,box-shadow .15s;display:flex}.formie-upload-manager-dropzone:hover,.formie-upload-manager-dropzone.formie-upload-manager-dropzone-active{border-color:var(--formie-color-focus-ring);background:var(--formie-color-surface-muted)}.formie-upload-manager-dropzone:focus{outline:0}.formie-upload-manager-dropzone:focus-visible{box-shadow:0 0 0 var(--formie-focus-ring-width) var(--formie-color-focus-ring)}.formie-field-has-error .formie-upload-manager-dropzone{border-color:var(--formie-color-danger)}.formie-upload-manager-prompt{font-size:var(--formie-font-size-sm);color:var(--formie-color-text-muted);margin:0}.formie-upload-manager-list{gap:var(--formie-space-2);flex-direction:column;margin:0;padding:0;list-style:none;display:flex}.formie-upload-manager-item{align-items:center;gap:var(--formie-space-2);padding:var(--formie-space-2) var(--formie-space-3);border:var(--formie-border-width) solid var(--formie-color-border-control);border-radius:var(--formie-radius-sm);background:var(--formie-color-surface);grid-template-columns:minmax(0,1fr) minmax(6.5rem,8rem) auto;display:grid}.formie-upload-manager-item.is-error{border-color:var(--formie-color-danger)}.formie-upload-manager-item.is-complete .formie-upload-manager-progress{opacity:0;visibility:hidden;pointer-events:none}.formie-upload-manager-filename{text-overflow:ellipsis;white-space:nowrap;font-size:var(--formie-font-size-sm);overflow:hidden}.formie-upload-manager-progress{justify-content:center;gap:var(--formie-space-1);min-height:var(--formie-button-icon-button-size);opacity:1;visibility:visible;flex-direction:column;align-self:center;transition:opacity .2s,visibility .2s;display:flex}.formie-upload-manager-progress-track{border-radius:var(--formie-radius-full);background:var(--formie-color-surface-muted);height:.375rem;position:relative;overflow:hidden}.formie-upload-manager-progress-bar{border-radius:inherit;background:var(--formie-color-primary);width:0;height:100%;transition:width .18s ease-out,background-color .2s}.formie-upload-manager-item.is-upload-complete .formie-upload-manager-progress-bar{background:var(--formie-color-success,var(--formie-color-primary));width:100%!important}.formie-upload-manager-item.is-uploading:not(.is-upload-complete) .formie-upload-manager-progress-track[data-indeterminate=true] .formie-upload-manager-progress-bar,.formie-upload-manager-item.is-preparing .formie-upload-manager-progress-bar,.formie-upload-manager-item.is-processing .formie-upload-manager-progress-bar{width:35%;animation:1.1s ease-in-out infinite formie-upload-manager-progress-indeterminate}.formie-upload-manager-item.is-processing .formie-upload-manager-progress-bar{opacity:.85}.formie-upload-manager-item.is-processing .formie-upload-manager-progress-label{color:var(--formie-color-text)}@keyframes formie-upload-manager-progress-indeterminate{0%{transform:translate(-120%)}to{transform:translate(320%)}}.formie-upload-manager-progress-label{font-size:var(--formie-font-size-xs);color:var(--formie-color-text-muted);text-align:center;white-space:nowrap;line-height:1.2}.formie-upload-manager-item.is-upload-complete .formie-upload-manager-progress-label{color:var(--formie-color-success-dark,var(--formie-color-primary));font-weight:var(--formie-font-weight-medium)}.formie-upload-manager-error{font-size:var(--formie-font-size-xs);color:var(--formie-color-danger);grid-column:1/-1}.formie-upload-manager-browse-button{margin-top:var(--formie-space-1)}.formie-upload-manager-actions{align-items:center;gap:var(--formie-space-2);flex-shrink:0;align-self:center;display:flex}.formie-upload-manager-sort-controls{border-radius:var(--formie-radius-sm);background:0 0;flex-direction:row;align-items:center;gap:.0625rem;padding:0;display:inline-flex}.formie-upload-manager-sort-controls[hidden]{display:none}.formie-upload-manager-sort-button,.formie-upload-manager-action-button{border-radius:var(--formie-radius-sm);width:1.375rem;height:1.375rem;color:var(--formie-color-text-muted);cursor:pointer;text-indent:-9999px;white-space:nowrap;background:0 0;border:0;justify-content:center;align-items:center;padding:0;font-size:0;line-height:0;transition:background-color .15s,color .15s,opacity .15s;display:inline-flex;position:relative;overflow:hidden}.formie-upload-manager-sort-button{width:1.375rem;height:1.375rem}.formie-upload-manager-sort-button:hover:not(:disabled),.formie-upload-manager-action-button:hover{background:var(--formie-color-surface-muted);color:var(--formie-color-text)}.formie-upload-manager-sort-button:focus-visible,.formie-upload-manager-action-button:focus-visible{box-shadow:0 0 0 var(--formie-focus-ring-width) var(--formie-color-focus-ring);outline:0}.formie-upload-manager-sort-button:disabled{opacity:.28;cursor:not-allowed}.formie-upload-manager-sort-button:after,.formie-upload-manager-action-button:after{content:\"\";background-color:currentColor;display:block;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);-webkit-mask-position:50%;mask-position:50%;-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}.formie-upload-manager-sort-button[data-formie-icon=arrow-up]{--formie-upload-manager-icon-mask:var(--formie-icon-mask-arrow-up)}.formie-upload-manager-sort-button[data-formie-icon=arrow-down]{--formie-upload-manager-icon-mask:var(--formie-icon-mask-arrow-down)}.formie-upload-manager-action-button[data-formie-icon=close]{--formie-upload-manager-icon-mask:var(--formie-icon-mask-close)}.formie-upload-manager-sort-button:after{width:.75rem;height:.75rem;-webkit-mask-image:var(--formie-upload-manager-icon-mask);-webkit-mask-image:var(--formie-upload-manager-icon-mask);mask-image:var(--formie-upload-manager-icon-mask)}.formie-upload-manager-action-button:after{width:.825rem;height:.825rem;-webkit-mask-image:var(--formie-upload-manager-icon-mask);-webkit-mask-image:var(--formie-upload-manager-icon-mask);mask-image:var(--formie-upload-manager-icon-mask)}.formie-upload-manager-remove-button{flex-shrink:0}}", V = "[data-formie-upload-manager-root]", Ke = "[data-formie-upload-manager]", qe = "[data-formie-upload-manager-browse]", Je = "[data-formie-upload-manager-input]", H = "[data-formie-upload-manager-status]", Ye = "[data-formie-upload-manager-list]", Xe = "[data-formie-upload-manager-sort-controls]", Ze = "[data-formie-upload-manager-sort=\"up\"]", Qe = "[data-formie-upload-manager-sort=\"down\"]", U = "data-formie-file-upload-anchor", W = "data-formie-file-upload-asset-id", $e = "data-formie-file-upload-token", et = "data-formie-file-upload-entry", G = "data-formie-upload-manager-pending", tt = r("reset"), nt = i("repeater", "init-row"), rt = "upload-manager", it = "upload-manager", at = [
+}, Ke = "@layer formie-theme{.formie-upload-manager{gap:var(--formie-gap-field);flex-direction:column;display:flex}.formie-upload-manager-dropzone{justify-content:center;align-items:center;gap:var(--formie-space-2);padding:var(--formie-space-4);min-height:calc(var(--formie-control-height) * 3);border:var(--formie-border-width) dashed var(--formie-color-border-control);border-radius:var(--formie-radius-sm);background:var(--formie-color-surface-subtle);color:var(--formie-color-text);text-align:center;cursor:pointer;flex-direction:column;transition:border-color .15s,background-color .15s,box-shadow .15s;display:flex}.formie-upload-manager-dropzone:hover,.formie-upload-manager-dropzone.formie-upload-manager-dropzone-active{border-color:var(--formie-color-focus-ring);background:var(--formie-color-surface-muted)}.formie-upload-manager-dropzone:focus{outline:0}.formie-upload-manager-dropzone:focus-visible{box-shadow:0 0 0 var(--formie-focus-ring-width) var(--formie-color-focus-ring)}.formie-field-has-error .formie-upload-manager-dropzone{border-color:var(--formie-color-danger)}.formie-upload-manager-prompt{font-size:var(--formie-font-size-sm);color:var(--formie-color-text-muted);margin:0}.formie-upload-manager-list{gap:var(--formie-space-2);flex-direction:column;margin:0;padding:0;list-style:none;display:flex}.formie-upload-manager-item{align-items:center;gap:var(--formie-space-2);padding:var(--formie-space-2) var(--formie-space-3);border:var(--formie-border-width) solid var(--formie-color-border-control);border-radius:var(--formie-radius-sm);background:var(--formie-color-surface);grid-template-columns:minmax(0,1fr) minmax(6.5rem,8rem) auto;display:grid}.formie-upload-manager-item.is-error{border-color:var(--formie-color-danger)}.formie-upload-manager-item.is-complete .formie-upload-manager-progress{opacity:0;visibility:hidden;pointer-events:none}.formie-upload-manager-filename{text-overflow:ellipsis;white-space:nowrap;font-size:var(--formie-font-size-sm);overflow:hidden}.formie-upload-manager-progress{justify-content:center;gap:var(--formie-space-1);min-height:var(--formie-button-icon-button-size);opacity:1;visibility:visible;flex-direction:column;align-self:center;transition:opacity .2s,visibility .2s;display:flex}.formie-upload-manager-progress-track{border-radius:var(--formie-radius-full);background:var(--formie-color-surface-muted);height:.375rem;position:relative;overflow:hidden}.formie-upload-manager-progress-bar{border-radius:inherit;background:var(--formie-color-primary);width:0;height:100%;transition:width .18s ease-out,background-color .2s}.formie-upload-manager-item.is-upload-complete .formie-upload-manager-progress-bar{background:var(--formie-color-success,var(--formie-color-primary));width:100%!important}.formie-upload-manager-item.is-uploading:not(.is-upload-complete) .formie-upload-manager-progress-track[data-indeterminate=true] .formie-upload-manager-progress-bar,.formie-upload-manager-item.is-preparing .formie-upload-manager-progress-bar,.formie-upload-manager-item.is-processing .formie-upload-manager-progress-bar{width:35%;animation:1.1s ease-in-out infinite formie-upload-manager-progress-indeterminate}.formie-upload-manager-item.is-processing .formie-upload-manager-progress-bar{opacity:.85}.formie-upload-manager-item.is-processing .formie-upload-manager-progress-label{color:var(--formie-color-text)}@keyframes formie-upload-manager-progress-indeterminate{0%{transform:translate(-120%)}to{transform:translate(320%)}}.formie-upload-manager-progress-label{font-size:var(--formie-font-size-xs);color:var(--formie-color-text-muted);text-align:center;white-space:nowrap;line-height:1.2}.formie-upload-manager-item.is-upload-complete .formie-upload-manager-progress-label{color:var(--formie-color-success-dark,var(--formie-color-primary));font-weight:var(--formie-font-weight-medium)}.formie-upload-manager-error{font-size:var(--formie-font-size-xs);color:var(--formie-color-danger);grid-column:1/-1}.formie-upload-manager-browse-button{margin-top:var(--formie-space-1)}.formie-upload-manager-actions{align-items:center;gap:var(--formie-space-2);flex-shrink:0;align-self:center;display:flex}.formie-upload-manager-sort-controls{border-radius:var(--formie-radius-sm);background:0 0;flex-direction:row;align-items:center;gap:.0625rem;padding:0;display:inline-flex}.formie-upload-manager-sort-controls[hidden]{display:none}.formie-upload-manager-sort-button,.formie-upload-manager-action-button{border-radius:var(--formie-radius-sm);width:1.375rem;height:1.375rem;color:var(--formie-color-text-muted);cursor:pointer;text-indent:-9999px;white-space:nowrap;background:0 0;border:0;justify-content:center;align-items:center;padding:0;font-size:0;line-height:0;transition:background-color .15s,color .15s,opacity .15s;display:inline-flex;position:relative;overflow:hidden}.formie-upload-manager-sort-button{width:1.375rem;height:1.375rem}.formie-upload-manager-sort-button:hover:not(:disabled),.formie-upload-manager-action-button:hover{background:var(--formie-color-surface-muted);color:var(--formie-color-text)}.formie-upload-manager-sort-button:focus-visible,.formie-upload-manager-action-button:focus-visible{box-shadow:0 0 0 var(--formie-focus-ring-width) var(--formie-color-focus-ring);outline:0}.formie-upload-manager-sort-button:disabled{opacity:.28;cursor:not-allowed}.formie-upload-manager-sort-button:after,.formie-upload-manager-action-button:after{content:\"\";background-color:currentColor;display:block;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);-webkit-mask-position:50%;mask-position:50%;-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}.formie-upload-manager-sort-button[data-formie-icon=arrow-up]{--formie-upload-manager-icon-mask:var(--formie-icon-mask-arrow-up)}.formie-upload-manager-sort-button[data-formie-icon=arrow-down]{--formie-upload-manager-icon-mask:var(--formie-icon-mask-arrow-down)}.formie-upload-manager-action-button[data-formie-icon=close]{--formie-upload-manager-icon-mask:var(--formie-icon-mask-close)}.formie-upload-manager-sort-button:after{width:.75rem;height:.75rem;-webkit-mask-image:var(--formie-upload-manager-icon-mask);-webkit-mask-image:var(--formie-upload-manager-icon-mask);mask-image:var(--formie-upload-manager-icon-mask)}.formie-upload-manager-action-button:after{width:.825rem;height:.825rem;-webkit-mask-image:var(--formie-upload-manager-icon-mask);-webkit-mask-image:var(--formie-upload-manager-icon-mask);mask-image:var(--formie-upload-manager-icon-mask)}.formie-upload-manager-remove-button{flex-shrink:0}}", V = "[data-formie-upload-manager-root]", qe = "[data-formie-upload-manager]", Je = "[data-formie-upload-manager-browse]", Ye = "[data-formie-upload-manager-input]", H = "[data-formie-upload-manager-status]", Xe = "[data-formie-upload-manager-list]", Ze = "[data-formie-upload-manager-sort-controls]", Qe = "[data-formie-upload-manager-sort=\"up\"]", $e = "[data-formie-upload-manager-sort=\"down\"]", U = "data-formie-file-upload-anchor", W = "data-formie-file-upload-asset-id", et = "data-formie-file-upload-token", tt = "data-formie-file-upload-entry", G = "data-formie-upload-manager-pending", K = "data-formie-upload-manager-failed", nt = r("reset"), rt = i("repeater", "init-row"), it = "upload-manager", at = "upload-manager", ot = [
 	"uploadManagerPending",
+	"uploadManagerFailed",
 	"uploadManagerRequired",
 	"uploadManagerFileLimit"
-], ot = 900, st = 95, ct = 12e4, K = a("fields", "upload-manager");
-d(rt, [Ge]);
-function lt(e) {
+], st = "Wait for {label} to finish uploading.", ct = "Remove the files that failed to upload from {label}.", lt = 900, ut = 95, dt = 12e4, q = a("fields", "upload-manager");
+f(it, [Ke]);
+function ft(e) {
 	return !!e && typeof e == "object" && !Array.isArray(e);
 }
-function q(e) {
+function J(e) {
 	let t = Number(e);
 	return Number.isInteger(t) && t > 0 ? t : null;
 }
-function J(e) {
+function Y(e) {
 	return typeof e == "string" ? e.trim() : "";
 }
-function ut(e) {
+function pt(e) {
 	return e.querySelector("[data-formie-upload-field-handle]")?.getAttribute("data-formie-upload-field-handle")?.trim() || e.getAttribute("data-formie-field-handle")?.trim() || "";
 }
-function dt(e) {
+function mt(e) {
 	if (!e) return "";
 	let t = e.querySelector("input[name=\"handle\"]");
 	return t instanceof HTMLInputElement && t.value.trim() ? t.value.trim() : e.getAttribute("data-formie-handle")?.trim() || "";
 }
-function Y(e) {
+function X(e) {
 	return Array.from(e.querySelectorAll("input[type=\"hidden\"]")).filter((e) => e instanceof HTMLInputElement);
 }
-function ft(e, t) {
-	let n = Y(e).find((e) => e.hasAttribute(U) || e.name === t.replace("[]", "") && e.value === "");
+function ht(e, t) {
+	let n = X(e).find((e) => e.hasAttribute(U) || e.name === t.replace("[]", "") && e.value === "");
 	if (n) return n.setAttribute(U, "true"), n;
 	let r = document.createElement("input");
 	return r.type = "hidden", r.name = t.replace("[]", ""), r.value = "", r.setAttribute(U, "true"), e.prepend(r), r;
 }
-function pt(e, t) {
-	return Y(e).filter((e) => e.hasAttribute(W) || e.name === t && e.value.trim() !== "");
+function gt(e, t) {
+	return X(e).filter((e) => e.hasAttribute(W) || e.name === t && e.value.trim() !== "");
 }
-function mt(e, t) {
-	return pt(e, t).map((e) => q(e.getAttribute(W)) ?? q(e.value)).filter((e) => e !== null);
+function _t(e, t) {
+	return gt(e, t).map((e) => J(e.getAttribute(W)) ?? J(e.value)).filter((e) => e !== null);
 }
-function ht(e, t) {
+function vt(e, t) {
 	let n = {};
-	return pt(e, t).forEach((e) => {
-		let t = q(e.getAttribute(W)) ?? q(e.value), r = e.getAttribute($e)?.trim() || "";
+	return gt(e, t).forEach((e) => {
+		let t = J(e.getAttribute(W)) ?? J(e.value), r = e.getAttribute(et)?.trim() || "";
 		t && r && (n[t] = r);
 	}), n;
 }
-function gt(e, t, n, r) {
+function yt(e, t, n, r) {
 	let i = t, a = n.endsWith("[]") ? n.slice(0, -2) : n;
-	Y(e).filter((e) => e.hasAttribute(et) || e.name === n && e.value.trim() !== "").forEach((e) => {
+	X(e).filter((e) => e.hasAttribute(tt) || e.name === n && e.value.trim() !== "").forEach((e) => {
 		e.remove();
 	}), r.forEach(({ assetId: e, uploadToken: t, uploadUid: n, attachToken: r }, o) => {
 		let s = document.createElement("input");
-		if (s.type = "hidden", s.setAttribute(et, "true"), s.setAttribute(W, String(e)), n && r ? (s.name = `${a}[${o}][uploadUid]`, s.value = n) : (s.name = `${a}[${o}][assetId]`, s.value = String(e)), t && s.setAttribute($e, t), i.insertAdjacentElement("afterend", s), i = s, n && r) {
+		if (s.type = "hidden", s.setAttribute(tt, "true"), s.setAttribute(W, String(e)), n && r ? (s.name = `${a}[${o}][uploadUid]`, s.value = n) : (s.name = `${a}[${o}][assetId]`, s.value = String(e)), t && s.setAttribute(et, t), i.insertAdjacentElement("afterend", s), i = s, n && r) {
 			let e = document.createElement("input");
-			e.type = "hidden", e.name = `${a}[${o}][attachToken]`, e.value = r, e.setAttribute(et, "true"), i.insertAdjacentElement("afterend", e), i = e;
+			e.type = "hidden", e.name = `${a}[${o}][attachToken]`, e.value = r, e.setAttribute(tt, "true"), i.insertAdjacentElement("afterend", e), i = e;
 		}
 	});
 }
-function _t(e, t, n) {
+function bt(e, t, n) {
 	let r = n.getAttribute("data-formie-upload-key")?.trim() || n.getAttribute("data-formie-input-id")?.trim() || "", i = {
-		handle: dt(e),
-		fieldHandle: ut(t),
+		handle: mt(e),
+		fieldHandle: pt(t),
 		inputKey: r
 	};
 	return e && ([
@@ -2152,8 +2154,8 @@ function _t(e, t, n) {
 		n instanceof HTMLInputElement && n.value.trim() && (i[t] = n.value.trim());
 	}), o(i, e)), i;
 }
-function vt(e, t, n, r = {}) {
-	let i = new FormData(), a = dt(e), o = ut(t);
+function xt(e, t, n, r = {}) {
+	let i = new FormData(), a = mt(e), o = pt(t);
 	return a && i.append("handle", a), o && i.append("fieldHandle", o), [
 		"submissionUid",
 		"resumeToken",
@@ -2171,15 +2173,15 @@ function vt(e, t, n, r = {}) {
 		t && i.append(`uploadTokens[${e}]`, t);
 	}), c(i, e), i;
 }
-function yt(e) {
+function St(e) {
 	if (!e) return null;
 	let t = e.split(",").map((e) => e.trim()).filter(Boolean);
 	return t.length ? t : null;
 }
-function bt(e, t, n, r) {
+function Ct(e, t, n, r) {
 	return t?.trim() || e.getAttribute(n)?.trim() || r;
 }
-function X(e) {
+function Z(e) {
 	let t = e.querySelector("[data-formie-upload-manager-progress]");
 	if (!(t instanceof HTMLElement)) return {
 		track: null,
@@ -2193,28 +2195,28 @@ function X(e) {
 		label: i instanceof HTMLElement ? i : null
 	};
 }
-function Z(e, t, n = "uploading") {
-	let { track: r, bar: i, label: a } = X(e);
+function Q(e, t, n = "uploading") {
+	let { track: r, bar: i, label: a } = Z(e);
 	e.classList.add("is-uploading"), e.classList.remove("is-upload-complete", "is-complete", "is-processing", "is-preparing"), n === "processing" ? e.classList.add("is-processing") : n === "preparing" && e.classList.add("is-preparing"), r && r.setAttribute("data-indeterminate", "true"), i && (i.style.removeProperty("width"), i.setAttribute("data-progress", n)), a && (a.textContent = t);
 }
-function xt(e, t, n) {
-	let { track: r, bar: i, label: a } = X(e), o = Math.max(0, Math.min(st, Math.round(t)));
+function wt(e, t, n) {
+	let { track: r, bar: i, label: a } = Z(e), o = Math.max(0, Math.min(ut, Math.round(t)));
 	e.classList.add("is-uploading"), e.classList.remove("is-upload-complete", "is-complete", "is-processing", "is-preparing"), r && r.setAttribute("data-indeterminate", "false"), i && (i.style.width = `${o}%`, i.setAttribute("data-progress", String(o))), a && (a.textContent = n || (o > 0 ? `Uploading… ${o}%` : "Uploading…"));
 }
-function St(e, t, n = {}) {
+function Tt(e, t, n = {}) {
 	let { loaded: r = 0, total: i = 0 } = n;
 	if ((i > 0 ? r >= i : t >= 100) || t >= 100) {
-		Z(e, "Processing…", "processing");
+		Q(e, "Processing…", "processing");
 		return;
 	}
 	if (t <= 0 && r <= 0) {
-		Z(e, "Uploading…", "uploading");
+		Q(e, "Uploading…", "uploading");
 		return;
 	}
-	let a = Math.min(st, Math.max(1, Math.round(t)));
-	xt(e, a, `Uploading… ${a}%`);
+	let a = Math.min(ut, Math.max(1, Math.round(t)));
+	wt(e, a, `Uploading… ${a}%`);
 }
-function Ct(e, t) {
+function Et(e, t) {
 	if (e instanceof XMLHttpRequest && e.responseText) try {
 		let t = JSON.parse(e.responseText);
 		if (t.message) return t.message;
@@ -2225,24 +2227,24 @@ function Ct(e, t) {
 	} catch {}
 	return t instanceof Error && t.message ? t.message : "Upload failed.";
 }
-function wt(e) {
+function Dt(e) {
 	return e.status === 0 || e.status >= 500;
 }
-function Tt(e) {
-	let { track: t, bar: n, label: r } = X(e);
+function Ot(e) {
+	let { track: t, bar: n, label: r } = Z(e);
 	e.classList.add("is-uploading", "is-upload-complete"), e.classList.remove("is-complete", "is-processing", "is-preparing"), t && t.setAttribute("data-indeterminate", "false"), n && (n.style.width = "100%", n.setAttribute("data-progress", "100")), r && (r.textContent = "Complete"), window.setTimeout(() => {
 		e.classList.add("is-complete"), e.classList.remove("is-uploading", "is-upload-complete");
-	}, ot);
+	}, lt);
 }
-function Et(e) {
-	let { track: t, bar: n, label: r } = X(e);
+function kt(e) {
+	let { track: t, bar: n, label: r } = Z(e);
 	e.classList.add("is-error"), e.classList.remove("is-uploading", "is-upload-complete", "is-processing", "is-preparing"), t?.setAttribute("data-indeterminate", "false"), n?.setAttribute("data-progress", "error"), r && (r.textContent = "Upload failed");
 }
-function Dt(e) {
+function At(e) {
 	let t = e === "up" ? "Move file up" : "Move file down", n = document.createElement("button");
 	return n.type = "button", n.className = "formie-upload-manager-sort-button", n.setAttribute("data-formie-upload-manager-sort", e), n.setAttribute("data-formie-icon", e === "up" ? "arrow-up" : "arrow-down"), n.setAttribute("aria-label", t), n.setAttribute("title", t), n.textContent = t, n;
 }
-function Ot(e, t) {
+function jt(e, t) {
 	let n = document.createElement("li");
 	n.className = "formie-upload-manager-item", n.setAttribute("data-formie-upload-manager-item", "true");
 	let r = document.createElement("span");
@@ -2257,14 +2259,14 @@ function Ot(e, t) {
 	s.className = "formie-upload-manager-progress-label", s.setAttribute("data-formie-upload-manager-progress-label", "true"), s.textContent = "Preparing…", a.append(o), i.append(a, s);
 	let c = document.createElement("div");
 	c.className = "formie-upload-manager-sort-controls", c.setAttribute("data-formie-upload-manager-sort-controls", "true"), c.hidden = !0;
-	let l = Dt("up"), u = Dt("down");
+	let l = At("up"), u = At("down");
 	c.append(l, u);
 	let d = document.createElement("div");
 	d.className = "formie-upload-manager-actions", d.setAttribute("data-formie-upload-manager-actions", "true");
 	let f = document.createElement("button");
 	f.type = "button", f.className = "formie-upload-manager-action-button formie-upload-manager-remove-button", f.setAttribute("data-formie-upload-manager-remove", "true"), f.setAttribute("aria-label", "Remove file"), f.setAttribute("title", "Remove file"), f.setAttribute("data-formie-icon", "close"), f.textContent = "Remove", d.append(c, f);
 	let p = document.createElement("span");
-	return p.className = "formie-upload-manager-error", p.setAttribute("data-formie-upload-manager-error", "true"), p.hidden = !0, n.append(r, i, d, p), Z(n, "Preparing…", "preparing"), {
+	return p.className = "formie-upload-manager-error", p.setAttribute("data-formie-upload-manager-error", "true"), p.hidden = !0, n.append(r, i, d, p), Q(n, "Preparing…", "preparing"), {
 		listItem: n,
 		filenameEl: r,
 		errorEl: p,
@@ -2273,23 +2275,26 @@ function Ot(e, t) {
 		sortDownButton: u
 	};
 }
-function kt(e) {
-	let t = Y(e).find((e) => e.hasAttribute(U));
+function Mt(e) {
+	let t = X(e).find((e) => e.hasAttribute(U));
 	if (t?.name) return t.name.endsWith("[]") ? t.name : `${t.name}[]`;
-	let n = ut(e), r = n ? u(n) : "";
+	let n = pt(e), r = n ? d(n) : "";
 	return r ? `${r}[]` : "fields[fileUpload][]";
 }
-function At(e) {
+function Nt(e) {
 	return e.files.filter((e) => e.assetId !== null).length;
 }
-function jt(e) {
+function Pt(e) {
 	return e.files.some((e) => e.assetId === null && !e.listItem.classList.contains("is-error"));
 }
-function Q(e) {
+function Ft(e) {
+	return e.files.some((e) => e.assetId === null && e.listItem.classList.contains("is-error"));
+}
+function It(e) {
 	let { statusInput: t } = e;
 	if (!t) return;
-	let n = jt(e), r = n ? "uploading" : At(e) ? "uploaded" : "";
-	(t.value !== r || t.hasAttribute(G) !== n) && (t.value = r, t.toggleAttribute(G, n), t.dispatchEvent(new Event("input", { bubbles: !0 })));
+	let n = Pt(e), r = Ft(e), i = n ? "uploading" : Nt(e) ? "uploaded" : "";
+	(t.value !== i || t.hasAttribute(G) !== n || t.hasAttribute(K) !== r) && (t.value = i, t.toggleAttribute(G, n), t.toggleAttribute(K, r), t.dispatchEvent(new Event("input", { bubbles: !0 })));
 }
 function $(e) {
 	let t = e.files.filter((e) => e.assetId !== null).map((e) => ({
@@ -2299,49 +2304,60 @@ function $(e) {
 		attachToken: e.attachToken,
 		filename: e.filename
 	}));
-	gt(e.field, e.anchorInput, e.assetInputName, t), Q(e), p(e.field, "file-upload", "uploaded-assets-sync", { assets: t.map(({ assetId: e, filename: t }) => ({
+	yt(e.field, e.anchorInput, e.assetInputName, t), It(e), m(e.field, "file-upload", "uploaded-assets-sync", { assets: t.map(({ assetId: e, filename: t }) => ({
 		assetId: e,
 		filename: t
 	})) });
 }
-function Mt(e) {
-	m(e, it, (e) => {
-		e.addValidator("uploadManagerPending", ({ input: e }) => !e.matches(H) || !e.hasAttribute(G), ({ label: e, t }) => t("Wait for {label} to finish uploading.", { label: e })), e.addValidator("uploadManagerRequired", ({ input: e }) => {
-			if (!e.matches(H) || e.hasAttribute(G)) return !0;
+function Lt(e) {
+	h(e, at, (e) => {
+		e.addValidator("uploadManagerPending", ({ input: e }) => !e.matches(H) || !e.hasAttribute(G), ({ label: e, t }) => t(st, { label: e })), e.addValidator("uploadManagerFailed", ({ input: e }) => !e.matches(H) || e.hasAttribute(G) || !e.hasAttribute(K), ({ label: e, t }) => t(ct, { label: e })), e.addValidator("uploadManagerRequired", ({ input: e }) => {
+			if (!e.matches(H) || e.hasAttribute(G) || e.hasAttribute(K)) return !0;
 			let t = e.closest("[data-formie-field-handle]");
-			return !(t instanceof HTMLElement) || e.getAttribute("data-formie-validation-required") !== "true" || mt(t, kt(t)).length > 0;
+			return !(t instanceof HTMLElement) || e.getAttribute("data-formie-validation-required") !== "true" || _t(t, Mt(t)).length > 0;
 		}, ({ input: e, label: t, t: n }) => e.getAttribute("data-formie-required-message") ?? n("{label} cannot be blank.", { label: t })), e.addValidator("uploadManagerFileLimit", ({ input: e }) => {
 			if (!e.matches(H)) return !0;
 			let t = e.closest("[data-formie-field-handle]");
 			if (!(t instanceof HTMLElement)) return !0;
-			let n = t.querySelector(Ke);
+			let n = t.querySelector(qe);
 			if (!(n instanceof HTMLElement)) return !0;
 			let r = parseInt(n.getAttribute("data-formie-file-limit") || "", 10);
-			return !r || mt(t, kt(t)).length <= r;
+			return !r || _t(t, Mt(t)).length <= r;
 		}, ({ input: e, t }) => {
-			let n = e.closest("[data-formie-field-handle]")?.querySelector(Ke);
+			let n = e.closest("[data-formie-field-handle]")?.querySelector(qe);
 			return n?.getAttribute("data-formie-validation-max-files-message") ?? t("Choose up to {files} files.", { files: n?.getAttribute("data-formie-file-limit") || "" });
 		});
 	});
 }
-function Nt(e) {
-	f(e, it, at);
+function Rt(e) {
+	for (let t of Array.from(e.querySelectorAll(H))) {
+		let e = t.hasAttribute(G);
+		if (!e && !t.hasAttribute(K)) continue;
+		let n = t.closest("[data-formie-field-handle]");
+		if (n && n.getClientRects().length === 0) continue;
+		let r = n?.querySelector("[data-formie-field-label]") ?? n?.querySelector("label, legend"), i = r?.childNodes[0]?.textContent?.trim() || r?.textContent?.trim() || n?.getAttribute("data-formie-field-handle") || "";
+		return u(e ? st : ct, { label: i });
+	}
+	return null;
 }
-function Pt(e, t) {
+function zt(e) {
+	p(e, at, ot);
+}
+function Bt(e, t) {
 	if (e instanceof HTMLFormElement) return e;
 	let n = t.closest("form");
 	return n instanceof HTMLFormElement ? n : null;
 }
-function Ft(e, t, r) {
+function Vt(e, t, r) {
 	let i = e.querySelector(V);
 	if (!(i instanceof HTMLElement)) return () => {};
-	let a = i.querySelector(Ke);
+	let a = i.querySelector(qe);
 	if (!(a instanceof HTMLElement)) return () => {};
-	let o = i.querySelector(Je), c = i.querySelector(qe), u = i.querySelector(Ye), d = i.querySelector(H);
+	let o = i.querySelector(Ye), c = i.querySelector(Je), u = i.querySelector(Xe), d = i.querySelector(H);
 	if (!(o instanceof HTMLInputElement) || !(u instanceof HTMLElement)) return () => {};
-	let f = Pt(t, e), m = d instanceof HTMLInputElement ? d : null, h = kt(e), g = ft(e, h), _ = bt(a, r.uploadEndpoint, "data-formie-file-upload-upload-endpoint", "/actions/formie/file-upload/upload"), v = bt(a, r.deleteEndpoint, "data-formie-file-upload-delete-endpoint", "/actions/formie/file-upload/delete"), y = bt(a, r.hydrateEndpoint, "data-formie-file-upload-hydrate-endpoint", "/actions/formie/file-upload/hydrate"), b = r.maxFiles ?? q(a.getAttribute("data-formie-file-limit")), x = r.maxFileSize ?? parseFloat(a.getAttribute("data-formie-size-max-limit") || ""), S = r.minFileSize ?? parseFloat(a.getAttribute("data-formie-size-min-limit") || ""), C = yt(r.accept ?? a.getAttribute("accept") ?? o.accept), w = {}, T = {};
+	let f = Bt(t, e), p = d instanceof HTMLInputElement ? d : null, h = Mt(e), g = ht(e, h), _ = Ct(a, r.uploadEndpoint, "data-formie-file-upload-upload-endpoint", "/actions/formie/file-upload/upload"), v = Ct(a, r.deleteEndpoint, "data-formie-file-upload-delete-endpoint", "/actions/formie/file-upload/delete"), y = Ct(a, r.hydrateEndpoint, "data-formie-file-upload-hydrate-endpoint", "/actions/formie/file-upload/hydrate"), b = r.maxFiles ?? J(a.getAttribute("data-formie-file-limit")), x = r.maxFileSize ?? parseFloat(a.getAttribute("data-formie-size-max-limit") || ""), S = r.minFileSize ?? parseFloat(a.getAttribute("data-formie-size-min-limit") || ""), C = St(r.accept ?? a.getAttribute("accept") ?? o.accept), w = {}, T = {};
 	b && (w.maxNumberOfFiles = b), x && (w.maxFileSize = x * 1e3 * 1e3, T.exceedsSize = `%{file} exceeds maximum allowed size of ${x} MB`), S && (w.minFileSize = S * 1e3 * 1e3, T.inferiorSize = `This file is smaller than the allowed size of ${S} MB`), C && (w.allowedFileTypes = C);
-	let E = new Re({
+	let E = new ze({
 		autoProceed: !0,
 		restrictions: w,
 		locale: {
@@ -2356,13 +2372,13 @@ function Ft(e, t, r) {
 	let O = () => {
 		D.textContent = "", D.hidden = !0;
 	}, ee = s(f);
-	E.use(We, {
+	E.use(Ge, {
 		endpoint: _,
 		fieldName: "file",
 		formData: !0,
 		withCredentials: f?.dataset.formieRequestProfile !== "cross-origin-public",
-		timeout: ct,
-		shouldRetry: wt,
+		timeout: dt,
+		shouldRetry: Dt,
 		headers: { Accept: "application/json" },
 		allowedMetaFields: [
 			"handle",
@@ -2391,10 +2407,10 @@ function Ft(e, t, r) {
 			i && e.setRequestHeader("X-CSRF-Token", i.value);
 			let a = r[0];
 			a?.id && a.size && e.upload.addEventListener("progress", (e) => {
-				let t = F(a.id);
+				let t = I(a.id);
 				if (!t) return;
 				let n = 0;
-				e.lengthComputable && e.total > 0 ? n = Math.round(e.loaded / e.total * 100) : e.loaded > 0 && a.size && (n = Math.min(100, Math.round(e.loaded / a.size * 100))), St(t.listItem, n, {
+				e.lengthComputable && e.total > 0 ? n = Math.round(e.loaded / e.total * 100) : e.loaded > 0 && a.size && (n = Math.min(100, Math.round(e.loaded / a.size * 100))), Tt(t.listItem, n, {
 					loaded: e.loaded,
 					total: e.lengthComputable ? e.total : a.size ?? void 0
 				});
@@ -2405,41 +2421,41 @@ function Ft(e, t, r) {
 		field: e,
 		dropzone: a,
 		browseInput: o,
-		statusInput: m,
+		statusInput: p,
 		fileList: u,
 		anchorInput: g,
 		assetInputName: h,
 		uppy: E,
 		files: []
-	}, A = new AbortController(), j = 0, M = () => b ? Math.max(0, b - At(k)) : null, te = (e) => {
+	}, A = new AbortController(), j = 0, M = () => b ? Math.max(0, b - Nt(k)) : null, N = (e) => {
 		a.classList.toggle("formie-upload-manager-dropzone-active", e);
-	}, ne = (e) => e.assetId !== null && !e.listItem.classList.contains("is-error"), N = () => {
+	}, te = (e) => e.assetId !== null && !e.listItem.classList.contains("is-error"), P = () => {
 		let e = k.files.length >= 2;
 		k.files.forEach((t, n) => {
-			let r = t.listItem.querySelector(Xe), i = t.listItem.querySelector(Ze), a = t.listItem.querySelector(Qe);
+			let r = t.listItem.querySelector(Ze), i = t.listItem.querySelector(Qe), a = t.listItem.querySelector($e);
 			if (!(r instanceof HTMLElement)) return;
-			let o = e && ne(t);
+			let o = e && te(t);
 			r.hidden = !o, i instanceof HTMLButtonElement && (i.disabled = !o || n === 0), a instanceof HTMLButtonElement && (a.disabled = !o || n >= k.files.length - 1);
 		});
-	}, P = (e, t) => {
+	}, ne = (e, t) => {
 		let n = k.files.indexOf(e), r = n + t;
 		if (n < 0 || r < 0 || r >= k.files.length) return;
 		let i = k.files[r];
-		k.files[n] = i, k.files[r] = e, t === -1 ? i.listItem.before(e.listItem) : i.listItem.after(e.listItem), $(k), N(), p(k.field, "file-upload", "uploaded-assets-reordered", { assets: k.files.filter((e) => e.assetId !== null).map((e) => ({
+		k.files[n] = i, k.files[r] = e, t === -1 ? i.listItem.before(e.listItem) : i.listItem.after(e.listItem), $(k), P(), m(k.field, "file-upload", "uploaded-assets-reordered", { assets: k.files.filter((e) => e.assetId !== null).map((e) => ({
 			assetId: e.assetId,
 			filename: e.filename
 		})) });
-	}, re = (e, t, n, r) => {
+	}, F = (e, t, n, r) => {
 		t.addEventListener("click", () => {
-			ie(e);
+			re(e);
 		}), n.addEventListener("click", () => {
-			P(e, -1);
+			ne(e, -1);
 		}), r.addEventListener("click", () => {
-			P(e, 1);
+			ne(e, 1);
 		});
-	}, ie = async (t) => {
+	}, re = async (t) => {
 		if (t.uppyFileId && E.removeFile(t.uppyFileId), t.assetId && t.deleteToken) {
-			let n = new FormData(), r = _t(f, e, a);
+			let n = new FormData(), r = bt(f, e, a);
 			Object.entries(r).forEach(([e, t]) => {
 				n.append(e, t);
 			}), n.append("assetId", String(t.assetId)), n.append("uploadToken", t.deleteToken);
@@ -2450,15 +2466,15 @@ function Ft(e, t, r) {
 					body: n
 				});
 			} catch (e) {
-				K.warn("Failed to delete uploaded asset.", {
+				q.warn("Failed to delete uploaded asset.", {
 					assetId: t.assetId,
 					error: e
 				});
 			}
 		}
-		t.listItem.remove(), k.files = k.files.filter((e) => e !== t), $(k), N();
-	}, ae = (t, n, r = null, i = null, a = null, o = null) => {
-		let { listItem: s, removeButton: c, sortUpButton: l, sortDownButton: d } = Ot(e, n);
+		t.listItem.remove(), k.files = k.files.filter((e) => e !== t), $(k), P();
+	}, ie = (t, n, r = null, i = null, a = null, o = null) => {
+		let { listItem: s, removeButton: c, sortUpButton: l, sortDownButton: d } = jt(e, n);
 		s.classList.add("is-complete"), u.append(s);
 		let f = {
 			assetId: t,
@@ -2470,63 +2486,63 @@ function Ft(e, t, r) {
 			uppyFileId: null,
 			listItem: s
 		};
-		re(f, c, l, d), k.files.push(f), N();
-	}, oe = async () => {
-		let t = ++j, n = mt(e, h);
+		F(f, c, l, d), k.files.push(f), P();
+	}, ae = async () => {
+		let t = ++j, n = _t(e, h);
 		if (!n.length) return;
-		let r = ht(e, h);
+		let r = vt(e, h);
 		try {
 			let i = await l(y, {
 				profile: f?.dataset.formieRequestProfile,
 				method: "POST",
-				body: vt(f, e, n, r)
+				body: xt(f, e, n, r)
 			});
 			if (t !== j) return;
-			let a = i.assets || [], o = new Map(a.map((e) => [q(e.assetId), e]).filter(([e]) => e !== null));
+			let a = i.assets || [], o = new Map(a.map((e) => [J(e.assetId), e]).filter(([e]) => e !== null));
 			n.forEach((e) => {
 				if (k.files.some((t) => t.assetId === e)) return;
 				let t = o.get(e);
-				t && ae(e, t.filename || `Asset #${e}`, J(t.uploadToken) || r[e] || null, J(t.deleteToken) || null, J(t.uploadUid) || null, J(t.attachToken) || null);
-			}), $(k), N();
+				t && ie(e, t.filename || `Asset #${e}`, Y(t.uploadToken) || r[e] || null, Y(t.deleteToken) || null, Y(t.uploadUid) || null, Y(t.attachToken) || null);
+			}), $(k), P();
 		} catch (e) {
-			K.warn("Failed to hydrate uploaded assets.", { error: e });
+			q.warn("Failed to hydrate uploaded assets.", { error: e });
 		}
-	}, F = (e) => e && k.files.find((t) => t.uppyFileId === e) || null;
+	}, I = (e) => e && k.files.find((t) => t.uppyFileId === e) || null;
 	E.on("upload-progress", (e, t) => {
-		let n = F(e?.id);
+		let n = I(e?.id);
 		if (!n) return;
 		let r = t.bytesTotal || 0, i = t.bytesUploaded || 0, a = r > 0 ? Math.round(i / r * 100) : 0;
-		St(n.listItem, a, {
+		Tt(n.listItem, a, {
 			loaded: i,
 			total: r
 		});
 	}), E.on("upload-retry", (e) => {
-		let t = F(e?.id);
-		t && Z(t.listItem, "Retrying…", "retrying");
+		let t = I(e?.id);
+		t && Q(t.listItem, "Retrying…", "retrying");
 	}), E.on("upload-success", (e, t) => {
-		let n = F(e?.id);
+		let n = I(e?.id);
 		if (!n) return;
-		let r = n.listItem.querySelector("[data-formie-upload-manager-error]"), i = lt(t?.body) ? t.body : {}, a = q(i.assetId);
+		let r = n.listItem.querySelector("[data-formie-upload-manager-error]"), i = ft(t?.body) ? t.body : {}, a = J(i.assetId);
 		if (!i.success || !a) {
-			if (Et(n.listItem), Q(k), r instanceof HTMLElement) {
-				r.hidden = !1, r.textContent = Ct(null, { message: "Upload failed." });
+			if (kt(n.listItem), It(k), r instanceof HTMLElement) {
+				r.hidden = !1, r.textContent = Et(null, { message: "Upload failed." });
 				let e = i.errors ? Object.values(i.errors).flat().find(Boolean) : null;
 				e && (r.textContent = e);
 			}
-		} else n.assetId = a, n.uploadToken = J(i.uploadToken) || null, n.deleteToken = J(i.deleteToken) || null, n.uploadUid = J(i.uploadUid) || null, n.attachToken = J(i.attachToken) || null, n.filename = i.filename || n.filename, Tt(n.listItem), $(k), N();
+		} else n.assetId = a, n.uploadToken = Y(i.uploadToken) || null, n.deleteToken = Y(i.deleteToken) || null, n.uploadUid = Y(i.uploadUid) || null, n.attachToken = Y(i.attachToken) || null, n.filename = i.filename || n.filename, Ot(n.listItem), $(k), P();
 	}), E.on("upload-error", (e, t, n) => {
-		let r = F(e?.id);
+		let r = I(e?.id);
 		if (!r) return;
 		let i = r.listItem.querySelector("[data-formie-upload-manager-error]");
-		Et(r.listItem), Q(k), i instanceof HTMLElement && (i.hidden = !1, i.textContent = Ct(n, t));
+		kt(r.listItem), It(k), i instanceof HTMLElement && (i.hidden = !1, i.textContent = Et(n, t));
 	}), E.on("file-added", (t) => {
 		let n = M();
 		if (n !== null && n <= 0) {
 			E.removeFile(t.id), E.info("File limit reached.", "error", 3e3);
 			return;
 		}
-		E.setFileMeta(t.id, _t(f, e, a));
-		let { listItem: r, removeButton: i, sortUpButton: o, sortDownButton: s } = Ot(e, t.name || "Upload");
+		E.setFileMeta(t.id, bt(f, e, a));
+		let { listItem: r, removeButton: i, sortUpButton: o, sortDownButton: s } = jt(e, t.name || "Upload");
 		u.append(r);
 		let c = {
 			assetId: null,
@@ -2537,17 +2553,17 @@ function Ft(e, t, r) {
 			uppyFileId: t.id,
 			listItem: r
 		};
-		re(c, i, o, s), k.files.push(c), Q(k), N();
+		F(c, i, o, s), k.files.push(c), It(k), P();
 	});
-	let I = () => {
+	let L = () => {
 		o.click();
 	};
 	c?.addEventListener("click", (e) => {
-		e.preventDefault(), e.stopPropagation(), I();
+		e.preventDefault(), e.stopPropagation(), L();
 	}, { signal: A.signal }), a.addEventListener("click", (e) => {
-		e.target instanceof Element && e.target.closest(qe) || I();
+		e.target instanceof Element && e.target.closest(Je) || L();
 	}, { signal: A.signal }), a.addEventListener("keydown", (e) => {
-		(e.key === "Enter" || e.key === " ") && (e.preventDefault(), I());
+		(e.key === "Enter" || e.key === " ") && (e.preventDefault(), L());
 	}, { signal: A.signal }), o.addEventListener("change", () => {
 		if (!o.files?.length) return;
 		let e = Array.from(o.files);
@@ -2563,11 +2579,11 @@ function Ft(e, t, r) {
 		}
 	}, { signal: A.signal }), ["dragenter", "dragover"].forEach((e) => {
 		a.addEventListener(e, (e) => {
-			e.preventDefault(), e.stopPropagation(), te(!0);
+			e.preventDefault(), e.stopPropagation(), N(!0);
 		}, { signal: A.signal });
 	}), ["dragleave", "drop"].forEach((e) => {
 		a.addEventListener(e, (e) => {
-			e.preventDefault(), e.stopPropagation(), te(!1);
+			e.preventDefault(), e.stopPropagation(), N(!1);
 		}, { signal: A.signal });
 	}), a.addEventListener("drop", (e) => {
 		let t = e.dataTransfer;
@@ -2584,19 +2600,19 @@ function Ft(e, t, r) {
 			e instanceof Error && E.info(e.message, "error", 3e3);
 		}
 	}, { signal: A.signal });
-	let L = () => {
+	let oe = () => {
 		j += 1, O(), k.files.forEach((e) => {
 			e.listItem.remove();
 		}), k.files = [], E.cancelAll(), $(k);
 	};
-	return f?.addEventListener(tt, L), oe(), () => {
-		j += 1, A.abort(), f?.removeEventListener(tt, L), E.destroy(), D.remove(), k.files.forEach((e) => {
+	return f?.addEventListener(nt, oe), ae(), () => {
+		j += 1, A.abort(), f?.removeEventListener(nt, oe), E.destroy(), D.remove(), k.files.forEach((e) => {
 			e.listItem.remove();
 		}), k.files = [];
 	};
 }
-var It = {
-	moduleId: `formie:${rt}`,
+var Ht = {
+	moduleId: `formie:${it}`,
 	version: 2,
 	surfaces: [
 		"server-rendered",
@@ -2607,7 +2623,7 @@ var It = {
 	match: (e) => !!e.target.querySelector(V),
 	setup: async (e) => {
 		let t = e.options || {}, n = e.form, r = /* @__PURE__ */ new WeakSet(), i = [];
-		Mt(n);
+		Lt(n);
 		let a = (e) => {
 			let a = /* @__PURE__ */ new Set();
 			e instanceof HTMLElement && e.hasAttribute("data-formie-field-handle") && a.add(e), e instanceof Element && (e.querySelectorAll("[data-formie-field-handle]").forEach((e) => {
@@ -2616,22 +2632,28 @@ var It = {
 				let t = e.closest("[data-formie-field-handle]");
 				t instanceof HTMLElement && a.add(t);
 			})), a.forEach((e) => {
-				!r.has(e) && e.querySelector(V) && (r.add(e), i.push(Ft(e, n, t)));
+				!r.has(e) && e.querySelector(V) && (r.add(e), i.push(Vt(e, n, t)));
 			});
 		};
 		a(e.target);
 		let o = (e) => {
 			let t = e.detail;
-			if (!lt(t)) return;
+			if (!ft(t)) return;
 			let n = t.row;
 			n instanceof HTMLElement && a(n);
 		};
-		return n?.addEventListener(nt, o), K.log("Module setup.", { count: i.length }), await e.emit("formie:module:upload-manager:init", { count: i.length }), { destroy: () => {
-			n?.removeEventListener(nt, o), i.forEach((e) => {
-				e();
-			}), Nt(n), K.log("Module destroy."), e.emit("formie:module:upload-manager:destroy", {});
-		} };
+		return n?.addEventListener(rt, o), q.log("Module setup.", { count: i.length }), await e.emit("formie:module:upload-manager:init", { count: i.length }), {
+			beforeSubmit: e.surface === "client-rendered" ? ({ form: e, action: t, abort: n }) => {
+				let r = t === "submit" ? Rt(e) : null;
+				r && n(r);
+			} : void 0,
+			destroy: () => {
+				n?.removeEventListener(rt, o), i.forEach((e) => {
+					e();
+				}), zt(n), q.log("Module destroy."), e.emit("formie:module:upload-manager:destroy", {});
+			}
+		};
 	}
 };
 //#endregion
-export { It as uploadManagerModule };
+export { Ht as uploadManagerModule };

@@ -486,6 +486,7 @@ return [
   'Choose the size for the heading.' => 'Kies de grootte voor de kop.',
   'Choose up to {files} files.' => 'Kies maximaal {files} bestanden.',
   'Wait for {label} to finish uploading.' => 'Wacht tot {label} klaar is met uploaden.',
+  'Remove the files that failed to upload from {label}.' => 'Verwijder de bestanden die niet konden worden geüpload uit {label}.',
   'Choose which days of the week should be available.' => 'Kies welke dagen van de week beschikbaar moeten zijn.',
   'Christmas Island' => 'Christmaseiland',
   'Church Slavic; Old Slavonic; Church Slavonic; Old Bulgarian; Old Church Slavonic' => 'Kerkslavisch; Oudslavisch; Kerkslavisch; Oudbulgaars; Oudkerkslavisch',

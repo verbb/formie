@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+- Fixed the Upload Manager letting a form submit without a file that failed to upload. A failed file now sets `data-formie-upload-manager-failed` on the field’s status input, and the new `uploadManagerFailed` validator asks for it to be removed.
+- Fixed client-rendered forms submitting while an Upload Manager file had failed or was still uploading, because they have no browser validator. The module’s `beforeSubmit` hook now stops the submit with the same messages.
+
 ## 4.0.11 - 2026-11-21
 
 ### Changed

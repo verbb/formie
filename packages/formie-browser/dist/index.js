@@ -1174,7 +1174,7 @@ var nn = class {
 	"custom-maps": () => import("./chunks/custom-maps-uV8HdZBv.js").then((e) => e.customMapsModule),
 	"date-picker": () => import("./chunks/date-picker-CGPnDsea.js").then((e) => e.datePickerModule),
 	"file-upload": () => import("./chunks/file-upload-BUT8jB8U.js").then((e) => e.fileUploadModule),
-	"upload-manager": () => import("./chunks/upload-manager-BnCurBhH.js").then((e) => e.uploadManagerModule),
+	"upload-manager": () => import("./chunks/upload-manager-DM8zuC6j.js").then((e) => e.uploadManagerModule),
 	hidden: () => import("./chunks/hidden-Bc2TpcgF.js").then((e) => e.hiddenModule),
 	"phone-country": () => import("./chunks/phone-country-D_by3T1w.js").then((e) => e.phoneCountryModule),
 	"password-validation": () => import("./chunks/password-validation-CZ1Dn8qS.js").then((e) => e.passwordValidationModule),

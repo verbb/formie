@@ -11,6 +11,7 @@ import { applyFormCsrfToRecord, appendFormCsrfToFormData, getFormCsrfToken } fro
 import { fieldKeyToInputName } from '#utils/field-references';
 import { requestJson } from '#utils/http';
 import { createDebug } from '#utils/debug';
+import { t as translateMessage } from '#utils/i18n';
 
 const ROOT_SELECTOR = '[data-formie-upload-manager-root]';
 const DROPZONE_SELECTOR = '[data-formie-upload-manager]';
@@ -26,11 +27,14 @@ const HIDDEN_INPUT_VALUE_ATTR = 'data-formie-file-upload-asset-id';
 const HIDDEN_INPUT_TOKEN_ATTR = 'data-formie-file-upload-token';
 const HIDDEN_INPUT_ENTRY_ATTR = 'data-formie-file-upload-entry';
 const STATUS_PENDING_ATTR = 'data-formie-upload-manager-pending';
+const STATUS_FAILED_ATTR = 'data-formie-upload-manager-failed';
 const FORM_RESET_EVENT = getFormStateEventName('reset');
 const REPEATER_INIT_ROW_EVENT = getFieldModuleEventName('repeater', 'init-row');
 const MODULE_ID = 'upload-manager';
 const VALIDATOR_SCOPE = 'upload-manager';
-const UPLOAD_VALIDATORS = ['uploadManagerPending', 'uploadManagerRequired', 'uploadManagerFileLimit'] as const;
+const UPLOAD_VALIDATORS = ['uploadManagerPending', 'uploadManagerFailed', 'uploadManagerRequired', 'uploadManagerFileLimit'] as const;
+const PENDING_MESSAGE = 'Wait for {label} to finish uploading.';
+const FAILED_MESSAGE = 'Remove the files that failed to upload from {label}.';
 const UPLOAD_COMPLETE_DISPLAY_MS = 900;
 const UPLOAD_TRANSFER_MAX = 95;
 const UPLOAD_XHR_TIMEOUT_MS = 120_000;
@@ -653,6 +657,13 @@ function hasPendingUploads(state: UploadManagerState): boolean {
     });
 }
 
+// A file that failed to upload stays in the list until it's removed, so the form isn't sent without it.
+function hasFailedUploads(state: UploadManagerState): boolean {
+    return state.files.some((file) => {
+        return file.assetId === null && file.listItem.classList.contains('is-error');
+    });
+}
+
 function syncStatusInput(state: UploadManagerState): void {
     const { statusInput } = state;
 
@@ -661,14 +672,16 @@ function syncStatusInput(state: UploadManagerState): void {
     }
 
     const pending = hasPendingUploads(state);
+    const failed = hasFailedUploads(state);
     const value = pending ? 'uploading' : (countManagedAssets(state) ? 'uploaded' : '');
 
-    if (statusInput.value === value && statusInput.hasAttribute(STATUS_PENDING_ATTR) === pending) {
+    if (statusInput.value === value && statusInput.hasAttribute(STATUS_PENDING_ATTR) === pending && statusInput.hasAttribute(STATUS_FAILED_ATTR) === failed) {
         return;
     }
 
     statusInput.value = value;
     statusInput.toggleAttribute(STATUS_PENDING_ATTR, pending);
+    statusInput.toggleAttribute(STATUS_FAILED_ATTR, failed);
 
     // Lets live validation clear a shown error, and submit readiness update, as uploads start and finish.
     statusInput.dispatchEvent(new Event('input', { bubbles: true }));
@@ -707,11 +720,17 @@ function registerValidators(form: HTMLFormElement | null): void {
         validator.addValidator('uploadManagerPending', ({ input }) => {
             return !input.matches(STATUS_INPUT_SELECTOR) || !input.hasAttribute(STATUS_PENDING_ATTR);
         }, ({ label, t }) => {
-            return t('Wait for {label} to finish uploading.', { label });
+            return t(PENDING_MESSAGE, { label });
+        });
+
+        validator.addValidator('uploadManagerFailed', ({ input }) => {
+            return !input.matches(STATUS_INPUT_SELECTOR) || input.hasAttribute(STATUS_PENDING_ATTR) || !input.hasAttribute(STATUS_FAILED_ATTR);
+        }, ({ label, t }) => {
+            return t(FAILED_MESSAGE, { label });
         });
 
         validator.addValidator('uploadManagerRequired', ({ input }) => {
-            if (!input.matches(STATUS_INPUT_SELECTOR) || input.hasAttribute(STATUS_PENDING_ATTR)) {
+            if (!input.matches(STATUS_INPUT_SELECTOR) || input.hasAttribute(STATUS_PENDING_ATTR) || input.hasAttribute(STATUS_FAILED_ATTR)) {
                 return true;
             }
 
@@ -765,6 +784,31 @@ function registerValidators(form: HTMLFormElement | null): void {
                 });
         });
     });
+}
+
+// Client-rendered forms have no browser validator, so their submit checks the same states here. Fields that aren't shown,
+// such as ones hidden by conditions, don't stop it.
+function uploadSubmitBlocker(root: ParentNode): string | null {
+    for (const input of Array.from(root.querySelectorAll<HTMLInputElement>(STATUS_INPUT_SELECTOR))) {
+        const pending = input.hasAttribute(STATUS_PENDING_ATTR);
+
+        if (!pending && !input.hasAttribute(STATUS_FAILED_ATTR)) {
+            continue;
+        }
+
+        const field = input.closest<HTMLElement>('[data-formie-field-handle]');
+
+        if (field && field.getClientRects().length === 0) {
+            continue;
+        }
+
+        const labelElement = field?.querySelector('[data-formie-field-label]') ?? field?.querySelector('label, legend');
+        const label = labelElement?.childNodes[0]?.textContent?.trim() || labelElement?.textContent?.trim() || field?.getAttribute('data-formie-field-handle') || '';
+
+        return translateMessage(pending ? PENDING_MESSAGE : FAILED_MESSAGE, { label });
+    }
+
+    return null;
 }
 
 function unregisterValidators(form: HTMLFormElement | null): void {
@@ -1502,6 +1546,16 @@ export const uploadManagerModule: BrowserModuleDefinition = {
         });
 
         return {
+            // Server-rendered forms check these states with the validators above, which show the message on the field.
+            beforeSubmit: ctx.surface === 'client-rendered'
+                ? ({ form: submitForm, action, abort }) => {
+                    const message = action === 'submit' ? uploadSubmitBlocker(submitForm) : null;
+
+                    if (message) {
+                        abort(message);
+                    }
+                }
+                : undefined,
             destroy: () => {
                 form?.removeEventListener(REPEATER_INIT_ROW_EVENT, repeaterInitRowHandler as EventListener);
                 unbinds.forEach((unbind) => {
