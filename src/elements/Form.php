@@ -2064,24 +2064,37 @@ class Form extends Element implements FormInterface
             ->from(Table::FORMIE_FORMS)
             ->column();
 
+        $siteOverrides = Formie::$plugin->getFormSiteOverrides();
+        $title = $this->title;
+
+        // A form loaded for another site carries that site's title, which stays a translation.
+        if ($this->id && $siteOverrides->isEnabled() && (int)$this->siteId !== $siteOverrides->getSourceSiteId($this)) {
+            $title = $siteOverrides->resolveCanonicalFormTitle($this);
+        }
+
         $serializer = new FormSerializer();
         $data = $serializer->prepareCopy([
             'pages' => $serializer->serializeLayout($this->getFormLayout()),
             'settings' => $this->settings->toArray(),
             'notifications' => StencilData::getSerializedNotifications($this->getNotifications()),
+            // Site overrides are keyed by layout identities, so they're remapped with the copied layout.
+            'translations' => Formie::$plugin->getStencils()->getCopyTranslationBundles($this),
         ], 'duplicate');
         $formLayout = new FormLayout(['pages' => $data['pages']]);
         $formSettings = new FormSettings($data['settings']);
         $notifications = array_map(fn($config) => new Notification($config), $data['notifications']);
+        $layoutSaveContext = new LayoutSaveContext('duplicate');
+        $layoutSaveContext->remaps = $serializer->remaps;
 
         // Prepare new data for the duplicated form
         return [
             'handle' => HandleHelper::getUniqueHandle($formHandles, $this->handle, maxLength: HandleHelper::getMaxFormHandle()),
-            'title' => Craft::t('formie', '{title} Copy', ['title' => $this->title]),
+            'title' => Craft::t('formie', '{title} Copy', ['title' => $title]),
             'formLayout' => $formLayout,
             'notifications' => $notifications,
             'settings' => $formSettings,
-            'layoutSaveContext' => new LayoutSaveContext('duplicate'),
+            'layoutSaveContext' => $layoutSaveContext,
+            'pendingStencilTranslations' => $data['translations'],
         ];
     }
 
@@ -2248,7 +2261,7 @@ class Form extends Element implements FormInterface
         }
 
         if ($isNew && $this->_pendingStencilTranslations !== []) {
-            // Stencil references can only be resolved to field definition IDs after the layout has persisted.
+            // Stencil and copied form references can only be resolved to field definition IDs after the layout has persisted.
             Formie::$plugin->getStencils()->materializeTranslationsForForm($this);
         }
 

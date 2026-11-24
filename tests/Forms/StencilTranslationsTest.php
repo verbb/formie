@@ -236,3 +236,50 @@ it('captures existing form translations when saving a form as a stencil', functi
         ->and($bundle['fieldInstanceOverrides'][$field->reference]['required'] ?? null)->toBeFalse()
         ->and($bundle['fieldOverrides'][$field->reference]['label'] ?? null)->toBe('Nom');
 });
+
+it('stores unsaved builder translations from another site in the stencil bundle, not its source content', function (): void {
+    [, $secondarySite] = stencilTranslationSites();
+    $siteOverrides = Formie::$plugin->getFormSiteOverrides();
+    $form = formie()
+        ->form(['title' => 'Builder Source Form'])
+        ->singleLineTextField('name', ['label' => 'Name', 'required' => false])
+        ->create();
+    $form = Formie::$plugin->getForms()->getFormById(
+        (int)$form->id,
+        $siteOverrides->getSourceSiteId($form),
+    );
+    $field = $form->getFieldByHandle('name');
+    $page = $form->getPages()[0] ?? null;
+
+    $siteOverrides->saveTranslationBundle((int)$form->id, (int)$secondarySite->id, [
+        'settings' => ['errorMessage' => 'Erreur'],
+        'fieldOverrides' => [(string)$field->definitionId => ['label' => 'Nom']],
+    ]);
+
+    $stencil = new Stencil([
+        'name' => 'Builder Translation Stencil',
+        'handle' => 'builderTranslationStencil' . uniqid(),
+        'scope' => StencilsService::SCOPE_SITE,
+    ]);
+    $stencil->data->populateFormData($form);
+    Formie::$plugin->getStencils()->populateTranslationBundlesFromForm($stencil, $form);
+
+    // The builder posts the site's complete translation diff, keyed by field definition ID.
+    Formie::$plugin->getStencils()->populateTranslationBundleFromBuilder($stencil, $form, (int)$secondarySite->id, [
+        'title' => 'Formulaire',
+        'pages' => [$page->uid => ['label' => 'Page française']],
+        'fieldOverrides' => [(string)$field->definitionId => ['label' => 'Prénom']],
+        'fieldInstanceOverrides' => [$field->reference => ['required' => true]],
+    ]);
+
+    $bundle = $stencil->data->translations[$secondarySite->uid] ?? [];
+    $stencilField = $stencil->data->getFieldLayout()->getFieldByHandle('name');
+
+    expect($bundle)->not->toHaveKey('title')
+        ->and($bundle)->not->toHaveKey('settings')
+        ->and($bundle['pages'][$page->uid]['label'] ?? null)->toBe('Page française')
+        ->and($bundle['fieldOverrides'][$field->reference]['label'] ?? null)->toBe('Prénom')
+        ->and($bundle['fieldInstanceOverrides'][$field->reference]['required'] ?? null)->toBeTrue()
+        ->and($stencilField?->label)->toBe('Name')
+        ->and($stencilField?->required)->toBeFalse();
+});

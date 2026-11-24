@@ -354,6 +354,28 @@ const prepareFormPreview = async(formValues, options = {}) => {
     }
 };
 
+// A secondary site's builder shows source values merged with that site's translations.
+// Split them so the source content stays canonical and the site's values post as translations.
+const prepareSiteSavePayload = (formValues, { canonicalData = null, sourceSiteId = null, activeSiteId = null } = {}) => {
+    const siteId = Number(activeSiteId);
+    const shouldIncludeTranslations = Boolean(
+        canonicalData
+        && sourceSiteId
+        && siteId
+        && siteId !== Number(sourceSiteId),
+    );
+    const payloadSource = shouldIncludeTranslations
+        ? stripTranslatableValuesToCanonical(formValues, canonicalData)
+        : formValues;
+
+    return {
+        data: serializeFormData(payloadSource),
+        translations: shouldIncludeTranslations
+            ? extractSiteTranslationsFromFormData(canonicalData, formValues)
+            : null,
+    };
+};
+
 const saveForm = async(formValues, options = {}) => {
     if (!formValues) {
         return { ok: false, errors: { form: ['Missing form values.'] } };
@@ -366,20 +388,11 @@ const saveForm = async(formValues, options = {}) => {
         canonicalData = null,
         sourceSiteId = null,
     } = options;
-    const activeSiteId = Number(requestData?.siteId);
-    const shouldIncludeTranslations = Boolean(
-        canonicalData
-        && sourceSiteId
-        && activeSiteId
-        && activeSiteId !== Number(sourceSiteId),
-    );
-    const payloadSource = shouldIncludeTranslations
-        ? stripTranslatableValuesToCanonical(formValues, canonicalData)
-        : formValues;
-    const data = serializeFormData(payloadSource);
-    const translations = shouldIncludeTranslations
-        ? extractSiteTranslationsFromFormData(canonicalData, formValues)
-        : null;
+    const { data, translations } = prepareSiteSavePayload(formValues, {
+        canonicalData,
+        sourceSiteId,
+        activeSiteId: requestData?.siteId,
+    });
 
     if (saveAsNew) {
         data.saveAsNew = true;
@@ -407,16 +420,30 @@ const saveForm = async(formValues, options = {}) => {
     }
 };
 
-const saveAsStencil = async(formValues) => {
+const saveAsStencil = async(formValues, options = {}) => {
     if (!formValues) {
         return { ok: false, errors: { form: ['Missing form values.'] } };
     }
 
-    const data = serializeFormData(formValues);
+    const {
+        canonicalData = null,
+        sourceSiteId = null,
+        siteId = null,
+    } = options;
+    const { data, translations } = prepareSiteSavePayload(formValues, {
+        canonicalData,
+        sourceSiteId,
+        activeSiteId: siteId,
+    });
 
     try {
         const response = await takeAtLeast(500)(
-            Craft.sendActionRequest('POST', 'formie/forms/save-as-stencil', { data }),
+            Craft.sendActionRequest('POST', 'formie/forms/save-as-stencil', {
+                data: {
+                    ...data,
+                    ...(translations !== null ? { siteId, translations } : {}),
+                },
+            }),
         );
         const payload = response?.data || {};
 

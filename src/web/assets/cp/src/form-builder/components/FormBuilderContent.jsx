@@ -208,7 +208,7 @@ function FormBuilderContent({
         } = useAppStore.getState();
         const shouldSaveSiteTranslations = multiSite?.enabled
             && Number(activeSiteId) !== Number(multiSite.sourceSiteId)
-            && (currentSaveAction === 'save' || entityType === 'stencil');
+            && (currentSaveAction === 'save' || shouldSaveAsNew || shouldSaveAsStencil || entityType === 'stencil');
         const baseRequestData = isDuplicateSave ? {
             ...saveRequestData,
             ...saveDuplicateRequestData,
@@ -217,7 +217,11 @@ function FormBuilderContent({
         let result;
 
         if (shouldSaveAsStencil) {
-            result = await saveAsStencil(data);
+            result = await saveAsStencil(data, {
+                canonicalData: shouldSaveSiteTranslations ? canonicalData : null,
+                sourceSiteId: multiSite?.sourceSiteId ?? null,
+                siteId: activeSiteId,
+            });
         } else {
             result = await saveForm(data, {
                 saveAsNew: shouldSaveAsNew,

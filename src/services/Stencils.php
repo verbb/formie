@@ -7,6 +7,7 @@ use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\events\StencilEvent;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\FormSerializer;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\Stencil;
@@ -221,46 +222,53 @@ class Stencils extends Component
 
     public function populateTranslationBundlesFromForm(Stencil $stencil, Form $form): void
     {
-        $siteOverrides = Formie::$plugin->getFormSiteOverrides();
-
-        if (!$siteOverrides->isEnabled() || !$form->id) {
-            return;
-        }
-
-        $rootOverrides = $siteOverrides->getAllOverrides((int)$form->id);
-        $fieldOverrides = Formie::$plugin->getFieldSiteOverrides()->getAllForForm($form);
-        $fieldReferences = array_flip($this->_buildFieldReferenceMap($form));
         $translations = [];
 
-        foreach (array_unique([...array_keys($rootOverrides), ...array_keys($fieldOverrides)]) as $siteId) {
-            $site = Craft::$app->getSites()->getSiteById((int)$siteId);
-
-            if (!$site) {
-                continue;
-            }
-
-            $bundle = $rootOverrides[$siteId] ?? [];
+        foreach ($this->_getTranslationBundlesFromForm($form) as $siteUid => $bundle) {
             unset($bundle['title']);
-            $portableFields = [];
-
-            foreach ($fieldOverrides[$siteId] ?? [] as $fieldId => $override) {
-                $reference = $fieldReferences[(int)$fieldId] ?? null;
-
-                if ($reference && is_array($override)) {
-                    $portableFields[$reference] = $override;
-                }
-            }
-
-            if ($portableFields !== []) {
-                $bundle['fieldOverrides'] = $portableFields;
-            }
 
             if ($bundle !== []) {
-                $translations[$site->uid] = $bundle;
+                $translations[$siteUid] = $bundle;
             }
         }
 
         $stencil->data->translations = $translations;
+    }
+
+    public function getCopyTranslationBundles(Form $form): array
+    {
+        $translations = [];
+
+        foreach ($this->_getTranslationBundlesFromForm($form) as $siteUid => $bundle) {
+            $translations[$siteUid] = $this->_copyBundleTitle($bundle, $this->_getSiteByUid((string)$siteUid));
+        }
+
+        return $translations;
+    }
+
+    public function materializeTranslationsForCopy(Form $source, Form $copy, int $siteId, array $translations): void
+    {
+        $site = Craft::$app->getSites()->getSiteById($siteId);
+
+        if (!$site || !$copy->id || !Formie::$plugin->getFormSiteOverrides()->isEnabled()) {
+            return;
+        }
+
+        $bundle = $this->_getPortableBuilderTranslations($source, $translations);
+
+        // Unsaved builder translations still use the source layout identities.
+        $serializer = new FormSerializer();
+        $serializer->remaps = $copy->layoutSaveContext?->remaps ?? [];
+        $serializer->remap($bundle);
+
+        $copy->setPendingStencilTranslations([$site->uid => $this->_copyBundleTitle($bundle, $site)]);
+        $this->materializeTranslationsForForm($copy);
+    }
+
+    public function populateTranslationBundleFromBuilder(Stencil $stencil, Form $form, int $siteId, array $translations): void
+    {
+        // The stencil keeps the form's layout identities, so only field definition IDs need a portable key.
+        $this->saveTranslationBundle($stencil, $siteId, $this->_getPortableBuilderTranslations($form, $translations));
     }
 
     public function materializeTranslationsForForm(Form $form): void
@@ -563,6 +571,72 @@ class Stencils extends Component
         }
 
         return [$overrides, $fieldOverrides];
+    }
+
+    private function _getTranslationBundlesFromForm(Form $form): array
+    {
+        $siteOverrides = Formie::$plugin->getFormSiteOverrides();
+
+        if (!$siteOverrides->isEnabled() || !$form->id) {
+            return [];
+        }
+
+        $rootOverrides = $siteOverrides->getAllOverrides((int)$form->id);
+        $fieldOverrides = Formie::$plugin->getFieldSiteOverrides()->getAllForForm($form);
+        $fieldReferences = array_flip($this->_buildFieldReferenceMap($form));
+        $translations = [];
+
+        foreach (array_unique([...array_keys($rootOverrides), ...array_keys($fieldOverrides)]) as $siteId) {
+            $site = Craft::$app->getSites()->getSiteById((int)$siteId);
+
+            if (!$site) {
+                continue;
+            }
+
+            $bundle = $this->_getPortableTranslationBundle($rootOverrides[$siteId] ?? [], $fieldOverrides[$siteId] ?? [], $fieldReferences);
+
+            if ($bundle !== []) {
+                $translations[$site->uid] = $bundle;
+            }
+        }
+
+        return $translations;
+    }
+
+    private function _getPortableBuilderTranslations(Form $form, array $translations): array
+    {
+        $fieldOverrides = is_array($translations['fieldOverrides'] ?? null) ? $translations['fieldOverrides'] : [];
+        unset($translations['fields'], $translations['fieldOverrides']);
+
+        return $this->_getPortableTranslationBundle($translations, $fieldOverrides, array_flip($this->_buildFieldReferenceMap($form)));
+    }
+
+    private function _getPortableTranslationBundle(array $bundle, array $fieldOverrides, array $fieldReferences): array
+    {
+        $portableFields = [];
+
+        foreach ($fieldOverrides as $fieldId => $override) {
+            $reference = $fieldReferences[(int)$fieldId] ?? null;
+
+            if ($reference && is_array($override)) {
+                $portableFields[$reference] = $override;
+            }
+        }
+
+        if ($portableFields !== []) {
+            $bundle['fieldOverrides'] = $portableFields;
+        }
+
+        return $bundle;
+    }
+
+    private function _copyBundleTitle(array $bundle, ?Site $site): array
+    {
+        if (isset($bundle['title']) && is_string($bundle['title']) && $bundle['title'] !== '') {
+            $bundle['title'] = Craft::t('formie', '{title} Copy', ['title' => $bundle['title']], $site?->language);
+        }
+
+        return $bundle;
     }
 
     private function _buildFieldReferenceMap(Form $form): array

@@ -551,9 +551,28 @@ class FormsController extends Controller
         if ($saveAsNew) {
             $this->requirePermission('formie-createForms');
 
+            $transaction = Craft::$app->getDb()->beginTransaction();
+
             try {
                 $duplicatedForm = Craft::$app->getElements()->duplicateElement($form, $form->getDuplicateAttributes());
+                $translations = $request->getBodyParam('translations');
+
+                if (is_string($translations)) {
+                    $translations = Json::decodeIfJson($translations);
+                }
+
+                // The copy keeps this site's unsaved translations, as saving the form would.
+                if ($formId && $siteOverrides->isEnabled() && $siteId !== $sourceSiteId && is_array($translations)) {
+                    if (!$canTranslateNotifications) {
+                        unset($translations['notifications']);
+                    }
+
+                    Formie::$plugin->getStencils()->materializeTranslationsForCopy($form, $duplicatedForm, $siteId, $translations);
+                }
+
+                $transaction->commit();
             } catch (InvalidElementException $e) {
+                $transaction->rollBack();
                 $errors = $e->element->getErrors();
 
                 Formie::error('Couldn\'t save form as new - {e}.', ['e' => Json::encode($errors)]);
@@ -572,6 +591,8 @@ class FormsController extends Controller
 
                 return null;
             } catch (Throwable $e) {
+                $transaction->rollBack();
+
                 Formie::error('Couldn\'t save form as new - {message}', [
                     'message' => $e->getMessage(),
                 ]);
@@ -782,6 +803,19 @@ class FormsController extends Controller
         // Populate the stencil data with data prepped for the form
         $stencil->data->populateFormData($form);
         Formie::$plugin->getStencils()->populateTranslationBundlesFromForm($stencil, $form);
+
+        $siteId = (int)$this->request->getParam('siteId');
+        $site = $siteId ? Craft::$app->getSites()->getSiteById($siteId) : null;
+        $translations = $this->request->getBodyParam('translations');
+
+        if (is_string($translations)) {
+            $translations = Json::decodeIfJson($translations);
+        }
+
+        // A secondary site's builder posts source content and that site's translations separately.
+        if ($site && $sourceId && is_array($translations) && $user->can('editSite:' . $site->uid)) {
+            Formie::$plugin->getStencils()->populateTranslationBundleFromBuilder($stencil, $form, $siteId, $translations);
+        }
 
         // The redirect entry is stored outside the stencil data.
         $stencil->redirectEntryId = $form->redirectEntryId;
