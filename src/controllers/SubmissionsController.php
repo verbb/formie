@@ -238,6 +238,10 @@ class SubmissionsController extends Controller
             $siteModel = $sitesService->getCurrentSite();
 
             if (!in_array($siteModel->id, $editableSiteIds, false)) {
+                if (!$editableSiteIds) {
+                    throw new ForbiddenHttpException('User not permitted to edit content in any sites supported by this form');
+                }
+
                 $siteModel = $sitesService->getSiteById($editableSiteIds[0]);
             }
         }

@@ -12,7 +12,7 @@ use yii\web\ForbiddenHttpException;
 use yii\web\HttpException;
 use yii\web\Response;
 
-function submissionAvailabilityContext(bool $canView, callable $callback): mixed
+function submissionAvailabilityContext(bool $canView, callable $callback, bool $canEditSites = true): mixed
 {
     $name = 'submissionAvailability' . bin2hex(random_bytes(5));
     $user = new User(['username' => $name, 'email' => $name . '@example.test']);
@@ -21,7 +21,7 @@ function submissionAvailabilityContext(bool $canView, callable $callback): mixed
     expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, [
         'accessCp', 'accessPlugin-formie', Permissions::PERM_ACCESS_SUBMISSIONS,
         ...($canView ? [Permissions::PERM_VIEW_SUBMISSIONS] : []),
-        ...array_map(fn($site) => 'editSite:' . $site->uid, Craft::$app->getSites()->getAllSites()),
+        ...($canEditSites ? array_map(fn($site) => 'editSite:' . $site->uid, Craft::$app->getSites()->getAllSites()) : []),
     ]))->toBeTrue();
 
     return WebRequestTestHelper::withWebRequestContext(function () use ($user, $callback): mixed {
@@ -87,3 +87,21 @@ it('still rejects mismatched and deleted parent forms in submission editor route
         }
     });
 })->with([true, false]);
+
+it('forbids submission editor routes for users who cannot edit any site', function (bool $existing): void {
+    if (!Craft::$app->getIsMultiSite()) {
+        $this->markTestSkipped('Multi-site contract.');
+    }
+    $form = formie()->form()->create();
+    $submission = formie()->submission($form)->save();
+
+    submissionAvailabilityContext(true, function ($controller) use ($form, $submission, $existing): void {
+        // With no `site` param, the editor must not fall back to a missing editable site.
+        try {
+            $controller->actionEditSubmission($form->handle, $existing ? (int)$submission->id : null);
+            test()->fail('Users without an editable site must not open the submission editor.');
+        } catch (ForbiddenHttpException $e) {
+            expect($e->getMessage())->toBe('User not permitted to edit content in any sites supported by this form');
+        }
+    }, false);
+})->with(['existing' => true, 'new' => false]);
