@@ -142,11 +142,15 @@ class AddressCountry extends Dropdown implements ChildFieldInterface
 
 
     /**
-     * The label for a stored country, as integration mappings and variables send it. Unlike exports and summaries,
-     * a country no longer in the dropdown (such as after narrowing Allowed Countries) still gets its name.
+     * The label for a stored country. A country no longer in the dropdown (such as after narrowing Allowed Countries)
+     * still gets its name, and text that matches no country is shown as stored.
      */
     public function getLabelForValue(mixed $value): string
     {
+        if ($value instanceof SingleOptionFieldValue) {
+            $value = $value->value;
+        }
+
         if (!is_string($value) || $value === '') {
             return '';
         }
@@ -170,17 +174,23 @@ class AddressCountry extends Dropdown implements ChildFieldInterface
 
     protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
     {
-        return $this->_getValueLabel($value);
+        return $this->getLabelForValue($value);
     }
 
     protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
     {
-        return $this->_getValueLabel($value);
+        return $this->getLabelForValue($value);
     }
 
     protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
     {
-        return $this->_getValueLabel($value);
+        return $this->getLabelForValue($value);
+    }
+
+    protected function defineValueForReport(mixed $value, ?ElementInterface $element = null, bool $useOptionLabels = true): mixed
+    {
+        // Labels name the country the same way as exports, rather than falling back to the stored code.
+        return $useOptionLabels ? $this->getLabelForValue($value) : parent::defineValueForReport($value, $element, false);
     }
 
     protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
