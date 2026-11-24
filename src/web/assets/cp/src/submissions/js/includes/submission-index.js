@@ -5,6 +5,7 @@ import { bootstrapShadowReactApp, mountFormieReactApp } from '@utils';
 import { FormieElementIndex } from '../../../utils/FormieElementIndex.js';
 import { SendNotificationDialog } from '../../SendNotificationDialog.jsx';
 import { getSubmissionExportDefaults } from '../../utils/submissionExportState.js';
+import { getSubmissionIndexDateCriteria, toPickedDay } from '../../utils/submissionIndexDates.js';
 
 if (typeof Craft.Formie === typeof undefined) {
     Craft.Formie = {};
@@ -34,8 +35,10 @@ Craft.Formie.SubmissionIndex = FormieElementIndex.extend({
 
         Craft.ui.createDateRangePicker({
             onChange: function(startDate, endDate) {
-                this.startDate = startDate;
-                this.endDate = endDate;
+                // Mobile pickers give UTC midnights. Store the picked days, which the date
+                // criteria and the export dialog both read.
+                this.startDate = toPickedDay(startDate);
+                this.endDate = toPickedDay(endDate);
                 this.updateElements();
             }.bind(this),
         }).appendTo($toolbar);
@@ -349,18 +352,12 @@ Craft.Formie.SubmissionIndex = FormieElementIndex.extend({
     getViewParams() {
         const params = this.base();
 
-        if (this.startDate || this.endDate) {
+        const dateCriteria = getSubmissionIndexDateCriteria(this.startDate, this.endDate);
+
+        if (dateCriteria) {
             const dateAttr = this.$source.data('date-attr') || 'dateCreated';
 
-            params.criteria[dateAttr] = ['and'];
-
-            if (this.startDate) {
-                params.criteria[dateAttr].push(`>=${this.startDate.getTime() / 1000}`);
-            }
-
-            if (this.endDate) {
-                params.criteria[dateAttr].push(`<${this.endDate.getTime() / 1000 + 86400}`);
-            }
+            params.criteria[dateAttr] = dateCriteria;
         }
 
         return params;

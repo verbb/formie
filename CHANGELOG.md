@@ -41,6 +41,7 @@
 - Fixed the Sent Notifications index running a database query for every row to look up its form.
 - Fixed the User, Last Edited By, Payment Status and Send Notification columns on the Submissions index running database queries for every row.
 - Fixed an error when running `formie/forms/list` with no forms or export files and devMode enabled.
+- Fixed the date filter on the submissions index showing an hour too few or too many submissions when the range ended on a daylight-saving change, and using the browser’s time zone instead of the site’s. On phones, the filter and the export dialog also no longer start from the day before the one picked.
 
 ## 4.1.0 - 2026-11-24
 
