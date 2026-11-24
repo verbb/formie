@@ -424,17 +424,18 @@ class Integrations extends Component
 
                 foreach ((array)$integrationClass::getRequiredPlugins() as $pluginInfo) {
                     $handle = $pluginInfo;
-                    $version = 0;
+                    $version = null;
 
                     if (is_array($pluginInfo)) {
                         $handle = $pluginInfo['handle'] ?? '';
-                        $version = $pluginInfo['version'] ?? 0;
+                        $version = $pluginInfo['version'] ?? null;
                     }
 
+                    // Only compare declared minimums, as a branch install such as `dev-main` sorts below any number
                     if (
                         !Plugin::isPluginInstalledAndEnabled($handle) ||
                         !isset($plugins[$handle]) ||
-                        version_compare($plugins[$handle]->getVersion(), $version, '<')
+                        ($version !== null && version_compare($plugins[$handle]->getVersion(), $version, '<'))
                     ) {
                         return false;
                     }

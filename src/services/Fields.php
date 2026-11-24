@@ -1894,7 +1894,7 @@ class Fields extends Component
     public function checkRequiredPlugin(FieldInterface $field): bool
     {
         foreach ($field::getRequiredPlugins() as $requiredPlugin) {
-            $version = $requiredPlugin['version'] ?? 0;
+            $version = $requiredPlugin['version'] ?? null;
             $handle = $requiredPlugin['handle'] ?? '';
 
             if ($handle) {
@@ -1904,7 +1904,8 @@ class Fields extends Component
 
                 $plugin = Craft::$app->getPlugins()->getPlugin($handle);
 
-                if (version_compare($plugin->getVersion(), $version, '<')) {
+                // Only compare declared minimums, as a branch install such as `dev-main` sorts below any number
+                if ($version !== null && version_compare($plugin->getVersion(), $version, '<')) {
                     throw new MissingComponentException();
                 }
             }
