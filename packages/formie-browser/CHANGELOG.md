@@ -13,6 +13,7 @@
 - Fixed single dropdowns in the combobox module growing taller after an option was picked, until the visitor clicked elsewhere, when the option’s label left too little room beside it for the search input. The search input now shares the value’s line instead of wrapping below it.
 - Fixed multi-select pills in the combobox module sitting slightly higher than the search text beside them, and the control growing taller once it had a pill. Pills are now spaced by the control’s `gap` instead of their own margins.
 - Fixed the options in the combobox module’s list using the form’s body text size instead of the control’s (`--formie-control-font-size`).
+- Fixed Summary fields staying empty on server-rendered forms mounted from another allowed origin, such as with the React, Vue or Web Components packages.
 
 ## 4.1.0 - 2026-11-24
 

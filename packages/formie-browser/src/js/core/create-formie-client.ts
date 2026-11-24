@@ -65,6 +65,7 @@ const DEFAULT_HEADLESS_SUBMIT_ACTION = '/actions/formie/server/submissions/submi
 const DEFAULT_HEADLESS_SET_PAGE_ACTION = '/actions/formie/server/submissions/set-page';
 const DEFAULT_HEADLESS_CLEAR_SUBMISSION_ACTION = '/actions/formie/server/submissions/clear-submission';
 const DEFAULT_FILE_UPLOAD_HYDRATE_ACTION = '/actions/formie/file-upload/hydrate';
+const DEFAULT_SUMMARY_ACTION = '/actions/formie/fields/get-summary-html';
 const debug = createDebug('general', 'client');
 const compatibilityWarnings = new Set<string>();
 
@@ -214,6 +215,14 @@ function resolveRefreshTokensEndpoint(options: FormMountOptions, target: Element
     );
 }
 
+function isOtherOrigin(endpoint: string): boolean {
+    try {
+        return new URL(endpoint, window.location.href).origin !== window.location.origin;
+    } catch (_error) {
+        return true;
+    }
+}
+
 function normalizeServerRenderedUrls(target: Element, form: HTMLFormElement, options: FormMountOptions): void {
     const baseEndpoint = options.endpoint || (target as HTMLElement).dataset.formieEndpoint;
     const existingAction = form.getAttribute('action') || form.dataset.formieSubmitEndpoint;
@@ -236,6 +245,16 @@ function normalizeServerRenderedUrls(target: Element, form: HTMLFormElement, opt
             resolveEndpointAgainstBase(input.getAttribute('data-formie-file-upload-hydrate-endpoint') || DEFAULT_FILE_UPLOAD_HYDRATE_ACTION, baseEndpoint),
         );
     });
+
+    // Summary fields otherwise post to the current page, which is only Craft on Craft's own origin.
+    // Same-origin mounts keep that, as the page URL also keeps subdirectories and site prefixes.
+    const summaryEndpoint = form.getAttribute('data-formie-summary-endpoint');
+
+    if (summaryEndpoint || (baseEndpoint && isOtherOrigin(baseEndpoint))) {
+        form.setAttribute('data-formie-summary-endpoint', summaryEndpoint
+            ? resolveEndpointAgainstBase(summaryEndpoint, baseEndpoint)
+            : resolveHeadlessEndpoint(baseEndpoint, DEFAULT_SUMMARY_ACTION));
+    }
 }
 
 

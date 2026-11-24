@@ -7,7 +7,9 @@ use verbb\formie\elements\Submission;
 use verbb\formie\fields\Entries;
 use verbb\formie\fields\Payment;
 use verbb\formie\fields\Summary;
+use verbb\formie\helpers\BrowserRequestProfile;
 use verbb\formie\helpers\CalculationsHelper;
+use verbb\formie\helpers\CrossOriginRequestHelper;
 use verbb\formie\helpers\FieldAccess;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\SignatureAccess;
@@ -34,6 +36,23 @@ class FieldsController extends Controller
 
     public function beforeAction($action): bool
     {
+        // A Summary field refreshes from the form's page, which can be another allowed origin.
+        if ($action->id === 'get-summary-html') {
+            $profile = BrowserRequestProfile::enter();
+            CrossOriginRequestHelper::applyHeaders($this->request, $this->response, ['POST', 'OPTIONS']);
+
+            if ($this->request->getIsOptions()) {
+                $this->response->setStatusCode(204);
+
+                return false;
+            }
+
+            // That profile sends no cookies, and the summary access token grants the read.
+            if ($profile === BrowserRequestProfile::CROSS_ORIGIN) {
+                $this->enableCsrfValidation = false;
+            }
+        }
+
         if (!in_array($action->id, ['get-summary-html', 'get-signature-image'], true)) {
             $this->requireLogin();
             $this->requirePermission('formie-accessForms');

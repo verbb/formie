@@ -42,6 +42,7 @@
 - Fixed the User, Last Edited By, Payment Status and Send Notification columns on the Submissions index running database queries for every row.
 - Fixed an error when running `formie/forms/list` with no forms or export files and devMode enabled.
 - Fixed the date filter on the submissions index showing an hour too few or too many submissions when the range ended on a daylight-saving change, and using the browser’s time zone instead of the site’s. On phones, the filter and the export dialog also no longer start from the day before the one picked.
+- Fixed Summary fields staying empty on server-rendered forms mounted from another allowed origin, such as with the React, Vue or Web Components packages.
 
 ## 4.1.0 - 2026-11-24
 

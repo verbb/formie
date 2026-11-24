@@ -23,9 +23,10 @@ type SummaryRequestState = {
 };
 
 // Server-rendered forms post back to their own page, which Craft routes by the `action` parameter. Client-rendered
-// forms are often on another site, so they post to the action URL the server sends in the module config.
-function getSummaryRequestUrl(summaryUrl: string | null): string {
-    const url = new URL(summaryUrl || window.location.href);
+// forms are often on another site, so they post to the action URL the server sends in the module config. Server-rendered
+// forms mounted from another origin get a Craft endpoint while mounting.
+function getSummaryRequestUrl(form: HTMLFormElement, summaryUrl: string | null): string {
+    const url = new URL(form.dataset.formieSummaryEndpoint || summaryUrl || window.location.href);
     url.hash = '';
 
     return url.toString();
@@ -53,7 +54,7 @@ async function requestSummaryHtml(form: HTMLFormElement, state: SummaryRequestSt
     formData.set('action', SUMMARY_ACTION);
     formData.set('accessToken', state.accessToken);
 
-    return requestText(getSummaryRequestUrl(summaryUrl), {
+    return requestText(getSummaryRequestUrl(form, summaryUrl), {
         // The same request profile as the form's submissions, so cross-origin forms send cookies the same way.
         ...getFormBrowserRequestOptions(form),
         method: 'POST',
