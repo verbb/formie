@@ -5,6 +5,12 @@ type ValidatorApi = {
     addValidator: (name: string, validatorFunction: (ctx: ValidationContext) => boolean, errorMessage?: (ctx: ValidationContext) => string) => void;
     removeValidator: (name: string) => void;
 };
+export type RetainedFieldReset = {
+    afterReset: (() => void) | null;
+    unmount: (afterReset: () => void) => void;
+};
+export declare function retainFieldReset(form: HTMLFormElement | null, element: Element, key: string, createReset: () => () => void): RetainedFieldReset;
+export declare function cloneWithDefaultValues(node: Node): Node;
 export declare function bindConditionalClear(input: HTMLElement, clear: () => void): () => void;
 export declare function escapeSelectorValue(value: string): string;
 export declare function getFieldContainers(root: Element, fieldHandle?: string): HTMLElement[];

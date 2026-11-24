@@ -11,6 +11,7 @@ import { VALIDATION_SKIP_ATTR } from '#validation/skip';
 
 const SELECT_SELECTOR = 'select[data-formie-combobox-input]';
 const MODULE_ID = 'combobox';
+const SEARCHING_CLASS = 'formie-combobox-searching';
 const debug = createDebug('fields', 'combobox');
 
 ensureModuleStyles(MODULE_ID, [comboboxThemeCss]);
@@ -170,6 +171,29 @@ export function initFormieCombobox(select: SelectElement, options: FormieCombobo
     instance.control_input.setAttribute(VALIDATION_SKIP_ATTR, '');
     removeEmptyOptionFromCombobox(instance);
     cleanLeakedThemeClasses(instance.wrapper, select);
+
+    // Styles hide a single value while a search is typed. Tom Select has no
+    // class for that, and fires `update` when it empties the input itself.
+    const syncSearching = () => {
+        instance.wrapper.classList.toggle(SEARCHING_CLASS, instance.control_input.value !== '');
+    };
+    instance.control_input.addEventListener('input', syncSearching);
+    instance.control_input.addEventListener('update', syncSearching);
+
+    // Tom Select only marks chosen options when it redraws the list, which it
+    // skips after a pick unless chosen options are hidden. Reopening without
+    // leaving the control would otherwise show the previous choice as chosen.
+    const syncSelectedOptions = () => {
+        if (instance.settings.hideSelected) {
+            return;
+        }
+
+        instance.dropdown_content.querySelectorAll<HTMLElement>('[data-selectable]').forEach((option) => {
+            option.classList.toggle('selected', instance.items.includes(option.dataset.value ?? ''));
+        });
+    };
+    instance.on('item_add', syncSelectedOptions);
+    instance.on('item_remove', syncSelectedOptions);
 
     if (instance.dropdown) {
         cleanLeakedThemeClasses(instance.dropdown, select);

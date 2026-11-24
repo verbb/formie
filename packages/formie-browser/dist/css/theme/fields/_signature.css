@@ -21,7 +21,7 @@
         display: block;
         width: var(--formie-signature-width);
         min-height: var(--formie-signature-height);
-        height: auto;
+        height: var(--formie-signature-height);
         border: var(--formie-signature-border);
         background: var(--formie-signature-background);
         border-radius: var(--formie-signature-border-radius);

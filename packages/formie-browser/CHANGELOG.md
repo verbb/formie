@@ -2,9 +2,15 @@
 
 ## Unreleased
 
+### Changed
+- The combobox module now styles option group names as headings, with their options indented beneath them, instead of like options.
+- The combobox module now marks the chosen option of a single dropdown in the list with a check mark, and keeps Tom Select’s `selected` class on the right option when the list is reopened without leaving the control.
+- The combobox module now shows a single dropdown’s clear button beside the dropdown arrow instead of straight after the chosen value. A search now takes the place of the chosen value while it’s typed, and the wrapper has the `formie-combobox-searching` class for as long as the search input has text.
+
 ### Fixed
 - Fixed AJAX forms set to reset after submission keeping Table rows the visitor added, and Repeater rows and signatures on earlier pages, which were then saved with the next visitor’s submission.
 - Fixed Signature fields growing taller for several seconds after they appeared, and a signature started during that time, or while the window was resized, leaving the pad unable to draw until the page was reloaded. The pad is back to its **Signature canvas height** (`--formie-signature-height`, 8rem by default).
+- Fixed single dropdowns in the combobox module growing taller after an option was picked, until the visitor clicked elsewhere, when the option’s label left too little room beside it for the search input. The search input now shares the value’s line instead of wrapping below it.
 
 ## 4.1.0 - 2026-11-24
 

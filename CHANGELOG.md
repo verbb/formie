@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Changed
+- Searchable dropdowns now show option group names as headings, with their options indented beneath them, instead of looking like options.
+- Searchable dropdowns that allow one choice now mark the chosen option in the list with a check mark.
+- Searchable dropdowns that allow one choice now show their clear button beside the dropdown arrow instead of straight after the chosen value. A search now takes the place of the chosen value while it’s typed, instead of following it.
+
 ### Fixed
 - Fixed two moderate-severity cross-site scripting vulnerabilities.
 - Fixed a moderate-severity information disclosure vulnerability.
@@ -15,6 +20,7 @@
 - Fixed permanently deleting a submission also deleting an uploaded file that another submission still relates to through `form.setRelations()`, when the form is set to delete file uploads.
 - Fixed AJAX forms set to reset after submission keeping Table rows the visitor added, and Repeater rows and signatures on earlier pages, which were then saved with the next visitor’s submission.
 - Fixed Signature fields growing taller for several seconds after they appeared, and a signature started during that time, or while the window was resized, leaving the pad unable to draw until the page was reloaded. The pad is back to its **Signature canvas height** (`--formie-signature-height`, 8rem by default).
+- Fixed searchable dropdowns that allow one choice growing taller after an option was picked, until the visitor clicked elsewhere, when the option’s label left too little room beside it for the search input. Fields in narrow columns showed it most.
 - Fixed the Campaign and Snaptcha integrations, and the Calendar, Events and Commerce Product element integrations, being unavailable when their plugin is installed from a development branch such as `dev-main`. Integrations and fields that don’t set a minimum version for their required plugin no longer check its version.
 
 ## 4.1.0 - 2026-11-24

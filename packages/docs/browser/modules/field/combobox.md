@@ -16,7 +16,7 @@ The field’s **Maximum Displayed Options** setting defaults to 100 and is passe
 
 ## Markup
 
-Searchable dropdowns output `data-formie-combobox-input` on the native `<select>`. Tom Select wraps the control at runtime and adds classes such as `tomselected`, `ts-hidden-accessible`, and `formie-combobox`.
+Searchable dropdowns output `data-formie-combobox-input` on the native `<select>`. Tom Select wraps the control at runtime and adds classes such as `tomselected`, `ts-hidden-accessible`, and `formie-combobox`. The wrapper also has the `formie-combobox-searching` class while the search input has text, which the default styles use to show the search in place of a single dropdown’s chosen value.
 
 ## Events
 

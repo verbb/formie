@@ -100,6 +100,42 @@
     left: -10000px;
 }
 
+/*
+ * The search input of a single dropdown shares the value's line. Left to wrap,
+ * its minimum width pushed it onto a line of its own whenever the value was
+ * too long to sit beside it, so the control grew while it had focus. It stays
+ * in the flow when hidden so focusing never reflows the value.
+ */
+.formie-field .ts-wrapper.formie-combobox.single.has-items .ts-control {
+    flex-wrap: nowrap;
+}
+
+.formie-field .ts-wrapper.formie-combobox.single.has-items .ts-control > .item {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.formie-field .ts-wrapper.formie-combobox.single.has-items .ts-control > input {
+    flex: 1 1 0;
+    width: 0;
+    min-width: var(--formie-space-1);
+}
+
+.formie-field .ts-wrapper.formie-combobox.single.has-items.input-hidden .ts-control > input {
+    position: static;
+    left: auto;
+}
+
+/* While searching, the query takes the value's place instead of trailing it. */
+.formie-field .ts-wrapper.formie-combobox.single.formie-combobox-searching .ts-control > .item {
+    display: none;
+}
+
+.formie-field .ts-wrapper.formie-combobox.single.formie-combobox-searching .ts-control > input {
+    margin: 0 !important;
+}
+
 .formie-field .ts-wrapper.formie-combobox.single .ts-control,
 .formie-field .ts-wrapper.formie-combobox.single .ts-control > input {
     cursor: pointer;
@@ -196,6 +232,42 @@
     color: var(--formie-color-text);
 }
 
+/*
+ * A single value is plain text, not a pill, so its clear button sits beside
+ * the indicator as part of the control instead of trailing the text.
+ */
+.formie-field .ts-wrapper.formie-combobox.single.plugin-remove_button.has-items .ts-control {
+    padding-right: calc(var(--formie-control-padding-x) + var(--formie-select-indicator-size) + var(--formie-combobox-clear-size) + var(--formie-space-2)) !important;
+}
+
+.formie-field .ts-wrapper.formie-combobox.single.plugin-remove_button {
+    --formie-combobox-clear-size: 1.25rem;
+}
+
+.formie-field .ts-wrapper.formie-combobox.single.plugin-remove_button .item {
+    padding-right: 0 !important;
+}
+
+.formie-field .ts-wrapper.formie-combobox.single.plugin-remove_button .item .remove {
+    position: absolute;
+    top: 50%;
+    right: calc(var(--formie-space-2) + var(--formie-select-indicator-size) + var(--formie-space-1));
+    width: var(--formie-combobox-clear-size);
+    height: var(--formie-combobox-clear-size);
+    border-radius: var(--formie-radius-sm);
+    transform: translateY(-50%);
+    transition: background-color 150ms ease, color 150ms ease;
+}
+
+.formie-field .ts-wrapper.formie-combobox.single.plugin-remove_button .item .remove:hover {
+    background: var(--formie-color-surface-muted, rgba(15, 23, 42, 0.06));
+}
+
+.formie-field .ts-wrapper.formie-combobox.single.plugin-remove_button .item .remove:focus-visible {
+    outline: 0;
+    box-shadow: var(--formie-shadow-focus);
+}
+
 .formie-field .ts-wrapper.formie-combobox .ts-dropdown {
     position: absolute;
     top: 100%;
@@ -223,8 +295,51 @@
     padding: var(--formie-space-2) var(--formie-control-padding-x);
 }
 
+.formie-field .ts-wrapper.formie-combobox .ts-dropdown .optgroup-header {
+    padding-top: var(--formie-space-2);
+    padding-bottom: var(--formie-space-1);
+    color: var(--formie-color-text-muted);
+    font-size: var(--formie-font-size-xs);
+    font-weight: var(--formie-font-weight-semibold);
+    cursor: default;
+}
+
+.formie-field .ts-wrapper.formie-combobox .ts-dropdown .optgroup:not(:first-child) {
+    margin-top: var(--formie-space-1);
+    border-top: var(--formie-border-width) solid var(--formie-color-border-soft);
+    padding-top: var(--formie-space-1);
+}
+
+.formie-field .ts-wrapper.formie-combobox .ts-dropdown .optgroup .option {
+    padding-left: calc(var(--formie-control-padding-x) + var(--formie-space-3));
+}
+
 .formie-field .ts-wrapper.formie-combobox .ts-dropdown [data-selectable] {
     cursor: pointer;
+}
+
+/*
+ * Single dropdowns keep the chosen option in the list, as a native select
+ * does, so it carries a check mark. Multi-selects remove chosen options.
+ */
+.formie-field .ts-wrapper.formie-combobox .ts-dropdown .option.selected {
+    position: relative;
+    padding-right: calc(var(--formie-control-padding-x) + var(--formie-space-4) + var(--formie-space-2));
+    color: var(--formie-color-heading);
+    font-weight: var(--formie-font-weight-medium);
+}
+
+.formie-field .ts-wrapper.formie-combobox .ts-dropdown .option.selected::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: var(--formie-control-padding-x);
+    width: var(--formie-space-4);
+    height: var(--formie-space-4);
+    transform: translateY(-50%);
+    background-color: var(--formie-color-primary);
+    -webkit-mask: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 10.5l3.5 3.5L15 6.5' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 10.5l3.5 3.5L15 6.5' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 
 .formie-field .ts-wrapper.formie-combobox .ts-dropdown .option.active,
