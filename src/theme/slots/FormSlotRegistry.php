@@ -6,6 +6,7 @@ use verbb\formie\helpers\ClientEventsHelper;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\Html;
 use verbb\formie\helpers\SetPageReturnUrlHelper;
+use verbb\formie\helpers\UrlHelper;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FieldLayoutRow;
@@ -15,7 +16,6 @@ use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\helpers\Json;
-use craft\helpers\UrlHelper;
 
 use yii\base\Component;
 
@@ -126,9 +126,9 @@ class FormSlotRegistry extends Component
                 'data-formie-validation-on-submit' => $form?->settings->validationOnSubmit ? true : false,
                 'data-formie-disable-submit-until-valid' => $form?->settings->disableSubmitButtonUntilValid ? true : false,
                 'data-formie-scroll-to-top' => $form?->settings->scrollToTop ? true : false,
-                'data-formie-submit-endpoint' => UrlHelper::actionUrl($form?->getActionUrl() ?? 'formie/submissions/submit'),
-                'data-formie-refresh-tokens-endpoint' => UrlHelper::actionUrl('formie/server/forms/refresh-tokens'),
-                'data-formie-clear-submission-endpoint' => UrlHelper::actionUrl('formie/server/submissions/clear-submission'),
+                'data-formie-submit-endpoint' => UrlHelper::frontEndActionUrl($form?->getActionUrl() ?? 'formie/submissions/submit'),
+                'data-formie-refresh-tokens-endpoint' => UrlHelper::frontEndActionUrl('formie/server/forms/refresh-tokens'),
+                'data-formie-clear-submission-endpoint' => UrlHelper::frontEndActionUrl('formie/server/submissions/clear-submission'),
                 'data-formie-modules' => $moduleManifest ? Json::encode($moduleManifest) : false,
                 'data-formie-theme-classes' => $themeClassMap ? Json::encode($themeClassMap) : false,
                 'data-formie-message-attributes' => $messageAttributes ? Json::encode($messageAttributes) : false,
@@ -419,7 +419,7 @@ class FormSlotRegistry extends Component
 
         return SlotTag::make('a')
             ->core([
-                'href' => UrlHelper::actionUrl('formie/server/submissions/set-page', $params),
+                'href' => UrlHelper::frontEndActionUrl('formie/server/submissions/set-page', $params),
                 'data-formie-tab-link' => true,
                 'data-formie-page-id' => $page?->id,
                 'data-formie-page-index' => ($page && $form) ? $form->getPageIndex($page) : false,

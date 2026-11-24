@@ -3,13 +3,13 @@ namespace verbb\formie\integrations\addressproviders;
 
 use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\AddressProvider;
+use verbb\formie\helpers\UrlHelper;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
 
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
-use craft\helpers\UrlHelper;
 
 class Google extends AddressProvider
 {
@@ -70,7 +70,7 @@ class Google extends AddressProvider
             'config' => [
                 'apiKey' => App::parseEnv($this->apiKey),
                 'options' => $this->_getOptions(),
-                'geocodeEndpoint' => UrlHelper::actionUrl('formie/address/google-places-geocode'),
+                'geocodeEndpoint' => UrlHelper::frontEndActionUrl('formie/address/google-places-geocode'),
             ],
         ]);
     }
