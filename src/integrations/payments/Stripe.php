@@ -312,7 +312,15 @@ class Stripe extends Payment
     public function getPaymentAmount(Submission $submission): string|int|float
     {
         // Older overrides supply provider units; canonical overrides and the field default supply major units.
-        return $this->callLegacyIntegrationMethod('getAmount', Stripe::class, [$submission], fn() => $this->resolvePaymentAmount($submission), fn($amount) => self::fromStripeAmount($amount, (string)$this->getCurrency($submission)), 'getPaymentAmount');
+        $amount = $this->callLegacyIntegrationMethod('getAmount', Stripe::class, [$submission], fn() => $this->resolvePaymentAmount($submission), fn($amount) => self::fromStripeAmount($amount, (string)$this->getCurrency($submission)), 'getPaymentAmount');
+        $currency = strtoupper((string)$this->getCurrency($submission));
+
+        // Stripe charges three-decimal currencies to two decimals, so the payment is recorded at the amount it's asked for.
+        if (in_array($currency, self::THREE_DECIMAL_CURRENCIES, true)) {
+            return self::fromStripeAmount(self::toStripeAmount($amount, $currency), $currency);
+        }
+
+        return $amount;
     }
 
     public function getSubscriptionPaymentLimit(Submission $submission): ?int

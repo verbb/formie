@@ -219,7 +219,7 @@ it('keeps canonical amounts in major units and provider amounts in API units', f
     expect($integration->getProviderAmount($submission))->toBe($minor)
         ->and($integration->getAmount($submission))->toBe($minor)
         ->and($integration->getPaymentAmount($submission))->toBe($major);
-})->with([['USD', '12.34', 1234], ['JPY', '500', 500], ['BHD', '1.234', 1234]]);
+})->with([['USD', '12.34', 1234], ['JPY', '500', 500], ['BHD', '1.230', 1230]]);
 
 it('preserves provider-unit legacy amount overrides with parent calls', function(string $base) {
     $integration = $base === 'stripe' ? new class extends Stripe {

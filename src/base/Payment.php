@@ -522,7 +522,8 @@ abstract class Payment extends Integration
         if ($currencyType === Payment::VALUE_TYPE_FIXED) {
             return (string)$currencyFixed;
         } elseif ($currencyType === Payment::VALUE_TYPE_DYNAMIC) {
-            return (string)References::resolveValue($currencyVariable, ReferenceContext::forSubmission($submission))->requireValue();
+            // A field's option values can hold the code in any case, and payments are recorded in upper case.
+            return strtoupper(trim((string)References::resolveValue($currencyVariable, ReferenceContext::forSubmission($submission))->requireValue()));
         }
 
         return $this->getFieldSetting('currency');
