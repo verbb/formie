@@ -3760,6 +3760,8 @@ To review it please log into your control panel.
   'All Sites' => 'All Sites',
   'Only administrators can change a report with scheduled deliveries.' => 'Only administrators can change a report with scheduled deliveries.',
   'You don’t have permission to change this report.' => 'You don’t have permission to change this report.',
+  'You don’t have permission to move forms to the selected group.' => 'You don’t have permission to move forms to the selected group.',
+  'This form can’t be enabled on the selected site under the group’s propagation policy.' => 'This form can’t be enabled on the selected site under the group’s propagation policy.',
   'Only submissions matching your search for “{search}” are included.' => 'Only submissions matching your search for “{search}” are included.',
   'Submission Details' => 'Submission Details',
   'Other Fields' => 'Other Fields',

@@ -285,7 +285,8 @@ class Form extends Element implements FormInterface
 
         $actions[] = DuplicateForm::class;
 
-        if (Formie::$plugin->getFormGroups()->getAllGroups()) {
+        // Only offer moving forms when the user can manage at least one destination.
+        if (Formie::$plugin->getFormGroups()->getAllGroups() && MoveFormToGroup::getTargetOptions()) {
             $actions[] = MoveFormToGroup::class;
         }
 

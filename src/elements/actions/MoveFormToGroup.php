@@ -9,12 +9,52 @@ use verbb\formie\models\FormGroup;
 use Craft;
 use craft\base\ElementAction;
 use craft\elements\db\ElementQueryInterface;
+use craft\errors\UnsupportedSiteException;
 use craft\helpers\Cp;
 use craft\helpers\Html;
 use craft\helpers\Json;
 
 class MoveFormToGroup extends ElementAction
 {
+    // Static Methods
+    // =========================================================================
+
+    /**
+     * Returns the groups the current user can move forms into, keyed by group ID, with an empty key for Ungrouped.
+     */
+    public static function getTargetOptions(): array
+    {
+        $permissions = Formie::$plugin->getPermissions();
+        $propagation = Formie::$plugin->getFormSitePropagation();
+        $currentUser = Craft::$app->getUser()->getIdentity();
+        $activeSiteId = null;
+        $options = [];
+
+        if ($propagation->isEnabled()) {
+            $requestedSite = Cp::requestedSite();
+            $activeSiteId = (int)($requestedSite?->id ?? Craft::$app->getSites()->getCurrentSite()->id);
+        }
+
+        foreach (Formie::$plugin->getFormGroups()->getAllGroups() as $group) {
+            if ($activeSiteId && !$propagation->isGroupAvailableForSite($group, $activeSiteId)) {
+                continue;
+            }
+
+            if (!$permissions->canManageFormInGroup($currentUser, $group)) {
+                continue;
+            }
+
+            $options[$group->id] = $group->name;
+        }
+
+        if ($permissions->canManageFormInGroup($currentUser, null)) {
+            $options[''] = Craft::t('formie', 'Ungrouped');
+        }
+
+        return $options;
+    }
+
+
     // Properties
     // =========================================================================
 
@@ -66,23 +106,9 @@ JS, [static::class]);
         $label = Craft::t('formie', 'Move form');
         $items = [];
 
-        $propagation = Formie::$plugin->getFormSitePropagation();
-        $activeSiteId = null;
-
-        if ($propagation->isEnabled()) {
-            $requestedSite = Cp::requestedSite();
-            $activeSiteId = (int)($requestedSite?->id ?? Craft::$app->getSites()->getCurrentSite()->id);
+        foreach (static::getTargetOptions() as $groupId => $groupName) {
+            $items[] = $this->_menuItem($groupName, (string)$groupId);
         }
-
-        foreach (Formie::$plugin->getFormGroups()->getAllGroups() as $group) {
-            if ($activeSiteId && !$propagation->isGroupAvailableForSite($group, $activeSiteId)) {
-                continue;
-            }
-
-            $items[] = $this->_menuItem($group->name, (string)$group->id);
-        }
-
-        $items[] = $this->_menuItem(Craft::t('formie', 'Ungrouped'), '');
 
         return Html::tag('button', $label, [
                 'type' => 'button',
@@ -95,8 +121,9 @@ JS, [static::class]);
     public function performAction(ElementQueryInterface $query): bool
     {
         $targetGroupId = $this->_normalizeGroupId($this->groupId);
+        $targetGroup = $targetGroupId !== null ? Formie::$plugin->getFormGroups()->getGroupById($targetGroupId) : null;
 
-        if ($targetGroupId !== null && !Formie::$plugin->getFormGroups()->getGroupById($targetGroupId)) {
+        if ($targetGroupId !== null && !$targetGroup) {
             $this->setMessage(Craft::t('formie', 'Could not move forms to the selected group.'));
 
             return false;
@@ -110,18 +137,47 @@ JS, [static::class]);
         $elements = $query->all();
         $successCount = 0;
         $failCount = 0;
+        $failureMessage = null;
 
         foreach ($elements as $element) {
             if (!$permissions->canManageForm($currentUser, $element)) {
                 $failCount++;
+
                 continue;
             }
 
-            $element->groupId = $targetGroupId;
+            // Check the form again in its new group, as the form builder does when the group changes.
+            $element->setGroup($targetGroup);
 
-            if ($elementsService->saveElement($element) === false) {
+            if (!$permissions->canManageForm($currentUser, $element)) {
+                $failureMessage = Craft::t('formie', 'You don’t have permission to move forms to the selected group.');
+                $failCount++;
+
+                continue;
+            }
+
+            if ($sitePolicyError = $this->_validateSitePolicy($element)) {
+                $failureMessage = $sitePolicyError;
+                $failCount++;
+
+                continue;
+            }
+
+            try {
+                $saved = $elementsService->saveElement($element);
+            } catch (UnsupportedSiteException $e) {
+                // The group's policy can still leave out the site the form is being saved in.
+                Formie::error('Unable to move form {id} to group: {error}', ['id' => $element->id, 'error' => $e->getMessage()]);
+                $failureMessage = Craft::t('formie', 'This form can’t be enabled on the selected site under the group’s propagation policy.');
+                $failCount++;
+
+                continue;
+            }
+
+            if ($saved === false) {
                 Formie::error('Unable to move form to group: {error}', ['error' => Json::encode($element->getErrors())]);
                 $failCount++;
+
                 continue;
             }
 
@@ -129,7 +185,7 @@ JS, [static::class]);
         }
 
         if ($successCount === 0) {
-            $this->setMessage(Craft::t('formie', 'Could not move the selected forms.'));
+            $this->setMessage($failureMessage ?? Craft::t('formie', 'Could not move the selected forms.'));
 
             return false;
         }
@@ -162,6 +218,29 @@ JS, [static::class]);
 
     // Private Methods
     // =========================================================================
+
+    /**
+     * Applies the form builder's group site checks to a form that has been given its new group.
+     */
+    private function _validateSitePolicy(Form $form): ?string
+    {
+        $propagation = Formie::$plugin->getFormSitePropagation();
+
+        if (!$propagation->isEnabled()) {
+            return null;
+        }
+
+        if (!$propagation->isGroupAvailableForSite($form->getGroup(), (int)$form->siteId)) {
+            return Craft::t('formie', 'This form group is not available for the selected site.');
+        }
+
+        // The check fills in a missing source site, which a move shouldn't store.
+        $sourceSiteId = $form->sourceSiteId;
+        $error = $propagation->validateFormSiteAvailability($form);
+        $form->sourceSiteId = $sourceSiteId;
+
+        return $error;
+    }
 
     private function _menuItem(string $label, string $groupId): string
     {
