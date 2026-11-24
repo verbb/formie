@@ -5,11 +5,14 @@
 ### Fixed
 - Fixed two moderate-severity cross-site scripting vulnerabilities.
 - Fixed a moderate-severity information disclosure vulnerability.
+- Fixed every submission after the first failing to save on PostgreSQL when the form uses `setRelations()`. Sites already affected are repaired when migrations run.
+- Fixed submissions failing when `setRelations()` was given the same element more than once, including by calling it twice.
 - Fixed Date fields using the **Dropdowns** display type filling in the first year, month and day (or 0:00 AM) when left blank. Optional fields saved a date the visitor never chose, forms with a **Min Date** couldn’t be submitted, and required date dropdowns couldn’t be enforced.
 - Fixed the **Move form** action on the **Forms** index letting users move forms into form groups they can’t manage, and listing those groups in its menu.
 - Fixed the **Move form** action on multi-site installs returning an error and moving only some of the selected forms when the target form group’s site settings exclude a form.
 - Fixed updating an existing form through an import moving it into a form group the user can’t manage forms in.
 - Fixed permanently deleting a submission also deleting an uploaded file that another submission still relates to through `form.setRelations()`, when the form is set to delete file uploads.
+- Fixed the Campaign and Snaptcha integrations, and the Calendar, Events and Commerce Product element integrations, being unavailable when their plugin is installed from a development branch such as `dev-main`. Integrations and fields that don’t set a minimum version for their required plugin no longer check its version.
 
 ## 4.1.0 - 2026-11-24
 

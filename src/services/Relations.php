@@ -75,11 +75,9 @@ class Relations extends Component
         // Keep relations fresh
         Db::delete(Table::FORMIE_RELATIONS, ['targetId' => $submission->id], [], $db);
 
-        // Reset auto-increment
-        $db->createCommand()->resetSequence(Table::FORMIE_RELATIONS, '1')->execute();
-
         foreach ($relations as $relation) {
-            $values[] = [
+            // The same element can be related more than once, but it's stored once per site.
+            $values[$relation['id'] . ':' . $relation['siteId']] = [
                 $relation['type'],
                 $relation['id'],
                 $relation['siteId'],
@@ -87,6 +85,6 @@ class Relations extends Component
             ];
         }
 
-        Db::batchInsert(Table::FORMIE_RELATIONS, ['type', 'sourceId', 'sourceSiteId', 'targetId'], $values, $db);
+        Db::batchInsert(Table::FORMIE_RELATIONS, ['type', 'sourceId', 'sourceSiteId', 'targetId'], array_values($values), $db);
     }
 }
