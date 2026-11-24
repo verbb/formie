@@ -25,6 +25,7 @@ use verbb\formie\helpers\PaymentCapabilities;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
+use verbb\formie\helpers\UrlHelper as FormieUrlHelper;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\Payment as PaymentModel;
@@ -162,7 +163,8 @@ class Opayo extends Payment
                 'amountType' => $this->getFieldSetting('amountType'),
                 'amountFixed' => $this->getFieldSetting('amountFixed'),
                 'amountVariable' => $this->normalizeBrowserFieldReference($this->getFieldSetting('amountVariable')),
-                'sessionEndpoint' => UrlHelper::actionUrl('formie/payment-sessions/initialize'),
+                // The session request checks the form for the visitor, which the control panel route hides from guests.
+                'sessionEndpoint' => FormieUrlHelper::frontEndActionUrl('formie/payment-sessions/initialize'),
                 'sessionToken' => PaymentAccess::issueProviderSessionToken('opayo', (int)$this->id, (string)$this->handle, formId: $context->form?->id, fieldId: $context->field?->id, siteId: $context->form?->siteId),
                 'checkoutMode' => $this->getCheckoutMode(),
                 'requiredInputSuffixes' => ['opayoTokenId'],
@@ -272,6 +274,7 @@ class Opayo extends Payment
                     if ($payment->status !== PaymentModel::STATUS_SUCCEEDED) {
                         throw new Exception('Challenge outcome requires reconciliation.');
                     }
+
                     $response = $payment->response;
                 } else {
                     $payment->scope['challengeSent'] = gmdate('c');

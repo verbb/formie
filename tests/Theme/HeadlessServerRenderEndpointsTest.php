@@ -130,6 +130,51 @@ it('gives the Google address provider a site geocode endpoint in headless mode',
     }
 });
 
+// Opayo's session request checks the form for the visitor too, so guests got "Invalid payment session authority."
+it('gives the Opayo payment module a site session endpoint in headless mode', function (): void {
+    $integration = new \verbb\formie\integrations\payments\Opayo([
+        'name' => 'Headless Opayo', 'handle' => 'headlessOpayo' . bin2hex(random_bytes(4)), 'enabled' => true,
+        'vendorName' => 'fixture', 'integrationKey' => 'fixture-key', 'integrationPassword' => 'fixture-password',
+    ]);
+    expect(Formie::$plugin->getIntegrations()->saveIntegration($integration, false))->toBeTrue();
+    $form = formie()->form(['title' => 'Headless Opayo'])
+        ->paymentField('pay', ['paymentIntegration' => $integration->handle, 'paymentIntegrationType' => \verbb\formie\integrations\payments\Opayo::class, 'providerSettings' => [$integration->handle => [
+            'amountType' => 'fixed', 'amountFixed' => '10', 'currencyType' => 'fixed', 'currencyFixed' => 'GBP',
+        ]]])
+        ->create();
+
+    try {
+        WebRequestTestHelper::withWebRequestContext(function ($request) use ($form): void {
+            expect(Craft::$app->getUser()->getIsGuest())->toBeTrue()
+                ->and($request->getIsCpRequest())->toBeFalse();
+
+            $sessionEndpoint = static function (bool $headlessMode) use ($form): ?string {
+                $general = Craft::$app->getConfig()->getGeneral();
+                $original = $general->headlessMode;
+                $general->headlessMode = $headlessMode;
+
+                try {
+                    $html = Formie::$plugin->getServerRenderPayloadBuilder()->buildServerRenderPayload($form, ['renderCss' => false, 'renderJs' => false])['html'];
+                } finally {
+                    $general->headlessMode = $original;
+                }
+
+                preg_match('/"sessionEndpoint":"([^"]+)"/', html_entity_decode($html), $matches);
+
+                return isset($matches[1]) ? json_decode('"' . $matches[1] . '"') : null;
+            };
+
+            $siteEndpoint = UrlHelper::actionUrl('formie/payment-sessions/initialize');
+
+            expect($sessionEndpoint(false))->toBe($siteEndpoint)
+                ->and($sessionEndpoint(true))->toBe($siteEndpoint);
+        }, ['requestUri' => '/actions/formie/server/forms/render']);
+    } finally {
+        Craft::$app->getElements()->deleteElement($form, true);
+        Formie::$plugin->getIntegrations()->deleteIntegrationById($integration->id);
+    }
+});
+
 it('keeps control panel action endpoints for server-rendered forms in control panel requests', function (bool $headlessMode): void {
     $form = createHeadlessServerRenderForm();
 
