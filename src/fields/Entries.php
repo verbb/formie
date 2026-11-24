@@ -8,11 +8,14 @@ use verbb\formie\helpers\SchemaHelper;
 use Craft;
 use craft\base\ElementInterface;
 use craft\elements\Entry;
+use craft\elements\db\ElementQueryInterface;
+use craft\errors\SiteNotFoundException;
 use craft\gql\arguments\elements\Entry as EntryArguments;
 use craft\gql\interfaces\elements\Entry as EntryInterface;
 use craft\gql\resolvers\elements\Entry as EntryResolver;
 use craft\helpers\Gql as GqlHelper;
 use craft\helpers\UrlHelper;
+use craft\models\Site;
 use craft\services\Gql as GqlService;
 
 use GraphQL\Type\Definition\Type;
@@ -66,6 +69,12 @@ class Entries extends ElementField
     }
 
 
+    // Properties
+    // =========================================================================
+
+    public ?string $sourceSiteUid = null;
+
+
     // Public Methods
     // =========================================================================
 
@@ -75,6 +84,33 @@ class Entries extends ElementField
         $config['placeholder'] = $config['placeholder'] ?? Craft::t('formie', 'Select an entry');
 
         parent::__construct($config);
+    }
+
+    public function settingsAttributes(): array
+    {
+        return [...parent::settingsAttributes(), 'sourceSiteUid'];
+    }
+
+    public function getOptionSourceParams(): array
+    {
+        $params = parent::getOptionSourceParams();
+
+        if ($this->sourceSiteUid) {
+            $params['sourceSiteUid'] = $this->sourceSiteUid;
+        }
+
+        return $params;
+    }
+
+    public function getOptionSourceFieldConfig(array $params = []): array
+    {
+        $config = parent::getOptionSourceFieldConfig($params);
+
+        if (!empty($params['sourceSiteUid'])) {
+            $config['sourceSiteUid'] = $params['sourceSiteUid'];
+        }
+
+        return $config;
     }
 
     public function getFieldTypeConfigData(): array
@@ -188,6 +224,7 @@ class Entries extends ElementField
     public function getSettingGqlTypes(): array
     {
         return array_merge(parent::getSettingGqlTypes(), [
+            'sourceSiteUid' => ['name' => 'sourceSiteUid', 'type' => Type::string()],
             'defaultEntry' => [
                 'name' => 'defaultEntry',
                 'type' => EntryInterface::getType(),
@@ -243,6 +280,7 @@ class Entries extends ElementField
                 'element-class' => count($options) < 2 ? 'hidden' : false,
                 'warning' => count($options) < 2 ? Craft::t('formie', 'No sections available. View [section settings]({link}).', ['link' => UrlHelper::cpUrl('settings/sections')]) : false,
             ]),
+            ...$this->_sourceSiteSchema(),
             SchemaHelper::elementSelectField([
                 'label' => Craft::t('formie', 'Default Value'),
                 'instructions' => Craft::t('formie', 'Select a default entry to be selected.'),
@@ -332,5 +370,70 @@ class Entries extends ElementField
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function createElementQuery(?ElementInterface $element = null): ElementQueryInterface
+    {
+        $query = parent::createElementQuery($element);
+
+        if ($this->sourceSiteUid) {
+            $siteId = $this->_sourceSiteId();
+
+            // A custom source can set its own site criterion. Keep both restrictions.
+            $query->siteId($siteId)->andWhere(['elements_sites.siteId' => $siteId]);
+        }
+
+        return $query;
+    }
+
+    protected function cpInputTemplateVariables(array|ElementQueryInterface $value = null, ?ElementInterface $element = null): array
+    {
+        $variables = parent::cpInputTemplateVariables($value, $element);
+
+        if ($this->sourceSiteUid) {
+            $siteId = $this->_sourceSiteId();
+            $variables['criteria']['siteId'] = $siteId;
+            $variables['siteIds'] = [$siteId];
+            $variables['showSiteMenu'] = false;
+            $variables['modalSettings']['defaultSiteId'] = $siteId;
+        }
+
+        return $variables;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _sourceSiteSchema(): array
+    {
+        if (!Craft::$app->getIsMultiSite()) {
+            return [];
+        }
+
+        return [
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Source Site'),
+                'name' => 'sourceSiteUid',
+                'options' => [
+                    ['label' => Craft::t('formie', 'Current Site'), 'value' => ''],
+                    ...array_map(static fn(Site $site) => ['label' => $site->getUiLabel(), 'value' => $site->uid], Craft::$app->getSites()->getAllSites(false)),
+                ],
+            ]),
+        ];
+    }
+
+    private function _sourceSiteId(): int
+    {
+        try {
+            return Craft::$app->getSites()->getSiteByUid($this->sourceSiteUid, false)->id;
+        } catch (SiteNotFoundException) {
+            // A removed or disabled source must not fall back to the current site's entries.
+            return -1;
+        }
     }
 }

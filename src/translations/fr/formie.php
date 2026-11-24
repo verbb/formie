@@ -2701,6 +2701,7 @@ Pour la consulter, veuillez vous connecter à votre panneau de contrôle.
   'Source Channel' => 'Canal source',
   'Source Name' => 'Nom de la source',
   'Sources' => 'Sources',
+  'Source Site' => 'Site source',
   'Source Type' => 'Type de source',
   'Source URL' => 'URL source',
   'Spam' => 'Courriel indésirable',

@@ -2701,6 +2701,7 @@ To review it please log into your control panel.
   'Source Channel' => 'Canal de origem',
   'Source Name' => 'Nome da fonte',
   'Sources' => 'Fontes',
+  'Source Site' => 'Site de origem',
   'Source Type' => 'Tipo de fonte',
   'Source URL' => 'URL da fonte',
   'Spam' => 'Spam',

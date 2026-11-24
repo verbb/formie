@@ -237,12 +237,7 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
             return $value;
         }
 
-        $query = static::elementType()::find();
-
-        // Restrict elements to be on the current site, for multi-sites
-        if (Craft::$app->getIsMultiSite()) {
-            $query->siteId($this->targetSiteId($element));
-        }
+        $query = $this->createElementQuery($element);
 
         // Template population can supply a single ID, even for relational fields.
         if (is_int($value) || (is_string($value) && ctype_digit($value))) {
@@ -319,12 +314,7 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
 
     public function getElementsQuery(): ElementQueryInterface
     {
-        $query = static::elementType()::find();
-
-        // Restrict elements to be on the current site, for multi-sites
-        if (Craft::$app->getIsMultiSite()) {
-            $query->siteId(Craft::$app->getSites()->getCurrentSite()->id);
-        }
+        $query = $this->createElementQuery();
 
         if ($this->sourceType === 'groups') {
             $criteria = [];
@@ -453,7 +443,7 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
             }
 
             if ($ids) {
-                return static::elementType()::find()->id($ids);
+                return $this->createElementQuery()->id($ids);
             }
         }
 
@@ -515,7 +505,7 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
             if ($value instanceof ElementQuery) {
                 $query = $value;
             } else {
-                $query = static::elementType()::find()->id($value);
+                $query = $this->createElementQuery()->id($value);
             }
 
             // Ensure that disabled elements can be populated, just in case
@@ -1343,6 +1333,17 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
         }
 
         return $element->title;
+    }
+
+    protected function createElementQuery(?ElementInterface $element = null): ElementQueryInterface
+    {
+        $query = static::elementType()::find();
+
+        if (Craft::$app->getIsMultiSite()) {
+            $query->siteId($this->targetSiteId($element));
+        }
+
+        return $query;
     }
 
     protected function targetSiteId(?ElementInterface $element = null): int

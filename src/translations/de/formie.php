@@ -2701,6 +2701,7 @@ Zur Überprüfung bitte im Bedienfeld anmelden.
   'Source Channel' => 'Quellkanal',
   'Source Name' => 'Quellname',
   'Sources' => 'Quellen',
+  'Source Site' => 'Quellwebsite',
   'Source Type' => 'Quellentyp',
   'Source URL' => 'Quell-URL',
   'Spam' => 'Spam',

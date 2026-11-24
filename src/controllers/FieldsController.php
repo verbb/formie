@@ -4,6 +4,7 @@ namespace verbb\formie\controllers;
 use verbb\formie\Formie;
 use verbb\formie\base\ElementField;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\Entries;
 use verbb\formie\fields\Payment;
 use verbb\formie\fields\Summary;
 use verbb\formie\helpers\CalculationsHelper;
@@ -83,6 +84,12 @@ class FieldsController extends Controller
 
             if (!$field instanceof ElementField) {
                 throw new BadRequestHttpException('Invalid element field type.');
+            }
+
+            $field = clone $field;
+
+            if ($field instanceof Entries) {
+                $field->sourceSiteUid = $fieldSettings['sourceSiteUid'] ?? null;
             }
 
             $field->sources = $fieldSettings['sources'] ?? [];

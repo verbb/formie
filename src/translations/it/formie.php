@@ -2701,6 +2701,7 @@ Per rivederla, accedi al tuo pannello di controllo.
   'Source Channel' => 'Canale di origine',
   'Source Name' => 'Nome della fonte',
   'Sources' => 'Fonti',
+  'Source Site' => 'Sito di origine',
   'Source Type' => 'Tipo di fonte',
   'Source URL' => 'URL della fonte',
   'Spam' => 'Spam',

@@ -7,6 +7,7 @@ Use Entries when the selected content should stay related to Craft entries. If y
 ## Key Settings
 
 - **Entry sources** - Choose which sections or entry sources the user can select from.
+- **Source Site** - On a multi-site install, choose the site that supplies the entries. The default is **Current Site**. For example, choose your global site and the Dealerships section to show its dealerships in a subsite form. Submissions and notifications use the entry from the selected site.
 - **Selection limit** - Control how many entries can be selected.
 - **Display type** - Choose how the entry choices appear on the front end.
 - **Use searchable dropdown** - When **Display type** is **Dropdown**, allow users to filter options by typing. See [Dropdown → Searchable dropdown](/fields/dropdown#searchable-dropdown).
