@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed
+- Fixed AJAX forms set to reset after submission keeping Table rows the visitor added, and Repeater rows and signatures on earlier pages, which were then saved with the next visitor’s submission.
+
 ## 4.1.0 - 2026-11-24
 
 ### Fixed

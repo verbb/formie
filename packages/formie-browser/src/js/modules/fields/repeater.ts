@@ -1,7 +1,7 @@
 import repeaterCss from '#theme-css/fields/_repeater.css?inline';
 
 import type { BrowserModuleDefinition } from '#contracts/modules';
-import { dispatchFieldEvent, getTemplateSource, getTemplateSourceHtml } from '#modules/fields/shared';
+import { cloneWithDefaultValues, dispatchFieldEvent, getTemplateSource, getTemplateSourceHtml, retainFieldReset } from '#modules/fields/shared';
 import { ensureModuleStyles } from '#modules/styles';
 import { sleep } from '#utils/async';
 import { createDebug } from '#utils/debug';
@@ -202,22 +202,21 @@ function bindRepeaterField(field: HTMLElement, isCpEdit: boolean): () => void {
         }
     }
 
-    const initialRows = Array.from(container.children).map((row) => row.cloneNode(true));
+    const retainedReset = retainFieldReset(form, container, MODULE_ID, () => {
+        const initialRows = Array.from(container.children).map(cloneWithDefaultValues);
 
-    const onReset = (event: Event) => {
-        queueMicrotask(() => {
-            if (event.defaultPrevented || disposed) return;
-            generation++;
-            removeHandlers.forEach((handler, button) => button.removeEventListener('click', handler));
-            removeHandlers.clear();
-            // Replace rows so removed initial rows return and added rows disappear.
-            // The module loader disposes old controls and hydrates the new rows.
-            container.replaceChildren(...initialRows.map((row) => row.cloneNode(true)));
-            bindRemoveButtons();
-            syncAddButton(addButton instanceof HTMLButtonElement ? addButton : null, getRowCount(field));
-        });
+        // Replace rows so removed initial rows return and added rows disappear.
+        // The module loader disposes old controls and hydrates the new rows.
+        return () => container.replaceChildren(...initialRows.map((row) => row.cloneNode(true)));
+    });
+    const afterReset = () => {
+        generation++;
+        removeHandlers.forEach((handler, button) => button.removeEventListener('click', handler));
+        removeHandlers.clear();
+        bindRemoveButtons();
+        syncAddButton(addButton instanceof HTMLButtonElement ? addButton : null, getRowCount(field));
     };
-    form?.addEventListener('reset', onReset);
+    retainedReset.afterReset = afterReset;
 
     dispatchFieldEvent(field, MODULE_ID, 'init', {
         repeater: field,
@@ -228,7 +227,7 @@ function bindRepeaterField(field: HTMLElement, isCpEdit: boolean): () => void {
 
     return () => {
         disposed = true;
-        form?.removeEventListener('reset', onReset);
+        retainedReset.unmount(afterReset);
         if (addButton instanceof HTMLButtonElement) {
             addButton.removeEventListener('click', addHandler);
         }

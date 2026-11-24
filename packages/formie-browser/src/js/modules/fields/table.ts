@@ -1,7 +1,7 @@
 import tableCss from '#theme-css/fields/_table.css?inline';
 
 import type { BrowserModuleDefinition } from '#contracts/modules';
-import { dispatchFieldEvent, getTemplateSource, getTemplateSourceHtml } from '#modules/fields/shared';
+import { cloneWithDefaultValues, dispatchFieldEvent, getTemplateSource, getTemplateSourceHtml, retainFieldReset } from '#modules/fields/shared';
 import { ensureModuleStyles } from '#modules/styles';
 import { sleep } from '#utils/async';
 
@@ -122,6 +122,11 @@ function bindTableField(field: HTMLElement, options: TableOptions): () => void {
         // Delay follow-up wiring long enough for nested controls/modules inside the
         // new row to exist before downstream listeners react to append events.
         await sleep(50);
+        // A reset in the meantime has already replaced the rows.
+        if (!row.isConnected) {
+            return;
+        }
+
         bindRemoveButtons();
         syncAddButton(addButton, getRowCount(field));
         dispatchFieldEvent(field, MODULE_ID, 'append', {
@@ -141,11 +146,29 @@ function bindTableField(field: HTMLElement, options: TableOptions): () => void {
 
     bindRemoveButtons();
     syncAddButton(addButton instanceof HTMLButtonElement ? addButton : null, getRowCount(field));
+
+    const retainedReset = retainFieldReset(field.closest('form'), tbody, MODULE_ID, () => {
+        const initialRows = Array.from(tbody.children).map(cloneWithDefaultValues);
+
+        // Native reset only restores values. Replace rows so removed default
+        // rows return and rows the visitor added disappear.
+        return () => tbody.replaceChildren(...initialRows.map((row) => row.cloneNode(true)));
+    });
+    const afterReset = () => {
+        removeHandlers.forEach((handler, button) => button.removeEventListener('click', handler));
+        removeHandlers.clear();
+        bindRemoveButtons();
+        syncAddButton(addButton instanceof HTMLButtonElement ? addButton : null, getRowCount(field));
+    };
+    retainedReset.afterReset = afterReset;
+
     dispatchFieldEvent(field, MODULE_ID, 'init', {
         table: field,
     });
 
     return () => {
+        retainedReset.unmount(afterReset);
+
         if (addButton instanceof HTMLButtonElement) {
             addButton.removeEventListener('click', addHandler);
         }

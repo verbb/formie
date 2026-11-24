@@ -17,6 +17,110 @@ const fallbackCssEscape = (value: string): string => {
 };
 const validatorRegistrations = new WeakMap<HTMLFormElement, Map<string, number>>();
 
+export type RetainedFieldReset = {
+    afterReset: (() => void) | null;
+    // Call from the module's destroy with the `afterReset` it set.
+    unmount: (afterReset: () => void) => void;
+};
+
+const retainedFieldResets = new WeakMap<Element, Map<string, RetainedFieldReset>>();
+
+// Field modules on hidden pages are unmounted, so their own reset listeners
+// miss a reset run while another page is showing, such as after an Ajax
+// submission. The first mount snapshots the initial state and keeps one form
+// listener while the element stays in the document, so a later remount can't
+// adopt the visitor's state as its starting point. `reset` restores the DOM
+// after the native reset, then a mounted instance can resync through
+// `afterReset`.
+export function retainFieldReset(
+    form: HTMLFormElement | null,
+    element: Element,
+    key: string,
+    createReset: () => () => void,
+): RetainedFieldReset {
+    const resets = retainedFieldResets.get(element) || new Map<string, RetainedFieldReset>();
+    const existing = resets.get(key);
+
+    if (existing) {
+        return existing;
+    }
+
+    let onReset: ((event: Event) => void) | null = null;
+    // A removed element is done with, such as a removed Repeater row. A later
+    // mount takes a fresh snapshot.
+    const release = () => {
+        if (onReset) {
+            form?.removeEventListener('reset', onReset);
+        }
+
+        retainedFieldResets.get(element)?.delete(key);
+    };
+    const retained: RetainedFieldReset = {
+        afterReset: null,
+        unmount: (afterReset) => {
+            if (retained.afterReset === afterReset) {
+                retained.afterReset = null;
+            }
+
+            if (!element.isConnected) {
+                release();
+            }
+        },
+    };
+    resets.set(key, retained);
+    retainedFieldResets.set(element, resets);
+
+    if (!form) {
+        return retained;
+    }
+
+    const reset = createReset();
+    onReset = (event: Event) => {
+        // Native reset restores control values after the reset event returns.
+        queueMicrotask(() => {
+            if (event.defaultPrevented) {
+                return;
+            }
+
+            if (!element.isConnected) {
+                release();
+                return;
+            }
+
+            reset();
+            retained.afterReset?.();
+        });
+    };
+    form.addEventListener('reset', onReset);
+
+    return retained;
+}
+
+// Clones keep a control's current value, so return each visible control in the
+// copy to its default. A browser can restore typed values before modules mount.
+export function cloneWithDefaultValues(node: Node): Node {
+    const clone = node.cloneNode(true);
+
+    if (!(clone instanceof Element)) {
+        return clone;
+    }
+
+    clone.querySelectorAll('input, textarea, select').forEach((control) => {
+        if (control instanceof HTMLInputElement && control.type !== 'hidden') {
+            control.value = control.defaultValue;
+            control.checked = control.defaultChecked;
+        } else if (control instanceof HTMLTextAreaElement) {
+            control.value = control.defaultValue;
+        } else if (control instanceof HTMLSelectElement) {
+            Array.from(control.options).forEach((option) => {
+                option.selected = option.defaultSelected;
+            });
+        }
+    });
+
+    return clone;
+}
+
 // Conditions clear ordinary controls directly. Enhanced controls also need to
 // clear their hidden transport values before their modules are unmounted.
 export function bindConditionalClear(input: HTMLElement, clear: () => void): () => void {

@@ -13,6 +13,7 @@
 - Fixed the **Move form** action on multi-site installs returning an error and moving only some of the selected forms when the target form group’s site settings exclude a form.
 - Fixed updating an existing form through an import moving it into a form group the user can’t manage forms in.
 - Fixed permanently deleting a submission also deleting an uploaded file that another submission still relates to through `form.setRelations()`, when the form is set to delete file uploads.
+- Fixed AJAX forms set to reset after submission keeping Table rows the visitor added, and Repeater rows and signatures on earlier pages, which were then saved with the next visitor’s submission.
 - Fixed the Campaign and Snaptcha integrations, and the Calendar, Events and Commerce Product element integrations, being unavailable when their plugin is installed from a development branch such as `dev-main`. Integrations and fields that don’t set a minimum version for their required plugin no longer check its version.
 
 ## 4.1.0 - 2026-11-24

@@ -2,7 +2,7 @@ import SignaturePad from 'signature_pad';
 import signatureCss from '#theme-css/fields/_signature.css?inline';
 
 import type { BrowserModuleDefinition } from '#contracts/modules';
-import { bindConditionalClear, dispatchFieldEvent, getModuleFieldContainers } from '#modules/fields/shared';
+import { bindConditionalClear, dispatchFieldEvent, getModuleFieldContainers, retainFieldReset } from '#modules/fields/shared';
 import { ensureModuleStyles } from '#modules/styles';
 
 const INPUT_SELECTOR = 'input[data-formie-signature-input]';
@@ -157,6 +157,18 @@ async function restoreSignatureValue(signaturePad: SignaturePad, canvas: HTMLCan
     }
 }
 
+function syncInputValue(input: HTMLInputElement, nextValue: string): void {
+    const valueChanged = input.value !== nextValue;
+    input.value = nextValue;
+
+    if (!valueChanged) {
+        return;
+    }
+
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
 function initSignatureField(
     root: HTMLElement,
     field: HTMLElement,
@@ -165,9 +177,15 @@ function initSignatureField(
     clearButton: HTMLElement | null,
     options: SignatureOptions,
 ): () => void {
-    const initialValue = input.value;
     const form = input.form;
     const messages = getSignatureMessages(field);
+    const retainedReset = retainFieldReset(form, input, MODULE_ID, () => {
+        const initialValue = input.value;
+
+        // Hidden inputs do not restore an earlier value through native reset,
+        // and this also runs while the field's page is hidden and unmounted.
+        return () => syncInputValue(input, initialValue);
+    });
 
     if (!supportsCanvas()) {
         setSignatureMessage(field, canvas, messages.noCanvas);
@@ -330,39 +348,21 @@ function initSignatureField(
         visibilityHandler();
     });
 
-    const syncInputValue = (nextValue: string) => {
-        const valueChanged = input.value !== nextValue;
-        input.value = nextValue;
-
-        if (!valueChanged) {
-            return;
-        }
-
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-        input.dispatchEvent(new Event('change', { bubbles: true }));
-    };
-
     const syncValue = () => {
-        syncInputValue(signaturePad.isEmpty() ? '' : signaturePad.toDataURL());
+        syncInputValue(input, signaturePad.isEmpty() ? '' : signaturePad.toDataURL());
     };
 
     const clearSignature = () => {
         signaturePad.clear();
-        syncInputValue('');
+        syncInputValue(input, '');
     };
 
-    const onReset = (event: Event) => {
-        // Hidden inputs do not restore an earlier value through native reset.
-        // Reset both the submitted signature and the pad to their initial state.
-        queueMicrotask(() => {
-            if (!event.defaultPrevented) {
-                signaturePad.clear();
-                syncInputValue(initialValue);
-                void restoreSignatureValue(signaturePad, canvas, initialValue);
-            }
-        });
+    // The retained reset has restored the input. Redraw the pad to match.
+    const afterReset = () => {
+        signaturePad.clear();
+        void restoreSignatureValue(signaturePad, canvas, input.value);
     };
-    form?.addEventListener('reset', onReset);
+    retainedReset.afterReset = afterReset;
 
     const unbindConditionalClear = bindConditionalClear(input, clearSignature);
     signaturePad.addEventListener('endStroke', syncValue);
@@ -382,7 +382,7 @@ function initSignatureField(
     return () => {
         clearSizeRetry();
         unbindConditionalClear();
-        form?.removeEventListener('reset', onReset);
+        retainedReset.unmount(afterReset);
         signaturePad.removeEventListener('endStroke', syncValue);
         window.removeEventListener('resize', resizeHandler);
         root.removeEventListener('formie:page:navigate:after', pageNavigateHandler as EventListener);
