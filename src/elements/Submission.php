@@ -53,8 +53,11 @@ use craft\db\Table as CraftTable;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Restore;
 use craft\elements\conditions\ElementConditionInterface;
+use craft\elements\db\ElementQuery;
+use craft\elements\db\ElementQueryInterface;
 use craft\elements\User;
 use craft\events\DefineElementHtmlEvent;
+use craft\events\PopulateElementsEvent;
 use craft\helpers\Cp;
 use craft\helpers\Db;
 use craft\helpers\Html;
@@ -437,6 +440,74 @@ class Submission extends Element
         ];
     }
 
+    protected static function prepElementQueryForTableAttribute(ElementQueryInterface $elementQuery, string $attribute): void
+    {
+        if ($elementQuery instanceof ElementQuery && in_array($attribute, ['userId', 'updatedBy', 'paymentStatus', 'sendNotification'], true)) {
+            // Load what these columns show for the whole page at once, rather than once per row.
+            $elementQuery->on(ElementQuery::EVENT_AFTER_POPULATE_ELEMENTS, static function(PopulateElementsEvent $event) use ($attribute): void {
+                self::_prepIndexElements($event->elements, $attribute);
+            });
+
+            return;
+        }
+
+        parent::prepElementQueryForTableAttribute($elementQuery, $attribute);
+    }
+
+    private static function _prepIndexElements(array $elements, string $attribute): void
+    {
+        $submissions = array_filter($elements, static fn($element): bool => $element instanceof self && $element->id);
+
+        if (!$submissions) {
+            return;
+        }
+
+        if ($attribute === 'userId' || $attribute === 'updatedBy') {
+            $property = $attribute === 'userId' ? 'userId' : 'updatedById';
+            $userIds = array_values(array_unique(array_filter(array_map(static fn(self $submission) => $submission->$property, $submissions))));
+
+            if (!$userIds) {
+                return;
+            }
+
+            // Matches `Users::getUserById()`, which the getters fall back to.
+            $users = User::find()->id($userIds)->status(null)->drafts(null)->provisionalDrafts(null)->revisions(null)->indexBy('id')->all();
+
+            foreach ($submissions as $submission) {
+                if ($user = $users[$submission->$property] ?? null) {
+                    if ($attribute === 'userId') {
+                        $submission->_user = $user;
+                    } else {
+                        $submission->_updatedBy = $user;
+                    }
+                }
+            }
+
+            return;
+        }
+
+        if ($attribute === 'paymentStatus') {
+            $payments = Formie::$plugin->getPayments()->getPaymentsForSubmissions($submissions);
+
+            foreach ($submissions as $submission) {
+                $submission->_indexPayments = $payments[$submission->id] ?? [];
+            }
+
+            return;
+        }
+
+        // Each submission has its own copy of the form, so only ask for each form's notifications once.
+        $hasNotifications = [];
+
+        foreach ($submissions as $submission) {
+            if (!$submission->formId || !($form = $submission->getForm())) {
+                continue;
+            }
+
+            $submission->_indexHasNotifications = $hasNotifications[$form->id] ??= (bool)Formie::$plugin->getNotifications()->getFormNotifications($form);
+        }
+    }
+
 
     // Constants
     // =========================================================================
@@ -479,6 +550,9 @@ class Submission extends Element
     private ?Form $_form = null;
     private ?SubmissionStatus $_status = null;
     private ?User $_user = null;
+    private ?User $_updatedBy = null;
+    private ?array $_indexPayments = null;
+    private ?bool $_indexHasNotifications = null;
     private ?FormLayout $_formLayout = null;
     private ?string $_fieldContext = null;
     private ?array $_pagesForField = null;
@@ -1037,6 +1111,11 @@ class Submission extends Element
     {
         if (!$this->updatedById) {
             return null;
+        }
+
+        // Use the user an element index loaded for the page, as long as it still matches.
+        if ($this->_updatedBy && $this->_updatedBy->id === $this->updatedById) {
+            return $this->_updatedBy;
         }
 
         return Craft::$app->getUsers()->getUserById($this->updatedById);
@@ -1598,7 +1677,7 @@ class Submission extends Element
         }
 
         if ($attribute == 'paymentStatus') {
-            if ($payments = $this->getPayments()) {
+            if ($payments = $this->_indexPayments ?? $this->getPayments()) {
                 $lastPayment = end($payments);
 
                 $color = $lastPayment->status;
@@ -1627,7 +1706,7 @@ class Submission extends Element
             // Side-effect action — require save, not just view.
             if (
                 $form
-                && $form->getNotifications()
+                && ($this->_indexHasNotifications ?? $form->getNotifications())
                 && $currentUser
                 && Formie::$plugin->getPermissions()->canSaveSubmissions($currentUser, $form)
             ) {

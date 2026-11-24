@@ -333,6 +333,30 @@ class Payments extends Component
         }, Craft::$app->getDb()->useMaster(fn() => $this->_createPaymentsQuery()->where(['submissionId' => (int)$submission->id])->all()));
     }
 
+    /**
+     * Returns each submission's payments, keyed by submission ID, in one query.
+     *
+     * @param Submission[] $submissions
+     * @return array<int, Payment[]>
+     */
+    public function getPaymentsForSubmissions(array $submissions): array
+    {
+        $submissionIds = array_values(array_unique(array_filter(array_map(static fn(Submission $submission) => (int)$submission->id, $submissions))));
+
+        if (!$submissionIds) {
+            return [];
+        }
+
+        $payments = [];
+        $rows = Craft::$app->getDb()->useMaster(fn() => $this->_createPaymentsQuery()->where(['submissionId' => $submissionIds])->all());
+
+        foreach ($rows as $row) {
+            $payments[(int)$row['submissionId']][] = $this->_hydratePayment($row);
+        }
+
+        return $payments;
+    }
+
     public function getPaymentByUid(string $uid): ?Payment
     {
         $uid = trim($uid);
