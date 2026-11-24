@@ -5,7 +5,7 @@ return [
   'Maximum Rows' => 'Maximum Rows',
   'The maximum number of rows visitors can add.' => 'The maximum number of rows visitors can add.',
   'Send analytics events in the browser after this page is submitted successfully.' => 'Send analytics events in the browser after this page is submitted successfully.',
-  'You are editing a synced field. Changes apply everywhere this field is used.' => 'You are editing a synced field. Changes apply everywhere this field is used.',
+  'You are editing a synced field. Changes apply everywhere this field is used, except conditions and a few other settings that belong to each form.' => 'You are editing a synced field. Changes apply everywhere this field is used, except conditions and a few other settings that belong to each form.',
   'CAPTCHA providers and integrations used by your form: whether they are available and enabled, where their settings are stored, and whether their credentials are configured and can be read' => 'CAPTCHA providers and integrations used by your form: whether they are available and enabled, where their settings are stored, and whether their credentials are configured and can be read',
   'Policy-based challenge keys use the reCAPTCHA Enterprise challenge flow. Set the score threshold and challenge difficulty in Google Cloud.' => 'Policy-based challenge keys use the reCAPTCHA Enterprise challenge flow. Set the score threshold and challenge difficulty in Google Cloud.',
   'After all integrations finish' => 'After all integrations finish',

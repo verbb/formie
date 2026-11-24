@@ -20,7 +20,7 @@ const FieldEditorNotices = ({
                 <div className="m-4 mb-0 flex shrink-0 items-start gap-2 rounded border border-[#f6ad55] bg-[#fffaf0] px-3 py-2 text-[12px] leading-normal text-[#b45309]">
                     <Icon icon="triangle-exclamation" className="mt-0.5 size-3 shrink-0" />
                     <p className="m-0">
-                        <span>{Craft.t('formie', 'You are editing a synced field. Changes apply everywhere this field is used.')}</span>{' '}
+                        <span>{Craft.t('formie', 'You are editing a synced field. Changes apply everywhere this field is used, except conditions and a few other settings that belong to each form.')}</span>{' '}
                         <a
                             href={Craft.getCpUrl('formie/settings/synced-fields')}
                             className="font-bold underline"

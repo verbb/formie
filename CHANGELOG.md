@@ -10,6 +10,7 @@
 ### Changed
 - The **Form Templates**, **Email Templates** and **PDF Templates** settings pages now explain what Formie uses until you add a template of your own, instead of showing an empty table with “No data available.”
 - The **Reports** page now reads “Create your first report” before the first report is created, for people who can create reports.
+- Synced fields now keep their conditions, Calculations formula, Payment field settings, Hidden field default value, and File Upload subfolder path and filename format for each form, as they already did for **Required**. Changing one of these in a form no longer changes the other forms that use the field, and the form builder’s synced field notice now says so. ([#3159](https://github.com/verbb/formie/issues/3159))
 
 ### Fixed
 - Fixed HTML fields that used Twig before upgrading to Formie 4 showing their Twig code to visitors instead of rendering it, because the upgrade left **Allow Twig** off. Updating turns **Allow Twig** on for HTML fields in forms and stencils that use Twig and have no **Allow Twig** setting saved yet. Fields that already have one keep it, and nothing changes on sites with **Allow Twig in HTML Fields** turned off. Twig that uses something Formie’s sandbox blocks, such as `craft.entries`, still needs changing, as described in [HTML](https://verbb.io/craft-plugins/formie/docs/v4/fields/html).
