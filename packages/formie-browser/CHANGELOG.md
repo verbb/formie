@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 4.1.0 - 2026-11-24
+
 ### Fixed
 - Fixed the Stripe and PayPal modules reading a dynamic amount or currency from the field’s ID instead of the field’s value, and reading a field handle that looks like a number or currency code, such as `amount2` or `cur`, as the value itself. ([#3156](https://github.com/verbb/formie/issues/3156))
 - Fixed the Stripe and PayPal modules not reading a dynamic amount or currency in client-rendered forms, which have no named inputs to read. Client-rendered forms now give modules the visitor’s answers from the form instance. ([#3156](https://github.com/verbb/formie/issues/3156))
