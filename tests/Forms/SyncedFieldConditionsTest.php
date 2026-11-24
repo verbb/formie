@@ -411,3 +411,35 @@ it('keeps a form valid when the update repairs a condition onto a later field', 
         // Form A's own rule is untouched.
         ->and(syncedConditionsReload($a->id)->getFieldByHandle('accountNumber')->conditions['conditions'][0])->not->toHaveKey('legacyForward');
 });
+
+// Only a synced field was given another form's references. A field used in one form keeps what it has, even a
+// rule naming a field in another form, which did nothing before the update and mustn't start working because of it.
+it('leaves a rule naming another form’s field alone on a field that isn’t synced', function(): void {
+    [$a] = syncedConditionsSource();
+    $c = formie()->form(['title' => 'Unsynced Conditions C', 'handle' => 'unsyncedConditionsC' . uniqid()])
+        ->radioField('paymentMethod', ['options' => [
+            ['label' => 'Card', 'value' => 'card'],
+            ['label' => 'Bank transfer', 'value' => 'bankTransfer'],
+        ]])
+        ->singleLineTextField('accountNumber')
+        ->create();
+    $c = syncedConditionsReload($c->id);
+    $field = $c->getFieldByHandle('accountNumber');
+
+    expect((new Query())->from(Table::FORMIE_FORM_FIELDS)->where(['fieldId' => $field->definitionId])->count())->toEqual(1);
+
+    // The stored shape before conditions moved to each form: on the definition, naming form A's field.
+    $moved = ['enableConditions' => true, 'conditions' => syncedConditionsRule($a, 'bankTransfer')];
+    $settings = Json::decode((new Query())->select('settings')->from(Table::FORMIE_FIELDS)->where(['id' => $field->definitionId])->scalar());
+    Db::update(Table::FORMIE_FIELDS, ['settings' => Json::encode(array_merge($settings, $moved))], ['id' => $field->definitionId]);
+    $placement = Json::decode((new Query())->select('settings')->from(Table::FORMIE_FORM_FIELDS)->where(['id' => $field->id])->scalar());
+    Db::update(Table::FORMIE_FORM_FIELDS, ['settings' => Json::encode(array_diff_key($placement, $moved))], ['id' => $field->id]);
+
+    foreach ([1, 2] as $run) {
+        expect((new m261124_000000_per_form_field_settings())->safeUp())->toBeTrue();
+        $rule = syncedConditionsReload($c->id)->getFieldByHandle('accountNumber')->conditions['conditions'][0];
+
+        expect($rule['field'])->toBe('{field:' . $a->getFieldByHandle('paymentMethod')->reference . '}')
+            ->and($rule)->not->toHaveKey('legacyForward');
+    }
+});

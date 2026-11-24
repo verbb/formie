@@ -187,6 +187,11 @@ class m261124_000000_per_form_field_settings extends Migration
         }
 
         foreach ($settingsById as $id => $settings) {
+            // A definition used once only ever held its own form's settings, so they're moved as they are.
+            if (count($this->_instanceIdsByDefinition[(int)$this->_instances[$id]['fieldId']] ?? []) < 2) {
+                continue;
+            }
+
             $forms = array_keys($this->_layoutContext((int)$this->_instances[$id]['layoutId']));
 
             // Children of a shared parent appear in several forms through one row, so there's no single form to point at.
