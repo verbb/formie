@@ -103,7 +103,8 @@ it('keeps a stored country visible after the option value format changes', funct
     $submission = Submission::find()->id($saved->id)->status(null)->one();
     $html = (string)References::parseContent('{allContentFields}', $submission, ['outputContext' => ReferenceOutputContext::Html]);
 
-    expect(preg_replace('/\s+/', ' ', strip_tags($html)))->toContain('Country label: AU ');
+    // The stored code is no longer one of the field's option values, so it's named the same way as in exports and summaries.
+    expect(preg_replace('/\s+/', ' ', strip_tags($html)))->toContain('Country label: Australia ');
 });
 
 it('outputs the country of an Address inside a Group in email summaries', function (): void {
