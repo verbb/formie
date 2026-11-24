@@ -752,6 +752,7 @@ return [
   'Create report' => 'Create report',
   'Create submissions' => 'Create submissions',
   'Create Task on Duplicate Lead' => 'Create Task on Duplicate Lead',
+  'Create your first report' => 'Create your first report',
   'Create your form' => 'Create your form',
   'Create your stencil' => 'Create your stencil',
   'CRM' => 'CRM',

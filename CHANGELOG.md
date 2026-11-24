@@ -5,6 +5,9 @@
 ### Added
 - Added **Country (Label)** and **Country (Value)** to the choices for Address fields in integration mappings and variables, so a mapping can send the country’s name instead of its ISO code. ([#3158](https://github.com/verbb/formie/issues/3158))
 
+### Changed
+- The **Reports** page now reads “Create your first report” before the first report is created, for people who can create reports.
+
 ### Fixed
 - Fixed synced fields with conditions or a Calculations formula breaking in every other form that uses them when a new form was created from a stencil containing them. Their conditions and formulas were rewritten to point at the new form’s fields, so conditional fields stayed hidden and calculations stayed empty, including in the original form. Each form now keeps its own conditions and formula for a synced field, as it already did for **Required**, so changing them in one form no longer changes the others. Updating repairs affected forms that have a field with the same handle. ([#3159](https://github.com/verbb/formie/issues/3159))
 - Fixed file uploads in client-rendered forms always failing with “The file could not be staged. Please select it again.” when Craft’s `headlessMode` is on, including File Upload fields set to Upload Manager. Their upload URLs pointed at the control panel, where Formie couldn’t find the form for visitors. ([#3157](https://github.com/verbb/formie/issues/3157))

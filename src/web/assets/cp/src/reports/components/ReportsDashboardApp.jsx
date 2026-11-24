@@ -190,7 +190,9 @@ export const ReportsDashboardApp = ({ settings }) => {
                     variant="empty"
                     size="lg"
                     icon="empty-set"
-                    heading={Craft.t('formie', 'No reports created')}
+                    heading={settings.canManageReports
+                        ? Craft.t('formie', 'Create your first report')
+                        : Craft.t('formie', 'No reports created')}
                     className="py-20"
                 >
                     {Craft.t('formie', 'Create a report to filter, chart, and export submission data across your forms. Reports are saved views you can open any time, download as CSV, or schedule by email.')}
