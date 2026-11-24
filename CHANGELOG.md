@@ -26,6 +26,7 @@
 - Fixed File Upload fields using the **File Input** display type rendering a `value` attribute on their file input, which made Vue and React front ends that mount the form’s markup throw an error. ([#3161](https://github.com/verbb/formie/issues/3161))
 - Fixed the Campaign and Snaptcha integrations, and the Calendar, Events and Commerce Product element integrations, being unavailable when their plugin is installed from a development branch such as `dev-main`. Integrations and fields that don’t set a minimum version for their required plugin no longer check its version.
 - Fixed the log entry for a submission rejected by the honeypot including what was entered into it when `logSubmissionValues` is `false`. ([#3162](https://github.com/verbb/formie/issues/3162))
+- Fixed form groups’ **Allowed Submission Statuses** and **Enabled Sites** pointing at different statuses and sites on other environments, which could save submissions with the wrong status, reject every submission, or enable forms on the wrong sites. Project config now stores them by UID. Existing settings are converted when migrations run, so run `craft up` first on the environment where you edit form groups, and check the converted settings it lists before committing `config/project`.
 
 ## 4.1.0 - 2026-11-24
 

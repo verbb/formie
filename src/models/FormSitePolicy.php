@@ -28,6 +28,61 @@ class FormSitePolicy extends Model
         return $policy;
     }
 
+    /**
+     * Converts a policy stored in project config to this environment's site IDs.
+     */
+    public static function fromConfig(array $config): array
+    {
+        // Older config stored `enabledSiteIds`, which are read as they are.
+        if (array_key_exists('enabledSites', $config)) {
+            $siteIds = [];
+            // `getSiteByUid()` throws for a deleted site, so match against every site instead.
+            $siteIdsByUid = array_column(Craft::$app->getSites()->getAllSites(true), 'id', 'uid');
+
+            foreach ((array)$config['enabledSites'] as $siteUid) {
+                if (is_string($siteUid) && isset($siteIdsByUid[$siteUid])) {
+                    $siteIds[] = (int)$siteIdsByUid[$siteUid];
+                }
+            }
+
+            // A restriction whose sites no longer exist still matches nothing, as a stale ID did.
+            if (!$siteIds && (array)$config['enabledSites']) {
+                $siteIds = [FormGroupSettings::MISSING_ID];
+            }
+
+            unset($config['enabledSites']);
+            $config['enabledSiteIds'] = $siteIds;
+        }
+
+        return $config;
+    }
+
+    /**
+     * Converts a policy to the form stored in project config, where sites are referenced by UID.
+     */
+    public static function toConfig(array $policy): array
+    {
+        if (array_key_exists('enabledSiteIds', $policy)) {
+            $siteIds = self::_normalizeSiteIds($policy['enabledSiteIds']);
+            unset($policy['enabledSiteIds']);
+
+            if ($siteIds !== null) {
+                $policy['enabledSites'] = [];
+
+                foreach ($siteIds as $siteId) {
+                    if ($site = Craft::$app->getSites()->getSiteById($siteId, true)) {
+                        $policy['enabledSites'][] = $site->uid;
+                    }
+                }
+
+                // Craft drops an empty list, which would read back as every site.
+                $policy['enabledSites'] = $policy['enabledSites'] ?: [FormGroupSettings::MISSING_UID];
+            }
+        }
+
+        return $policy;
+    }
+
     public static function propagationOptions(): array
     {
         return [

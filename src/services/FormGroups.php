@@ -7,6 +7,7 @@ use verbb\formie\events\FormGroupEvent;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\FormGroup;
+use verbb\formie\models\FormGroupSettings;
 use verbb\formie\records\FormGroup as FormGroupRecord;
 
 use Craft;
@@ -15,6 +16,7 @@ use craft\base\MemoizableArray;
 use craft\db\Query;
 use craft\events\ConfigEvent;
 use craft\helpers\Db;
+use craft\helpers\ProjectConfig as ProjectConfigHelper;
 
 use Throwable;
 
@@ -134,6 +136,17 @@ class FormGroups extends Component
             return;
         }
 
+        // The group references statuses and sites by UID, so apply any from the same deploy first.
+        $projectConfig = Craft::$app->getProjectConfig();
+
+        if ($projectConfig->getIsApplyingExternalChanges()) {
+            ProjectConfigHelper::ensureAllSitesProcessed();
+
+            foreach (array_keys($projectConfig->get(SubmissionStatuses::CONFIG_SUBMISSION_STATUSES_KEY, true) ?? []) as $statusUid) {
+                $projectConfig->processConfigChanges(SubmissionStatuses::CONFIG_SUBMISSION_STATUSES_KEY . '.' . $statusUid);
+            }
+        }
+
         $transaction = Craft::$app->getDb()->beginTransaction();
 
         try {
@@ -154,6 +167,7 @@ class FormGroups extends Component
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
+
             throw $e;
         }
 
@@ -164,7 +178,7 @@ class FormGroups extends Component
         // Craft fires this event before updating the working project config.
         // Use the incoming policy for this request, including site propagation.
         if ($group) {
-            $group->settings = is_array($data['settings'] ?? null) ? $data['settings'] : null;
+            $group->settings = is_array($data['settings'] ?? null) ? FormGroupSettings::fromConfig($data['settings']) : null;
         }
 
         if ($group && Craft::$app->getIsMultiSite()) {
@@ -239,6 +253,7 @@ class FormGroups extends Component
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
+
             throw $e;
         }
 
@@ -265,7 +280,7 @@ class FormGroups extends Component
                 $groupConfig = Craft::$app->getProjectConfig()->get(self::CONFIG_GROUPS_KEY . '.' . $result['uid']);
 
                 if (is_array($groupConfig['settings'] ?? null)) {
-                    $group->settings = $groupConfig['settings'];
+                    $group->settings = FormGroupSettings::fromConfig($groupConfig['settings']);
                 }
 
                 $groups[] = $group;

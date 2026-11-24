@@ -31,7 +31,7 @@ class FormGroup extends Model
     public ?int $sortOrder = null;
     public ?DateTime $dateDeleted = null;
     public ?string $uid = null;
-    // Optional group policy and defaults payload from project config.
+    // Optional group policy and defaults payload from project config, with statuses and sites as this environment's IDs.
     public ?array $settings = null;
 
 
@@ -81,7 +81,7 @@ class FormGroup extends Model
         ];
 
         if ($this->settings) {
-            $config['settings'] = $this->settings;
+            $config['settings'] = FormGroupSettings::toConfig($this->settings);
         }
 
         return $config;

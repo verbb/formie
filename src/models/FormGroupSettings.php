@@ -39,6 +39,67 @@ class FormGroupSettings extends Model
         return $settings;
     }
 
+    /**
+     * Converts settings stored in project config to this environment's status and site IDs.
+     */
+    public static function fromConfig(array $config): array
+    {
+        // Older config stored `allowedStatusIds`, which are read as they are.
+        if (array_key_exists('allowedStatuses', $config)) {
+            $statusIds = [];
+
+            foreach ((array)$config['allowedStatuses'] as $statusUid) {
+                if (is_string($statusUid) && $status = Formie::$plugin->getSubmissionStatuses()->getStatusByUid($statusUid)) {
+                    $statusIds[] = (int)$status->id;
+                }
+            }
+
+            // A restriction whose statuses no longer exist still matches nothing, as a stale ID did.
+            if (!$statusIds && (array)$config['allowedStatuses']) {
+                $statusIds = [self::MISSING_ID];
+            }
+
+            unset($config['allowedStatuses']);
+            $config['allowedStatusIds'] = $statusIds;
+        }
+
+        if (is_array($config['sitePolicy'] ?? null)) {
+            $config['sitePolicy'] = FormSitePolicy::fromConfig($config['sitePolicy']);
+        }
+
+        return $config;
+    }
+
+    /**
+     * Converts settings to the form stored in project config, where statuses and sites are referenced by UID.
+     */
+    public static function toConfig(array $settings): array
+    {
+        if (array_key_exists('allowedStatusIds', $settings)) {
+            $statusIds = self::_normalizeStatusIds($settings['allowedStatusIds']);
+            unset($settings['allowedStatusIds']);
+
+            if ($statusIds !== null) {
+                $settings['allowedStatuses'] = [];
+
+                foreach ($statusIds as $statusId) {
+                    if ($status = Formie::$plugin->getSubmissionStatuses()->getStatusById($statusId)) {
+                        $settings['allowedStatuses'][] = $status->uid;
+                    }
+                }
+
+                // Craft drops an empty list, which would read back as every status.
+                $settings['allowedStatuses'] = $settings['allowedStatuses'] ?: [self::MISSING_UID];
+            }
+        }
+
+        if (is_array($settings['sitePolicy'] ?? null)) {
+            $settings['sitePolicy'] = FormSitePolicy::toConfig($settings['sitePolicy']);
+        }
+
+        return $settings;
+    }
+
     private static function _normalizeStatusIds(mixed $value): ?array
     {
         if ($value === null || $value === '' || $value === '*' || $value === []) {
@@ -57,6 +118,14 @@ class FormGroupSettings extends Model
 
         return $ids === [] ? null : $ids;
     }
+
+
+    // Constants
+    // =========================================================================
+
+    // Stand-ins for a status or site restriction whose statuses or sites have all been deleted.
+    public const MISSING_ID = -1;
+    public const MISSING_UID = 'missing';
 
 
     // Properties
