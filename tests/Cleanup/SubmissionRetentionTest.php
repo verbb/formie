@@ -2,9 +2,15 @@
 
 declare(strict_types=1);
 
+use craft\elements\db\ElementQuery;
+use craft\events\PopulateElementsEvent;
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
+use verbb\formie\elements\db\SubmissionQuery;
+use verbb\formie\events\PruneSubmissionEvent;
 use verbb\formie\services\Cleanup;
+use verbb\formie\services\Submissions;
+use yii\base\Event;
 
 beforeEach(function (): void {
     // Retention scans every form. Roll back its database changes so unrelated
@@ -74,4 +80,47 @@ it('enforces the spam limit when incomplete submissions are kept indefinitely', 
     ];
     Formie::$plugin->getCleanup()->runTask(Cleanup::TASK_INCOMPLETE_SUBMISSIONS);
     expect(survivingRetentionIds($rows))->toBe([$rows[0]->id, $rows[2]->id]);
+});
+
+it('prunes a large retention backlog in batches, keeping the same rows and events', function (): void {
+    $form = formie()->form(['dataRetention' => 'days', 'dataRetentionValue' => '30'])->singleLineTextField('name')->create();
+    $ids = [];
+
+    for ($i = 0; $i < 101; $i++) {
+        $ids[] = (int)formie()->submission($form)->with(['name' => "Backlog {$i}"])->save()->id;
+    }
+
+    $date = gmdate('Y-m-d H:i:s', strtotime('-31 days'));
+    Craft::$app->getDb()->createCommand()->update('{{%elements}}', ['dateCreated' => $date, 'dateUpdated' => $date], ['id' => $ids], [], false)->execute();
+    $recent = retentionSubmission($form, '-29 days');
+    $expected = array_map('intval', Submission::find()->status(null)->isIncomplete(null)->isSpam(null)->formId($form->id)
+        ->dateCreated('< ' . gmdate('Y-m-d H:i:s', strtotime('-30 days')))->ids());
+    expect($expected)->toHaveCount(101);
+
+    $largestLoad = 0;
+    $pruned = [];
+    $loadHandler = static function(PopulateElementsEvent $event) use (&$largestLoad): void {
+        $largestLoad = max($largestLoad, count($event->elements));
+    };
+    $pruneHandler = static function(PruneSubmissionEvent $event) use (&$pruned): void {
+        $pruned[] = (int)$event->submission->id;
+    };
+    Event::on(SubmissionQuery::class, ElementQuery::EVENT_AFTER_POPULATE_ELEMENTS, $loadHandler);
+    Formie::$plugin->getSubmissions()->on(Submissions::EVENT_AFTER_PRUNE_SUBMISSION, $pruneHandler);
+
+    try {
+        Formie::$plugin->getCleanup()->runTask(Cleanup::TASK_DATA_RETENTION_SUBMISSIONS);
+    } finally {
+        Event::off(SubmissionQuery::class, ElementQuery::EVENT_AFTER_POPULATE_ELEMENTS, $loadHandler);
+        Formie::$plugin->getSubmissions()->off(Submissions::EVENT_AFTER_PRUNE_SUBMISSION, $pruneHandler);
+    }
+
+    // Every row shares one date, so compare the pruned set rather than relying on how ties are ordered.
+    sort($pruned);
+    sort($expected);
+
+    expect($pruned)->toBe($expected)
+        ->and(array_map('intval', Submission::find()->id([...$ids, $recent->id])->status(null)->isIncomplete(null)->isSpam(null)->ids()))->toBe([(int)$recent->id])
+        // Each submission carries its own copy of the form, so loading them all at once grows memory with the backlog.
+        ->and($largestLoad)->toBeLessThanOrEqual(100);
 });

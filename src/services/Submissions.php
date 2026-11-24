@@ -8,6 +8,7 @@ use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\deprecations\SubmissionsDeprecations;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\elements\db\SubmissionQuery;
 use verbb\formie\events\PruneSubmissionEvent;
 use verbb\formie\fields\Group;
 use verbb\formie\helpers\DataRetentionHelper;
@@ -40,6 +41,7 @@ use yii\base\Event;
 
 use DateInterval;
 use DateTime;
+use Generator;
 use Throwable;
 
 use Faker\Factory;
@@ -239,13 +241,12 @@ class Submissions extends Component
             $date = new DateTime();
             $date->sub($interval);
 
-            $submissions = Submission::find()
+            $query = Submission::find()
                 ->isIncomplete(true)
                 // Don't use `Db::prepareDateForDb()` because the `dateCreated` param will already do that
-                ->dateUpdated('< ' . $date->format('Y-m-d H:i:s'))
-                ->all();
+                ->dateUpdated('< ' . $date->format('Y-m-d H:i:s'));
 
-            foreach ($submissions as $submission) {
+            foreach ($this->_eachSubmissionToPrune($query, $query->ids()) as $submission) {
                 try {
                     Craft::$app->getElements()->deleteElement($submission, true);
                 } catch (Throwable $e) {
@@ -260,18 +261,19 @@ class Submissions extends Component
                 return;
             }
 
-            $submissions = Submission::find()
+            $query = Submission::find()
                 ->limit(null)
                 ->offset($settings->spamLimit)
                 ->isSpam(true)
-                ->orderBy(['dateCreated' => SORT_DESC])
-                ->all();
+                ->orderBy(['dateCreated' => SORT_DESC]);
 
-            if ($submissions && $consoleInstance) {
-                $consoleInstance->stdout('Preparing to prune ' . count($submissions) . ' submissions.' . PHP_EOL, Console::FG_YELLOW);
+            $submissionIds = $query->ids();
+
+            if ($submissionIds && $consoleInstance) {
+                $consoleInstance->stdout('Preparing to prune ' . count($submissionIds) . ' submissions.' . PHP_EOL, Console::FG_YELLOW);
             }
 
-            foreach ($submissions as $submission) {
+            foreach ($this->_eachSubmissionToPrune($query, $submissionIds) as $submission) {
                 try {
                     Craft::$app->getElements()->deleteElement($submission, true);
 
@@ -325,10 +327,11 @@ class Submissions extends Component
 
             $totalSubmissionCount = (clone $submissionQuery)->count();
 
-            $submissions = (clone $submissionQuery)
+            $pruneQuery = (clone $submissionQuery)
                 // Don't use `Db::prepareDateForDb()` because the `dateCreated` param will already do that
-                ->dateCreated('< ' . $date->format('Y-m-d H:i:s'))
-                ->all();
+                ->dateCreated('< ' . $date->format('Y-m-d H:i:s'));
+
+            $submissionIds = $pruneQuery->ids();
 
             if ($consoleInstance) {
                 $consoleInstance->stdout(Craft::t('formie', 'Found {c} total submissions for form “{f}”.', [
@@ -336,9 +339,9 @@ class Submissions extends Component
                     'f' => $form['handle'],
                 ]) . PHP_EOL, Console::FG_YELLOW);
 
-                if ($submissions) {
+                if ($submissionIds) {
                     $consoleInstance->stdout(Craft::t('formie', 'Preparing to prune {c} submissions older than {d}.', [
-                        'c' => count($submissions),
+                        'c' => count($submissionIds),
                         'd' => Db::prepareDateForDb($date),
                     ]) . PHP_EOL, Console::FG_YELLOW);
                 } else {
@@ -348,7 +351,7 @@ class Submissions extends Component
                 }
             }
 
-            foreach ($submissions as $submission) {
+            foreach ($this->_eachSubmissionToPrune($pruneQuery, $submissionIds) as $submission) {
                 try {
                     Craft::$app->getElements()->deleteElement($submission, true);
 
@@ -568,6 +571,31 @@ class Submissions extends Component
 
     // Private Methods
     // =========================================================================
+
+    /**
+     * Loads the matched submissions 100 at a time, in the order of `$submissionIds`, so pruning a large backlog
+     * doesn't hold every submission (and its copy of the form) in memory at once.
+     *
+     * @param int[] $submissionIds
+     * @return Generator<Submission>
+     */
+    private function _eachSubmissionToPrune(SubmissionQuery $query, array $submissionIds): Generator
+    {
+        foreach (array_chunk($submissionIds, 100) as $batchIds) {
+            $submissions = (clone $query)
+                ->id($batchIds)
+                ->limit(null)
+                ->offset(null)
+                ->indexBy('id')
+                ->all();
+
+            foreach ($batchIds as $submissionId) {
+                if (isset($submissions[$submissionId])) {
+                    yield $submissions[$submissionId];
+                }
+            }
+        }
+    }
 
     private function _getEmailPreviewFieldHandles(Notification $notification): array
     {
