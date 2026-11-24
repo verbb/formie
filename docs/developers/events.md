@@ -2237,42 +2237,29 @@ Event::on(Variables::class, Variables::EVENT_REGISTER_VARIABLES, function(Regist
 ```
 
 ### The `modifyTwigEnvironment` event
-The event that is triggered to modify the allowed items in the Twig Sandbox used to parse some content like Email Notifications.
+The event that is triggered when Formie sets up the Twig sandbox for Twig in form settings, such as HTML field content and email notification content.
 
-Formie uses a Twig Sandbox with a limited set of allowed Tags, Filter and Functions. This also extends to the allowed Methods and Properties. This is a security measure to prevent Twig injections into the fields that support Twig.
+The sandbox only allows a limited set of tags, filters, functions, methods and properties, so that people editing forms can't use Twig to reach the rest of your site. [Twig in a Form Causes an Error](docs:get-started/troubleshooting#twig-in-a-form-causes-an-error) lists what it allows by default. A listener can add tags, filters and functions to `allowedTags`, `allowedFilters` and `allowedFunctions`, and allow extra methods and properties for a class through `allowedMethods` and `allowedProperties`. These add to the defaults rather than replacing them. The event can't add template variables such as `craft`, or Craft functions and filters the sandbox doesn't load, such as `url()` and `md`. The `allowedClasses` property has no effect.
+
+Formie triggers this event once, while it starts up, so register the listener in a module that Craft bootstraps (listed under `bootstrap` in `config/app.php`). A listener registered later has no effect.
 
 ```php
+use craft\elements\db\ElementQueryInterface;
+use craft\models\Site;
 use verbb\formie\Formie;
 use verbb\formie\events\ModifyTwigEnvironmentEvent;
 use yii\base\Event;
 
 Event::on(Formie::class, Formie::EVENT_MODIFY_TWIG_ENVIRONMENT, function(ModifyTwigEnvironmentEvent $event) {
-    // Add allowed Twig Tags
-    $event->allowedTags[] = [
-        'tag',
-    ];
+    // Allow Twig's `sort` filter and `random()` function
+    $event->allowedFilters[] = 'sort';
+    $event->allowedFunctions[] = 'random';
 
-    // Add allowed Twig Filters
-    $event->allowedFilters[] = [
-        'format',
-        'format_number',
-    ];
+    // Allow `limit()` on element queries, alongside the default `one()`, `all()` and `count()`
+    $event->allowedMethods[ElementQueryInterface::class] = ['limit'];
 
-    // Add allowed Twig Functions
-    $event->allowedFunctions[] = [
-        'alias',
-    ];
-
-    // Prefer allowing whole safe *value* object types (merged with verbb/base defaults
-    // for Element, ElementQuery, ElementCollection, DateTime, etc.).
-    // Do not allow service/container classes (e.g. CraftVariable / Application).
-    $event->allowedClasses[] = \DateTimeZone::class;
-
-    // Or allow specific methods on a class
-    $event->allowedMethods[\craft\web\twig\variables\CraftVariable::class] = ['entries'];
-
-    // Add allowed properties
-    $event->allowedProperties[\craft\base\Element::class] = 'title';
+    // Allow reading whether a site is the primary site
+    $event->allowedProperties[Site::class] = ['primary'];
 });
 ```
 

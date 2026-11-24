@@ -272,6 +272,8 @@ Default Value | |Entering a default value will place the value in the field when
 ### Html
 A field to allow any HTML code to be shown on the form. Useful for `<iframe>` embeds, or any arbitrary HTML.
 
+HTML Content can include Twig, which renders in a restricted sandbox. To show entries or other site data, query them in your template and pass them to the form, as described in [Twig in a Form Causes an Error](docs:get-started/troubleshooting#twig-in-a-form-causes-an-error).
+
 #### Settings
 Setting | Description
 --- | ---

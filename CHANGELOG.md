@@ -143,6 +143,8 @@
 
 ## 3.1.42 - 2026-09-23
 
+> {warning} Twig in HTML fields and other form settings now renders in a restricted sandbox, so forms or stencils using `craft.entries`, `now`, `url()` or `include` there will error when they render. Check these before updating, and see [Twig in a Form Causes an Error](https://verbb.io/craft-plugins/formie/docs/v3/get-started/troubleshooting#twig-in-a-form-causes-an-error) for what's allowed and how to fix it.
+
 ### Changed
 - Resolve redirect URL placeholders as strict submission, field and form tokens instead of executing Twig, while rendering remaining form-authored Twig and object templates in Base's explicit sandbox.
 - Require `verbb/base` 3.0.17 or later for the explicit sandbox renderers and collection safeguards.
