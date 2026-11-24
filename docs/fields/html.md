@@ -15,6 +15,8 @@ HTML is a cosmetic field for developers and agencies who need custom markup, san
 
 Craft administrators with admin changes enabled control these options in **Settings → Field Types and Restrictions**. New installs have **Allow Twig in HTML Fields** and **Allow Template Includes in HTML Fields** off, and **Require HTML Purification** on. Upgrades preserve existing availability and per-field purification choices.
 
+If a field’s Twig can’t be rendered, such as when it uses a function or variable the sandbox blocks, the form shows the error while `devMode` is on. With `devMode` off, the field renders nothing and the error is written to the Formie log.
+
 When Twig is disabled site-wide, HTML fields already using Twig produce no output and retain their source. Turn off the field’s **Allow Twig** setting before saving an affected form, or ask someone with that permission to restore access. When purification is required, the field’s Purify Content toggle is hidden and all HTML output is purified regardless of its stored preference.
 
 ## Including a Template

@@ -141,3 +141,24 @@ it('still shows the builder preview error for blocked html field twig when devMo
 
     expect(json_encode($settings))->toContain('Unable to render HTML preview.');
 })->group('security');
+
+// Form templates carried over from Formie 3 call getRenderedHtmlContent() directly.
+it('renders blocked html field twig as nothing from getRenderedHtmlContent() when devMode is off', function (): void {
+    $form = formie()
+        ->form(['title' => 'HTML Field Twig Direct', 'handle' => 'htmlFieldTwigDirect'])
+        ->htmlField('latestNews', [
+            'htmlContent' => '<p>{{ url("news") }}</p>',
+            'allowTwig' => true,
+            'purifyContent' => false,
+        ])
+        ->create();
+
+    $field = $form->getFieldByHandle('latestNews');
+    $offset = count(Craft::getLogger()->messages);
+    $html = withDevModeOff(fn() => $field?->getRenderedHtmlContent());
+    $logged = implode("\n", array_filter(array_column(array_slice(Craft::getLogger()->messages, $offset), 0), 'is_string'));
+
+    expect($html)->toBe('')
+        ->and($logged)->toContain('Unable to render Twig in HTML field “latestNews” on form “htmlFieldTwigDirect”')
+        ->and(fn() => $field?->getRenderedHtmlContent())->toThrow(\Twig\Error\Error::class);
+})->group('security');

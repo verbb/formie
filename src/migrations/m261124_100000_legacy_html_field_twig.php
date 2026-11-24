@@ -3,6 +3,7 @@ namespace verbb\formie\migrations;
 
 use verbb\formie\Formie;
 use verbb\formie\fields\Html;
+use verbb\formie\helpers\FieldBuilderPolicy;
 use verbb\formie\helpers\Table;
 use verbb\formie\services\Stencils as StencilsService;
 
@@ -22,6 +23,11 @@ class m261124_100000_legacy_html_field_twig extends Migration
         // HTML fields always rendered their content as Twig before they had an Allow Twig setting, so fields
         // saved before then have no `allowTwig` key. Turn it on for those whose content uses Twig, so they keep
         // rendering it instead of showing the Twig source. Fields saved since always have the key.
+        // With Twig turned off for HTML fields, a field with Allow Twig on renders nothing and stops its form from saving.
+        if (!FieldBuilderPolicy::allowHtmlFieldTwig()) {
+            return true;
+        }
+
         $this->_updateFields();
         $this->_updateStencils();
 

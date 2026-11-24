@@ -89,17 +89,8 @@ class Html extends CosmeticField
 
     public function getRenderedHtmlContent(array $variables = []): string
     {
-        $htmlContent = trim((string)$this->htmlContent);
-
-        if ($htmlContent && $this->allowTwig) {
-            $htmlContent = Formie::$plugin->getTemplates()->renderHtmlFieldTemplate($htmlContent, $variables);
-        }
-
-        if (FieldBuilderPolicy::requireHtmlPurification() || $this->purifyContent) {
-            return HtmlPurifier::process($htmlContent, $this->_getPurifierConfig());
-        }
-
-        return $htmlContent;
+        // Form templates carried over from Formie 3 call this directly.
+        return $this->_renderFailSoft($this->getForm(), fn() => $this->_renderHtmlContent($variables));
     }
 
     /**
@@ -107,18 +98,7 @@ class Html extends CosmeticField
      */
     public function getRenderedHtmlBlock(Form $form, mixed $value, ?ElementInterface $submission = null): string
     {
-        try {
-            return $this->_renderHtmlBlock($form, $value, $submission);
-        } catch (TwigError $e) {
-            // Show the error while developing, but don't let one field's Twig take down the page or email in production.
-            if (Craft::$app->getConfig()->getGeneral()->devMode) {
-                throw $e;
-            }
-
-            Formie::error('Unable to render Twig in HTML field “' . $this->handle . '” on form “' . $form->handle . '”: ' . $e->getMessage());
-
-            return '';
-        }
+        return $this->_renderFailSoft($form, fn() => $this->_renderHtmlBlock($form, $value, $submission));
     }
 
     public function defineFormBuilderPreviewSchema(): array
@@ -344,7 +324,38 @@ class Html extends CosmeticField
             'value' => $value,
         ]);
 
-        return $this->getRenderedHtmlContent($variables);
+        return $this->_renderHtmlContent($variables);
+    }
+
+    private function _renderHtmlContent(array $variables = []): string
+    {
+        $htmlContent = trim((string)$this->htmlContent);
+
+        if ($htmlContent && $this->allowTwig) {
+            $htmlContent = Formie::$plugin->getTemplates()->renderHtmlFieldTemplate($htmlContent, $variables);
+        }
+
+        if (FieldBuilderPolicy::requireHtmlPurification() || $this->purifyContent) {
+            return HtmlPurifier::process($htmlContent, $this->_getPurifierConfig());
+        }
+
+        return $htmlContent;
+    }
+
+    private function _renderFailSoft(?Form $form, callable $render): string
+    {
+        try {
+            return $render();
+        } catch (TwigError $e) {
+            // Show the error while developing, but don't let one field's Twig take down the page or email in production.
+            if (Craft::$app->getConfig()->getGeneral()->devMode) {
+                throw $e;
+            }
+
+            Formie::error('Unable to render Twig in HTML field “' . $this->handle . '” on form “' . ($form?->handle ?? '') . '”: ' . $e->getMessage());
+
+            return '';
+        }
     }
 
     private function _getPurifierConfig(): HTMLPurifier_Config

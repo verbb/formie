@@ -27,7 +27,22 @@ function legacyHtmlFieldSettings(int $id): array
     return Json::decode((string)(new Query())->select('settings')->from(Table::FORMIE_FIELDS)->where(['id' => $id])->scalar());
 }
 
+// Sites upgraded from Formie 3 have "Allow Twig in HTML Fields" on, which a fresh install doesn't.
+function withHtmlFieldTwigSetting(bool $enabled, callable $callback): void
+{
+    $settings = Formie::$plugin->getSettings();
+    $previous = $settings->allowHtmlFieldTwig;
+    $settings->allowHtmlFieldTwig = $enabled;
+
+    try {
+        $callback();
+    } finally {
+        $settings->allowHtmlFieldTwig = $previous;
+    }
+}
+
 it('turns on allow twig for upgraded html fields that use twig', function (): void {
+    withHtmlFieldTwigSetting(true, function (): void {
     $ids = [
         'twig' => legacyHtmlFieldId('legacyTwigHtml', ['htmlContent' => '<p>{{ form.title }}</p>', 'purifyContent' => true]),
         'tag' => legacyHtmlFieldId('legacyTagHtml', ['htmlContent' => '{% if form %}<p>Hi</p>{% endif %}']),
@@ -62,9 +77,11 @@ it('turns on allow twig for upgraded html fields that use twig', function (): vo
         Db::delete(Table::FORMIE_FIELD_SITE_OVERRIDES, ['fieldId' => array_values($ids)]);
         Db::delete(Table::FORMIE_FIELDS, ['id' => array_values($ids)]);
     }
+    });
 });
 
 it('turns on allow twig for upgraded html fields in stencils, including nested fields', function (): void {
+    withHtmlFieldTwigSetting(true, function (): void {
     $handle = 'legacyHtmlTwigStencil' . random_int(1000, 9999);
     $data = [
         'pages' => [[
@@ -97,4 +114,29 @@ it('turns on allow twig for upgraded html fields in stencils, including nested f
     } finally {
         Db::delete(Table::FORMIE_STENCILS, ['handle' => $handle]);
     }
+    });
+});
+
+it('leaves upgraded html fields alone when twig in html fields is turned off', function (): void {
+    // With the setting off, a field with Allow Twig on renders nothing and stops its form from saving.
+    withHtmlFieldTwigSetting(false, function (): void {
+    $id = legacyHtmlFieldId('legacyTwigHtmlPolicyOff', ['htmlContent' => '<p>{{ form.title }}</p>']);
+    $handle = 'legacyHtmlTwigPolicyOff' . random_int(1000, 9999);
+    Db::insert(Table::FORMIE_STENCILS, ['name' => 'Legacy HTML Twig policy off', 'handle' => $handle, 'data' => Json::encode([
+        'pages' => [['label' => 'Page 1', 'rows' => [['fields' => [
+            ['type' => Html::class, 'settings' => ['handle' => 'notice', 'htmlContent' => '<p>{{ form.title }}</p>']],
+        ]]]]],
+    ])]);
+
+    try {
+        expect((new m261124_100000_legacy_html_field_twig())->safeUp())->toBeTrue()
+            ->and(legacyHtmlFieldSettings($id))->not->toHaveKey('allowTwig');
+
+        $stored = Json::decode((string)(new Query())->select('data')->from(Table::FORMIE_STENCILS)->where(['handle' => $handle])->scalar());
+        expect($stored['pages'][0]['rows'][0]['fields'][0]['settings'])->not->toHaveKey('allowTwig');
+    } finally {
+        Db::delete(Table::FORMIE_STENCILS, ['handle' => $handle]);
+        Db::delete(Table::FORMIE_FIELDS, ['id' => $id]);
+    }
+    });
 });
