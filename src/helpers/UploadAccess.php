@@ -26,11 +26,14 @@ final class UploadAccess
     public static function issueCreateToken(Form $form): string
     {
         return Craft::$app->getSecurity()->hashData(Json::encode([
-            'version' => 1,
+            // Version 2 leaves out the draft context, which defaults to the request URL. Token refreshes run on their
+            // own action URL, while uploads post the context the form was rendered with. Uploads choose their draft
+            // context themselves, so binding it here added no protection.
+            'version' => 2,
             'purpose' => 'upload.create',
             'formUid' => $form->uid,
             'siteId' => (int)$form->siteId,
-            'browserHash' => Formie::$plugin->getSubmissionGrants()->browserHash($form),
+            'browserHash' => Formie::$plugin->getSubmissionGrants()->browserHash($form, false),
             'issuedAt' => time(),
             'nonce' => Craft::$app->getSecurity()->generateRandomString(),
         ]));
@@ -41,12 +44,14 @@ final class UploadAccess
         $payload = Craft::$app->getSecurity()->validateData(trim((string)$token));
         $data = $payload === false ? null : Json::decodeIfJson($payload);
 
-        return is_array($data)
-            && (int)($data['version'] ?? 0) === 1
+        // Version 1 tokens, issued before updating, still bind the draft context until they expire.
+        $version = is_array($data) ? (int)($data['version'] ?? 0) : 0;
+
+        return in_array($version, [1, 2], true)
             && ($data['purpose'] ?? null) === 'upload.create'
             && hash_equals((string)$form->uid, (string)($data['formUid'] ?? ''))
             && (int)($data['siteId'] ?? 0) === (int)$form->siteId
-            && hash_equals(Formie::$plugin->getSubmissionGrants()->browserHash($form), (string)($data['browserHash'] ?? ''))
+            && hash_equals(Formie::$plugin->getSubmissionGrants()->browserHash($form, $version === 1), (string)($data['browserHash'] ?? ''))
             && (int)($data['issuedAt'] ?? 0) <= time()
             && (int)($data['issuedAt'] ?? 0) > time() - self::CREATE_TOKEN_TTL;
     }
@@ -66,11 +71,13 @@ final class UploadAccess
             if (!$row || !in_array($purpose, ['view', 'attach', 'delete'], true) || (int)$row['expiresAt'] <= time() || in_array($row['state'], [SubmissionUploadStatus::EXPIRED->value, SubmissionUploadStatus::REJECTED->value], true)) {
                 return null;
             }
+
             $token = Craft::$app->getSecurity()->generateRandomString(64);
             $hashes = Json::decodeIfJson($row['capabilities']) ?: [];
             // Multiple renders/devices may retain valid capabilities until expiry or explicit revocation.
             $hashes[$purpose] = array_slice(array_merge($hashes[$purpose] ?? [], ['v1:' . hash('sha256', $token)]), -16);
             Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PENDING_UPLOADS, ['capabilities' => Json::encode($hashes)], ['assetId' => $assetId])->execute();
+
             return $row['uid'] . '.' . $token;
         } finally {
             $mutex->release($key);
@@ -82,12 +89,14 @@ final class UploadAccess
         if (!$token || !str_contains($token, '.')) {
             return null;
         }
+
         [$uid, $secret] = explode('.', $token, 2);
         $row = (new Query())->from(Table::FORMIE_PENDING_UPLOADS)->where(['uid' => $uid])->one();
 
         if (!$row || (int)$row['expiresAt'] <= time() || in_array($row['state'], [SubmissionUploadStatus::EXPIRED->value, SubmissionUploadStatus::REJECTED->value], true)) {
             return null;
         }
+
         $hashes = Json::decodeIfJson($row['capabilities']) ?: [];
 
         foreach ($hashes[$purpose] ?? [] as $hash) {
@@ -95,12 +104,14 @@ final class UploadAccess
                 return $row;
             }
         }
+
         return null;
     }
 
     public static function matches(int $assetId, int $formId, string $fieldUid, ?string $token, string $purpose = 'view'): bool
     {
         $row = self::resolveToken($token, $purpose);
+
         return $row && (int)$row['assetId'] === $assetId && (int)$row['formId'] === $formId && $row['fieldUid'] === $fieldUid;
     }
 

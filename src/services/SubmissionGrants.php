@@ -28,18 +28,23 @@ class SubmissionGrants extends Component
     // Public Methods
     // =========================================================================
 
-    public function browserHash(Form $form): string
+    public function browserHash(Form $form, bool $withDraftContext = true): string
     {
+        // Without the draft context, the hash only binds the browser to the form, whichever page or action URL it's on.
+        $binding = $form->id . '|' . $form->siteId . ($withDraftContext ? '|' . $form->getSubmitStateIdentity() : '');
+
         if (Craft::$app->getRequest()->getIsConsoleRequest()) {
-            return hash('sha256', 'console:' . getmypid() . '|' . $form->id . '|' . $form->siteId . '|' . $form->getSubmitStateIdentity());
+            return hash('sha256', 'console:' . getmypid() . '|' . $binding);
         }
+
         $session = Craft::$app->getSession();
         $session->open();
 
         if (!$session->has('formie:authority')) {
             $session->set('formie:authority', Craft::$app->getSecurity()->generateRandomString());
         }
-        return hash('sha256', $session->get('formie:authority') . '|' . $form->id . '|' . $form->siteId . '|' . $form->getSubmitStateIdentity());
+
+        return hash('sha256', $session->get('formie:authority') . '|' . $binding);
     }
 
     public function issue(Submission $submission, string $purpose, ?int $progressId = null, ?int $ttlSeconds = null): SubmissionGrant
@@ -47,12 +52,14 @@ class SubmissionGrants extends Component
         if (!$submission->id || !in_array($purpose, [self::CONTINUE, self::REVISE], true) || ($purpose === self::CONTINUE) !== (bool)$submission->isIncomplete) {
             throw new InvalidArgumentException('The grant purpose does not match the submission.');
         }
+
         $settings = Formie::$plugin->getSettings();
         $expiresAt = time() + max(1, $ttlSeconds ?? ((int)$settings->saveResumeTokenTtlDays ?: 14) * 86400);
 
         if ($submission->isIncomplete && $settings->maxIncompleteSubmissionAge > 0) {
             $expiresAt = min($expiresAt, $submission->dateUpdated->getTimestamp() + $settings->maxIncompleteSubmissionAge * 86400);
         }
+
         $expiresAt = min($expiresAt, $this->_targetDeadline($submission));
 
         if ($progressId !== null) {
@@ -62,6 +69,7 @@ class SubmissionGrants extends Component
                 throw new InvalidArgumentException('Progress does not match the grant target.');
             }
         }
+
         $token = Craft::$app->getSecurity()->generateRandomString(64);
         $row = [
             'tokenHash' => $this->hashToken($token), 'bindingHash' => null,
@@ -70,6 +78,7 @@ class SubmissionGrants extends Component
             'purpose' => $purpose, 'expiresAt' => $expiresAt,
         ];
         $id = $this->_insert($row);
+
         return new SubmissionGrant(['id' => $id, 'token' => $token] + array_intersect_key($row, array_flip(['progressId', 'submissionId', 'formId', 'siteId', 'purpose', 'expiresAt'])));
     }
 
@@ -80,6 +89,7 @@ class SubmissionGrants extends Component
         if (!$row || !hash_equals($row['tokenHash'], $this->hashToken($token)) || !$this->_valid($row, $purpose, $form, $submissionId)) {
             return null;
         }
+
         return $this->_model($row);
     }
 
@@ -90,6 +100,7 @@ class SubmissionGrants extends Component
         if (!$grant) {
             return null;
         }
+
         $bindingHash = $this->browserHash($form);
 
         if ((new Query())->from(Table::FORMIE_SUBMISSION_GRANTS)->where([
@@ -97,12 +108,14 @@ class SubmissionGrants extends Component
         ])->andWhere(['>', 'expiresAt', time()])->exists()) {
             return $grant;
         }
+
         $this->_insert([
             'bindingHash' => $this->browserHash($form), 'parentId' => $grant->id,
             'progressId' => $grant->progressId, 'submissionId' => $grant->submissionId,
             'formId' => $grant->formId, 'siteId' => $grant->siteId,
             'purpose' => $purpose, 'expiresAt' => $grant->expiresAt,
         ]);
+
         return $grant;
     }
 
@@ -111,6 +124,7 @@ class SubmissionGrants extends Component
         if ($this->bound($form, self::CONTINUE, $progress->submissionId)?->progressId === $progress->id) {
             return;
         }
+
         $expiresAt = $progress->expiresAt;
 
         if ($progress->submissionId) {
@@ -119,8 +133,10 @@ class SubmissionGrants extends Component
             if (!$submission) {
                 return;
             }
+
             $expiresAt = min($expiresAt, $this->_targetDeadline($submission));
         }
+
         $this->_insert([
             'bindingHash' => $this->browserHash($form), 'progressId' => $progress->id,
             'submissionId' => $progress->submissionId, 'formId' => $progress->formId,
@@ -146,6 +162,7 @@ class SubmissionGrants extends Component
                 return $this->_model($row);
             }
         }
+
         return null;
     }
 
@@ -185,6 +202,7 @@ class SubmissionGrants extends Component
         if ($purpose !== null) {
             $where['purpose'] = $purpose;
         }
+
         Craft::$app->getDb()->createCommand()->update(Table::FORMIE_SUBMISSION_GRANTS, ['revokedAt' => time()], $where)->execute();
     }
 
@@ -196,9 +214,11 @@ class SubmissionGrants extends Component
             $this->revoke($id);
             $grant = $this->issue($submission, $purpose, $progressId);
             $transaction->commit();
+
             return $grant;
         } catch (Throwable $e) {
             $transaction->rollBack();
+
             throw $e;
         }
     }
@@ -225,6 +245,7 @@ class SubmissionGrants extends Component
         if ($submission->isIncomplete && $days > 0) {
             $deadline = $submission->dateUpdated->getTimestamp() + $days * 86400;
         }
+
         $form = $submission->getForm();
 
         if ((int)$form->dataRetentionValue > 0 && in_array($form->dataRetention, ['minutes', 'hours', 'days', 'weeks', 'months', 'years'], true)) {
@@ -232,12 +253,14 @@ class SubmissionGrants extends Component
             $retentionEnd->modify('+' . (int)$form->dataRetentionValue . ' ' . $form->dataRetention);
             $deadline = min($deadline, $retentionEnd->getTimestamp());
         }
+
         return $deadline;
     }
 
     private function _insert(array $row): int
     {
         Craft::$app->getDb()->createCommand()->insert(Table::FORMIE_SUBMISSION_GRANTS, $row + ['dateCreated' => gmdate('Y-m-d H:i:s')])->execute();
+
         return (int)Craft::$app->getDb()->getLastInsertID();
     }
 
@@ -262,6 +285,7 @@ class SubmissionGrants extends Component
             // progress row is their target, so they end when that row disappears.
             return $purpose === self::CONTINUE && $this->resolveProgress($this->_model($row)) !== null;
         }
+
         $submission = Submission::find()->id((int)$row['submissionId'])->siteId((int)$row['siteId'])->isIncomplete(null)->isSpam(null)->status(null)->one();
 
         if ($submission && $submission->isIncomplete) {
@@ -271,6 +295,7 @@ class SubmissionGrants extends Component
                 return false;
             }
         }
+
         return $submission && $this->_targetDeadline($submission) > time() && (int)$submission->formId === (int)$row['formId'] && ($purpose === self::CONTINUE) === (bool)$submission->isIncomplete;
     }
 
@@ -281,6 +306,7 @@ class SubmissionGrants extends Component
         foreach (['id', 'formId', 'siteId', 'submissionId', 'progressId', 'expiresAt'] as $key) {
             $data[$key] = $data[$key] === null ? null : (int)$data[$key];
         }
+
         return new SubmissionGrant($data);
     }
 }

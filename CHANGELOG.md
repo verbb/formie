@@ -27,6 +27,7 @@
 - Fixed integration field mappings that were left empty in Formie 3 showing as “Use text exactly as entered” text boxes after saving the form, instead of the **Don’t Include** field dropdown.
 - Fixed integration field mappings set to a variable other than a field, such as **Form Name** or **Current Date/Time**, showing as **Don’t Include** once a transform was added, with no **Configure Value** option to change or remove the transform. The mapping was saved and sent correctly.
 - Fixed Address fields showing a blank country in submission exports and summaries, and leaving it out of the address in emails, once the submission’s country was no longer in the field’s **Allowed Countries**. Reports showed its ISO code instead of its name. These now show the country’s name, and a stored country that matches no country shows as stored.
+- Fixed File Upload fields set to Upload Manager often failing with “Invalid upload creation capability.” in forms on a different domain to Craft, such as forms a headless front end loads from Formie’s render action with the `cross-origin-public` request profile. Uploads failed whenever the file was picked after the form had refreshed its tokens on load.
 
 ## 4.0.11 - 2026-11-21
 

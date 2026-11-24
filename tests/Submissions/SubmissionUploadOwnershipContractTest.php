@@ -361,6 +361,65 @@ it('requires the client bootstrap capability before accepting a cross-origin upl
     }, ['method' => 'POST', 'headers' => ['Accept' => 'application/json']]);
 })->with([false, true]);
 
+it('accepts a cross-origin upload capability refreshed on another URL than the form was rendered on', function (string $browser) {
+    WebRequestTestHelper::withWebRequestContext(function ($request, $response, $session) use ($browser) {
+        UploadTestHelper::ensureUploadVolume();
+        $form = formie()->form()->fileUploadField('document', ['restrictFiles' => false])->create();
+        // The draft context defaults to the request path, so each action sees a different one.
+        $path = new ReflectionProperty(\craft\web\Request::class, '_path');
+        $path->setValue($request, 'actions/formie/server/forms/render');
+        $draftContextToken = $form->getDraftContextToken();
+        $path->setValue($request, 'actions/formie/server/forms/refresh-tokens');
+        $refreshed = Formie::$plugin->getServerRenderPayloadBuilder()->buildRefreshTokensPayload($form);
+
+        if ($browser === 'other') {
+            $session->set('formie:authority', 'another-public-session');
+        }
+
+        // The Upload Manager posts the rendered form's draft context with the refreshed capability.
+        $path->setValue($request, 'actions/formie/file-upload/upload');
+        $request->setBodyParams([
+            'handle' => $form->handle,
+            'fieldHandle' => 'document',
+            'draftContextToken' => $draftContextToken,
+            'uploadCreateToken' => $refreshed['uploadCreateToken'],
+        ]);
+        $controller = new \verbb\formie\controllers\FileUploadController('file-upload', Formie::$plugin);
+        $property = new ReflectionProperty($controller, '_requestProfile');
+        $property->setValue($controller, \verbb\formie\helpers\BrowserRequestProfile::CROSS_ORIGIN);
+
+        expect(fn() => $controller->actionUpload())->toThrow(
+            \yii\web\BadRequestHttpException::class,
+            $browser === 'same' ? 'No file was uploaded.' : 'Invalid upload creation capability.',
+        );
+    }, ['method' => 'POST', 'headers' => ['Accept' => 'application/json']]);
+})->with(['same', 'other']);
+
+it('keeps accepting upload creation capabilities issued before updating until they expire', function () {
+    $checks = WebRequestTestHelper::withWebRequestContext(function ($request, $response, $session) {
+        UploadTestHelper::ensureUploadVolume();
+        $form = formie()->form()->fileUploadField('document', ['restrictFiles' => false])->create();
+        $form->setDraftContext('url:1:contact');
+        // Version 1 tokens bound the draft context into the browser hash.
+        $legacy = Craft::$app->getSecurity()->hashData(\craft\helpers\Json::encode([
+            'version' => 1,
+            'purpose' => 'upload.create',
+            'formUid' => $form->uid,
+            'siteId' => (int)$form->siteId,
+            'browserHash' => Formie::$plugin->getSubmissionGrants()->browserHash($form),
+            'issuedAt' => time(),
+            'nonce' => 'legacy',
+        ]));
+        $sameContext = UploadAccess::validateCreateToken($form, $legacy);
+        $form->setDraftContext('url:1:other-page');
+        $otherContext = UploadAccess::validateCreateToken($form, $legacy);
+
+        return [$sameContext, $otherContext];
+    }, ['method' => 'POST']);
+
+    expect($checks)->toBe([true, false]);
+});
+
 it('preserves submitted file order when staged references and retained ids are mixed', function () {
     WebRequestTestHelper::withWebRequestContext(function () {
         $volume = UploadTestHelper::ensureUploadVolume();
