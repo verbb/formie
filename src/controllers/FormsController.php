@@ -128,9 +128,13 @@ class FormsController extends Controller
 
         // Until the first form exists, the index is one empty state. Trashed forms keep their row, so they count.
         if (!(new Query())->from(Table::FORMIE_FORMS)->exists()) {
+            // The index's header menu only offers groups it lists as sources, which leaves out groups the user or the
+            // current site can't use.
+            $sourceKeys = array_column(Form::defineSources('index'), 'key');
+
             return $this->renderTemplate('formie/forms/_first-run', [
                 'canCreateForms' => $canCreateForms,
-                'editableFormGroups' => $editableFormGroups,
+                'editableFormGroups' => array_values(array_filter($editableFormGroups, fn(array $group) => in_array('group:' . $group['uid'], $sourceKeys, true))),
             ]);
         }
 

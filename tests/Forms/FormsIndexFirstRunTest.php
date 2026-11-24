@@ -90,6 +90,40 @@ it('makes the New form button the same group menu as the index header when there
     }
 });
 
+// The index header only offers groups it lists as sources, so a group the user can't manage isn't in its menu.
+it('leaves groups the user can’t use out of the first-run New form menu', function(): void {
+    $allowed = new FormGroup(['name' => 'First run allowed', 'handle' => 'firstRunAllowed' . bin2hex(random_bytes(5))]);
+    $other = new FormGroup(['name' => 'First run other', 'handle' => 'firstRunOther' . bin2hex(random_bytes(5))]);
+    expect(Formie::$plugin->getFormGroups()->saveGroup($allowed))->toBeTrue()
+        ->and(Formie::$plugin->getFormGroups()->saveGroup($other))->toBeTrue();
+
+    $permissions = Formie::$plugin->getPermissions();
+    $name = 'formsgroupuser' . bin2hex(random_bytes(6));
+    $user = new User(['username' => $name, 'email' => $name . '@example.test']);
+    expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
+    Craft::$app->set('userPermissions', new UserPermissions());
+    $grants = PermissionTestHelper::withParents([
+        'accessCp', 'accessPlugin-formie', Permissions::PERM_ACCESS_FORMS, Permissions::PERM_CREATE_FORMS,
+        $permissions->scopedPermission(Permissions::PERM_MANAGE_FORMS, $permissions->groupScope($allowed->handle)),
+        ...array_map(fn($site) => 'editSite:' . $site->uid, Craft::$app->getSites()->getAllSites()),
+    ]);
+    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, $grants))->toBeTrue();
+    $user = User::find()->id($user->id)->status(null)->one();
+
+    try {
+        $page = formsIndexFirstRunOpen($user);
+
+        expect($page['template'])->toBe('formie/forms/_first-run')
+            ->and($page['html'])->toContain('heading="Create your first form"')
+            ->and($page['html'])->toContain($allowed->uid)
+            ->and($page['html'])->not->toContain($other->uid);
+    } finally {
+        Craft::$app->getElements()->deleteElement($user, true);
+        Formie::$plugin->getFormGroups()->deleteGroup($allowed);
+        Formie::$plugin->getFormGroups()->deleteGroup($other);
+    }
+});
+
 it('shows people who can’t create forms a plain empty state without a button', function(): void {
     $user = formsIndexFirstRunViewer();
 
