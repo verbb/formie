@@ -21,6 +21,8 @@
 - Fixed AJAX forms set to reset after submission keeping Table rows the visitor added, and Repeater rows and signatures on earlier pages, which were then saved with the next visitor’s submission.
 - Fixed Signature fields growing taller for several seconds after they appeared, and a signature started during that time, or while the window was resized, leaving the pad unable to draw until the page was reloaded. The pad is back to its **Signature canvas height** (`--formie-signature-height`, 8rem by default).
 - Fixed searchable dropdowns that allow one choice growing taller after an option was picked, until the visitor clicked elsewhere, when the option’s label left too little room beside it for the search input. Fields in narrow columns showed it most.
+- Fixed searchable dropdowns that allow several choices showing chosen options slightly higher than the search text beside them, and growing taller once the first option was chosen.
+- Fixed the options in a searchable dropdown’s list using larger text than the field itself.
 - Fixed the Campaign and Snaptcha integrations, and the Calendar, Events and Commerce Product element integrations, being unavailable when their plugin is installed from a development branch such as `dev-main`. Integrations and fields that don’t set a minimum version for their required plugin no longer check its version.
 
 ## 4.1.0 - 2026-11-24

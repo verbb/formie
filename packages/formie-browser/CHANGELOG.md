@@ -11,6 +11,8 @@
 - Fixed AJAX forms set to reset after submission keeping Table rows the visitor added, and Repeater rows and signatures on earlier pages, which were then saved with the next visitor’s submission.
 - Fixed Signature fields growing taller for several seconds after they appeared, and a signature started during that time, or while the window was resized, leaving the pad unable to draw until the page was reloaded. The pad is back to its **Signature canvas height** (`--formie-signature-height`, 8rem by default).
 - Fixed single dropdowns in the combobox module growing taller after an option was picked, until the visitor clicked elsewhere, when the option’s label left too little room beside it for the search input. The search input now shares the value’s line instead of wrapping below it.
+- Fixed multi-select pills in the combobox module sitting slightly higher than the search text beside them, and the control growing taller once it had a pill. Pills are now spaced by the control’s `gap` instead of their own margins.
+- Fixed the options in the combobox module’s list using the form’s body text size instead of the control’s (`--formie-control-font-size`).
 
 ## 4.1.0 - 2026-11-24
 

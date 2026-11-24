@@ -219,6 +219,8 @@ test('group headings are styled apart from options', async ({ page }) => {
     });
 
     expect(styles.header.size).toBeLessThan(styles.option.size);
+    // Options are the same size as the value in the control.
+    expect(styles.option.size).toBe(parseFloat(await field.locator('.ts-control').evaluate((control) => getComputedStyle(control).fontSize)));
     expect(styles.header.weight).toBeGreaterThan(styles.option.weight);
     expect(styles.header.color).not.toBe(styles.option.color);
     expect(styles.header.cursor).toBe('default');
@@ -239,4 +241,38 @@ test('multi-select values stay as pills with their own remove buttons', async ({
     // Picked options leave the list, so there is nothing to mark.
     await field.locator('.ts-control').click();
     await expect(field.locator('.ts-dropdown .option', { hasText: 'Kiwi - Small' })).toHaveCount(0);
+});
+
+test('a multi-select pill lines up with the search input and keeps the control’s height', async ({ page }) => {
+    // Wide enough for a pill and the search input to share a row.
+    await page.locator('form').evaluate((form) => { (form as HTMLElement).style.width = '480px'; });
+    const field = page.locator('#multi');
+    const empty = await box(field.locator('.ts-control'));
+
+    await pick(page, field, 'Kiwi - Small');
+    await expect(field.locator('.ts-wrapper')).toHaveClass(/\bfocus\b/);
+
+    const control = await box(field.locator('.ts-control'));
+    const item = await box(field.locator('.ts-control .item'));
+    const input = await box(field.locator('.ts-control input'));
+    const middle = (rect: { y: number; height: number }) => rect.y + rect.height / 2;
+
+    expect(input.y).toBeLessThan(item.y + item.height);
+    expect(Math.abs(middle(item) - middle(input))).toBeLessThanOrEqual(0.5);
+    expect(Math.abs(middle(item) - middle(control))).toBeLessThanOrEqual(0.5);
+    expect(control.height).toBe(empty.height);
+
+    // A second row of pills sits clear of the first.
+    await page.locator('form').evaluate((form) => { (form as HTMLElement).style.width = '240px'; });
+    // A multi-select's list stays open after a pick.
+    await field.locator('.ts-dropdown .option', { hasText: 'Mandarin Orange Marmalade' }).click();
+    await page.mouse.click(700, 5);
+    const rows = await field.locator('.ts-control .item').evaluateAll((items) => items.map((element) => {
+        const rect = element.getBoundingClientRect();
+
+        return { top: rect.top, bottom: rect.bottom };
+    }));
+
+    expect(rows).toHaveLength(2);
+    expect(rows[1].top - rows[0].bottom).toBe(4);
 });

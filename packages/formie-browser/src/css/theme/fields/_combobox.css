@@ -60,13 +60,23 @@
     display: none;
 }
 
+/*
+ * Pills are spaced by the control's gap rather than their own margins. A
+ * bottom margin counts towards a pill's box when the row is centred, which
+ * sat pills above the search input and made the control taller once it had one.
+ */
 .formie-field .ts-wrapper.formie-combobox.multi .ts-control {
-    padding: calc(var(--formie-control-padding-y) - 2px) var(--formie-control-padding-x) calc(var(--formie-control-padding-y) - 4px);
+    padding: calc(var(--formie-control-padding-y) - 4px) var(--formie-control-padding-x);
+    gap: var(--formie-space-1) var(--formie-space-2);
     --ts-pr-min: var(--formie-control-padding-x);
 }
 
+/*
+ * The first pill is inset from the left by what it has above and below it,
+ * which also starts its label where other controls start their text.
+ */
 .formie-field .ts-wrapper.formie-combobox.multi.has-items .ts-control {
-    padding-left: var(--formie-control-padding-x);
+    padding-left: calc(var(--formie-control-padding-y) - 4px);
 }
 
 .formie-field .ts-wrapper.formie-combobox .ts-control > input {
@@ -120,6 +130,8 @@
     flex: 1 1 0;
     width: 0;
     min-width: var(--formie-space-1);
+    /* Takes back the control's gap so the caret sits straight after the value, as in a text input. */
+    margin: 0 0 0 calc(1px - var(--formie-space-1)) !important;
 }
 
 .formie-field .ts-wrapper.formie-combobox.single.has-items.input-hidden .ts-control > input {
@@ -181,7 +193,7 @@
     display: inline-flex;
     align-items: center;
     gap: var(--formie-space-1);
-    margin: 0 var(--formie-space-1) var(--formie-space-1) 0;
+    margin: 0;
     padding: 0 var(--formie-space-2);
     background: var(--formie-color-surface-muted, rgba(15, 23, 42, 0.06));
     background-image: none;
@@ -207,6 +219,15 @@
 
 .formie-field .ts-wrapper.formie-combobox.plugin-remove_button:not(.rtl) .item {
     padding-right: var(--formie-space-2) !important;
+}
+
+/* A pill's remove button sits apart from the label and closer to the pill's edge. */
+.formie-field .ts-wrapper.formie-combobox.multi.plugin-remove_button .item {
+    gap: var(--formie-space-2);
+}
+
+.formie-field .ts-wrapper.formie-combobox.multi.plugin-remove_button:not(.rtl) .item {
+    padding-right: var(--formie-space-1-5) !important;
 }
 
 .formie-field .ts-wrapper.formie-combobox.plugin-remove_button .item .remove {
@@ -280,6 +301,8 @@
     box-shadow: var(--formie-shadow-popover, 0 8px 24px rgba(15, 23, 42, 0.12));
     margin-top: var(--formie-space-1);
     box-sizing: border-box;
+    /* Options match the control's text, as a native select's do, not the form's body text. */
+    font-size: var(--formie-control-font-size);
 }
 
 .formie-field .ts-wrapper.formie-combobox .ts-dropdown-content {
@@ -302,12 +325,6 @@
     font-size: var(--formie-font-size-xs);
     font-weight: var(--formie-font-weight-semibold);
     cursor: default;
-}
-
-.formie-field .ts-wrapper.formie-combobox .ts-dropdown .optgroup:not(:first-child) {
-    margin-top: var(--formie-space-1);
-    border-top: var(--formie-border-width) solid var(--formie-color-border-soft);
-    padding-top: var(--formie-space-1);
 }
 
 .formie-field .ts-wrapper.formie-combobox .ts-dropdown .optgroup .option {
