@@ -4,6 +4,7 @@
 
 ### Fixed
 - Fixed AJAX forms set to reset after submission keeping Table rows the visitor added, and Repeater rows and signatures on earlier pages, which were then saved with the next visitor’s submission.
+- Fixed Signature fields growing taller for several seconds after they appeared, and a signature started during that time, or while the window was resized, leaving the pad unable to draw until the page was reloaded. The pad is back to its **Signature canvas height** (`--formie-signature-height`, 8rem by default).
 
 ## 4.1.0 - 2026-11-24
 

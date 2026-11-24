@@ -32,12 +32,28 @@ type SignatureMessages = {
     initFailed: string;
 };
 
-function getCanvasSize(canvas: HTMLCanvasElement): { width: number; height: number } {
-    const rect = canvas.getBoundingClientRect();
+function sumPixels(...values: string[]): number {
+    return values.reduce((total, value) => total + (parseFloat(value) || 0), 0);
+}
+
+function getCanvasEdges(canvas: HTMLCanvasElement): { horizontal: number; vertical: number } {
+    const style = window.getComputedStyle(canvas);
 
     return {
-        width: Math.round(rect.width),
-        height: Math.round(rect.height),
+        horizontal: sumPixels(style.borderLeftWidth, style.borderRightWidth, style.paddingLeft, style.paddingRight),
+        vertical: sumPixels(style.borderTopWidth, style.borderBottomWidth, style.paddingTop, style.paddingBottom),
+    };
+}
+
+function getCanvasSize(canvas: HTMLCanvasElement): { width: number; height: number } {
+    const rect = canvas.getBoundingClientRect();
+    const edges = getCanvasEdges(canvas);
+
+    // Measure the content box, which is where the drawing is shown. Sizing the drawing to the
+    // border box made a canvas with `height: auto` taller on every resize, so it never settled.
+    return {
+        width: Math.max(0, Math.round(rect.width - edges.horizontal)),
+        height: Math.max(0, Math.round(rect.height - edges.vertical)),
     };
 }
 
@@ -140,7 +156,8 @@ async function syncCanvasHeightToSignatureValue(canvas: HTMLCanvasElement, value
 
     // Match the stored PNG aspect ratio so restored signatures are not vertically stretched.
     const aspectHeight = Math.max(1, Math.round(containerWidth * (dimensions.height / dimensions.width)));
-    canvas.style.height = `${aspectHeight}px`;
+    const boxEdges = window.getComputedStyle(canvas).boxSizing === 'border-box' ? getCanvasEdges(canvas).vertical : 0;
+    canvas.style.height = `${aspectHeight + boxEdges}px`;
 }
 
 async function restoreSignatureValue(signaturePad: SignaturePad, canvas: HTMLCanvasElement, value: string): Promise<void> {
@@ -199,6 +216,8 @@ function initSignatureField(
     let sizeRetryTimer: number | null = null;
     let readyDispatched = false;
     let initFailed = false;
+    let strokeActive = false;
+    let resizeDeferred = false;
 
     const signaturePad = new SignaturePad(canvas, {
         backgroundColor: options.backgroundColor || 'rgba(255, 255, 255, 0)',
@@ -237,11 +256,31 @@ function initSignatureField(
         setSignatureMessage(field, canvas, messages.initFailed);
     };
 
+    const deferResizeDuringStroke = (): boolean => {
+        if (!strokeActive) {
+            return false;
+        }
+
+        // Resizing clears the pad. Clearing it mid-stroke cuts the stroke short and leaves
+        // signature_pad unable to start another, so resize once the stroke ends.
+        resizeDeferred = true;
+
+        return true;
+    };
+
     const resizeCanvas = async(): Promise<boolean> => {
+        if (deferResizeDuringStroke()) {
+            return true;
+        }
+
         const existingValue = input.value || (signaturePad.isEmpty() ? '' : signaturePad.toDataURL());
 
         if (existingValue) {
             await syncCanvasHeightToSignatureValue(canvas, existingValue);
+
+            if (deferResizeDuringStroke()) {
+                return true;
+            }
         }
 
         const { width, height } = getCanvasSize(canvas);
@@ -256,8 +295,16 @@ function initSignatureField(
             return false;
         }
 
-        canvas.width = width * ratio;
-        canvas.height = height * ratio;
+        const canvasWidth = Math.floor(width * ratio);
+        const canvasHeight = Math.floor(height * ratio);
+
+        // Already drawn at this size: clearing and redrawing would only lose detail.
+        if (readyDispatched && canvas.width === canvasWidth && canvas.height === canvasHeight) {
+            return true;
+        }
+
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.scale(ratio, ratio);
         signaturePad.clear();
@@ -352,6 +399,21 @@ function initSignatureField(
         syncInputValue(input, signaturePad.isEmpty() ? '' : signaturePad.toDataURL());
     };
 
+    // `beginStroke` can be cancelled, so only count a stroke once signature_pad is drawing it.
+    const onStrokeUpdate = () => {
+        strokeActive = true;
+    };
+
+    const onEndStroke = () => {
+        strokeActive = false;
+        syncValue();
+
+        if (resizeDeferred) {
+            resizeDeferred = false;
+            requestResize();
+        }
+    };
+
     const clearSignature = () => {
         signaturePad.clear();
         syncInputValue(input, '');
@@ -365,7 +427,8 @@ function initSignatureField(
     retainedReset.afterReset = afterReset;
 
     const unbindConditionalClear = bindConditionalClear(input, clearSignature);
-    signaturePad.addEventListener('endStroke', syncValue);
+    signaturePad.addEventListener('beforeUpdateStroke', onStrokeUpdate);
+    signaturePad.addEventListener('endStroke', onEndStroke);
     window.addEventListener('resize', resizeHandler);
     root.addEventListener('formie:page:navigate:after', pageNavigateHandler as EventListener);
     resizeObserver?.observe(resizeTarget);
@@ -383,7 +446,8 @@ function initSignatureField(
         clearSizeRetry();
         unbindConditionalClear();
         retainedReset.unmount(afterReset);
-        signaturePad.removeEventListener('endStroke', syncValue);
+        signaturePad.removeEventListener('beforeUpdateStroke', onStrokeUpdate);
+        signaturePad.removeEventListener('endStroke', onEndStroke);
         window.removeEventListener('resize', resizeHandler);
         root.removeEventListener('formie:page:navigate:after', pageNavigateHandler as EventListener);
         resizeObserver?.disconnect();
