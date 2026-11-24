@@ -14,6 +14,7 @@ use verbb\formie\records\Stencil as StencilRecord;
 
 use Craft;
 use craft\db\Query;
+use craft\elements\Entry;
 use craft\events\ConfigEvent;
 use craft\helpers\Db;
 use craft\helpers\ProjectConfig as ProjectConfigHelper;
@@ -400,6 +401,7 @@ class Stencils extends Component
             $stencilRecord->scope = self::SCOPE_PROJECT;
 
             $redirectEntryUid = $data['redirectEntry'] ?? $data['submitActionEntry'] ?? null;
+            $redirectEntrySiteUid = $data['redirectEntrySite'] ?? null;
             $defaultStatusUid = $data['defaultStatus'] ?? null;
             $templateUid = $data['template'] ?? null;
 
@@ -412,11 +414,16 @@ class Stencils extends Component
             }
 
             if ($redirectEntryUid) {
-                $redirectEntry = Craft::$app->getElements()->getElementByUid($redirectEntryUid);
+                $redirectEntrySite = $redirectEntrySiteUid ? $this->_getSiteByUid((string)$redirectEntrySiteUid) : null;
+                $redirectEntry = Craft::$app->getElements()->getElementByUid($redirectEntryUid, Entry::class, $redirectEntrySite->id ?? '*');
 
                 if ($redirectEntry) {
                     $stencilRecord->redirectEntryId = $redirectEntry->id;
+                    $stencilRecord->redirectEntrySiteId = $redirectEntrySite?->id;
                 }
+            } else {
+                $stencilRecord->redirectEntryId = null;
+                $stencilRecord->redirectEntrySiteId = null;
             }
 
             if ($templateUid) {
@@ -436,6 +443,7 @@ class Stencils extends Component
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
+
             throw $e;
         }
 
@@ -506,6 +514,7 @@ class Stencils extends Component
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
+
             throw $e;
         }
 
@@ -671,14 +680,9 @@ class Stencils extends Component
                 $stencilRecord->templateId = $stencil->templateId;
             }
 
-            if ($redirectEntryUid = $config['redirectEntry'] ?? $config['submitActionEntry'] ?? null) {
-                $redirectEntry = Craft::$app->getElements()->getElementByUid($redirectEntryUid);
-                $stencilRecord->redirectEntryId = $redirectEntry?->id;
-                $stencilRecord->redirectEntrySiteId = $redirectEntry?->siteId;
-            } else {
-                $stencilRecord->redirectEntryId = $stencil->redirectEntryId;
-                $stencilRecord->redirectEntrySiteId = $stencil->redirectEntrySiteId;
-            }
+            // Instance stencils keep local IDs, so the chosen entry site isn't swapped for the current site.
+            $stencilRecord->redirectEntryId = $stencil->redirectEntryId;
+            $stencilRecord->redirectEntrySiteId = $stencil->redirectEntrySiteId;
 
             $stencilRecord->save(false);
 
@@ -688,6 +692,7 @@ class Stencils extends Component
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
+
             throw $e;
         }
 
@@ -720,6 +725,7 @@ class Stencils extends Component
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
+
             throw $e;
         }
 

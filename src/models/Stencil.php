@@ -182,14 +182,23 @@ class Stencil extends Model implements FormInterface
 
     public function getConfig(): array
     {
-        return [
+        $redirectEntry = $this->getRedirectEntry();
+
+        $config = [
             'name' => $this->name,
             'handle' => $this->handle,
             'template' => $this->getTemplate()->uid ?? null,
             'defaultStatus' => $this->getDefaultStatus()->uid ?? null,
-            'redirectEntry' => $this->getRedirectEntry()->uid ?? null,
+            'redirectEntry' => $redirectEntry->uid ?? null,
             'data' => $this->data->getSerializedData(),
         ];
+
+        // Entry UIDs are shared across sites, so keep the chosen site alongside it.
+        if ($redirectEntry && $this->redirectEntrySiteId) {
+            $config['redirectEntrySite'] = Craft::$app->getSites()->getSiteById($this->redirectEntrySiteId)?->uid;
+        }
+
+        return $config;
     }
 
     public function getTemplate(): ?FormTemplate
@@ -319,6 +328,11 @@ class Stencil extends Model implements FormInterface
         $form->layoutSaveContext = new LayoutSaveContext('stencil');
         $form->setTemplate($this->getTemplate());
         $form->setDefaultStatus($this->getDefaultStatus());
+
+        // The redirect entry is stored outside the stencil data, so copy it with its site.
+        $redirectEntry = $this->getRedirectEntry();
+        $form->redirectEntryId = $redirectEntry?->id;
+        $form->redirectEntrySiteId = $redirectEntry ? $this->redirectEntrySiteId : null;
     }
 
 
@@ -337,6 +351,7 @@ class Stencil extends Model implements FormInterface
             HandleValidator::class,
             'reservedWords' => ['id', 'dateCreated', 'dateUpdated', 'uid', 'title'],
         ];
+
         return $rules;
     }
 }

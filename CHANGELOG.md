@@ -29,6 +29,7 @@
 - Fixed form groups’ **Allowed Submission Statuses** and **Enabled Sites** pointing at different statuses and sites on other environments, which could save submissions with the wrong status, reject every submission, or enable forms on the wrong sites. Project config now stores them by UID. Existing settings are converted when migrations run, so run `craft up` first on the environment where you edit form groups, and check the converted settings it lists before committing `config/project`.
 - Fixed the Recent Form Submissions widget leaving out submissions made on the last day of a custom date range, its line chart showing today instead of every day in the range, months appearing out of order, and a line chart with only a From or To date breaking the dashboard.
 - Fixed pruning incomplete, spam and data-retention submissions using more memory the more submissions it pruned, which could exhaust memory on large backlogs. Submissions are now pruned in batches.
+- Fixed forms created from a stencil not getting its **Redirect Entry**, so visitors weren’t redirected after submitting, and **Save as a new stencil** leaving the form’s redirect entry out of the new stencil. Stencils also now keep the redirect entry’s site, and removing a project stencil’s redirect entry now sticks.
 
 ## 4.1.0 - 2026-11-24
 

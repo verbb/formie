@@ -783,6 +783,10 @@ class FormsController extends Controller
         $stencil->data->populateFormData($form);
         Formie::$plugin->getStencils()->populateTranslationBundlesFromForm($stencil, $form);
 
+        // The redirect entry is stored outside the stencil data.
+        $stencil->redirectEntryId = $form->redirectEntryId;
+        $stencil->redirectEntrySiteId = $form->redirectEntrySiteId;
+
         // Don't validate the handle.
         $form->handle .= random_int(0, mt_getrandmax());
 
