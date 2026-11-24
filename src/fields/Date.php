@@ -685,9 +685,11 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
         $minDate = $this->getMinDate();
 
+        // The limits hold wall-clock values, so print their own day. A date-only string skips the formatter's time zone
+        // conversion, which would otherwise shift the day by the site's UTC offset.
         if ($minDate instanceof DateTime && $dateTime < $minDate) {
             $element->addError($this->valueKey(), Craft::t('formie', 'The date must be on or after {date}.', [
-                'date' => Craft::$app->getFormatter()->asDate($minDate),
+                'date' => Craft::$app->getFormatter()->asDate($minDate->format('Y-m-d')),
             ]));
 
             return;
@@ -697,7 +699,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
         if ($maxDate instanceof DateTime && $dateTime > $maxDate) {
             $element->addError($this->valueKey(), Craft::t('formie', 'The date must be on or before {date}.', [
-                'date' => Craft::$app->getFormatter()->asDate($maxDate),
+                'date' => Craft::$app->getFormatter()->asDate($maxDate->format('Y-m-d')),
             ]));
         }
     }
@@ -902,7 +904,8 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             $operator = $this->minDateOffset === 'add' ? '+' : '-';
             $interval = "{$operator}{$this->minDateOffsetNumber} {$this->minDateOffsetType}";
 
-            $date = (new DateTime('now', new DateTimeZone('UTC')))->modify($interval);
+            // Today is the site's day. The limit stays a UTC wall-clock value to match how submitted parts are compared.
+            $date = new DateTime(DateTimeHelper::now()->modify($interval)->format('Y-m-d'), new DateTimeZone('UTC'));
             $date->setTime(0, 0, 0);
 
             return $date;
@@ -921,7 +924,8 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             $operator = $this->maxDateOffset === 'add' ? '+' : '-';
             $interval = "{$operator}{$this->maxDateOffsetNumber} {$this->maxDateOffsetType}";
 
-            $date = (new DateTime('now', new DateTimeZone('UTC')))->modify($interval);
+            // Today is the site's day. The limit stays a UTC wall-clock value to match how submitted parts are compared.
+            $date = new DateTime(DateTimeHelper::now()->modify($interval)->format('Y-m-d'), new DateTimeZone('UTC'));
             $date->setTime(23, 59, 59);
 
             return $date;

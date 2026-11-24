@@ -31,6 +31,7 @@
 - Fixed pruning incomplete, spam and data-retention submissions using more memory the more submissions it pruned, which could exhaust memory on large backlogs. Submissions are now pruned in batches.
 - Fixed forms created from a stencil not getting its **Redirect Entry**, so visitors weren’t redirected after submitting, and **Save as a new stencil** leaving the form’s redirect entry out of the new stencil. Stencils also now keep the redirect entry’s site, and removing a project stencil’s redirect entry now sticks.
 - Fixed duplicating a form, or using **Save as a new form**, on a multi-site install losing the form’s translations for other sites. **Save as a new form** and **Save as a new stencil** while viewing another site also no longer turn that site’s translations into the source content of the new form or stencil.
+- Fixed Date fields with **Min Date** or **Max Date** set to **Today’s Date/Time** using UTC’s date instead of the site’s, which could reject today’s date or accept tomorrow’s, and the error naming the day before or after a Min Date or Max Date on sites outside UTC.
 
 ## 4.1.0 - 2026-11-24
 
