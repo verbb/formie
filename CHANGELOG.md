@@ -25,6 +25,7 @@
 - Fixed the options in a searchable dropdown’s list using larger text than the field itself.
 - Fixed File Upload fields using the **File Input** display type rendering a `value` attribute on their file input, which made Vue and React front ends that mount the form’s markup throw an error. ([#3161](https://github.com/verbb/formie/issues/3161))
 - Fixed the Campaign and Snaptcha integrations, and the Calendar, Events and Commerce Product element integrations, being unavailable when their plugin is installed from a development branch such as `dev-main`. Integrations and fields that don’t set a minimum version for their required plugin no longer check its version.
+- Fixed the log entry for a submission rejected by the honeypot including what was entered into it when `logSubmissionValues` is `false`. ([#3162](https://github.com/verbb/formie/issues/3162))
 
 ## 4.1.0 - 2026-11-24
 

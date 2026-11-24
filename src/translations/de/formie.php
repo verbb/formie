@@ -1320,6 +1320,7 @@ Zur Überprüfung bitte im Bedienfeld anmelden.
   'Honeypot' => 'Honeypot',
   'Honeypot Field Name' => 'Name des Honeypot-Feldes',
   'Honeypot input has value: {v}.' => 'Der Honeypot-Eingabewert lautet: {v}.',
+  'Honeypot input has a value.' => 'Das Honeypot-Feld enthält einen Wert.',
   'Honeypot param missing: {v}.' => 'Honeypot-Parameter fehlt: {v}.',
   'Horizontal' => 'Horizontal',
   'Horizontal Rule' => 'Horizontale Linie',

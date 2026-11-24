@@ -1320,6 +1320,7 @@ Pour la consulter, veuillez vous connecter à votre panneau de contrôle.
   'Honeypot' => 'Piège à miel',
   'Honeypot Field Name' => 'Nom du champ « Honeypot »',
   'Honeypot input has value: {v}.' => 'Le champ Honeypot contient une valeur : {v}.',
+  'Honeypot input has a value.' => 'Le champ Honeypot contient une valeur.',
   'Honeypot param missing: {v}.' => 'Paramètre Honeypot manquant : {v}.',
   'Horizontal' => 'Horizontal',
   'Horizontal Rule' => 'Ligne horizontale',

@@ -271,6 +271,11 @@ class SubmissionGuards extends Component
         }
 
         if (trim((string)$value) !== '') {
+            // The reason is written to the log, and an autofilled honeypot can hold a visitor's details.
+            if (!$settings->logSubmissionValues) {
+                return Craft::t('formie', 'Honeypot input has a value.');
+            }
+
             return Craft::t('formie', 'Honeypot input has value: {v}.', ['v' => $value]);
         }
 

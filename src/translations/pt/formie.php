@@ -1320,6 +1320,7 @@ To review it please log into your control panel.
   'Honeypot' => 'Honeypot',
   'Honeypot Field Name' => 'Nome do campo «Honeypot»',
   'Honeypot input has value: {v}.' => 'A entrada do honeypot tem o valor: {v}.',
+  'Honeypot input has a value.' => 'A entrada do honeypot tem um valor.',
   'Honeypot param missing: {v}.' => 'Falta o parâmetro do honeypot: {v}.',
   'Horizontal' => 'Horizontal',
   'Horizontal Rule' => 'Linha horizontal',

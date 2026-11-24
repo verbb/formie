@@ -1440,6 +1440,7 @@ To review it please log into your control panel.
   'Honeypot' => 'Honeypot',
   'Honeypot Field Name' => 'Honeypot Field Name',
   'Honeypot input has value: {v}.' => 'Honeypot input has value: {v}.',
+  'Honeypot input has a value.' => 'Honeypot input has a value.',
   'Honeypot param missing: {v}.' => 'Honeypot param missing: {v}.',
   'Horizontal' => 'Horizontal',
   'Horizontal Rule' => 'Horizontal Rule',

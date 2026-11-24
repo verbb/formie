@@ -1320,6 +1320,7 @@ Per rivederla, accedi al tuo pannello di controllo.
   'Honeypot' => 'Honeypot',
   'Honeypot Field Name' => 'Nome del campo "Honeypot"',
   'Honeypot input has value: {v}.' => 'Il campo honeypot ha un valore: {v}.',
+  'Honeypot input has a value.' => 'Il campo honeypot ha un valore.',
   'Honeypot param missing: {v}.' => 'Parametro honeypot mancante: {v}.',
   'Horizontal' => 'Orizzontale',
   'Horizontal Rule' => 'Regola orizzontale',
