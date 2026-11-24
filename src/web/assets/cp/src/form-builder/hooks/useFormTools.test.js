@@ -80,6 +80,51 @@ describe('element field link options', () => {
     });
 });
 
+describe('address country options', () => {
+    const addressValues = (countryEnabled) => {
+        return {
+            pages: [{
+                rows: [{
+                    fields: [{
+                        _id: 'address-field',
+                        type: 'AddressField',
+                        reference: 'address-reference',
+                        handle: 'address',
+                        label: 'Address',
+                        rows: [{ fields: [{ type: 'AddressLine', handle: 'address1', enabled: true }, { type: 'AddressCountry', handle: 'country', enabled: countryEnabled }] }],
+                    }],
+                }],
+            }],
+        };
+    };
+    const getFieldTypeByType = (type) => ({
+        referenceValues: type !== 'AddressField' ? [] : [
+            { kind: 'primary', label: 'Formatted', types: ['text'] },
+            { kind: 'selector', selector: 'address1', label: 'Address 1', types: ['text'], meta: [] },
+            { kind: 'selector', selector: 'country', label: 'Country', types: ['text'], meta: [] },
+            { kind: 'selector', selector: 'country.label', label: 'Country (Label)', types: ['text'], meta: [] },
+            { kind: 'selector', selector: 'country.value', label: 'Country (Value)', types: ['text'], meta: [] },
+        ],
+    });
+    const countryOptions = (countryEnabled) => {
+        return getFieldReferenceOptions(addressValues(countryEnabled), { getFieldTypeByType, target: 'variablePicker' })
+            .map((option) => { return option.value; })
+            .filter((value) => { return value.startsWith('{field:address-reference:country'); });
+    };
+
+    it('offers the country choices while the Country sub-field is enabled', () => {
+        expect(countryOptions(true)).toEqual([
+            '{field:address-reference:country}',
+            '{field:address-reference:country.label}',
+            '{field:address-reference:country.value}',
+        ]);
+    });
+
+    it('leaves out every country choice when the Country sub-field is disabled', () => {
+        expect(countryOptions(false)).toEqual([]);
+    });
+});
+
 describe('integration actions', () => {
     it('refreshes metadata and sends test payloads through distinct endpoints', async() => {
         const calls = [];

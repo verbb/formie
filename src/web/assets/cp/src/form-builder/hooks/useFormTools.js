@@ -885,9 +885,9 @@ const shouldIncludeSelector = (selector, target, sourceField, config = {}) => {
         return false;
     }
 
-    // If a selector maps directly to a child field handle (eg Name:prefix),
+    // If a selector maps to a child field handle (eg Name:prefix), or to a part of one (eg Address:country.label),
     // only include it when that child sub-field is enabled.
-    const nestedChildField = getNestedChildFieldByHandle(sourceField, selector.selector);
+    const nestedChildField = getNestedChildFieldByHandle(sourceField, String(selector.selector).split('.')[0]);
     if (nestedChildField && !getFieldEnabled(nestedChildField)) {
         return false;
     }
