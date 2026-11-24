@@ -29,7 +29,16 @@ That same picker can also add a normal copied field instead. The difference is i
 
 Because the field stays linked, editing it in one form means editing it everywhere. That is what makes synced fields useful, but it is also why they need a little more care.
 
-A few settings belong to each form instead. **Required**, the field’s conditions and a Calculations field’s formula can differ wherever the synced field appears. Conditions and formulas refer to other fields in the same form, so a rule such as “show Account Number when Payment Method is Bank Transfer” points at that form’s own Payment Method field. Changing them in one form leaves the other forms as they are.
+A few settings belong to each form instead, and can differ wherever the synced field appears:
+
+- **Required**
+- The field’s conditions
+- A Calculations field’s formula
+- A Payment field’s payment settings, such as the amount, currency, description and billing details
+- A Hidden field’s default value
+- A File Upload field’s subfolder path and filename format
+
+Apart from **Required**, these settings can refer to other fields in the same form, so a rule such as “show Account Number when Payment Method is Bank Transfer” points at that form’s own Payment Method field. Changing them in one form leaves the other forms as they are.
 
 ## Synced Fields Inside Groups
 
@@ -51,7 +60,7 @@ Project stencils resolve synced fields by UID, so the matching synced field must
 
 [Form import and export](/forms/import-export#importing-synced-fields) keeps synced fields linked. The first import creates a missing synced field, and later imports reuse it by UID. Matching labels or handles alone do not link fields.
 
-If a synced field’s settings differ on the destination, the import review lets you keep that site’s settings or update the synced field across its listed forms. **Required**, conditions and Calculations formulas stay with each form. Review the affected forms before choosing **Update synced field**.
+If a synced field’s settings differ on the destination, the import review lets you keep that site’s settings or update the synced field across its listed forms. The settings that belong to each form, listed above, stay with each form. Review the affected forms before choosing **Update synced field**.
 
 ## Synced Fields and Multi-Site
 

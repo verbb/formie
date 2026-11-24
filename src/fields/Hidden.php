@@ -25,6 +25,7 @@ use verbb\formie\workflow\WorkflowContext;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 
 use DateTime;
@@ -122,6 +123,25 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
     public function runtimeOverridableSettings(): array
     {
         return [...parent::runtimeOverridableSettings(), 'valueSource', 'defaultTemplate', 'queryParameter', 'cookieName'];
+    }
+
+    public function getInstanceSettings(): array
+    {
+        // A custom default value can take values from other fields in this form, so each placement keeps its own.
+        return array_merge(parent::getInstanceSettings(), [
+            'defaultValue' => $this->defaultValue,
+        ]);
+    }
+
+    public function applyInstanceSettings(array|string|null $settings): void
+    {
+        parent::applyInstanceSettings($settings);
+
+        $settings = is_string($settings) ? Json::decodeIfJson($settings) : $settings;
+
+        if (is_array($settings) && array_key_exists('defaultValue', $settings)) {
+            $this->defaultValue = $settings['defaultValue'];
+        }
     }
 
     public function getIsHidden(): bool

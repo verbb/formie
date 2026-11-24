@@ -9,7 +9,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\fields\Calculations;
 use verbb\formie\fields\MissingField;
 use verbb\formie\helpers\Table;
-use verbb\formie\migrations\m261124_000000_per_form_field_conditions;
+use verbb\formie\migrations\m261124_000000_per_form_field_settings;
 use verbb\formie\models\RichText;
 use verbb\formie\models\Stencil;
 use verbb\formie\models\StencilData;
@@ -148,7 +148,7 @@ it('moves definition conditions and formulas to each form, pointing at that form
     }
 
     foreach ([1, 2] as $run) {
-        expect((new m261124_000000_per_form_field_conditions())->safeUp())->toBeTrue();
+        expect((new m261124_000000_per_form_field_settings())->safeUp())->toBeTrue();
 
         foreach ([$a, $b] as $form) {
             expect(syncedConditionsState(syncedConditionsReload($form->id)))->toBe([

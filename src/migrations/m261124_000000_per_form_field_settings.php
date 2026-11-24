@@ -11,16 +11,17 @@ use craft\db\Query;
 use craft\helpers\Json;
 
 /**
- * Moves field conditions and Calculations formulas from the shared field definition to each placement.
+ * Moves field settings that point at other fields from the shared field definition to each placement: conditions,
+ * Calculations formulas, Payment provider settings, Hidden default values and File Upload paths and filenames.
  * They point at other fields by reference, which only exists in one form, so a synced definition could only
  * ever hold one form's references. Creating forms from a stencil rewrote them each time (issue #3159).
  */
-class m261124_000000_per_form_field_conditions extends Migration
+class m261124_000000_per_form_field_settings extends Migration
 {
     // Constants
     // =========================================================================
 
-    private const MOVED_KEYS = ['enableConditions', 'conditions', 'formula'];
+    private const MOVED_KEYS = ['enableConditions', 'conditions', 'formula', 'paymentIntegration', 'paymentIntegrationType', 'providerSettings', 'defaultValue', 'uploadLocationSubpath', 'filenameFormat'];
 
 
     // Properties
@@ -103,7 +104,7 @@ class m261124_000000_per_form_field_conditions extends Migration
 
     public function safeDown(): bool
     {
-        echo "m261124_000000_per_form_field_conditions cannot be reverted.\n";
+        echo "m261124_000000_per_form_field_settings cannot be reverted.\n";
 
         return false;
     }
@@ -203,8 +204,8 @@ class m261124_000000_per_form_field_conditions extends Migration
                 return $form['paths'][array_key_first($pathsByReference[$identifier])] ?? null;
             };
 
-            foreach (['conditions', 'formula'] as $key) {
-                if (isset($settings[$key]) && is_array($settings[$key])) {
+            foreach (self::MOVED_KEYS as $key) {
+                if (isset($settings[$key])) {
                     $settings[$key] = $this->_remap($settings[$key], $resolve);
                 }
             }

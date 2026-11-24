@@ -49,6 +49,16 @@ function legacySettingsSubmission(\verbb\formie\elements\Form $form): Submission
 function storeLegacySetting(string $table, int $id, array $values): void
 {
     $settings = Json::decode((string)(new Query())->select('settings')->from($table)->where(['id' => $id])->scalar()) ?: [];
+
+    // Before upgrading, placements only held Required, and these settings were stored on the definition.
+    if ($table === Table::FORMIE_FIELDS) {
+        foreach ((new Query())->select(['id', 'settings'])->from(Table::FORMIE_FORM_FIELDS)->where(['fieldId' => $id])->all() as $row) {
+            $instance = Json::decode((string)$row['settings']) ?: [];
+            $settings += array_intersect_key($instance, $values);
+            Craft::$app->getDb()->createCommand()->update(Table::FORMIE_FORM_FIELDS, ['settings' => Json::encode(array_diff_key($instance, $values))], ['id' => $row['id']])->execute();
+        }
+    }
+
     Craft::$app->getDb()->createCommand()->update($table, ['settings' => Json::encode(array_replace_recursive($settings, $values))], ['id' => $id])->execute();
     Craft::$app->getElements()->invalidateAllCaches();
 }

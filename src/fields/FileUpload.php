@@ -250,6 +250,35 @@ class FileUpload extends ElementField
         return false;
     }
 
+    public function getInstanceSettings(): array
+    {
+        // The subfolder path and filename format can take values from other fields in this form,
+        // so each placement keeps its own.
+        return array_merge(parent::getInstanceSettings(), [
+            'uploadLocationSubpath' => $this->uploadLocationSubpath,
+            'filenameFormat' => $this->filenameFormat,
+        ]);
+    }
+
+    public function applyInstanceSettings(array|string|null $settings): void
+    {
+        parent::applyInstanceSettings($settings);
+
+        $settings = is_string($settings) ? Json::decodeIfJson($settings) : $settings;
+
+        if (!is_array($settings)) {
+            return;
+        }
+
+        if (array_key_exists('uploadLocationSubpath', $settings)) {
+            $this->uploadLocationSubpath = is_string($settings['uploadLocationSubpath']) ? $settings['uploadLocationSubpath'] : null;
+        }
+
+        if (array_key_exists('filenameFormat', $settings)) {
+            $this->filenameFormat = $settings['filenameFormat'];
+        }
+    }
+
     public function getFieldTypeConfigData(): array
     {
         $options = $this->getSourceOptions();

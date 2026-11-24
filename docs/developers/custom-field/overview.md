@@ -463,9 +463,9 @@ To expose organisation-wide defaults for your field type, opt in with `supported
 
 ### Shared and Per-Form Settings
 
-[Synced Fields](/forms/synced-fields) share settings such as labels, placeholders, and options. Internally, these shared settings are called a field definition. Each use of the field on a form is a separate instance with its own `required` setting and its own conditions, along with a Calculations field's formula. Conditions and formulas refer to other fields in that form, so they can't be shared. For example, the same synced Email field can be required on a registration form and optional on a feedback form.
+[Synced Fields](/forms/synced-fields) share settings such as labels, placeholders, and options. Internally, these shared settings are called a field definition. Each use of the field on a form is a separate instance with its own `required` setting and its own conditions. Built-in fields also keep settings that can refer to other fields per instance: a Calculations field's formula, a Payment field's provider settings, a Hidden field's default value, and a File Upload field's subfolder path and filename format. References to other fields only exist in one form, so these settings can't be shared. For example, the same synced Email field can be required on a registration form and optional on a feedback form.
 
-Custom fields inherit this behaviour. If your field needs additional settings that vary between uses of the field, override `getInstanceSettings()` and `applyInstanceSettings()`, calling the parent methods to preserve the built-in per-form settings. `getDefinitionSettings()` returns the shared settings, excluding those declared by `getInstanceSettings()`.
+Custom fields inherit this behaviour. If your field needs additional settings that vary between uses of the field, including any setting that can hold `{field:…}` references to other fields, override `getInstanceSettings()` and `applyInstanceSettings()`, calling the parent methods to preserve the built-in per-form settings. `getDefinitionSettings()` returns the shared settings, excluding those declared by `getInstanceSettings()`.
 
 When reading submission values, continue to use the field handle. For code that needs to identify a field or its shared definition, see the instance and definition properties in the [Field reference](/reference/field#id).
 

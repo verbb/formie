@@ -180,6 +180,38 @@ class Payment extends Field
         return true;
     }
 
+    public function getInstanceSettings(): array
+    {
+        // Amounts, currencies, descriptions and billing details can take values from other fields in this form,
+        // so each placement keeps its own provider settings, along with the provider they belong to.
+        return array_merge(parent::getInstanceSettings(), [
+            'paymentIntegration' => $this->paymentIntegration,
+            'paymentIntegrationType' => $this->paymentIntegrationType,
+            'providerSettings' => $this->providerSettings,
+        ]);
+    }
+
+    public function applyInstanceSettings(array|string|null $settings): void
+    {
+        parent::applyInstanceSettings($settings);
+
+        $settings = is_string($settings) ? Json::decodeIfJson($settings) : $settings;
+
+        if (!is_array($settings)) {
+            return;
+        }
+
+        foreach (['paymentIntegration', 'paymentIntegrationType'] as $key) {
+            if (array_key_exists($key, $settings)) {
+                $this->$key = is_string($settings[$key]) ? $settings[$key] : null;
+            }
+        }
+
+        if (array_key_exists('providerSettings', $settings)) {
+            $this->providerSettings = is_array($settings['providerSettings']) ? $settings['providerSettings'] : [];
+        }
+    }
+
     public function getProviderSettingsSchemaForHandle(string $handle, string $schemaGroup): array
     {
         $integration = $this->_getPaymentIntegrationByHandle($handle);

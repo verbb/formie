@@ -22,7 +22,11 @@ it('saves legacy layouts before form statuses have been migrated', function (str
         $saved = Formie::$plugin->getFields()->saveLayout($layout);
         expect($saved)->toBeTrue(json_encode([$layout->getErrors(), $layout->getErrorsTree()]));
 
-        $stored = Json::decode((new Query())->select('settings')->from(Table::FORMIE_FIELDS)->where(['id' => $field->definitionId])->scalar());
+        // A Hidden field keeps its default value with each form, other fields with the definition.
+        $stored = array_merge(
+            Json::decode((new Query())->select('settings')->from(Table::FORMIE_FIELDS)->where(['id' => $field->definitionId])->scalar()),
+            Json::decode((string)(new Query())->select('settings')->from(Table::FORMIE_FORM_FIELDS)->where(['id' => $field->id])->scalar()) ?: [],
+        );
         expect($stored['defaultValue'])->toBe($field->defaultValue);
     } finally {
         $db->createCommand()->renameTable($temporaryTable, Table::FORMIE_FORM_STATUSES)->execute();
