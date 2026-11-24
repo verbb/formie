@@ -72,7 +72,9 @@ class FormSerializer
         }
 
         if ($field instanceof MissingField) {
-            $settings = $field->getSettings();
+            // Keep the original settings for when the type is available again, with the field's own label and handle.
+            // A Missing Field read back from a stencil or export document still has them in its settings.
+            $settings = array_merge($field->getSettings(), array_filter(['label' => $field->label, 'handle' => $field->handle], fn($value) => $value !== null));
         }
 
         return [
@@ -328,7 +330,8 @@ class FormSerializer
             $type = $existing instanceof MissingField ? $existing->expectedType : (string)$type;
             $this->missingTypes[] = $type;
             $this->warnings[] = "Missing field type: $type. Original settings retained.";
-            $config = ['type' => MissingField::class, 'expectedType' => $type, 'settings' => $settings ?: $source,
+            // The label and handle are the field's own, not part of the type's settings.
+            $config = ['type' => MissingField::class, 'expectedType' => $type, 'settings' => array_diff_key($settings ?: $source, ['label' => true, 'handle' => true]),
                 'label' => $source['label'] ?? 'Missing Field', 'handle' => $source['handle'] ?? 'missingField'];
 
             // Per-form settings such as conditions or a formula aren't in the definition settings. The builder doesn't
