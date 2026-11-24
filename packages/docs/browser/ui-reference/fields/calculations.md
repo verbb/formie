@@ -33,20 +33,20 @@ Calculations emits field events around each formula evaluation.
 
 #### The `formie:field:calculations:before-evaluate` Event
 
-Triggered right before the formula is evaluated.
+Triggered right before the formula is evaluated. The event is dispatched on the Calculations field's container, so `event.target.dataset.formieFieldHandle` holds the field handle. For a field inside a Group or Repeater it holds the field's path instead, such as `myGroup.quoteTotal` or `items.0.quoteTotal`. Formula variables are named after the fields they refer to with a `field_` prefix, such as `field_discount`.
 
 ```js
 document.addEventListener('formie:field:calculations:before-evaluate', (event) => {
-  const { calculations, variables } = event.detail;
+  const { variables } = event.detail;
 
   // Only target the quote total field.
-  if (calculations?.dataset.formieInputId !== 'quoteTotal') {
+  if (event.target.dataset.formieFieldHandle !== 'quoteTotal') {
     return;
   }
 
   // Treat a blank discount input as zero before evaluation.
-  if (variables.discount === '') {
-    variables.discount = 0;
+  if (variables.field_discount === '') {
+    variables.field_discount = 0;
   }
 });
 ```

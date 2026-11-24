@@ -18,9 +18,9 @@ Formie fires two document-level events around each evaluation:
 | `formie:field:calculations:before-evaluate` | Before the formula runs | `event.detail.formula`, `event.detail.variables` |
 | `formie:field:calculations:after-evaluate` | After the formula runs, before the input updates | `event.detail.result` |
 
-Each event's `detail` includes a reference to the Calculations field element. Match the field you care about with `dataset.formieInputId` (the field handle) or `dataset.formieFieldHandle`.
+Each event is dispatched on the Calculations field's container, and its `detail` includes the field's read-only input as `calculations`. Match the field you care about with `event.target.dataset.formieFieldHandle`, which holds the field handle. For a field inside a Group or Repeater it holds the field's path instead, such as `myGroup.result` or `items.0.result`. The input's `data-formie-input-id` combines the form and field handles, so to target one form on a page with several, compare `calculations.dataset.formieInputId` with that combined value, such as `contactForm-result`.
 
-Variables in `event.detail.variables` use keys derived from the referenced fields — typically the field handle or the internal variable name Formie generated for the formula.
+Formie names each formula variable after the field it refers to, with a `field_` prefix. A formula of `{fieldA} + {fieldB}` reaches these events as `field_fieldA + field_fieldB`, and `event.detail.variables` uses the same keys. Nested fields and handles that would clash get longer names, so inspect `event.detail.formula` in the browser console if you're unsure.
 
 ## Format Results as Currency
 
@@ -30,9 +30,9 @@ Add this script on the page where the form renders:
 
 ```javascript
 document.addEventListener('formie:field:calculations:after-evaluate', (event) => {
-    const { calculations, result } = event.detail;
+    const { result } = event.detail;
 
-    if (calculations?.dataset.formieInputId !== 'result') {
+    if (event.target.dataset.formieFieldHandle !== 'result') {
         return;
     }
 
@@ -47,7 +47,7 @@ document.addEventListener('formie:field:calculations:after-evaluate', (event) =>
 });
 ```
 
-The field shows `$0.00` on load (rather than `0`) and updates as currency when dependent fields change.
+Once both Number fields have values, the field shows the result as currency, such as `$6.00` for `1` and `5`. While either field is blank the result isn't a number, so the example leaves it unformatted.
 
 ## Round Numeric Results
 
@@ -55,9 +55,9 @@ The same pattern works for rounding:
 
 ```javascript
 document.addEventListener('formie:field:calculations:after-evaluate', (event) => {
-    const { calculations, result } = event.detail;
+    const { result } = event.detail;
 
-    if (calculations?.dataset.formieInputId !== 'result') {
+    if (event.target.dataset.formieFieldHandle !== 'result') {
         return;
     }
 
@@ -77,19 +77,16 @@ If `fieldA` should contribute at most `20` to the calculation:
 
 ```javascript
 document.addEventListener('formie:field:calculations:before-evaluate', (event) => {
-    const { calculations, variables } = event.detail;
+    const { variables } = event.detail;
 
-    if (calculations?.dataset.formieInputId !== 'result') {
+    if (event.target.dataset.formieFieldHandle !== 'result') {
         return;
     }
 
-    // Variable keys match what Formie generated for your formula — inspect
-    // event.detail.variables in the browser console if unsure.
-    Object.keys(variables).forEach((key) => {
-        if (key.includes('fieldA') && variables[key] > 20) {
-            variables[key] = 20;
-        }
-    });
+    // {fieldA} in the formula is available as field_fieldA.
+    if (variables.field_fieldA > 20) {
+        variables.field_fieldA = 20;
+    }
 });
 ```
 
@@ -97,17 +94,17 @@ The user can still enter values above 20 in the Number field; only the calculati
 
 ## Advanced: Modify the Formula or Inject Functions
 
-You can replace the formula string or add custom variable objects (including functions) before evaluation:
+You can replace the formula string or add custom variable objects (including functions) before evaluation. A replacement formula refers to fields by their variable names, such as `field_fieldA`:
 
 ```javascript
 document.addEventListener('formie:field:calculations:before-evaluate', (event) => {
-    const { calculations, variables } = event.detail;
+    const { variables } = event.detail;
 
-    if (calculations?.dataset.formieInputId !== 'result') {
+    if (event.target.dataset.formieFieldHandle !== 'result') {
         return;
     }
 
-    event.detail.formula = 'fieldA + fieldB + suffix.myMethod("🔥")';
+    event.detail.formula = 'field_fieldA + field_fieldB + suffix.myMethod("🔥")';
 
     variables.suffix = {
         myMethod(string) {
