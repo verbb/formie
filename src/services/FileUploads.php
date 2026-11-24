@@ -925,7 +925,8 @@ class FileUploads extends Component
             return true;
         }
 
-        if (Formie::$plugin->getUploadReferences()->existsCurrent((new Query())->from(Table::FORMIE_RELATIONS)->where(['targetId' => $assetId])->andFilterWhere(['not', ['sourceId' => $exceptSubmissionId]]))) {
+        // Formie relations store the related element as the source and the submission as the target.
+        if (Formie::$plugin->getUploadReferences()->existsCurrent((new Query())->from(Table::FORMIE_RELATIONS)->where(['sourceId' => $assetId])->andFilterWhere(['not', ['targetId' => $exceptSubmissionId]]))) {
             return true;
         }
 
