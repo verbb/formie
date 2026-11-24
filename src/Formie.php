@@ -847,7 +847,11 @@ class Formie extends Plugin
 
             $event->exporters = array_values($event->exporters);
 
-            $event->exporters[] = FormExport::class;
+            // The export includes notifications and settings that viewing a form doesn't
+            // reveal. Craft only runs exporters listed here, so this also guards the action.
+            if ($this->getPermissions()->canExportForms(Craft::$app->getUser()->getIdentity())) {
+                $event->exporters[] = FormExport::class;
+            }
         });
     }
 

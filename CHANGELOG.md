@@ -6,10 +6,12 @@
 - Searchable dropdowns now show option group names as headings, with their options indented beneath them, instead of looking like options.
 - Searchable dropdowns that allow one choice now mark the chosen option in the list with a check mark.
 - Searchable dropdowns that allow one choice now show their clear button beside the dropdown arrow instead of straight after the chosen value. A search now takes the place of the chosen value while it’s typed, instead of following it.
+- Exporting forms from the **Forms** index now requires the **Export forms** permission, matching the **Import/Export** page.
 
 ### Fixed
 - Fixed two moderate-severity cross-site scripting vulnerabilities.
 - Fixed a moderate-severity information disclosure vulnerability.
+- Fixed a low-severity information disclosure vulnerability.
 - Fixed every submission after the first failing to save on PostgreSQL when the form uses `setRelations()`. Sites already affected are repaired when migrations run.
 - Fixed submissions failing when `setRelations()` was given the same element more than once, including by calling it twice.
 - Fixed User element integrations on all but one form losing their **User Group** when upgrading from Formie 2 or Formie 3. Upgraded sites are repaired when migrations run, except forms saved since the upgrade, which need their group selected again. ([#2206](https://github.com/verbb/formie/issues/2206))
