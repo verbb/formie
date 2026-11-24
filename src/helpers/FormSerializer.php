@@ -278,6 +278,19 @@ class FormSerializer
         $service = Formie::$plugin->getFields();
         $type = $node['type'] ?? '';
         $settings = Json::decodeIfJson($node['settings'] ?? []) ?: [];
+
+        // A stencil keeps a copy of each synced field from when it was saved. Use the shared definition as it is now,
+        // or saving the new form writes that copy back and reverts later edits in every form using the field.
+        if ($operation === 'stencil' && !empty($node['syncedDefinitionUid']) && is_string($node['syncedDefinitionUid'])) {
+            $definition = $service->getFieldDefinitionByUid($node['syncedDefinitionUid']);
+
+            if ($definition && $definition->type === ($node['type'] ?? '')) {
+                $current = $definition->settings;
+                $current = is_array($current['__formieMissingSettings'] ?? null) ? $current['__formieMissingSettings'] : $current;
+                $settings = array_merge($settings, $current, ['label' => $definition->label, 'handle' => $definition->handle]);
+            }
+        }
+
         $source = array_merge($settings, $node['instanceSettings'] ?? [], $node);
         $path = $prefix . ($source['handle'] ?? '');
         $existing = $operation === 'builder'

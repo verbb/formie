@@ -264,3 +264,35 @@ it('reuses synced fields when importing an unchanged export from before conditio
             ->and(array_unique($statuses))->toBe(['reuse']);
     }
 });
+
+it('keeps later edits to a synced field when a form is created from an older stencil', function(): void {
+    [$a, $stencil] = syncedConditionsSource();
+    $b = syncedConditionsFromStencil($stencil, 'B');
+
+    // Edited after the stencil was saved. The edit is synced to B.
+    $field = $a->getFieldByHandle('paymentMethod');
+    $field->label = 'How will you pay?';
+    $field->options = [
+        ['label' => 'Card', 'value' => 'card'],
+        ['label' => 'Bank transfer', 'value' => 'bankTransfer'],
+        ['label' => 'Cash', 'value' => 'cash'],
+    ];
+    expect(Craft::$app->getElements()->saveElement($a))->toBeTrue();
+
+    $c = syncedConditionsFromStencil($stencil, 'C');
+
+    foreach ([$a, $b, $c] as $form) {
+        $field = syncedConditionsReload($form->id)->getFieldByHandle('paymentMethod');
+
+        expect($field->label)->toBe('How will you pay?')
+            ->and(array_column($field->options, 'value'))->toBe(['card', 'bankTransfer', 'cash']);
+    }
+
+    // Settings that belong to each form still come from the stencil.
+    expect(syncedConditionsState(syncedConditionsReload($c->id)))->toBe([
+        'enabled' => true,
+        'ownTarget' => true,
+        'value' => 'bankTransfer',
+        'variables' => ['amountA', 'amountB'],
+    ]);
+});

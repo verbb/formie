@@ -52,7 +52,7 @@ Formie warns you about this in the builder, but it is still worth being delibera
 
 ## Synced Fields in Stencils
 
-You can add synced fields while building a [stencil](/forms/stencils). The stencil stores the synced field’s unique identifier (UID) so new forms created from that stencil link to the same field.
+You can add synced fields while building a [stencil](/forms/stencils). The stencil stores the synced field’s unique identifier (UID) so new forms created from that stencil link to the same field. A new form uses the synced field’s current settings, so changes made after the stencil was saved are kept. Settings that belong to each form, such as conditions, come from the stencil.
 
 Project stencils resolve synced fields by UID, so the matching synced field must already exist on each environment. Otherwise, Formie creates an independent copy from the stencil field settings. Importing a form that uses the synced field can create that field first.
 
