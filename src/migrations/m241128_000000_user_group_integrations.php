@@ -48,10 +48,10 @@ class m241128_000000_user_group_integrations extends Migration
                     $settings['integrations'][$userIntegration['handle']]['groupUids'] = $groupUids;
                     $updatedSettings = true;
                 }
-            }
 
-            if ($updatedSettings) {
-                $this->update('{{%formie_forms}}', ['settings' => Json::encode($settings)], ['id' => $form['id']]);
+                if ($updatedSettings) {
+                    $this->update('{{%formie_forms}}', ['settings' => Json::encode($settings)], ['id' => $form['id']]);
+                }
             }
         }
 
@@ -61,6 +61,7 @@ class m241128_000000_user_group_integrations extends Migration
     public function safeDown(): bool
     {
         echo "m241128_000000_user_group_integrations cannot be reverted.\n";
+
         return false;
     }
 }

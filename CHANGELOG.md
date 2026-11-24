@@ -7,6 +7,7 @@
 - Fixed a moderate-severity information disclosure vulnerability.
 - Fixed every submission after the first failing to save on PostgreSQL when the form uses `setRelations()`. Sites already affected are repaired when migrations run.
 - Fixed submissions failing when `setRelations()` was given the same element more than once, including by calling it twice.
+- Fixed User element integrations on all but one form losing their **User Group** when upgrading from Formie 2 or Formie 3. Upgraded sites are repaired when migrations run, except forms saved since the upgrade, which need their group selected again. ([#2206](https://github.com/verbb/formie/issues/2206))
 - Fixed Date fields using the **Dropdowns** display type filling in the first year, month and day (or 0:00 AM) when left blank. Optional fields saved a date the visitor never chose, forms with a **Min Date** couldn’t be submitted, and required date dropdowns couldn’t be enforced.
 - Fixed the **Move form** action on the **Forms** index letting users move forms into form groups they can’t manage, and listing those groups in its menu.
 - Fixed the **Move form** action on multi-site installs returning an error and moving only some of the selected forms when the target form group’s site settings exclude a form.
