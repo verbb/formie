@@ -9,6 +9,7 @@ use verbb\formie\fields\values\AddressFieldValue;
 use verbb\formie\fields\values\SingleOptionFieldValue;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\Notification;
 use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
 
@@ -191,6 +192,18 @@ class AddressCountry extends Dropdown implements ChildFieldInterface
     {
         // Labels name the country the same way as exports, rather than falling back to the stored code.
         return $useOptionLabels ? $this->getLabelForValue($value) : parent::defineValueForReport($value, $element, false);
+    }
+
+    protected function defineValueForReferenceBlock(mixed $value, Notification $notification, ElementInterface $element = null): mixed
+    {
+        $value = parent::defineValueForReferenceBlock($value, $notification, $element);
+
+        // A country outside the dropdown has no option label, so name it the same way as exports and summaries.
+        if ($value instanceof SingleOptionFieldValue && (string)$value->label === '' && (string)$value->value !== '') {
+            return new SingleOptionFieldValue($this->getLabelForValue($value), $value->value, $value->selected, $value->valid, $value->getOptions());
+        }
+
+        return $value;
     }
 
     protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string

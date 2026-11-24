@@ -58,6 +58,11 @@ function addressOutsideAllowedOutputs(array $country, string $stored, ?array $al
         'report' => $address->getValueForReport($value, $submission),
         'reportValues' => $address->getValueForReport($value, $submission, false),
         'variable' => (string)References::parseContent(References::field($address->reference), $submission, ['outputContext' => ReferenceOutputContext::Html]),
+        // The All Fields block of a real notification email, which renders each sub-field through the email templates.
+        'email' => Formie::$plugin->getEmails()->renderEmail(new \verbb\formie\models\Notification([
+            'name' => 'All fields', 'handle' => 'allFields', 'to' => 'staff@example.test', 'from' => 'sender@example.test',
+            'subject' => 'New submission', 'content' => '{allFields}',
+        ]), $submission)['email']->getSymfonyEmail()->getHtmlBody(),
     ];
 }
 
@@ -70,7 +75,8 @@ it('names a country that is no longer in the Allowed Countries list', function (
         ->and($outputs['summary'])->toContain('<strong>Country</strong> ' . $label . '<br>')
         ->and($outputs['report'])->toBe('1 Main St, ' . $label)
         ->and($outputs['reportValues'])->toBe('1 Main St, ' . $stored)
-        ->and($outputs['variable'])->toContain($label);
+        ->and($outputs['variable'])->toContain($label)
+        ->and(preg_replace('/\s+/', ' ', strip_tags($outputs['email'])))->toContain('Country: ' . $label);
 })->with([
     'ISO values' => [[], 'AU', 'Australia'],
     'full-name values' => [['optionValue' => 'full'], 'Australia', 'Australia'],
@@ -85,7 +91,8 @@ it('keeps the country label for a country still in the list', function (array $c
         ->and($outputs['summary'])->toContain('<strong>Country</strong> ' . $label . '<br>')
         ->and($outputs['report'])->toBe('1 Main St, ' . $label)
         ->and($outputs['reportValues'])->toBe('1 Main St, ' . $stored)
-        ->and($outputs['variable'])->toContain($label);
+        ->and($outputs['variable'])->toContain($label)
+        ->and(preg_replace('/\s+/', ' ', strip_tags($outputs['email'])))->toContain('Country: ' . $label);
 })->with([
     'all countries' => [[], 'AU', null, 'Australia'],
     'narrowed, still allowed' => [[], 'AU', ['AU', 'NZ'], 'Australia'],
