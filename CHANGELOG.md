@@ -35,6 +35,7 @@
 - Fixed duplicating a form, or using **Save as a new form**, on a multi-site install losing the form’s translations for other sites. **Save as a new form** and **Save as a new stencil** while viewing another site also no longer turn that site’s translations into the source content of the new form or stencil.
 - Fixed Date fields with **Min Date** or **Max Date** set to **Today’s Date/Time** using UTC’s date instead of the site’s, which could reject today’s date or accept tomorrow’s, and the error naming the day before or after a Min Date or Max Date on sites outside UTC.
 - Fixed creating or duplicating a form copying all of the creator’s user group permissions to their own account, so removing them from the group, or changing the group’s permissions, no longer took those permissions away.
+- Fixed `renderOptions` missing from custom `page.html` and `field.html` form template overrides, which threw an error with devMode on.
 
 ## 4.1.0 - 2026-11-24
 

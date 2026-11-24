@@ -154,7 +154,8 @@ class Rendering extends Component
             $pushedHere = true;
         } else {
             // Nested page renders inherit the already-normalized parent render options.
-            $this->_prepareFormForRender($form, $active->getRenderOptions());
+            $renderOptions = $active->getRenderOptions();
+            $this->_prepareFormForRender($form, $renderOptions);
         }
 
         try {
@@ -167,6 +168,7 @@ class Rendering extends Component
             $html = $form->renderTemplate('page', [
                 'form' => $form,
                 'page' => $page,
+                'renderOptions' => $renderOptions,
                 'submission' => $submission,
             ]);
 
@@ -272,6 +274,7 @@ class Rendering extends Component
                 'field' => $field,
                 'handle' => $field->handle,
                 'value' => $value,
+                'renderOptions' => $baseOptions,
                 'element' => $element,
                 'fieldLabelPrefix' => $fieldLabelPrefix,
                 'fieldLabelSuffix' => $fieldLabelSuffix,
