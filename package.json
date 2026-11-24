@@ -82,12 +82,12 @@
     "test:cp-assets": "node tests/web/check-entry-imports.mjs src/web/assets/cp/dist/manifest.json"
   },
   "dependencies": {
-    "@verbb/plugin-kit-codemirror-core": "^2.2.2",
-    "@verbb/plugin-kit-core": "^2.2.2",
-    "@verbb/plugin-kit-forms": "^2.2.2",
-    "@verbb/plugin-kit-icons": "^2.2.2",
-    "@verbb/plugin-kit-react": "^2.2.2",
-    "@verbb/plugin-kit-tiptap-core": "^2.2.2",
-    "@verbb/plugin-kit-web": "^2.2.2"
+    "@verbb/plugin-kit-codemirror-core": "^2.3.0",
+    "@verbb/plugin-kit-core": "^2.3.0",
+    "@verbb/plugin-kit-forms": "^2.3.0",
+    "@verbb/plugin-kit-icons": "^2.3.0",
+    "@verbb/plugin-kit-react": "^2.3.0",
+    "@verbb/plugin-kit-tiptap-core": "^2.3.0",
+    "@verbb/plugin-kit-web": "^2.3.0"
   }
 }
