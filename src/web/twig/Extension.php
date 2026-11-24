@@ -81,7 +81,10 @@ class Extension extends AbstractExtension
             $attributes['text'] = $value;
         }
 
-        if ($tagName === 'input' && !array_key_exists('value', $attributes) && !array_key_exists('value', $options) && $value !== null) {
+        // Browsers refuse a value on file inputs, and front-end frameworks throw when they patch one in.
+        $inputType = $options['type'] ?? $attributes['type'] ?? null;
+
+        if ($tagName === 'input' && $inputType !== 'file' && !array_key_exists('value', $attributes) && !array_key_exists('value', $options) && $value !== null) {
             $attributes['value'] = $value;
         }
 

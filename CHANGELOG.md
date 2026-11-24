@@ -23,6 +23,7 @@
 - Fixed searchable dropdowns that allow one choice growing taller after an option was picked, until the visitor clicked elsewhere, when the option’s label left too little room beside it for the search input. Fields in narrow columns showed it most.
 - Fixed searchable dropdowns that allow several choices showing chosen options slightly higher than the search text beside them, and growing taller once the first option was chosen.
 - Fixed the options in a searchable dropdown’s list using larger text than the field itself.
+- Fixed File Upload fields using the **File Input** display type rendering a `value` attribute on their file input, which made Vue and React front ends that mount the form’s markup throw an error. ([#3161](https://github.com/verbb/formie/issues/3161))
 - Fixed the Campaign and Snaptcha integrations, and the Calendar, Events and Commerce Product element integrations, being unavailable when their plugin is installed from a development branch such as `dev-main`. Integrations and fields that don’t set a minimum version for their required plugin no longer check its version.
 
 ## 4.1.0 - 2026-11-24

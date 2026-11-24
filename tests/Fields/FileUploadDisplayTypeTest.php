@@ -113,3 +113,25 @@ it('opts the upload manager browse input out of client validation', function ():
     expect($browseInputTag?->coreAttributes['data']['formie-upload-manager-input'] ?? null)->toBeTrue()
         ->and($browseInputTag?->coreAttributes['data']['formie-validation-skip'] ?? null)->toBeTrue();
 });
+
+it('renders the file input without a value attribute', function (): void {
+    $form = formie()
+        ->form(['title' => 'File Input Value'])
+        ->singleLineTextField('name', ['defaultValue' => 'Jane'])
+        ->fileUploadField('attachments', [
+            'displayType' => 'fileInput',
+        ])
+        ->create();
+
+    $html = (string)Formie::$plugin->getRendering()->renderField($form, 'attachments')
+        . Formie::$plugin->getRendering()->renderField($form, 'name');
+    $document = new DOMDocument();
+    @$document->loadHTML($html);
+    $xpath = new DOMXPath($document);
+    $fileInput = $xpath->query('//input[@type="file"][@data-formie-file-input]')->item(0);
+    $textInput = $xpath->query('//input[@name="fields[name]"]')->item(0);
+
+    expect($fileInput)->not->toBeNull()
+        ->and($fileInput->hasAttribute('value'))->toBeFalse()
+        ->and($textInput?->getAttribute('value'))->toBe('Jane');
+});
