@@ -5,9 +5,10 @@
             {{- fieldLabelPrefix | raw }}
         {%- endif -%}
 
+        {#- Labels can contain simple HTML such as links, so purify rather than escape. Labels without tags skip the purifier. -#}
         {%- set fieldLabelContent = field.usesQuestionLabel()
             ? field.getLabelHtml()
-            : field.label -%}
+            : ('<' in field.label ? field.label | purify : field.label) -%}
 
         {{- fieldLabelContent | raw -}}
 

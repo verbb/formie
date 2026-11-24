@@ -5,6 +5,7 @@ use verbb\formie\conditions\ConditionVisibility;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\definitions\FieldClientRenderedChildren;
 use verbb\formie\fields\definitions\FieldValueType;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\ValidationHelper;
 
 use Craft;
@@ -403,7 +404,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
 
                 $summaryHtml = $summary instanceof Markup ? (string)$summary : Html::encode((string)$summary);
 
-                $values .= Html::tag('strong', $field->label) . ' ' . $summaryHtml . Html::tag('br');
+                $values .= Html::tag('strong', StringHelper::cleanString((string)$field->label)) . ' ' . $summaryHtml . Html::tag('br');
             }
         }
 

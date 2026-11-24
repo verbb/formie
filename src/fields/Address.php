@@ -27,6 +27,7 @@ use verbb\formie\fields\values\SingleOptionFieldValue;
 use verbb\formie\gql\types\AddressType;
 use verbb\formie\gql\types\input\AddressInputType;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\helpers\ValidationHelper;
 use verbb\formie\integrations\addressproviders\Google;
@@ -520,7 +521,7 @@ class Address extends FixedParentField implements ReportSubfieldsInterface, Prev
         $autoComplete = $this->_onlyAutoComplete($value, $element);
 
         if ($autoComplete !== null) {
-            return Template::raw(Html::tag('strong', $this->_autoCompleteLabel()) . ' ' . Html::encode($autoComplete) . Html::tag('br'));
+            return Template::raw(Html::tag('strong', StringHelper::cleanString($this->_autoCompleteLabel())) . ' ' . Html::encode($autoComplete) . Html::tag('br'));
         }
 
         return parent::defineValueForSummary($value, $element);

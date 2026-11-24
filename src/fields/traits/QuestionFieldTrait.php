@@ -5,11 +5,11 @@ use verbb\formie\elements\Submission;
 use verbb\formie\helpers\OptionsMode;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\RichText;
 use verbb\formie\positions\AboveInput as AboveInputPosition;
 
 use Craft;
-use craft\helpers\StringHelper;
 use craft\helpers\Template;
 
 use Twig\Markup;
@@ -96,9 +96,13 @@ trait QuestionFieldTrait
         if ($this->question->isEmpty()) {
             $label = trim((string)$this->label);
 
-            return $label !== ''
-                ? Template::raw($label)
-                : Template::raw('');
+            // Labels can contain simple HTML such as links, so purify rather than escape. Labels without
+            // tags skip the purifier, so the client definition keeps plain labels as they are.
+            if (str_contains($label, '<')) {
+                $label = StringHelper::cleanString($label);
+            }
+
+            return Template::raw($label);
         }
 
         $html = RichTextHelper::getHtmlContent($this->question, $submission, false);
