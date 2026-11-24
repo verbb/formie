@@ -449,6 +449,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
             return $config;
         } catch (Throwable $e) {
             Integration::error($this, 'Salesforce field settings failed: ' . get_class($e));
+
             throw $e;
         }
     }
@@ -515,6 +516,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
 
             if ($integrationField?->getType() === IntegrationField::TYPE_ARRAY && is_array($value)) {
                 $event->fieldValues[$tag] = implode(';', $value);
+
                 continue;
             }
 
@@ -572,6 +574,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
 
             $contactId = null;
             $contactOwnerId = null;
+            $leadId = null;
 
             if ($this->mapToContact) {
                 $contactPayload = $this->_prepPayload($contactValues);
@@ -1129,6 +1132,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
                     'exception' => get_class($e),
                     'httpStatus' => $e instanceof RequestException ? $e->getResponse()?->getStatusCode() : null,
                 ]));
+
                 throw $e;
             };
 
@@ -1176,18 +1180,21 @@ class Salesforce extends Crm implements OAuthProviderInterface
         foreach ($fields as $key => $field) {
             if (!$field['updateable']) {
                 $skipped['notUpdateable']++;
+
                 continue;
             }
 
             // Only allow supported types
             if (!in_array($field['type'], $supportedFields)) {
                 $skipped['unsupportedTypes'][$field['type']] = ($skipped['unsupportedTypes'][$field['type']] ?? 0) + 1;
+
                 continue;
             }
 
             // Exclude any names
             if (in_array($field['name'], $excludeNames)) {
                 $skipped['excludedNames']++;
+
                 continue;
             }
 
