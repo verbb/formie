@@ -112,8 +112,6 @@ class FormsController extends Controller
     {
         $this->requirePermission('formie-accessForms');
 
-        Plugin::registerCpFormsIndexAssets();
-
         $canCreateForms = Craft::$app->getUser()->checkPermission('formie-createForms');
         $editableFormGroups = [];
 
@@ -127,6 +125,16 @@ class FormsController extends Controller
                 ];
             }
         }
+
+        // Until the first form exists, the index is one empty state. Trashed forms keep their row, so they count.
+        if (!(new Query())->from(Table::FORMIE_FORMS)->exists()) {
+            return $this->renderTemplate('formie/forms/_first-run', [
+                'canCreateForms' => $canCreateForms,
+                'editableFormGroups' => $editableFormGroups,
+            ]);
+        }
+
+        Plugin::registerCpFormsIndexAssets();
 
         return $this->renderTemplate('formie/forms/index', [
             'canCreateForms' => $canCreateForms,

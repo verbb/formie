@@ -1,0 +1,45 @@
+{#- The Forms index before any form exists, counting trashed ones. One page empty state on the page background,
+    in place of an element index that would only say there's nothing yet. -#}
+{% extends '_layouts/cp' %}
+
+{% do craft.formie.getPlugin().registerCpEmptyStatesAssets() %}
+
+{% set crumbs = [
+    { label: craft.formie.getPluginName() | t('formie'), url: url('formie') },
+    { label: 'Forms' | t('formie'), url: url('formie/forms') },
+] %}
+
+{% set title = 'Forms' | t('formie') %}
+{% set docTitle = title ~ ' - Formie' %}
+{% set selectedSubnavItem = 'forms' %}
+{% set bodyClass = (bodyClass ?? [])|explodeClass|push('formie-bare-content') %}
+
+{% block content %}
+    <pk-state-panel layout="page" heading="{{ canCreateForms ? 'Create your first form' | t('formie') : 'No forms yet' | t('formie') }}" heading-level="2">
+        {% include 'formie/_includes/spots/forms' %}
+
+        {% if canCreateForms %}
+            {# Stencils are picked on the new form page, so they don't need a second button here. #}
+            {{ 'Build a form in the drag-and-drop builder, or start from a stencil.' | t('formie') }}
+
+            {# The index's header button picks a group when there are any, and the new form page has no group picker, so this is the same menu. #}
+            {% if editableFormGroups is empty %}
+                <a slot="actions" class="btn submit add icon" href="{{ url('formie/forms/new') }}">{{ 'New form' | t('formie') }}</a>
+            {% else %}
+                <div slot="actions" class="btngroup submit">
+                    <button type="button" class="btn submit add icon menubtn" aria-controls="formie-new-form-menu" data-disclosure-trigger aria-label="{{ 'New form, choose a group' | t('formie') }}">{{ 'New form' | t('formie') }}</button>
+                    <div id="formie-new-form-menu" class="menu menu--disclosure">
+                        <ul>
+                            <li><a href="{{ url('formie/forms/new') }}">{{ 'New Form' | t('formie') }}</a></li>
+                            {% for group in editableFormGroups %}
+                                <li><a href="{{ url('formie/forms/new', { source: 'group:' ~ group.uid }) }}">{{ 'New {group} form' | t('formie', { group: group.name }) }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            {% endif %}
+        {% else %}
+            {{ 'Forms will appear here once someone creates one.' | t('formie') }}
+        {% endif %}
+    </pk-state-panel>
+{% endblock %}

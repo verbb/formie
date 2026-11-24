@@ -390,6 +390,11 @@ trait PluginTrait
         FormiePluginHelper::registerCpWidgetsAssets();
     }
 
+    public function registerCpEmptyStatesAssets(): void
+    {
+        FormiePluginHelper::registerCpEmptyStatesAssets();
+    }
+
     public function getEmailDomains(): EmailDomains
     {
         return $this->get('emailDomains');

@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Added a first-run screen to the **Forms** index. Until the first form is created, it shows “Create your first form” and a **New form** button, which picks a form group when there are any, in place of the empty form list and its header button.
 - Added **Country (Label)** and **Country (Value)** to the choices for Address fields in integration mappings and variables, so a mapping can send the country’s name instead of its ISO code. ([#3158](https://github.com/verbb/formie/issues/3158))
 
 ### Changed

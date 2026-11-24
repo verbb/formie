@@ -1,0 +1,31 @@
+/* A page that is one empty state sits straight on the page background, without Craft's content pane around it. */
+.formie-bare-content #content.content-pane {
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.formie-bare-content #content > pk-state-panel[layout='page'] {
+    flex: 1 1 auto;
+}
+
+/* Formie's spot illustrations in those states, in the line-art style of Verbb's other plugins: a darker line of
+   Formie's red (#ea3b3b, from icon.svg) on white, soft tinted fills, and the brand red itself for the one accent. */
+.formie-spot {
+    --formie-spot-line: #c42b2b;
+    --formie-spot-tint: #fde8e8;
+    --formie-spot-accent: #ea3b3b;
+    overflow: visible;
+}
+
+.formie-spot :is(.formie-spot__paper, .formie-spot__fill, .formie-spot__line) {
+    stroke: var(--formie-spot-line);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.formie-spot .formie-spot__paper { fill: var(--white, #fff); }
+.formie-spot .formie-spot__fill { fill: var(--formie-spot-tint); }
+.formie-spot .formie-spot__line { fill: none; }
+.formie-spot .formie-spot__accent { fill: var(--formie-spot-accent); }

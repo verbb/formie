@@ -94,6 +94,12 @@ class Plugin extends BasePlugin
         self::registerCpAsset('src/widgets/js/formie-widgets.js', WidgetsVendorAsset::class, WidgetsAsset::class);
     }
 
+    public static function registerCpEmptyStatesAssets(): void
+    {
+        // Like Submissions, this loads from the manifest so the shared Plugin Kit chunk and its CSS come with it.
+        self::registerCpAsset('src/empty-states/formie-empty-states.js');
+    }
+
     public static function registerCpAsset(string $path, string|array $devDepends = CpReactAsset::class, ?string $productionBundleClass = null): void
     {
         $viteService = Formie::$plugin->getCpAssets();

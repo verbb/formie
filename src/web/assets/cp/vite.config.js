@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import fsPromises from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import path from 'node:path';
@@ -62,6 +63,21 @@ const copyIntegrationIcons = () => ({
         await copyAndOptimizeIcons();
     },
 });
+
+// Before a Plugin Kit release, package.json can link the Kit to a local checkout, which escapes Formie's npm overrides
+// and brings the checkout's own node_modules with it. The build then keeps the link's path and dedupes every Kit package
+// and the TipTap packages those overrides pin, so each resolves once from Formie's tree, as an npm install of the Kit
+// does, instead of as second copies from the checkout.
+const isPluginKitLinked = () => {
+    return fs.lstatSync(path.resolve('./node_modules/@verbb/plugin-kit-web'), { throwIfNoEntry: false })?.isSymbolicLink() ?? false;
+};
+
+const getLinkedPluginKitDedupe = () => {
+    const kitPackages = Object.keys(require('./package.json').dependencies ?? {}).filter((name) => name.startsWith('@verbb/plugin-kit-'));
+    const tiptapPackages = Object.keys(require('../../../../package.json').overrides ?? {}).filter((name) => name.startsWith('@tiptap/'));
+
+    return [...kitPackages, ...tiptapPackages];
+};
 
 const parseServerPort = (value, fallback) => {
     const port = Number.parseInt(value || '', 10);
@@ -148,6 +164,7 @@ export default defineConfig(async ({ command, mode }) => {
     const devServerPort = parseServerPort(env.FORMIE_CP_DEV_SERVER_PORT, 3900);
     const previewServerPort = parseServerPort(env.FORMIE_CP_PREVIEW_PORT, 4390);
     const hmrProtocol = env.FORMIE_CP_DEV_SERVER_HMR_PROTOCOL || 'ws';
+    const pluginKitLinked = isPluginKitLinked();
 
     // Kit packages come from npm. Do not force-alias `@tiptap/*` / `@codemirror/*` —
     // plugin-kit-react nests matching TipTap versions, and aliasing an older core
@@ -201,6 +218,7 @@ export default defineConfig(async ({ command, mode }) => {
                     'formie-reports': path.resolve('./src/reports/formie-reports.js'),
                     'formie-delivery': path.resolve('./src/delivery/formie-delivery.js'),
                     'formie-tiptap': path.resolve('./src/tiptap/formie-tiptap.js'),
+                    'formie-empty-states': path.resolve('./src/empty-states/formie-empty-states.js'),
                 },
                 output: {
                     entryFileNames: (chunkInfo) => {
@@ -274,6 +292,8 @@ export default defineConfig(async ({ command, mode }) => {
         ],
 
         resolve: {
+            preserveSymlinks: pluginKitLinked,
+
             alias: [
                 { find: '@form-builder', replacement: path.resolve('./src/form-builder') },
                 { find: '@new-form', replacement: path.resolve('./src/new-form') },
@@ -304,6 +324,7 @@ export default defineConfig(async ({ command, mode }) => {
                 '@dnd-kit/abstract',
                 '@dnd-kit/dom',
                 '@dnd-kit/react',
+                ...(pluginKitLinked ? getLinkedPluginKitDedupe() : []),
             ],
         },
 
@@ -314,6 +335,9 @@ export default defineConfig(async ({ command, mode }) => {
         test: {
             environment: 'node',
             include: ['src/**/*.test.js'],
+
+            // Node would load a linked Kit from the checkout with its own dependencies, so let Vite resolve it instead.
+            ...(pluginKitLinked ? { server: { deps: { inline: [/@verbb\/plugin-kit-/] } } } : {}),
         },
     };
 });
