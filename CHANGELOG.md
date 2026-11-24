@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.1.0 - 2026-11-24
 
 ### Added
 - Added a **Source Site** setting to Entries fields so a form can list and save entries from another Craft site.
