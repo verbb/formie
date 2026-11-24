@@ -24,6 +24,7 @@
 - Fixed optional Checkboxes fields, and Dropdown fields that allow multiple options, failing validation with “The input value must be an array.” when **Limit Options** was turned on and no options were selected. ([#3154](https://github.com/verbb/formie/issues/3154))
 - Fixed page reload submissions and page tab navigation adding Craft’s path parameter to the page URL, such as `?p=events/my-event`, on servers that route requests through `index.php?p=`, including Apache with Craft’s default `.htaccess`. ([#3155](https://github.com/verbb/formie/issues/3155))
 - Fixed integration field mappings that were left empty in Formie 3 showing as “Use text exactly as entered” text boxes after saving the form, instead of the **Don’t Include** field dropdown.
+- Fixed integration field mappings set to a variable other than a field, such as **Form Name** or **Current Date/Time**, showing as **Don’t Include** once a transform was added, with no **Configure Value** option to change or remove the transform. The mapping was saved and sent correctly.
 - Fixed Address fields showing a blank country in submission exports and summaries, and leaving it out of the address in emails, once the submission’s country was no longer in the field’s **Allowed Countries**. Reports showed its ISO code instead of its name. These now show the country’s name, and a stored country that matches no country shows as stored.
 
 ## 4.0.11 - 2026-11-21

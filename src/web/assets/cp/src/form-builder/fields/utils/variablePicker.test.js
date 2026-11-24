@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { buildTransformOptions, resolveTransformLabel } from './variablePicker';
+import {
+    buildTransformOptions,
+    findOptionLabelByValue,
+    findVariableOptionByValue,
+    getComparableTokenValue,
+    resolveTransformLabel,
+} from './variablePicker';
 
 const registry = {
     text: [{ id: 'upper', label: 'Uppercase' }],
@@ -52,5 +58,40 @@ describe('variable tag transform labels', () => {
         expect(label('{field:deleted}')).toBeUndefined();
         expect(label('{timestamp:}', 'missing')).toBeUndefined();
         expect(label('{timestamp:}', '')).toBeUndefined();
+    });
+});
+
+describe('selected variables with a transform', () => {
+    const categories = {
+        form: [{ label: 'Form Name', value: '{form:name}', types: ['text'] }],
+        time: [{ label: 'Current Date/Time', value: '{timestamp:}', types: ['text', 'date'] }],
+        fields: [
+            { label: 'Notes', value: '{field:notes}', types: ['text'] },
+            { label: 'Items: Qty', value: '{field:items:qty;scope=first}', repeaterSubField: true, types: ['text'] },
+        ],
+    };
+
+    // Formie 3 date aliases such as {dateUs} become Current Date/Time with a format transform.
+    it.each([
+        ['{form:name;transform=lower}', '{form:name}', 'Form Name'],
+        ['{form:name;transform=truncate;length=5|Fallback}', '{form:name}', 'Form Name'],
+        ['{timestamp:;transform=format;preset=custom;pattern=m%2Fd%2FY}', '{timestamp:}', 'Current Date/Time'],
+        ['{field:notes;transform=upper}', '{field:notes}', 'Notes'],
+    ])('finds %s as %s', (token, base, label) => {
+        expect(getComparableTokenValue(token)).toBe(getComparableTokenValue(base));
+        expect(findOptionLabelByValue(categories, token)).toBe(label);
+        expect(findVariableOptionByValue(categories, token)?.label).toBe(label);
+    });
+
+    it('keeps the rows a repeater column reads', () => {
+        expect(getComparableTokenValue('{field:items:qty;scope=first;transform=upper}')).toBe('{field:items:qty;scope=first}');
+    });
+
+    it('leaves tokens without a transform and plain text as they were', () => {
+        expect(getComparableTokenValue('{form:name}')).toBe('{form:name}');
+        expect(getComparableTokenValue('{form:name|Fallback}')).toBe('{form:name}');
+        expect(getComparableTokenValue('{field:items:qty;scope=index;index=2}')).toBe('{field:items:qty;scope=index;index=2}');
+        expect(getComparableTokenValue('Plain text')).toBe('Plain text');
+        expect(getComparableTokenValue('')).toBe('');
     });
 });

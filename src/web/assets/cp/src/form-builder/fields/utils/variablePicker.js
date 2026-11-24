@@ -39,6 +39,20 @@ export const collectSelectableValues = (variableCategories = {}) => {
     return values;
 };
 
+export const parseVariableTokenMetadata = (tokenValue = '') => {
+    const expression = parseReference(String(tokenValue || ''));
+    if (!expression.isValid) return { tokenWithoutDefault: String(tokenValue || ''), defaultIfEmpty: '', transformerId: '', transformerParams: {}, referenceParams: {}, diagnostic: expression.diagnostic };
+    const referenceParams = Object.fromEntries(Object.entries(expression.transformerParams).filter(([key]) => REFERENCE_METADATA_KEYS.has(key)));
+    const transformerParams = Object.fromEntries(Object.entries(expression.transformerParams).filter(([key]) => !REFERENCE_METADATA_KEYS.has(key)));
+    return {
+        tokenWithoutDefault: serializeReference({ ...expression, default: '', transformerId: '', transformerParams: referenceParams }),
+        defaultIfEmpty: expression.default,
+        transformerId: expression.transformerId,
+        transformerParams,
+        referenceParams,
+    };
+};
+
 export const getComparableTokenValue = (tokenValue = '') => {
     if (!tokenValue) {
         return '';
@@ -48,8 +62,9 @@ export const getComparableTokenValue = (tokenValue = '') => {
         return String(tokenValue);
     }
 
-    const expression = parseReference(tokenValue);
-    return expression.isValid ? serializeReference({ ...expression, default: '' }) : tokenValue;
+    // A token's default and transform don't change which variable it is, so leave them out. Keep the rows a
+    // repeater column reads, which do.
+    return parseVariableTokenMetadata(tokenValue).tokenWithoutDefault;
 };
 
 const variableValuesMatchReference = (tokenValue = '', optionValue = '') => {
@@ -342,20 +357,6 @@ export const buildVariableOptionIndex = (variableCategories = {}, {
     return {
         labelByValue,
         optionByValue,
-    };
-};
-
-export const parseVariableTokenMetadata = (tokenValue = '') => {
-    const expression = parseReference(String(tokenValue || ''));
-    if (!expression.isValid) return { tokenWithoutDefault: String(tokenValue || ''), defaultIfEmpty: '', transformerId: '', transformerParams: {}, referenceParams: {}, diagnostic: expression.diagnostic };
-    const referenceParams = Object.fromEntries(Object.entries(expression.transformerParams).filter(([key]) => REFERENCE_METADATA_KEYS.has(key)));
-    const transformerParams = Object.fromEntries(Object.entries(expression.transformerParams).filter(([key]) => !REFERENCE_METADATA_KEYS.has(key)));
-    return {
-        tokenWithoutDefault: serializeReference({ ...expression, default: '', transformerId: '', transformerParams: referenceParams }),
-        defaultIfEmpty: expression.default,
-        transformerId: expression.transformerId,
-        transformerParams,
-        referenceParams,
     };
 };
 
