@@ -68,7 +68,11 @@ class SentNotification extends Element
             ];
         }
 
-        $formItems = [];
+        // Match the Submissions sidebar, which lists forms by title within their form groups.
+        usort($forms, fn(Form $left, Form $right): int => strcasecmp((string)$left->title, (string)$right->title));
+
+        $formItemsByGroupId = [];
+        $ungroupedFormItems = [];
 
         foreach ($forms as $form) {
             if (!Formie::$plugin->getPermissions()->canViewSentNotifications($currentUser, $form)) {
@@ -78,7 +82,7 @@ class SentNotification extends Element
             /* @var Form $form */
             $key = "form:{$form->id}";
 
-            $formItems[$key] = [
+            $formItem = [
                 'key' => $key,
                 'label' => $form->title,
                 'data' => [
@@ -87,12 +91,45 @@ class SentNotification extends Element
                 'criteria' => ['formId' => $form->id],
                 'defaultSort' => ['dateCreated', 'desc'],
             ];
+
+            if ($form->groupId) {
+                $formItemsByGroupId[$form->groupId][$key] = $formItem;
+            } else {
+                $ungroupedFormItems[$key] = $formItem;
+            }
         }
 
-        if ($formItems) {
-            $sources[] = ['heading' => Craft::t('formie', 'Forms')];
+        $formGroups = Formie::$plugin->getFormGroups()->getAllGroups();
 
-            $sources += $formItems;
+        if ($formGroups) {
+            foreach ($formGroups as $group) {
+                $groupFormItems = $formItemsByGroupId[$group->id] ?? [];
+
+                if (!$groupFormItems) {
+                    continue;
+                }
+
+                $sources[] = ['heading' => $group->name];
+                $sources += $groupFormItems;
+            }
+
+            if ($ungroupedFormItems) {
+                $sources[] = ['heading' => Craft::t('formie', 'Ungrouped')];
+                $sources += $ungroupedFormItems;
+            }
+        } else {
+            $formItems = [];
+
+            foreach ($formItemsByGroupId as $groupFormItems) {
+                $formItems += $groupFormItems;
+            }
+
+            $formItems += $ungroupedFormItems;
+
+            if ($formItems) {
+                $sources[] = ['heading' => Craft::t('formie', 'Forms')];
+                $sources += $formItems;
+            }
         }
 
         return $sources;

@@ -20,6 +20,7 @@
 - Fixed the **Move form** action on multi-site installs returning an error and moving only some of the selected forms when the target form group’s site settings exclude a form.
 - Fixed updating an existing form through an import moving it into a form group the user can’t manage forms in.
 - Fixed permanently deleting a submission also deleting an uploaded file that another submission still relates to through `form.setRelations()`, when the form is set to delete file uploads.
+- Fixed the **Sent Notifications** sidebar listing forms newest first. Forms are now listed by title within their form groups, matching the **Submissions** sidebar. ([#3163](https://github.com/verbb/formie/issues/3163))
 - Fixed AJAX forms set to reset after submission keeping Table rows the visitor added, and Repeater rows and signatures on earlier pages, which were then saved with the next visitor’s submission.
 - Fixed Signature fields growing taller for several seconds after they appeared, and a signature started during that time, or while the window was resized, leaving the pad unable to draw until the page was reloaded. The pad is back to its **Signature canvas height** (`--formie-signature-height`, 8rem by default).
 - Fixed searchable dropdowns that allow one choice growing taller after an option was picked, until the visitor clicked elsewhere, when the option’s label left too little room beside it for the search input. Fields in narrow columns showed it most.
