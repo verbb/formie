@@ -7,6 +7,7 @@
 - Searchable dropdowns that allow one choice now mark the chosen option in the list with a check mark.
 - Searchable dropdowns that allow one choice now show their clear button beside the dropdown arrow instead of straight after the chosen value. A search now takes the place of the chosen value while it’s typed, instead of following it.
 - Exporting forms from the **Forms** index now requires the **Export forms** permission, matching the **Import/Export** page.
+- Updated Tiptap to 3.31.4 for rich text editing in the control panel and Moment to 2.31.0.
 
 ### Fixed
 - Fixed two moderate-severity cross-site scripting vulnerabilities.

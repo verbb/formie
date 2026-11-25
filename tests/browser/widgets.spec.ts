@@ -23,7 +23,7 @@ test('loads the shipped dashboard chart libraries and keeps tooltip labels as te
         });
         return { momentVersion: globals.moment.version, total: Number(chart.data.datasets[0].data[0]), injected: !!globals.widgetInjection };
     });
-    expect(chartState).toEqual({ momentVersion: '2.30.1', total: 1, injected: false });
+    expect(chartState).toEqual({ momentVersion: '2.31.0', total: 1, injected: false });
     await expect(page.locator('#chartjs-tooltip')).toContainText('<img src=x onerror="window.widgetInjection=true">');
     await expect(page.locator('#chartjs-tooltip img')).toHaveCount(0);
     expect(errors).toEqual([]);

@@ -1,1 +1,1 @@
-export{t as configureFormieTiptap}from"../../assets/bridge-CdB7hIbl.js";
+export{t as configureFormieTiptap}from"../../assets/bridge-CfFzTIn2.js";
