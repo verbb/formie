@@ -1,6 +1,21 @@
 {
     "project": "formie-react-tests",
     "suites": {
+        "push": [
+            "tests/Unit",
+            "tests/Frontend",
+            "tests/Forms/FormLifecycleElementOpsTest.php",
+            "tests/Forms/FormValidationErrorsTest.php",
+            "tests/Forms/FormPermissionsContractTest.php",
+            "tests/Fields/FieldBehaviorRequiredTest.php",
+            "tests/Fields/FileUploadDataValidationTest.php",
+            "tests/Submissions/SubmissionLifecycleEventsTest.php",
+            "tests/Submissions/SubmissionSaveSubmissionGraphqlTest.php",
+            "tests/Queries/SubmissionQueryCoreTest.php",
+            "tests/Notifications/NotificationTriggersTest.php",
+            "tests/Integrations/IntegrationMappingPayloadTest.php",
+            "tests/Payments/CheckoutVerificationSecurityTest.php"
+        ],
         "default": [
             "--exclude-group=slow",
             "--exclude-group=perf",

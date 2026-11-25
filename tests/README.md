@@ -1,5 +1,11 @@
 # Testing
 
+Run the push checks from the plugin checkout with Docker, DDEV, Python 3 and Node.js 22 installed. This rebuilds frontend assets and uses the plugin’s disposable test database.
+
+```sh
+./tests/push
+```
+
 Install [DDEV](https://docs.ddev.com/en/stable/users/install/ddev-installation/) and a supported Docker provider. Run PHP tests from the plugin checkout:
 
 ```sh
