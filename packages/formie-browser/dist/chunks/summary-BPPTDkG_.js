@@ -8,9 +8,9 @@ import { a as o, r as s } from "./shared-wVxxLWwM.js";
 //#region src/css/theme/fields/_summary.css?inline
 var c = "@layer formie-theme{.formie-summary-container{padding:var(--formie-summary-padding);border:var(--formie-border-width) solid var(--formie-color-border);border-radius:var(--formie-radius-sm)}.formie-summary-heading{color:var(--formie-color-heading)}.formie-summary-blocks{gap:var(--formie-gap-summary);display:grid}.formie-summary-blocks[data-formie-loading=true]{min-height:calc(var(--formie-loading-size) + var(--formie-space-4));position:relative}.formie-summary-blocks[data-formie-loading=true]>*{opacity:0;pointer-events:none}.formie-summary-blocks[data-formie-loading=true]:before{content:\"\";background:var(--formie-color-bg);border-radius:inherit;z-index:1;display:block;position:absolute;inset:0}.formie-summary-blocks[data-formie-loading=true]:after{width:var(--formie-loading-size);height:var(--formie-loading-size);content:\"\";border:var(--formie-loading-border-width) solid var(--formie-loading-color);border-radius:var(--formie-radius-full);z-index:2;animation:formie-loading-spin var(--formie-loading-speed) linear infinite;border-top-color:#0000;border-right-color:#0000;display:block;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}}", l = "[data-formie-summary-blocks]", u = "[data-formie-summary-container]", d = "formie/fields/get-summary-html", f = "summary", p = t("fields", "summary");
 a(f, [c]);
-function m(e) {
-	let t = new URL(e || window.location.href);
-	return t.hash = "", t.toString();
+function m(e, t) {
+	let n = new URL(e.dataset.formieSummaryEndpoint || t || window.location.href);
+	return n.hash = "", n.toString();
 }
 function h(e) {
 	let t = e.querySelector("[data-formie-summary-token]");
@@ -19,7 +19,7 @@ function h(e) {
 async function g(t, n, i, a) {
 	if (!n.accessToken) throw Error("Summary field requires an access token.");
 	let o = new FormData(t);
-	return o.set("action", d), o.set("accessToken", n.accessToken), r(m(i), {
+	return o.set("action", d), o.set("accessToken", n.accessToken), r(m(t, i), {
 		...e(t),
 		method: "POST",
 		body: o,
