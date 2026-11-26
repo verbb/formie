@@ -262,18 +262,19 @@ final class RuntimeConfiguration
     public function tokenInstanceConfig(Form $form): array
     {
         $encrypted = $this->_encryptInstance($form);
+        $revisionRedirect = $this->_tokenRevisionRedirect($form);
 
         if ($encrypted === null) {
-            return ['config' => null];
+            return ['config' => null, ...$revisionRedirect];
         }
 
         // Cached pages keep this token for as long as the cache lives, so carry the config in it rather than a row that expires.
         // Only large configs use a row, because refresh-tokens sends the token in its query string.
         $encoded = StringHelper::base64UrlEncode($encrypted);
 
-        return strlen($encoded) <= self::TOKEN_CONFIG_LIMIT
+        return [...(strlen($encoded) <= self::TOKEN_CONFIG_LIMIT
             ? ['config' => null, 'configData' => $encoded]
-            : ['config' => $this->_storeInstance($form, $encrypted)];
+            : ['config' => $this->_storeInstance($form, $encrypted)]), ...$revisionRedirect];
     }
 
     public function restoreToken(Form $form, string $requestToken): void
@@ -315,8 +316,20 @@ final class RuntimeConfiguration
             $config = SubmissionConfig::decode(Json::decode($json), $form);
         }
 
+        $revisionRedirectUrl = null;
+
+        if (!empty($token['revisionRedirect'])) {
+            $encrypted = is_string($token['revisionRedirect']) ? StringHelper::base64UrlDecode($token['revisionRedirect']) : '';
+            $revisionRedirectUrl = Craft::$app->getSecurity()->decryptByKey($encrypted, Craft::$app->getConfig()->getGeneral()->securityKey);
+
+            if ($revisionRedirectUrl === false) {
+                throw new RuntimeException('Unable to decrypt form instance configuration.');
+            }
+        }
+
         $form->markInstanceEstablished();
         $form->replaceInstanceConfig($config);
+        $form->setRevisionRedirectUrl($revisionRedirectUrl);
     }
 
     public function applyValues(Submission $submission): void
@@ -361,6 +374,22 @@ final class RuntimeConfiguration
         }
 
         return Craft::$app->getSecurity()->encryptByKey(Json::encode($data), Craft::$app->getConfig()->getGeneral()->securityKey);
+    }
+
+    private function _tokenRevisionRedirect(Form $form): array
+    {
+        // An edit form leaves its config out of the token, because the edit restores the config saved with the submission.
+        // A redirect the template set is the one setting that belongs to the render instead. It's carried whether or not
+        // the form has a submission yet, because refreshing a cached form's tokens reissues them without one.
+        $url = (string)$form->getRevisionRedirectUrl();
+
+        if ($url === '') {
+            return [];
+        }
+
+        $encrypted = Craft::$app->getSecurity()->encryptByKey($url, Craft::$app->getConfig()->getGeneral()->securityKey);
+
+        return ['revisionRedirect' => StringHelper::base64UrlEncode($encrypted)];
     }
 
     private function _storeInstance(Form $form, string $encrypted): string

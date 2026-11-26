@@ -276,6 +276,8 @@ class SubmissionsController extends Controller
             $payload['redirectUrl'] = $completion['url'];
             $payload['redirectTarget'] = $completion['target'];
             $payload['successMessage'] = $completion['message'];
+        } elseif (isset($response->outcome->data['revisionMessage'])) {
+            $payload['successMessage'] = $response->outcome->data['revisionMessage'];
         }
 
         if (array_key_exists('successMessage', $payload)) {

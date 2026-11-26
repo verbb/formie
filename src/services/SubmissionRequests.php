@@ -909,7 +909,7 @@ class SubmissionRequests extends Component
         $notice = null;
         $error = null;
 
-        $notice = $response->outcome->data['completion']['message'] ?? null;
+        $notice = $response->outcome->data['completion']['message'] ?? $response->outcome->data['revisionMessage'] ?? null;
 
         if ($submitAction === 'save' && $response->success) {
             $notice = Craft::t('formie', 'Your progress has been saved.');

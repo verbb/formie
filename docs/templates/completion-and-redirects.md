@@ -1,6 +1,6 @@
 # Completion and Redirects
 
-Choose **After Completion** in the form builder to control what a visitor sees when a form finishes. Message displays the success text, Redirect navigates to a URL or entry, Reload reloads the host page, and Reset clears the form. Advancing a page, going back and saving for later do not run these behaviours. Forms requiring payment wait for payment to complete before running the chosen action.
+Choose **After Completion** in the form builder to control what a visitor sees when a form finishes. Message displays the success text, Redirect navigates to a URL or entry, Reload reloads the host page, and Reset clears the form. Advancing a page, going back, saving for later and [editing a completed submission](/guides/submissions-workflows/editing-submissions-on-the-front-end#styling-and-success-behaviour) do not run these behaviours. Forms requiring payment wait for payment to complete before running the chosen action.
 
 To redirect to an entry, find it in your Twig template and set its URL before rendering. This example uses a `contactForm` form and a `thanks` entry in the `pages` section:
 

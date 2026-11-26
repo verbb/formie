@@ -83,4 +83,14 @@ Editing an incomplete submission continues it page by page instead, following th
 
 ## Styling and Success Behaviour
 
-Editing an already completed submission returns a revision result. It does not rerun **After Completion**. Handle revision feedback in your template or client adapter; configure new-submission completion under **Settings → After Completion**.
+Editing an already completed submission returns a revision result. It doesn't rerun **After Completion**, which is for new submissions, so a thank-you message or redirect isn't repeated after every edit. The form shows “Submission saved.” instead, which you can translate in the `formie` translation category.
+
+To send people somewhere after they save their changes, set a redirect on the edit form before rendering it:
+
+```twig
+{% do submission.form.setSubmission(submission) %}
+{% do submission.form.setRedirectUrl('/account/registrations') %}
+{{ craft.formie.renderForm(submission.form) }}
+```
+
+The redirect applies to that edit form only. Redirect rules and the form’s own **After Completion** redirect don’t run for edits.

@@ -2,9 +2,16 @@
 namespace verbb\formie\workflow\tasks\finalize;
 
 use verbb\formie\Formie;
+use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
+use verbb\formie\enums\CompletionBehavior;
+use verbb\formie\enums\SubmissionAuthorityType;
 use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\enums\SubmissionOutcomeType;
+use verbb\formie\enums\RedirectTarget;
+use verbb\formie\helpers\CompletionRedirectPolicy;
 use verbb\formie\helpers\Table;
+use verbb\formie\models\CompletionOutcome;
 use verbb\formie\models\Settings;
 use verbb\formie\services\CompletionResolver;
 use verbb\formie\workflow\tasks\TaskInterface;
@@ -82,9 +89,37 @@ class FinalizeTask implements TaskInterface
                     ['id' => $submission->id]
                 )->execute();
             }
+
             $data['redirect'] = $completion->url ? ['url' => $completion->url, 'target' => $completion->target->value] : null;
         }
 
+        if ($type === SubmissionOutcomeType::REVISED && $command->authority->type === SubmissionAuthorityType::VISITOR) {
+            $data += $this->_resolveRevisionFeedback($submission->getForm(), $submission);
+        }
+
         return TaskResult::stop($context->result($type, $data));
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _resolveRevisionFeedback(Form $form, Submission $submission): array
+    {
+        // After Completion is written for new submissions, so a front-end edit doesn't run it. A redirect the template set
+        // on the edit form is that page's own choice, so it still applies, without redirect rules, completion events or saved metadata.
+        $url = (string)$form->getRevisionRedirectUrl();
+        $url = $url !== '' ? CompletionRedirectPolicy::resolve($url, $submission) : '';
+
+        if ($url !== '') {
+            $completion = new CompletionOutcome(CompletionBehavior::Redirect, $url, RedirectTarget::from($form->settings->redirectTarget), null, $form->settings->hideFormAfterSubmit);
+
+            return [
+                'completion' => $completion->toArray(),
+                'redirect' => ['url' => $completion->url, 'target' => $completion->target->value],
+            ];
+        }
+
+        return ['revisionMessage' => Craft::t('formie', 'Submission saved.')];
     }
 }

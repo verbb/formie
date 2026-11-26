@@ -446,6 +446,7 @@ class Form extends Element implements FormInterface
 
     private ?FormInstanceConfig $_instanceConfig = null;
     private bool $_instanceEstablished = false;
+    private ?string $_revisionRedirectUrl = null;
     private ?FieldLayout $_fieldLayout = null;
     private ?FormLayout $_formLayout = null;
     private ?FormTemplate $_template = null;
@@ -1606,6 +1607,25 @@ class Form extends Element implements FormInterface
         return $this->getInstanceConfig()->completionRedirectOverride;
     }
 
+    /**
+     * The redirect the template set on this render, which a front-end edit of a completed submission uses.
+     * Edits restore the instance config saved with the submission, so this is kept apart from it.
+     *
+     * @internal
+     */
+    public function getRevisionRedirectUrl(): ?string
+    {
+        return $this->_revisionRedirectUrl;
+    }
+
+    /**
+     * @internal
+     */
+    public function setRevisionRedirectUrl(?string $value): void
+    {
+        $this->_revisionRedirectUrl = $value !== '' ? $value : null;
+    }
+
     /** @deprecated Use redirectEntryId. */
     public function getSubmitActionEntryId(): ?int
     {
@@ -1896,6 +1916,7 @@ class Form extends Element implements FormInterface
         if (array_key_exists('redirectUrl', $settings) && !array_key_exists('completionBehavior', $settings)) {
             $redirectUrl = (string)$settings['redirectUrl'];
             $config = $config->withCompletionRedirectOverride($redirectUrl !== '' ? $redirectUrl : null);
+            $this->setRevisionRedirectUrl($redirectUrl);
         }
 
         $this->replaceInstanceConfig($config);

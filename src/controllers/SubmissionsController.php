@@ -806,6 +806,8 @@ class SubmissionsController extends Controller
 
         if (($completion['behavior'] ?? null) === 'message') {
             Formie::$plugin->getService()->setNotice($form->getFlashNamespace(), $completion['message']);
+        } elseif (!$completion && isset($response->outcome->data['revisionMessage'])) {
+            Formie::$plugin->getService()->setNotice($form->getFlashNamespace(), $response->outcome->data['revisionMessage']);
         }
 
         if (($completion['behavior'] ?? null) === 'redirect' && $completion['url']) {
@@ -915,6 +917,8 @@ class SubmissionsController extends Controller
             $payload['redirectUrl'] = $completion['url'];
             $payload['redirectTarget'] = $completion['target'];
             $payload['successMessage'] = $completion['message'];
+        } elseif (isset($response->outcome->data['revisionMessage'])) {
+            $payload['successMessage'] = $response->outcome->data['revisionMessage'];
         }
 
         if (array_key_exists('successMessage', $payload)) {

@@ -1021,6 +1021,10 @@ Keep the issued tokens alongside the version; logging in does not bypass visitor
 
 Previously generated edit tokens must be replaced. Check ownership before calling `form.setSubmission(submission)`, then render the authorised edit form again to issue a fresh token.
 
+#### Completion After Editing
+
+Saving an edit to a completed submission no longer runs **After Completion**, so the form’s success message and redirect are for new submissions only. Edits show “Submission saved.” instead. If your edit pages relied on a redirect, set it on the edit form with `form.setRedirectUrl()` before rendering. See [Editing submissions on the front end](/guides/submissions-workflows/editing-submissions-on-the-front-end#styling-and-success-behaviour).
+
 #### Uploads and Asset IDs
 
 Custom clients can no longer attach an arbitrary asset by posting its ID. Upload the file first and send the returned `{ uploadUid, attachToken }`, or reference an asset already owned by the authorised submission and field.
