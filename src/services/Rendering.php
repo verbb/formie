@@ -333,24 +333,45 @@ class Rendering extends Component
             return null;
         }
 
-        $renderOptions = $this->_normalizeRenderOptions($renderOptions);
-        $this->pushRenderFrame($form, $renderOptions);
-        $output = [];
-
         // The deprecated `registerAssets()` helpers discard what this returns, so they register
         // the assets with the page head and footer instead, as Formie 3 did.
         $register = (bool)($renderOptions['_registerAssets'] ?? false);
-        $assetOptions = $register ? array_merge($renderOptions, [
-            'outputCssLocation' => FormTemplate::PAGE_HEADER,
-            'outputJsLocation' => FormTemplate::PAGE_FOOTER,
-        ]) : $renderOptions;
+
+        if ($register) {
+            // Formie 3's helpers went through `renderForm()`, so its render options event applies here too.
+            $event = new ModifyFormRenderOptionsEvent([
+                'form' => $form,
+                'renderOptions' => $renderOptions,
+            ]);
+            $this->trigger(self::EVENT_MODIFY_FORM_RENDER_OPTIONS, $event);
+            $renderOptions = $event->renderOptions;
+        }
+
+        $renderOptions = $this->_normalizeRenderOptions($renderOptions);
+        $this->pushRenderFrame($form, $renderOptions);
+        $output = [];
+        $includeCss = $renderOptions['includeCss'] ?? true;
+        $includeJs = $renderOptions['includeJs'] ?? true;
+        $assetOptions = $renderOptions;
+
+        if ($register) {
+            // As in `renderForm()`, assets set to manual are left for the template to output.
+            $assetSettings = $this->_resolveFormAssetSettings($form, $renderOptions);
+            $includeCss = $includeCss && $assetSettings['outputCssLocation'] !== FormTemplate::MANUAL;
+            $includeJs = $includeJs && $assetSettings['outputJsLocation'] !== FormTemplate::MANUAL;
+
+            $assetOptions = array_merge($renderOptions, [
+                'outputCssLocation' => FormTemplate::PAGE_HEADER,
+                'outputJsLocation' => FormTemplate::PAGE_FOOTER,
+            ]);
+        }
 
         try {
-            if ($renderOptions['includeCss'] ?? true) {
+            if ($includeCss) {
                 $output[] = $this->_renderResolvedFormAssets($form, self::RENDER_TYPE_CSS, !$register, $assetOptions);
             }
 
-            if ($renderOptions['includeJs'] ?? true) {
+            if ($includeJs) {
                 $output[] = $this->_renderResolvedFormAssets($form, self::RENDER_TYPE_JS, !$register, $assetOptions);
             }
         } finally {
