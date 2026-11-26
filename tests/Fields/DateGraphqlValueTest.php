@@ -6,6 +6,7 @@ use craft\errors\GqlException;
 use craft\helpers\StringHelper;
 use craft\models\GqlSchema;
 use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
 use verbb\formie\fields\Date;
 use verbb\formie\fields\SingleLineText;
 use verbb\formie\Formie;
@@ -191,3 +192,134 @@ it('saves and returns date ranges through a mutation', function (): void {
             'end' => '2010-05-24T00:00:00+00:00',
         ]);
 });
+
+function dateGraphqlMutation(Form $form, string $query, array $variables = []): array
+{
+    $gql = Craft::$app->getGql();
+    $previous = null;
+
+    try {
+        $previous = $gql->getActiveSchema();
+    } catch (GqlException) {
+    }
+
+    $schema = new GqlSchema([
+        'name' => 'Date mutation',
+        'uid' => StringHelper::UUID(),
+        'scope' => ["formieForms.{$form->uid}:read", "formieSubmissions.{$form->uid}:read", "formieSubmissions.{$form->uid}:create", "formieSubmissions.{$form->uid}:save"],
+    ]);
+
+    $gql->flushCaches();
+    $gql->setActiveSchema($schema);
+
+    try {
+        return $gql->executeQuery($schema, $query, $variables);
+    } finally {
+        $gql->flushCaches();
+        $gql->setActiveSchema($previous);
+    }
+}
+
+function dateGraphqlInMelbourne(callable $callback): mixed
+{
+    $timeZone = Craft::$app->getTimeZone();
+    Craft::$app->setTimeZone('Australia/Melbourne');
+
+    try {
+        return $callback();
+    } finally {
+        Craft::$app->setTimeZone($timeZone);
+    }
+}
+
+function dateGraphqlDateOnlyRows(): array
+{
+    $rows = (new Date(['displayType' => 'calendar']))->getSubFields();
+
+    foreach ($rows as &$row) {
+        foreach ($row['fields'] as &$subField) {
+            if ($subField['handle'] === 'time') {
+                $subField['enabled'] = false;
+            }
+        }
+    }
+
+    unset($row, $subField);
+
+    return $rows;
+}
+
+function dateGraphqlStoredParts(int $submissionId, string $handle): mixed
+{
+    return Submission::find()->id($submissionId)->status(null)->one()->getFieldValue($handle)?->toArray();
+}
+
+it('stores mutation dates as sent when the system time zone differs', function (bool $dateOnly, string $sent, bool $asVariable, array $parts, string $returned): void {
+    $settings = $dateOnly ? ['displayType' => 'calendar', 'rows' => dateGraphqlDateOnlyRows()] : ['displayType' => 'calendar'];
+    $form = Form::find()->id(formie()->form()->dateField('eventDate', $settings)->create()->id)->one();
+    $mutation = 'save_' . $form->handle . '_Submission';
+    $selection = '{ ... on ' . $form->handle . '_Submission { id eventDate } }';
+    $query = $asVariable
+        ? 'mutation ($eventDate: DateTime) { ' . $mutation . '(eventDate: $eventDate) ' . $selection . ' }'
+        : 'mutation { ' . $mutation . '(eventDate: ' . json_encode($sent) . ') ' . $selection . ' }';
+
+    $result = dateGraphqlInMelbourne(fn() => dateGraphqlMutation($form, $query, $asVariable ? ['eventDate' => $sent] : []));
+
+    expect($result['errors'] ?? [])->toBe([]);
+
+    $saved = $result['data'][$mutation];
+
+    expect($saved['eventDate'])->toBe($returned)
+        ->and(dateGraphqlStoredParts((int)$saved['id'], 'eventDate'))->toBe($parts);
+})->with([
+    'date only without an offset' => [true, '2026-11-17', false, ['year' => '2026', 'month' => '11', 'day' => '17'], '2026-11-17T00:00:00+00:00'],
+    'date only as returned by GraphQL' => [true, '2026-11-17T00:00:00+00:00', true, ['year' => '2026', 'month' => '11', 'day' => '17'], '2026-11-17T00:00:00+00:00'],
+    'date and time without an offset' => [false, '2026-11-17 20:00:00', true, ['year' => '2026', 'month' => '11', 'day' => '17', 'hour' => '20', 'minute' => '0', 'second' => '0'], '2026-11-17T20:00:00+00:00'],
+    'date and time as returned by GraphQL' => [false, '2026-11-17T20:00:00+00:00', false, ['year' => '2026', 'month' => '11', 'day' => '17', 'hour' => '20', 'minute' => '0', 'second' => '0'], '2026-11-17T20:00:00+00:00'],
+    'date and time with the site offset' => [false, '2026-11-17T20:00:00+11:00', true, ['year' => '2026', 'month' => '11', 'day' => '17', 'hour' => '20', 'minute' => '0', 'second' => '0'], '2026-11-17T20:00:00+00:00'],
+    'date and time with another offset' => [false, '2026-11-17T20:00:00-05:00', true, ['year' => '2026', 'month' => '11', 'day' => '17', 'hour' => '20', 'minute' => '0', 'second' => '0'], '2026-11-17T20:00:00+00:00'],
+]);
+
+it('stores mutation date ranges and repeater dates as sent when the system time zone differs', function (): void {
+    $form = Form::find()->id(formie()->form()
+        ->dateField('stay', ['displayType' => 'datePicker', 'collectMode' => Date::COLLECT_RANGE])
+        ->repeaterField('visits', ['rows' => [['fields' => [
+            ['type' => Date::class, 'handle' => 'visitDate', 'label' => 'Visit date', 'displayType' => 'calendar'],
+        ]]]])
+        ->create()->id)->one();
+    $mutation = 'save_' . $form->handle . '_Submission';
+    $query = 'mutation ($start: DateTime!, $visit: DateTime) { ' . $mutation . '(stay: { start: $start, end: "2026-11-20 10:30:00" }, visits: { rows: [{ visitDate: $visit }] }) { ... on ' . $form->handle . '_Submission { id stay { start end } visits { rows { visitDate } } } } }';
+
+    $result = dateGraphqlInMelbourne(fn() => dateGraphqlMutation($form, $query, ['start' => '2026-11-17 20:00:00', 'visit' => '2026-11-18']));
+
+    expect($result['errors'] ?? [])->toBe([]);
+
+    $saved = json_decode(json_encode($result['data'][$mutation]), true);
+
+    expect($saved['stay'])->toBe(['start' => '2026-11-17T20:00:00+00:00', 'end' => '2026-11-20T10:30:00+00:00'])
+        ->and($saved['visits']['rows'][0]['visitDate'])->toBe('2026-11-18T00:00:00+00:00')
+        ->and(dateGraphqlStoredParts((int)$saved['id'], 'stay'))->toBe([
+            'start' => ['year' => '2026', 'month' => '11', 'day' => '17', 'hour' => '20', 'minute' => '0', 'second' => '0'],
+            'end' => ['year' => '2026', 'month' => '11', 'day' => '20', 'hour' => '10', 'minute' => '30', 'second' => '0'],
+        ]);
+});
+
+it('stores dates as sent through the generic mutation and variable defaults', function (string $mutation): void {
+    $form = Form::find()->id(formie()->form()
+        ->dateField('dateOnly', ['displayType' => 'calendar', 'rows' => dateGraphqlDateOnlyRows()])
+        ->dateField('eventDate', ['displayType' => 'calendar'])
+        ->create()->id)->one();
+    $name = $mutation === 'generic' ? 'saveSubmission' : 'save_' . $form->handle . '_Submission';
+    $query = $mutation === 'generic'
+        ? 'mutation { saveSubmission(formHandle: "' . $form->handle . '", fields: { dateOnly: "2026-11-17", eventDate: "2026-11-17 20:00:00" }) { id } }'
+        : 'mutation ($dateOnly: DateTime = "2026-11-17", $eventDate: DateTime = "2026-11-17 20:00:00") { ' . $name . '(dateOnly: $dateOnly, eventDate: $eventDate) { id } }';
+
+    $result = dateGraphqlInMelbourne(fn() => dateGraphqlMutation($form, $query));
+
+    expect($result['errors'] ?? [])->toBe([]);
+
+    $id = (int)$result['data'][$name]['id'];
+
+    expect(dateGraphqlStoredParts($id, 'dateOnly'))->toBe(['year' => '2026', 'month' => '11', 'day' => '17'])
+        ->and(dateGraphqlStoredParts($id, 'eventDate'))->toBe(['year' => '2026', 'month' => '11', 'day' => '17', 'hour' => '20', 'minute' => '0', 'second' => '0']);
+})->with(['generic' => 'generic', 'variable defaults' => 'variable defaults']);

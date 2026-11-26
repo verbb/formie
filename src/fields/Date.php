@@ -61,6 +61,7 @@ use yii\db\ExpressionInterface;
 use yii\db\Schema;
 
 use DateTime;
+use DateTimeInterface;
 use DateTimeZone;
 
 use Faker\Generator as FakerFactory;
@@ -880,6 +881,27 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
     public function normalizeValueFromRequest(mixed $value, ?ElementInterface $element): mixed
     {
         return $this->normalizeValue($value, $element);
+    }
+
+    /**
+     * Craft's `DateTime` scalar reads a date without an offset as UTC and converts every date to the system time
+     * zone. Read the value as sent instead, so a mutation stores the date and time a submission on the site would.
+     * Any offset is ignored rather than converted, as stored dates have no time zone and GraphQL returns them
+     * with a `+00:00` offset that must round-trip unchanged. Only the parts this field collects are kept.
+     */
+    public function normalizeGqlMutationValue(mixed $value, mixed $sent): mixed
+    {
+        if (!is_array($value)) {
+            return $this->_gqlMutationWallClockValue($value, $sent);
+        }
+
+        foreach (DateRangeFieldValue::sidePrefixes() as $side) {
+            if (array_key_exists($side, $value)) {
+                $value[$side] = $this->_gqlMutationWallClockValue($value[$side], is_array($sent) ? ($sent[$side] ?? null) : null);
+            }
+        }
+
+        return $value;
     }
 
     public function decodeValueFromStorage(mixed $value): mixed
@@ -2361,6 +2383,28 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         $resolved = DateTimeHelper::toDateTime($dateTime, false, false);
 
         return $resolved instanceof DateTime ? $resolved : new DateTime();
+    }
+
+    private function _gqlMutationWallClockValue(mixed $value, mixed $sent): mixed
+    {
+        if (!$value instanceof DateTimeInterface) {
+            return $value;
+        }
+
+        // Parse what was sent the way the scalar does, minus the conversion. Only trust it when it names the same
+        // moment the scalar parsed, in case the sent value couldn't be matched to this argument.
+        $dateTime = is_string($sent) ? self::toDateTime(Json::decodeIfJson($sent)) : false;
+
+        if (!$dateTime || $dateTime->getTimestamp() !== $value->getTimestamp()) {
+            // The scalar reads a value without an offset as UTC, so UTC gives back what was written for those.
+            $dateTime = DateTime::createFromInterface($value)->setTimezone(new DateTimeZone('UTC'));
+        }
+
+        return $dateTime->format(match (true) {
+            $this->getIsDate() => 'Y-m-d',
+            $this->getIsTime() => 'H:i:s',
+            default => 'Y-m-d H:i:s',
+        });
     }
 
     private function _generateOptions(int $start, int $end, ?string $placeholder = null): array

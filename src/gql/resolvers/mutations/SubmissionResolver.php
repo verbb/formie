@@ -2,9 +2,13 @@
 namespace verbb\formie\gql\resolvers\mutations;
 
 use verbb\formie\Formie;
+use verbb\formie\base\FieldInterface;
+use verbb\formie\base\ParentFieldInterface;
+use verbb\formie\base\RepeatableParentField;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\SubmissionOutcomeType;
+use verbb\formie\fields\Date;
 use verbb\formie\fields\Payment;
 use verbb\formie\gql\mutations\SubmissionMutation;
 use verbb\formie\helpers\BrowserRequestProfile;
@@ -23,12 +27,19 @@ use GraphQL\Type\Definition\ListOfType;
 use GraphQL\Type\Definition\NonNull;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
+use GraphQL\Utils\AST;
 use GraphQL\Utils\Value;
 
 use yii\web\HttpException;
 
 class SubmissionResolver extends ElementMutationResolver
 {
+    // Constants
+    // =========================================================================
+
+    public const CONTEXT_SENT_VARIABLES = 'formieSentVariables';
+
+
     // Properties
     // =========================================================================
 
@@ -97,6 +108,10 @@ class SubmissionResolver extends ElementMutationResolver
                 }
 
                 $mutationArguments[$handle] = $coerced['value'];
+
+                if ($payloadName === 'fields' && ($field = $form->getFieldByHandle($handle))) {
+                    $mutationArguments[$handle] = $this->_restoreSentDates($field, $coerced['value'], $value);
+                }
             }
         }
 
@@ -174,6 +189,14 @@ class SubmissionResolver extends ElementMutationResolver
 
         if ($submission->formId != $form->id) {
             throw new Error('Impossible to change the form of an existing submission');
+        }
+
+        $sentArguments = $this->_sentArguments($resolveInfo, $context);
+
+        foreach ($arguments as $handle => $value) {
+            if ($field = $form->getFieldByHandle($handle)) {
+                $arguments[$handle] = $this->_restoreSentDates($field, $value, $sentArguments[$handle] ?? null);
+            }
         }
 
         $populate = function() use ($form, $submission, $arguments, $resolveInfo): void {
@@ -361,6 +384,72 @@ class SubmissionResolver extends ElementMutationResolver
         $normalizer = $type->config['normalizeValue'] ?? null;
 
         return $applyNormalizer && is_callable($normalizer) ? $normalizer($value) : $value;
+    }
+
+    /**
+     * Returns this field's arguments as the client sent them, before any scalar parsed them. Variables come
+     * from the request context, so values sent another way fall back to the parsed arguments.
+     */
+    private function _sentArguments(ResolveInfo $resolveInfo, mixed $context): array
+    {
+        $variables = is_array($context) ? ($context[self::CONTEXT_SENT_VARIABLES] ?? null) : null;
+
+        if (is_array($variables)) {
+            foreach ($resolveInfo->operation?->variableDefinitions ?? [] as $definition) {
+                $name = $definition->variable->name->value;
+
+                if (!array_key_exists($name, $variables) && $definition->defaultValue) {
+                    $variables[$name] = AST::valueFromASTUntyped($definition->defaultValue);
+                }
+            }
+        }
+
+        $sent = [];
+        $fieldNode = $resolveInfo->fieldNodes[0] ?? null;
+
+        foreach ($fieldNode?->arguments ?? [] as $argument) {
+            $sent[$argument->name->value] = AST::valueFromASTUntyped($argument->value, $variables);
+        }
+
+        return $sent;
+    }
+
+    /**
+     * Date fields store the date and time as written, but GraphQL's `DateTime` scalar has already moved them to
+     * the system time zone. Hand each Date field, including those in groups and repeater rows, what was sent.
+     */
+    private function _restoreSentDates(FieldInterface $field, mixed $value, mixed $sent): mixed
+    {
+        if ($field instanceof Date) {
+            return $field->normalizeGqlMutationValue($value, $sent);
+        }
+
+        if (!$field instanceof ParentFieldInterface || !is_array($value)) {
+            return $value;
+        }
+
+        $sent = is_array($sent) ? $sent : [];
+
+        if ($field instanceof RepeatableParentField) {
+            foreach ($value['rows'] ?? [] as $index => $row) {
+                $value['rows'][$index] = is_array($row) ? $this->_restoreSentChildDates($field, $row, $sent['rows'][$index] ?? null) : $row;
+            }
+
+            return $value;
+        }
+
+        return $this->_restoreSentChildDates($field, $value, $sent);
+    }
+
+    private function _restoreSentChildDates(ParentFieldInterface $field, array $values, mixed $sent): array
+    {
+        foreach ($values as $handle => $child) {
+            if (is_string($handle) && $nestedField = $field->getFieldByHandle($handle)) {
+                $values[$handle] = $this->_restoreSentDates($nestedField, $child, is_array($sent) ? ($sent[$handle] ?? null) : null);
+            }
+        }
+
+        return $values;
     }
 
     /** Input types fill in absent parts or build value objects, which no longer show which parts were sent. */

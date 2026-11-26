@@ -101,6 +101,14 @@ For example, a Name field with the handle `yourName` on the `contactForm` form w
 
 Fields nested in a Group or Repeater also include their parents’ handles, such as `contactForm_groupField_yourName_FormieNameInput`. Table fields use a list of rows, such as `[contactForm_tableField_TableRowInput]`.
 
+## Date/Time Fields
+
+Date/Time fields take a `DateTime` string. A Date/Time field that collects a range uses `<formHandle>_<fieldHandle>_FormieDateRangeInput`, with a `start` and `end`.
+
+Send the date and time as a visitor would enter them on your site, such as `2026-11-17` or `2026-11-17 14:30:00`. Formie stores them as written, without converting them to your site’s time zone, and ignores any offset. A value GraphQL returns, such as `2026-11-17T14:30:00+00:00`, can be sent back unchanged. A UTC timestamp from JavaScript’s `toISOString()` is stored at its UTC time, so format the local date and time instead.
+
+Only the parts the field collects are stored, so a date-only field keeps just the date.
+
 ## Name and Address Fields
 
 ```graphql

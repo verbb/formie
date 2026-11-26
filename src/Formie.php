@@ -22,6 +22,7 @@ use verbb\formie\gql\queries\ClientFormQuery;
 use verbb\formie\gql\queries\FormQuery;
 use verbb\formie\gql\queries\HtmlFormQuery;
 use verbb\formie\gql\queries\SubmissionQuery;
+use verbb\formie\gql\resolvers\mutations\SubmissionResolver;
 use verbb\formie\helpers\CrossOriginRequestHelper;
 use verbb\formie\helpers\FieldBuilderPolicy;
 use verbb\formie\helpers\Gql as GqlHelper;
@@ -610,6 +611,14 @@ class Formie extends Plugin
                         $suffix . ':delete' => ['label' => Craft::t('app', 'Delete submissions for form “{form}”', ['form' => $form->title])],
                     ],
                 ];
+            }
+        });
+
+        // Resolvers only see variables after their scalars have parsed them. Keep them as sent, so submission
+        // mutations can read dates without the `DateTime` scalar's time zone conversion.
+        Event::on(Gql::class, Gql::EVENT_BEFORE_EXECUTE_GQL_QUERY, function(ExecuteGqlQueryEvent $event): void {
+            if (is_array($event->context)) {
+                $event->context[SubmissionResolver::CONTEXT_SENT_VARIABLES] = $event->variables ?? [];
             }
         });
 
