@@ -1890,7 +1890,15 @@ class Form extends Element implements FormInterface
             $settings['integrations'] = $filtered;
         }
 
-        $this->replaceInstanceConfig($this->getInstanceConfig()->with('form', $settings));
+        $config = $this->getInstanceConfig()->with('form', $settings);
+
+        // A template setting `redirectUrl` alone means "redirect here", as it did in Formie 3, whatever the form's After Completion setting.
+        if (array_key_exists('redirectUrl', $settings) && !array_key_exists('completionBehavior', $settings)) {
+            $redirectUrl = (string)$settings['redirectUrl'];
+            $config = $config->withCompletionRedirectOverride($redirectUrl !== '' ? $redirectUrl : null);
+        }
+
+        $this->replaceInstanceConfig($config);
     }
 
     public function setPageSettings(int|string $handleOrIndex, array $settings): void

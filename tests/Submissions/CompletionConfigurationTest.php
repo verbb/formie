@@ -32,6 +32,51 @@ it('resolves each completion behavior only for the completed outcome', function 
     expect((new FinalizeTask())->execute($context)->outcome->data['completion']['behavior'])->toBe($behavior);
 })->with(['message', 'redirect', 'reload', 'reset']);
 
+it('redirects to a redirectUrl set through setSettings on a form that shows a message', function (): void {
+    $form = formie()->form()->singleLineTextField('name')->create();
+    $form->settings->setAttributes(['completionBehavior' => 'message', 'redirectUrl' => null], false);
+    $form->setSettings(['redirectUrl' => '/thanks?datum=2026-11-27']);
+    $submission = new Submission();
+    $submission->setForm($form);
+    $outcome = (new CompletionResolver())->resolve($form, $submission, false);
+
+    expect($outcome->behavior)->toBe(CompletionBehavior::Redirect)
+        ->and($outcome->url)->toBe('/thanks?datum=2026-11-27');
+
+    // The override travels in the request token, so the submit request redirects too.
+    $fresh = Form::find()->id($form->id)->status(null)->one();
+    (new RuntimeConfiguration())->restoreToken($fresh, $form->getRequestToken());
+    $submission = new Submission();
+    $submission->setForm($fresh);
+    $outcome = (new CompletionResolver())->resolve($fresh, $submission, false);
+
+    expect($outcome->behavior)->toBe(CompletionBehavior::Redirect)
+        ->and($outcome->url)->toBe('/thanks?datum=2026-11-27');
+});
+
+it('keeps a completion behavior passed to setSettings alongside redirectUrl', function (): void {
+    $form = formie()->form()->singleLineTextField('name')->create();
+    $form->settings->setAttributes(['completionBehavior' => 'message', 'redirectUrl' => null], false);
+    $form->setSettings(['completionBehavior' => 'message', 'redirectUrl' => '/thanks']);
+    $submission = new Submission();
+    $submission->setForm($form);
+
+    expect($form->getCompletionRedirectOverride())->toBeNull()
+        ->and((new CompletionResolver())->resolve($form, $submission, false)->behavior)->toBe(CompletionBehavior::Message);
+});
+
+it('clears a template redirect when setSettings sets redirectUrl to null', function (): void {
+    $form = formie()->form()->singleLineTextField('name')->create();
+    $form->settings->setAttributes(['completionBehavior' => 'message', 'redirectUrl' => null], false);
+    $form->setRedirectUrl('/thanks');
+    $form->setSettings(['redirectUrl' => null]);
+    $submission = new Submission();
+    $submission->setForm($form);
+
+    expect($form->getCompletionRedirectOverride())->toBeNull()
+        ->and((new CompletionResolver())->resolve($form, $submission, false)->behavior)->toBe(CompletionBehavior::Message);
+});
+
 it('rejects dangerous final redirect targets', function (string $url): void {
     expect(CompletionRedirectPolicy::validate($url))->toBe('');
 })->with(['javascript:alert(1)', '//evil.test/path', '/\\evil.test', "/safe\r\nLocation: https://evil.test", '/safe%0d%0aInjected', '/safe%250d%250aInjected', 'https://safe.test@evil.test', 'data:text/html,bad', 'javascript%3aalert(1)']);
