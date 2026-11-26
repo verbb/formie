@@ -31,6 +31,11 @@ Connect SuiteCRM to send enquiries to the records your team manages. You need ac
 
 For a contact enquiry, map the visitor’s email and name where those fields are available.
 
+## Record Types
+Each submission can create a Contact, a Lead and a record in a custom module. Turn on **Map to Contact**, **Map to Lead** or **Map to Custom Module** for each one you want. When more than one is on, Formie creates them in that order, as separate records.
+
+To use a custom module, such as one made with SuiteCRM’s Module Builder, enter its API name in **Module Name**, such as `abc_Requests`. Then click **Refresh** on the **Custom Module Field Mapping** to fetch the module’s fields. Forms that share the integration can each use a different custom module.
+
 ## Verify a Submission
 
 Save the form, open it on your site and submit recognisable test values. Find the test record in the selected CRM destination. Check the mapped values and whether the integration created a record or updated an existing one as intended.

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Added
+- Added **Map to Lead** and **Map to Custom Module** to the SuiteCRM integration, so forms can create Leads and records in custom modules as well as Contacts. ([#3164](https://github.com/verbb/formie/issues/3164))
+
 ### Changed
 - Searchable dropdowns now show option group names as headings, with their options indented beneath them, instead of looking like options.
 - Searchable dropdowns that allow one choice now mark the chosen option in the list with a check mark.
