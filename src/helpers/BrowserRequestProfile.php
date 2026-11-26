@@ -39,7 +39,11 @@ class BrowserRequestProfile
             return $profile;
         }
 
-        if (!$request->getOrigin()) {
+        // Browsers leave out Origin on same-origin GET requests, such as the token refresh after a
+        // submit when a headless front end is served from Craft's own origin. Sec-Fetch-Site is
+        // set by the browser and page scripts can't change it. Cross-origin requests still need
+        // an allowed Origin, and the isolated session below applies either way.
+        if (!$request->getOrigin() && $request->getHeaders()->get('Sec-Fetch-Site') !== 'same-origin') {
             throw new ForbiddenHttpException('The cross-origin-public profile requires an allowed Origin.');
         }
 

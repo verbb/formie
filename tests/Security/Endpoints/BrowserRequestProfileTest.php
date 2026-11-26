@@ -67,3 +67,34 @@ it('rejects same-origin submission without CSRF even when the legacy guest excep
         expect(fn() => (new SubmissionsController('submissions', Formie::$plugin))->runAction('submit'))->toThrow(\yii\web\BadRequestHttpException::class);
     }, ['method' => 'POST', 'headers' => ['Accept' => 'application/json', 'X-Formie-Profile' => 'same-origin-browser']]);
 });
+
+it('refreshes tokens for a cross-origin-public form served from Craft\'s own origin without ambient authority', function() {
+    $form = formie()->form()->singleLineTextField('name')->create();
+    WebRequestTestHelper::withWebRequestContext(function($request, $response, $session) use ($form) {
+        // Browsers send no Origin on a same-origin GET, only Sec-Fetch-Site.
+        expect($request->getOrigin())->toBeNull();
+        Craft::$app->getUser()->setIdentity(\craft\elements\User::find()->admin(true)->one());
+        $session->set('ambient-secret', 'not-public');
+        BrowserRequestProfile::enter(true);
+        $request->getHeaders()->set('X-Formie-Session', $response->getHeaders()->get('X-Formie-Session'));
+
+        $result = (new \verbb\formie\controllers\server\FormsController('server/forms', Formie::$plugin))->runAction('refresh-tokens');
+
+        expect($result->data['csrf']['token'] ?? null)->not->toBeEmpty()
+            ->and(Craft::$app->getUser()->getIsGuest())->toBeTrue()
+            ->and($session->get('ambient-secret'))->toBeNull();
+    }, ['method' => 'GET', 'queryParams' => ['handle' => $form->handle], 'headers' => ['Accept' => 'application/json', 'X-Formie-Profile' => 'cross-origin-public', 'Sec-Fetch-Site' => 'same-origin']]);
+});
+
+it('still requires an allowed Origin for cross-origin-public requests that are not same-origin', function(array $headers, string $message) {
+    WebRequestTestHelper::withWebRequestContext(function() use ($message) {
+        Formie::$plugin->getSettings()->allowedOrigins = ['https://public.example.test'];
+        expect(fn() => BrowserRequestProfile::enter(true))->toThrow(\yii\web\ForbiddenHttpException::class, $message);
+    }, ['method' => 'GET', 'headers' => ['X-Formie-Profile' => 'cross-origin-public', ...$headers]]);
+})->with([
+    'no fetch metadata' => [[], 'The cross-origin-public profile requires an allowed Origin.'],
+    'cross-site' => [['Sec-Fetch-Site' => 'cross-site'], 'The cross-origin-public profile requires an allowed Origin.'],
+    'same-site' => [['Sec-Fetch-Site' => 'same-site'], 'The cross-origin-public profile requires an allowed Origin.'],
+    'user-initiated' => [['Sec-Fetch-Site' => 'none'], 'The cross-origin-public profile requires an allowed Origin.'],
+    'disallowed origin' => [['Origin' => 'https://evil.example.test', 'Sec-Fetch-Site' => 'same-origin'], 'This origin is not allowed to access Formie.'],
+]);
