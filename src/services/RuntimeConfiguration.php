@@ -21,6 +21,7 @@ use verbb\formie\workflow\WorkflowContext;
 use Craft;
 use craft\db\Query;
 use craft\helpers\Json;
+use craft\helpers\StringHelper;
 
 use yii\web\ForbiddenHttpException;
 
@@ -38,6 +39,7 @@ final class RuntimeConfiguration
 
     public const DURABLE_FORM_SETTINGS = ['completionBehavior', 'completionRedirectSource', 'redirectUrl', 'redirectTarget', 'successMessage', 'hideFormAfterSubmit', 'enableRedirectRules', 'redirectRules', 'integrations'];
     public const FORM_SETTINGS = [...self::DURABLE_FORM_SETTINGS, 'displayFormTitle', 'displayCurrentPageTitle', 'displayPageTabs', 'displayPageProgress', 'scrollToTop', 'submitMethod', 'successMessageTimeout', 'successMessagePosition', 'errorMessage', 'defaultLabelPosition', 'defaultInstructionsPosition'];
+    public const TOKEN_CONFIG_LIMIT = 2048;
     public const PAGE_SETTINGS = ['submitButtonLabel', 'backButtonLabel', 'saveButtonLabel', 'showBackButton', 'showSaveButton', 'saveButtonStyle', 'buttonsPosition', 'submitButtonPlacement', 'cssClasses', 'containerAttributes', 'inputAttributes'];
 
 
@@ -252,25 +254,26 @@ final class RuntimeConfiguration
 
     public function persistInstance(Form $form): ?string
     {
-        if (!$form->id || $form->getCurrentSubmission()?->id) {
-            return null;
+        $encrypted = $this->_encryptInstance($form);
+
+        return $encrypted === null ? null : $this->_storeInstance($form, $encrypted);
+    }
+
+    public function tokenInstanceConfig(Form $form): array
+    {
+        $encrypted = $this->_encryptInstance($form);
+
+        if ($encrypted === null) {
+            return ['config' => null];
         }
 
-        $this->establish($form);
-        $data = $form->getInstanceConfig()->toArray();
+        // Cached pages keep this token for as long as the cache lives, so carry the config in it rather than a row that expires.
+        // Only large configs use a row, because refresh-tokens sends the token in its query string.
+        $encoded = StringHelper::base64UrlEncode($encrypted);
 
-        if (!array_filter(array_diff_key($data, ['version' => true]))) {
-            return null;
-        }
-
-        $key = Craft::$app->getSecurity()->generateRandomString(40);
-        $encrypted = Craft::$app->getSecurity()->encryptByKey(Json::encode($data), Craft::$app->getConfig()->getGeneral()->securityKey);
-        Craft::$app->getDb()->createCommand()->insert('{{%formie_instance_configs}}', [
-            'tokenHash' => hash('sha256', $key), 'formId' => $form->id, 'siteId' => $form->siteId,
-            'config' => base64_encode($encrypted), 'expiresAt' => time() + SubmissionOperations::RETENTION_SECONDS,
-        ])->execute();
-
-        return $key;
+        return strlen($encoded) <= self::TOKEN_CONFIG_LIMIT
+            ? ['config' => null, 'configData' => $encoded]
+            : ['config' => $this->_storeInstance($form, $encrypted)];
     }
 
     public function restoreToken(Form $form, string $requestToken): void
@@ -285,7 +288,16 @@ final class RuntimeConfiguration
         // Tokens issued before WS09 have no config. Never read an ambient session snapshot.
         $config = new FormInstanceConfig();
 
-        if (!empty($token['config'])) {
+        if (!empty($token['configData'])) {
+            $encrypted = is_string($token['configData']) ? StringHelper::base64UrlDecode($token['configData']) : '';
+            $json = Craft::$app->getSecurity()->decryptByKey($encrypted, Craft::$app->getConfig()->getGeneral()->securityKey);
+
+            if ($json === false) {
+                throw new RuntimeException('Unable to decrypt form instance configuration.');
+            }
+
+            $config = SubmissionConfig::decode(Json::decode($json), $form);
+        } elseif (!empty($token['config'])) {
             $row = (new Query())->from('{{%formie_instance_configs}}')->where([
                 'tokenHash' => hash('sha256', $token['config']), 'formId' => $form->id, 'siteId' => $form->siteId,
             ])->andWhere(['>', 'expiresAt', time()])->one();
@@ -334,6 +346,33 @@ final class RuntimeConfiguration
 
     // Private Methods
     // =========================================================================
+
+    private function _encryptInstance(Form $form): ?string
+    {
+        if (!$form->id || $form->getCurrentSubmission()?->id) {
+            return null;
+        }
+
+        $this->establish($form);
+        $data = $form->getInstanceConfig()->toArray();
+
+        if (!array_filter(array_diff_key($data, ['version' => true]))) {
+            return null;
+        }
+
+        return Craft::$app->getSecurity()->encryptByKey(Json::encode($data), Craft::$app->getConfig()->getGeneral()->securityKey);
+    }
+
+    private function _storeInstance(Form $form, string $encrypted): string
+    {
+        $key = Craft::$app->getSecurity()->generateRandomString(40);
+        Craft::$app->getDb()->createCommand()->insert('{{%formie_instance_configs}}', [
+            'tokenHash' => hash('sha256', $key), 'formId' => $form->id, 'siteId' => $form->siteId,
+            'config' => base64_encode($encrypted), 'expiresAt' => time() + SubmissionOperations::RETENTION_SECONDS,
+        ])->execute();
+
+        return $key;
+    }
 
     private function _resolveValue(Field $field, mixed $value, bool $present, FormInstanceConfig $config, Submission $submission): array
     {

@@ -14,7 +14,9 @@ In most cases, Formie can support cached forms without extra JavaScript on the s
 
 ## Cached Form Lifetime
 
-Re-render cached form HTML within seven days when using per-render configuration or Summary fields. Summary refresh requests use an expiring access token to restore the original theme; expired tokens or missing theme state cause the refresh to be rejected. Automatic request-token refresh does not re-render the cached page.
+Per-render configuration, such as settings overridden in your templates or a Hidden field’s default value, is carried in the form’s encrypted request token, so cached form HTML keeps working for as long as it’s cached. Configuration too large for the token, such as long populated values or replaced option lists, is saved in the database for seven days instead. Re-render cached pages that use it within seven days.
+
+The same applies to Summary fields. Summary refresh requests use an expiring access token to restore the original theme, and expired tokens or missing theme state cause the refresh to be rejected. Automatic request-token refresh does not re-render the cached page.
 
 If the site runs on multiple web servers, they must share the database and Craft security key so each server can read the saved configuration.
 

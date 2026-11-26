@@ -138,7 +138,7 @@ Apply overrides in PHP or Twig before rendering. Visitors cannot change these se
 
 Overrides leave the saved form unchanged. Formie keeps settings needed for later pages, resumed submissions, notifications, integrations and completion. Cosmetic field attributes apply only to the rendered form. Provider credentials and global integration settings cannot be overridden this way.
 
-Configuration attached to an unsubmitted form expires after seven days. Refresh statically cached pages within that period so visitors receive a working form.
+Overrides are carried in the rendered form’s encrypted request token, so statically cached pages keep working for as long as they’re cached. Configuration too large for the token, such as long populated values or replaced option lists, is saved in the database and expires after seven days. Refresh cached pages that use it within that period so visitors receive a working form. See [Cached Forms](/frontend/cached-forms).
 
 Use dot-separated handles such as `contact.address.city` for nested fields. Pages accept their handle, index or UID. Repeated calls merge named settings, but replace lists. Passing `null` or an empty array clears the previous value; omitting a setting leaves it unchanged.
 

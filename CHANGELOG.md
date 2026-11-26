@@ -54,6 +54,7 @@
 - Fixed the deprecated `registerAssets()` and `registerFormAssets()` helpers loading a form’s CSS and JavaScript when they’re set to **Manual**, and ignoring changes a `modifyFormRenderOptions` event handler makes to the render options, such as turning them off.
 - Fixed Date/Time fields saved through GraphQL mutations being shifted by the site’s UTC offset, and date-only fields storing a time. Dates are now stored as sent, ignoring any offset, so a value returned by GraphQL can be sent back unchanged.
 - Fixed Date/Time fields using the **Calendar (Simple)** or **Calendar (Advanced)** display types not enforcing their **Min Date** and **Max Date** when a submission is saved, and the **Calendar (Simple)** date input not limiting the dates that can be picked.
+- Fixed forms on statically cached pages failing with “Form instance has expired. Reload the form.” once the page was more than seven days old, when the template overrides the form’s settings or the form has a Hidden field with a default value other than **Custom Value**. Pages cached before updating need to be cached again. ([#3165](https://github.com/verbb/formie/issues/3165))
 
 ## 4.1.0 - 2026-11-24
 
