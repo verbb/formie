@@ -2,6 +2,7 @@
 namespace verbb\formie\fields\subfields;
 
 use verbb\formie\base\ChildFieldInterface;
+use verbb\formie\fields\Date;
 use verbb\formie\fields\SingleLineText;
 use verbb\formie\fields\subfields\traits\DateSubFieldValueTrait;
 use verbb\formie\models\SlotTag;
@@ -43,6 +44,16 @@ class DateDate extends SingleLineText implements ChildFieldInterface
         if ($key === 'fieldInput') {
             // Core attributes take precedence over the saved sub-field input attributes.
             $tag?->mergeCoreAttributes(['type' => 'date']);
+        }
+
+        $parentField = $this->getParentField();
+
+        if ($key === 'fieldInput' && $parentField instanceof Date && $parentField->getDisplayType() === 'calendar') {
+            // Resolve the limits on each render rather than saving them with the sub-field, so "today" stays current.
+            $tag?->mergeCoreAttributes([
+                'min' => $parentField->getMinDate()?->format('Y-m-d'),
+                'max' => $parentField->getMaxDate()?->format('Y-m-d'),
+            ]);
         }
 
         if ($key === 'fieldInput' && $this->getParentField()?->getDisplayType() === 'datePicker') {

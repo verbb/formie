@@ -66,3 +66,58 @@ it('renders the correct calendar controls and initial values', function (string 
     'picker date only' => ['datePicker', true, false],
     'picker time only' => ['datePicker', false, true],
 ]);
+
+it('renders min and max date limits on the native calendar date input', function (string $displayType, array $limits, ?string $min, ?string $max): void {
+    $field = new Date(array_merge([
+        'handle' => 'eventDate',
+        'displayType' => $displayType,
+    ], $limits));
+    $field->setRows((new Date(['displayType' => $displayType]))->getSubFields());
+
+    $form = new Form(['title' => 'Calendar Limits', 'handle' => 'calendarLimits']);
+    $form->setFormLayout(new FieldLayout([
+        'pages' => [['rows' => [['fields' => [$field]]]]],
+    ]));
+
+    $html = (string)Formie::$plugin->getRendering()->renderField($form, 'eventDate');
+    $document = new DOMDocument();
+    @$document->loadHTML($html);
+    $inputs = (new DOMXPath($document))->query('//input[@data-formie-input]');
+
+    // "Today" limits resolve when the field renders, matching the server-side check.
+    $min = $min === 'today' ? $field->getMinDate()->format('Y-m-d') : $min;
+    $max = $max === 'today' ? $field->getMaxDate()->format('Y-m-d') : $max;
+
+    foreach ($inputs as $input) {
+        $isDateInput = $input->getAttribute('type') === 'date';
+
+        expect($input->hasAttribute('min'))->toBe($isDateInput && $min !== null)
+            ->and($input->hasAttribute('max'))->toBe($isDateInput && $max !== null);
+
+        if ($isDateInput) {
+            expect($input->getAttribute('min'))->toBe($min ?? '')
+                ->and($input->getAttribute('max'))->toBe($max ?? '');
+        }
+    }
+
+    expect($inputs->length)->toBeGreaterThan(0);
+})->with([
+    'calendar fixed limits' => ['calendar', [
+        'minDateOption' => 'date',
+        'minDate' => '2026-12-01',
+        'maxDateOption' => 'date',
+        'maxDate' => '2026-12-31',
+    ], '2026-12-01', '2026-12-31'],
+    'calendar today limits' => ['calendar', [
+        'minDateOption' => 'today',
+        'maxDateOption' => 'today',
+        'maxDateOffsetNumber' => 7,
+    ], 'today', 'today'],
+    'calendar no limits' => ['calendar', [], null, null],
+    'picker fixed limits' => ['datePicker', [
+        'minDateOption' => 'date',
+        'minDate' => '2026-12-01',
+        'maxDateOption' => 'date',
+        'maxDate' => '2026-12-31',
+    ], null, null],
+]);

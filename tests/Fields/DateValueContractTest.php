@@ -303,6 +303,82 @@ it('rejects text input dates before the configured minimum date', function (): v
     expect($submission->getErrors($field->valueKey()))->not->toBeEmpty();
 });
 
+it('applies min and max dates to calendar and date picker values', function (string $displayType, string $collectMode, mixed $input, ?string $limit): void {
+    $field = new Date([
+        'handle' => 'eventDate',
+        'displayType' => $displayType,
+        'collectMode' => $collectMode,
+        'minDateOption' => 'date',
+        'minDate' => '2026-12-01',
+        'maxDateOption' => 'date',
+        'maxDate' => '2026-12-31',
+    ]);
+    $field->setRows((new Date(['displayType' => $displayType, 'collectMode' => $collectMode]))->getSubFields());
+
+    $value = $field->normalizeValue($input, null);
+
+    $submission = $this->getMockBuilder(Submission::class)
+        ->onlyMethods(['getFieldValue'])
+        ->getMock();
+    $submission->method('getFieldValue')->willReturnMap([
+        [$field->valueKey(), $value],
+    ]);
+
+    $field->validateDateParts($submission);
+
+    $formatter = \Craft::$app->getFormatter();
+    $expected = match ($limit) {
+        'min' => ['The date must be on or after ' . $formatter->asDate($field->getMinDate()->format('Y-m-d')) . '.'],
+        'max' => ['The date must be on or before ' . $formatter->asDate($field->getMaxDate()->format('Y-m-d')) . '.'],
+        default => [],
+    };
+
+    expect($value)->not->toBeNull()
+        ->and($submission->getErrors($field->valueKey()))->toBe($expected);
+})->with([
+    'calendar before min' => ['calendar', Date::COLLECT_SINGLE, ['date' => '2020-01-01', 'time' => '12:00'], 'min'],
+    'calendar day before min' => ['calendar', Date::COLLECT_SINGLE, ['date' => '2026-11-30', 'time' => '23:59'], 'min'],
+    'calendar after max' => ['calendar', Date::COLLECT_SINGLE, ['date' => '2027-01-05'], 'max'],
+    'calendar first day' => ['calendar', Date::COLLECT_SINGLE, ['date' => '2026-12-01', 'time' => '00:00'], null],
+    'calendar last minute' => ['calendar', Date::COLLECT_SINGLE, ['date' => '2026-12-31', 'time' => '23:59'], null],
+    'calendar time only' => ['calendar', Date::COLLECT_SINGLE, ['time' => '09:30'], null],
+    'picker before min' => ['datePicker', Date::COLLECT_SINGLE, ['datetime' => '2020-01-01 12:00'], 'min'],
+    'picker after max' => ['datePicker', Date::COLLECT_SINGLE, ['datetime' => '2027-01-05 12:00'], 'max'],
+    'picker in range' => ['datePicker', Date::COLLECT_SINGLE, ['datetime' => '2026-12-15 12:00'], null],
+    // GraphQL values are DateTimes in a zone; the limits compare their wall-clock date.
+    'calendar zoned first day' => ['calendar', Date::COLLECT_SINGLE, new \DateTime('2026-12-01 00:00', new \DateTimeZone('Australia/Sydney')), null],
+    'calendar zoned day before min' => ['calendar', Date::COLLECT_SINGLE, new \DateTime('2026-11-30 23:00', new \DateTimeZone('America/New_York')), 'min'],
+    'calendar zoned last day' => ['calendar', Date::COLLECT_SINGLE, new \DateTime('2026-12-31 23:30', new \DateTimeZone('America/New_York')), null],
+    'picker range end after max' => ['datePicker', Date::COLLECT_RANGE, ['start' => '2026-12-15 10:00', 'end' => '2027-01-05 10:00'], 'max'],
+    'picker range start before min' => ['datePicker', Date::COLLECT_RANGE, ['start' => '2026-11-15 10:00', 'end' => '2026-12-05 10:00'], 'min'],
+    'picker range in range' => ['datePicker', Date::COLLECT_RANGE, ['start' => '2026-12-10 10:00', 'end' => '2026-12-20 10:00'], null],
+]);
+
+it('keeps a date the submission already has valid when the limits move past it', function (string $displayType, array $stored, array $changed): void {
+    $form = formie()->form()->dateField('eventDate', ['displayType' => $displayType])->create();
+    $saved = formie()->submission($form)->with(['eventDate' => $stored])->save();
+
+    $submission = Submission::find()->id($saved->id)->status(null)->one();
+    $field = $submission->getForm()->getFieldByHandle('eventDate');
+    $field->minDateOption = 'today';
+
+    // Saved again with the date it already had: a status change, marking as spam or an edit that leaves it alone.
+    $submission->setFieldValue('eventDate', $stored);
+    $field->validateDateParts($submission);
+
+    expect($submission->getErrors('eventDate'))->toBe([]);
+
+    // A new date before the limit is still refused.
+    $submission->setFieldValue('eventDate', $changed);
+    $field->validateDateParts($submission);
+
+    expect($submission->getErrors('eventDate'))->not->toBeEmpty();
+})->with([
+    'calendar' => ['calendar', ['date' => '2020-01-15', 'time' => '10:00'], ['date' => '2020-01-16', 'time' => '10:00']],
+    'date picker' => ['datePicker', ['datetime' => '2020-01-15 10:00'], ['datetime' => '2020-01-16 10:00']],
+    'text inputs' => ['inputs', ['year' => '2020', 'month' => '1', 'day' => '15', 'hour' => '10', 'minute' => '0'], ['year' => '2020', 'month' => '1', 'day' => '16', 'hour' => '10', 'minute' => '0']],
+]);
+
 it('returns null when converting impossible calendar parts to datetime', function (): void {
     expect(DateFieldValue::partsToDateTime([
         'year' => '2024',

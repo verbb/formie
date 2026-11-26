@@ -651,6 +651,25 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         }
 
         if (!in_array($this->displayType, ['inputs', 'dropdowns'], true)) {
+            // Calendar and date picker values arrive whole, so check each side against the limits. A time-only
+            // value has no date to compare.
+            foreach ($dates as $date) {
+                if (!$date instanceof DateFieldValue || !DateFieldValue::hasCompleteDateParts($date->getParts())) {
+                    continue;
+                }
+
+                // The limits are wall-clock dates, so compare wall-clock parts. A value set from a DateTime keeps its
+                // time zone, which would otherwise shift it by that zone's offset.
+                $parts = $date->getParts();
+                unset($parts['timezone']);
+
+                $dateTime = DateFieldValue::partsToDateTime($parts);
+
+                if ($dateTime instanceof DateTime && $this->_addDateLimitError($element, $dateTime)) {
+                    return;
+                }
+            }
+
             return;
         }
 
@@ -684,25 +703,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             return;
         }
 
-        $minDate = $this->getMinDate();
-
-        // The limits hold wall-clock values, so print their own day. A date-only string skips the formatter's time zone
-        // conversion, which would otherwise shift the day by the site's UTC offset.
-        if ($minDate instanceof DateTime && $dateTime < $minDate) {
-            $element->addError($this->valueKey(), Craft::t('formie', 'The date must be on or after {date}.', [
-                'date' => Craft::$app->getFormatter()->asDate($minDate->format('Y-m-d')),
-            ]));
-
-            return;
-        }
-
-        $maxDate = $this->getMaxDate();
-
-        if ($maxDate instanceof DateTime && $dateTime > $maxDate) {
-            $element->addError($this->valueKey(), Craft::t('formie', 'The date must be on or before {date}.', [
-                'date' => Craft::$app->getFormatter()->asDate($maxDate->format('Y-m-d')),
-            ]));
-        }
+        $this->_addDateLimitError($element, $dateTime);
     }
 
     public function validateCollectRange(ElementInterface $element): void
@@ -2891,6 +2892,61 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
     {
         foreach ($parts as $value) {
             if ($value !== null && $value !== '') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function _addDateLimitError(ElementInterface $element, DateTime $dateTime): bool
+    {
+        $minDate = $this->getMinDate();
+        $maxDate = $this->getMaxDate();
+        $beforeMin = $minDate instanceof DateTime && $dateTime < $minDate;
+        $afterMax = !$beforeMin && $maxDate instanceof DateTime && $dateTime > $maxDate;
+
+        if ((!$beforeMin && !$afterMax) || $this->_isStoredDate($element, $dateTime)) {
+            return false;
+        }
+
+        // The limits hold wall-clock values, so print their own day. A date-only string skips the formatter's time zone
+        // conversion, which would otherwise shift the day by the site's UTC offset.
+        $element->addError($this->valueKey(), $beforeMin
+            ? Craft::t('formie', 'The date must be on or after {date}.', [
+                'date' => Craft::$app->getFormatter()->asDate($minDate->format('Y-m-d')),
+            ])
+            : Craft::t('formie', 'The date must be on or before {date}.', [
+                'date' => Craft::$app->getFormatter()->asDate($maxDate->format('Y-m-d')),
+            ]));
+
+        return true;
+    }
+
+    /**
+     * Limits such as "today" move, so a date this submission already has stays valid when it's saved again: a status
+     * change, marking it as spam, or a control panel edit that leaves the date alone. New or changed dates are checked.
+     */
+    private function _isStoredDate(ElementInterface $element, DateTime $dateTime): bool
+    {
+        if (!$element->id) {
+            return false;
+        }
+
+        $stored = $element::find()->id($element->id)->siteId($element->siteId)->status(null)->one()?->getFieldValue($this->valueKey());
+        $storedDates = $stored instanceof DateRangeFieldValue ? [$stored->start, $stored->end] : [$stored];
+
+        foreach ($storedDates as $storedDate) {
+            if (!$storedDate instanceof DateFieldValue) {
+                continue;
+            }
+
+            $parts = $storedDate->getParts();
+            unset($parts['timezone']);
+
+            $storedDateTime = DateFieldValue::partsToDateTime($parts);
+
+            if ($storedDateTime instanceof DateTime && $storedDateTime->format('Y-m-d H:i:s') === $dateTime->format('Y-m-d H:i:s')) {
                 return true;
             }
         }

@@ -8,6 +8,7 @@
 - Searchable dropdowns that allow one choice now show their clear button beside the dropdown arrow instead of straight after the chosen value. A search now takes the place of the chosen value while it’s typed, instead of following it.
 - Exporting forms from the **Forms** index now requires the **Export forms** permission, matching the **Import/Export** page.
 - Updated Tiptap to 3.31.4 for rich text editing in the control panel and Moment to 2.31.0.
+- A date a submission already has is no longer checked against the Date/Time field’s **Min Date** and **Max Date** when the submission is saved again, so changing its status, marking it as spam or editing its other fields still works once a limit such as **Today’s Date/Time** has moved past it. New and changed dates are still checked.
 
 ### Fixed
 - Fixed two moderate-severity cross-site scripting vulnerabilities.
@@ -48,6 +49,7 @@
 - Fixed Summary fields staying empty on server-rendered forms mounted from another allowed origin, such as with the React, Vue or Web Components packages.
 - Fixed the deprecated `registerAssets()` and `registerFormAssets()` helpers loading a form’s CSS and JavaScript when they’re set to **Manual**, and ignoring changes a `modifyFormRenderOptions` event handler makes to the render options, such as turning them off.
 - Fixed Date/Time fields saved through GraphQL mutations being shifted by the site’s UTC offset, and date-only fields storing a time. Dates are now stored as sent, ignoring any offset, so a value returned by GraphQL can be sent back unchanged.
+- Fixed Date/Time fields using the **Calendar (Simple)** or **Calendar (Advanced)** display types not enforcing their **Min Date** and **Max Date** when a submission is saved, and the **Calendar (Simple)** date input not limiting the dates that can be picked.
 
 ## 4.1.0 - 2026-11-24
 
