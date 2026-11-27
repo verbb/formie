@@ -360,6 +360,15 @@ class Notification extends Model implements TranslatablePropertiesInterface
         $request = Craft::$app->getRequest();
         $user = $request instanceof Request ? Craft::$app->getUser()->getIdentity() : null;
 
+        // Element IDs are sequential, so an ID that doesn't resolve yet could later belong to an asset
+        // the user can't view. Keep only attachments that exist when a user saves them.
+        if ($user && $this->attachAssets) {
+            $existingIds = array_map('intval', Asset::find()->id(ArrayHelper::getColumn($this->attachAssets, 'id'))->ids());
+
+            $this->attachAssets = array_values(array_filter($this->attachAssets, static fn($attachment) => is_array($attachment)
+                && in_array((int)($attachment['id'] ?? 0), $existingIds, true)));
+        }
+
         if ($user && !$this->canViewAssetAttachments($user)) {
             $this->addError($attribute, Craft::t('formie', 'User is not permitted to perform this action.'));
 

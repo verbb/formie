@@ -18,7 +18,7 @@
 - Fixed a moderate-severity vulnerability.
 - Fixed a moderate-severity privilege escalation vulnerability.
 - Fixed four moderate-severity cross-site scripting vulnerabilities.
-- Fixed two moderate-severity information disclosure vulnerabilities.
+- Fixed three moderate-severity information disclosure vulnerabilities.
 - Fixed a low-severity information disclosure vulnerability.
 - Fixed the Outseta integration updating the first person in the Outseta account on every submission, instead of the person with the submitted email.
 - Fixed every submission after the first failing to save on PostgreSQL when the form uses `setRelations()`. Sites already affected are repaired when migrations run.
