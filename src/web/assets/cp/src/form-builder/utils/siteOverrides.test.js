@@ -250,6 +250,39 @@ describe('siteOverrides', () => {
         expect(merged.pages[0].label).toBe('Page FR by handle');
     });
 
+    it('does not translate a synced field added since the source data loaded', () => {
+        const canonical = {
+            pages: [{
+                uid: 'synced-page',
+                rows: [{
+                    fields: [{
+                        type: 'verbb\\formie\\fields\\SingleLineText',
+                        definitionId: 10,
+                        reference: 'first-name',
+                        label: 'First Name',
+                    }],
+                }],
+            }],
+        };
+        const values = structuredClone(canonical);
+        values.pages[0].rows[0].fields[0].label = 'Prénom';
+
+        // Added from Existing fields as a synced field, so it keeps the shared definition's ID.
+        values.pages[0].rows.push({
+            fields: [{
+                type: 'verbb\\formie\\fields\\SingleLineText',
+                definitionId: 77,
+                isSynced: true,
+                reference: 'email',
+                label: 'Email',
+            }],
+        });
+
+        expect(extractSiteTranslationsFromFormData(canonical, values).fieldOverrides).toEqual({
+            10: { label: 'Prénom' },
+        });
+    });
+
     it('extracts only changed translatable values', () => {
         const formData = mergeSiteOverridesIntoFormData(canonicalData, {
             title: 'French title',

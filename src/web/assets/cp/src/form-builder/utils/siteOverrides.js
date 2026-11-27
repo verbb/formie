@@ -932,6 +932,7 @@ const diffPageSettings = (canonicalSettings = {}, postedSettings = {}) => {
 const diffFields = (canonicalFields = {}, postedFields = {}, preferReferences = false) => {
     const diff = {};
     const seen = new Set();
+    const canonicalDefinitionIds = new Set(Object.values(canonicalFields).map(getFieldDefinitionId).filter(Boolean));
 
     Object.entries(postedFields).forEach(([fieldKey, field]) => {
         if (!field || typeof field !== 'object') {
@@ -945,6 +946,12 @@ const diffFields = (canonicalFields = {}, postedFields = {}, preferReferences = 
             : getFieldDefinitionId(field);
 
         if (!fieldDefinitionId || seen.has(fieldDefinitionId)) {
+            return;
+        }
+
+        // A synced field added since the source data loaded keeps its shared definition ID, but
+        // isn't on this form yet. Its values belong to that definition, so they aren't translations.
+        if (!preferReferences && !canonicalDefinitionIds.has(fieldDefinitionId)) {
             return;
         }
 
