@@ -15,6 +15,8 @@ use craft\helpers\Json;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
+use verbb\base\helpers\EnvironmentSettings;
+
 class IntegrationSettingsController extends SettingsAccessController
 {
     // Public Methods
@@ -33,8 +35,10 @@ class IntegrationSettingsController extends SettingsAccessController
 
         $request = $this->request;
         $integrationsService = Formie::$plugin->getIntegrations();
+        $savedCaptchas = Formie::$plugin->getSettings()->captchas;
 
         $errors = [];
+        $integrations = [];
 
         foreach ($request->getParam('integrations') as $handle => $integrationConfig) {
             // Force the `saveSpam` setting to be boolean, to allow us to check for backward compatibility
@@ -43,7 +47,25 @@ class IntegrationSettingsController extends SettingsAccessController
             }
 
             $integration = $integrationsService->createIntegration($integrationConfig);
+            $saved = $savedCaptchas[$integration->getHandle()] ?? [];
 
+            // Only admins can point a captcha setting at an environment variable, because site keys are published on
+            // the form. The posted settings replace the saved ones, so compare what will be saved. Secrets show in the
+            // form as entered, so carrying one over doesn't hide its value.
+            $violation = EnvironmentSettings::violation($integration->getSettings(), $saved['settings'] ?? [])
+                ?? EnvironmentSettings::violation(['enabled' => $integration->getEnabled(false)], ['enabled' => $saved['enabled'] ?? null]);
+
+            // Check every captcha before saving any, as each save writes all plugin settings.
+            if ($violation) {
+                $this->setFailFlash($this->environmentSettingsError($violation));
+
+                return null;
+            }
+
+            $integrations[] = $integration;
+        }
+
+        foreach ($integrations as $integration) {
             if (!Formie::$plugin->getIntegrations()->saveCaptcha($integration)) {
                 $errors[] = $integration->getErrors();
             }

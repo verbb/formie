@@ -22,6 +22,8 @@ use Throwable;
 use verbb\auth\Auth;
 use verbb\auth\helpers\Session;
 use verbb\auth\models\Token;
+use verbb\base\helpers\EnvironmentSettings;
+use verbb\base\models\EnvironmentSettingsViolation;
 
 class IntegrationsController extends Controller
 {
@@ -57,7 +59,7 @@ class IntegrationsController extends Controller
         $type = $this->request->getParam('type');
         $integrationId = (int)$this->request->getParam('id');
 
-        $settings = $this->request->getParam('types.' . $type, []);
+        $settings = $postedSettings = $this->request->getParam('types.' . $type, []);
 
         if ($integrationId) {
             $savedIntegration = $integrationsService->getIntegrationById($integrationId);
@@ -83,7 +85,16 @@ class IntegrationsController extends Controller
 
         $integration = $integrationsService->createIntegration($integrationData);
 
-        if (!$integrationsService->saveIntegration($integration)) {
+        // Settings are resolved with `App::parseEnv()`, so only admins can point one at an environment variable, and a
+        // saved credential that refers to one only goes where an admin pointed it. A new integration's settings can
+        // also be posted as JSON, so check what it'll actually save.
+        $violation = EnvironmentSettings::violation($savedIntegration ? $postedSettings : $integration->getSettings(), $savedIntegration->settings ?? [], providerChanged: $savedIntegration && $savedIntegration::class !== $integration::class);
+
+        if ($violation) {
+            $integration->addError($violation->getAttribute() ?? 'settings', $this->_environmentSettingsError($violation));
+        }
+
+        if ($violation || !$integrationsService->saveIntegration($integration)) {
             $this->setFailFlash(Craft::t('formie', 'Couldn’t save integration.'));
 
             // Send the integration back to the template
@@ -236,7 +247,7 @@ class IntegrationsController extends Controller
         }
 
         $oauth->claimAuthorizedCallback('formie', fn(User $user): bool => $user->can('formie-accessSettings'));
-        
+
         // Get both the origin (failure) and redirect (success) URLs
         $origin = Session::get('origin');
         $redirect = Session::get('redirect');
@@ -308,6 +319,15 @@ class IntegrationsController extends Controller
 
     // Private Methods
     // =========================================================================
+
+    private function _environmentSettingsError(EnvironmentSettingsViolation $violation): string
+    {
+        if ($violation->reason === EnvironmentSettingsViolation::REFERENCE) {
+            return Craft::t('formie', 'Only admins can use environment variables here.');
+        }
+
+        return Craft::t('formie', 'Enter the credentials again after changing where this connects.');
+    }
 
     private function _requireIntegrationFormPermission(int $formId): void
     {

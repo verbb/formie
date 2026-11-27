@@ -3,7 +3,7 @@
 ## Unreleased
 
 ### Fixed
-- Fixed a high-severity information disclosure vulnerability.
+- Fixed two high-severity information disclosure vulnerabilities.
 - Fixed the Outseta integration updating the first person in the Outseta account on every submission, instead of the person with the submitted email.
 
 ## 3.1.53 - 2026-11-24

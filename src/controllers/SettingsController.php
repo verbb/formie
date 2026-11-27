@@ -11,6 +11,8 @@ use craft\errors\MissingComponentException;
 use yii\web\BadRequestHttpException;
 use yii\web\Response;
 
+use verbb\base\helpers\EnvironmentSettings;
+
 class SettingsController extends SettingsAccessController
 {
     // Public Methods
@@ -84,7 +86,23 @@ class SettingsController extends SettingsAccessController
 
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
-        $settings->setAttributes($request->getParam('settings'), false);
+        $postedSettings = $request->getParam('settings');
+
+        // These settings include captcha keys and the OAuth redirect URI, so only admins can add environment variables.
+        $violation = is_array($postedSettings) ? EnvironmentSettings::violation($postedSettings, $settings->toArray(), []) : null;
+
+        if ($violation) {
+            $settings->addError($violation->getAttribute() ?? 'settings', $this->environmentSettingsError($violation));
+            $this->setFailFlash(Craft::t('formie', 'Couldn’t save settings.'));
+
+            Craft::$app->getUrlManager()->setRouteParams([
+                'settings' => $settings,
+            ]);
+
+            return null;
+        }
+
+        $settings->setAttributes($postedSettings, false);
 
         if (!$settings->validate()) {
             $this->setFailFlash(Craft::t('formie', 'Couldn’t save settings.'));
