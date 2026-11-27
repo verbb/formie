@@ -598,6 +598,99 @@ describe('createClientFormInstance', () => {
         expect(runtime.getState().errors.form).toEqual([]);
     });
 
+    it.each(['reset', 'message'] as const)('uses the renewed completion session after a %s form is reset again', async(behavior) => {
+        const envelope = createEnvelope([createTextField('answer', 'answer')]);
+        const sent: Array<{ session: ClientFormSession; answer: unknown }> = [];
+        const transport = createTransport({
+            submit: async({ session, values }) => {
+                sent.push({ session, answer: values.answer });
+
+                return {
+                    success: true,
+                    isFinalPage: true,
+                    outcome: 'completed',
+                    errors: { form: [], fields: {} },
+                    messages: {},
+                    completion: { behavior, url: null, target: 'same-tab', message: null, hideForm: false },
+                    session: {
+                        ...envelope.session,
+                        id: `fresh-${sent.length}`,
+                        tokens: { request: `request-${sent.length}`, render: `render-${sent.length}` },
+                    },
+                };
+            },
+        });
+        const runtime = createClientFormInstance({ envelope, transport });
+
+        for (let i = 0; i < 3; i += 1) {
+            runtime.setValue('answer', `Visitor ${i}`);
+            await runtime.submit();
+            runtime.reset();
+            expect(runtime.getState().values.answer).toBe('');
+            expect(runtime.getState().session.id).toBe(`fresh-${i + 1}`);
+            expect(runtime.getState().currentPageId).toBe('page-1');
+        }
+
+        expect(sent.map(({ session }) => session.id)).toEqual(['session-1', 'fresh-1', 'fresh-2']);
+        expect(sent.map(({ answer }) => answer)).toEqual(['Visitor 0', 'Visitor 1', 'Visitor 2']);
+        expect(envelope.session.id).toBe('session-1');
+    });
+
+    it('keeps the renewed reset baseline after a later nonfinal response', async() => {
+        const envelope = createEnvelope([createTextField('answer', 'answer')]);
+        let calls = 0;
+        const runtime = createClientFormInstance({
+            envelope,
+            transport: createTransport({
+                submit: async({ session }) => {
+                    calls += 1;
+
+                    return {
+                        success: true,
+                        isFinalPage: calls === 1,
+                        completion: calls === 1 ? { behavior: 'reset', url: null, target: 'same-tab', message: null, hideForm: false } : null,
+                        errors: { form: [], fields: {} },
+                        messages: {},
+                        session: calls === 1
+                            ? { ...session, id: 'fresh', currentPageId: 'page-1', tokens: { request: 'new-request', render: 'new-render' } }
+                            : { ...session, currentPageId: 'page-2' },
+                    };
+                },
+            }),
+        });
+
+        await runtime.submit();
+        runtime.reset();
+        await runtime.submit();
+        runtime.reset();
+        expect(runtime.getState().session.id).toBe('fresh');
+        expect(runtime.getState().currentPageId).toBe('page-1');
+    });
+
+    it('keeps ordinary reset behaviour for a saved draft on the final page', async() => {
+        const envelope = createEnvelope([createTextField('answer', 'answer')]);
+        const runtime = createClientFormInstance({
+            envelope,
+            transport: createTransport({
+                submit: async({ session }) => ({
+                    success: true,
+                    isFinalPage: true,
+                    outcome: 'draftSaved',
+                    completion: null,
+                    errors: { form: [], fields: {} },
+                    messages: {},
+                    session: { ...session, id: 'draft-session', currentPageId: 'page-2' },
+                }),
+            }),
+        });
+
+        await runtime.submit('save');
+        expect(runtime.getState().session.id).toBe('draft-session');
+        runtime.reset();
+        expect(runtime.getState().session).toMatchObject(envelope.session);
+        expect(runtime.getState().currentPageId).toBe('page-1');
+    });
+
     it('emits the client ready event after subscribers can attach', async() => {
         const runtime = createClientFormInstance({
             envelope: createEnvelope([createTextField('trigger', 'trigger')]),

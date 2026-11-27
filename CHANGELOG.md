@@ -61,6 +61,7 @@
 - Fixed forms on statically cached pages failing with “Form instance has expired. Reload the form.” once the page was more than seven days old, when the template overrides the form’s settings or the form has a Hidden field with a default value other than **Custom Value**. Pages cached before updating need to be cached again. ([#3165](https://github.com/verbb/formie/issues/3165))
 - Fixed `form.setSettings({ redirectUrl: '…' })` in templates not redirecting when the form’s **After Completion** is set to show a message, reload or reset the page. A `redirectUrl` set this way now redirects, as it did in Formie 3 and as `form.setRedirectUrl()` does, unless `completionBehavior` is set in the same call.
 - Fixed front-end edits of a completed submission ignoring a redirect set on the edit form with `form.setRedirectUrl()`, and showing an untranslatable “Submission completed.” message. Edits now follow a redirect set on the edit form or show “Submission saved.”, and still don’t run **After Completion**, which is for new submissions.
+- Fixed client-rendered forms set to reset after completion failing on the next submission without a page reload.
 
 ## 4.1.0 - 2026-11-24
 

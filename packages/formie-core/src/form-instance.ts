@@ -296,6 +296,7 @@ export function createClientFormInstance({ envelope, transport }: CreateClientFo
 
     // Bumped on destroy so stale async completions cannot revive state.
     let operationGeneration = 0;
+    let resetSession = envelope.session;
 
     let state: ClientFormState = {
         status: 'ready',
@@ -474,6 +475,12 @@ export function createClientFormInstance({ envelope, transport }: CreateClientFo
                     return result;
                 }
 
+                // A completed form receives a fresh session for its next submission.
+                // Resetting its answers must not restore the consumed bootstrap session.
+                if (result.success && result.completion && result.session) {
+                    resetSession = result.session;
+                }
+
                 setState((current) => applyDerivedState({
                     ...current,
                     status: 'ready',
@@ -644,13 +651,13 @@ export function createClientFormInstance({ envelope, transport }: CreateClientFo
             setState((current) => applyDerivedState({
                 ...current,
                 status: 'ready',
-                session: envelope.session,
+                session: resetSession,
                 values: cloneValue(defaults),
                 errors: {
                     form: [],
                     fields: {},
                 },
-                currentPageId: envelope.session.currentPageId || envelope.definition.settings.initialPageId,
+                currentPageId: resetSession.currentPageId || envelope.definition.settings.initialPageId,
                 lastSubmitResult: null,
             }));
             emitter.emit('formie:state:reset', null);
