@@ -26,11 +26,11 @@ class Outseta extends Crm
     {
         return Craft::t('formie', 'Outseta');
     }
-    
+
 
     // Properties
     // =========================================================================
-    
+
     public ?string $apiKey = null;
     public ?string $secretKey = null;
     public ?string $apiDomain = null;
@@ -107,14 +107,26 @@ class Outseta extends Crm
 
                 $payload = ArrayHelper::expand($peopleValues);
 
-                $response = $this->request('GET', 'people', [
-                    'Email' => $payload['Email'],
-                ]);
+                $email = (string)($payload['Email'] ?? '');
+                $personId = null;
 
-                $personId = $response['items'][0]['Uid'] ?? null;
+                if ($email !== '') {
+                    $response = $this->request('GET', 'people', [
+                        'query' => ['Email' => $email],
+                    ]);
+
+                    // Only update a person whose email matches, never whoever the list returns first.
+                    foreach ($response['items'] ?? [] as $person) {
+                        if (is_array($person) && strcasecmp((string)($person['Email'] ?? ''), $email) === 0) {
+                            $personId = $person['Uid'] ?? null;
+
+                            break;
+                        }
+                    }
+                }
 
                 if ($personId) {
-                    $response = $this->deliverPayload($submission, "people/$personId" , $payload, 'PUT');
+                    $response = $this->deliverPayload($submission, "people/$personId", $payload, 'PUT');
                 } else {
                     $response = $this->deliverPayload($submission, 'people', $payload);
                 }
@@ -156,7 +168,7 @@ class Outseta extends Crm
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
