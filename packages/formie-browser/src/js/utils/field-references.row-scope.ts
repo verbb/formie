@@ -231,10 +231,15 @@ export function resolveRowScopedFieldReference(
     }
 
     if (scope === 'index') {
+        // Rows keep their input names when an earlier row is deleted, so the index counts rows by position.
         const index = Number.parseInt(String(params.index ?? '0'), 10);
-        const key = `${fieldKey}.${index}.${columnKey}`;
+        const key = cellKeys[index] || `${fieldKey}.${index}.${columnKey}`;
 
-        return resolveFieldReferenceLive(key, registry);
+        return {
+            key,
+            value: rowValues[index] ?? '',
+            found: index >= 0 && index < cellKeys.length,
+        };
     }
 
     if (scope === 'all') {

@@ -15,7 +15,8 @@
 - Updated Tiptap to 3.31.4 for rich text editing in the control panel and Moment to 2.31.0.
 - A date a submission already has is no longer checked against the Date/Time field’s **Min Date** and **Max Date** when the submission is saved again, so changing its status, marking it as spam or editing its other fields still works once a limit such as **Today’s Date/Time** has moved past it. New and changed dates are still checked.
 - Hidden Recipients fields now send to their default recipients when an email address is posted for them while `compatibilityMode` is disabled.
-- Payments that take their amount from a Calculations field now have the amount worked out again on the server, and are refused if the submitted amount is different. Browser code that rounds, caps or replaces a calculation through its evaluate events can no longer change a payment amount.
+- Payments that take their amount from a Calculations field now have every Calculations field in the form worked out again on the server, and are refused if a submitted answer is different. Browser code that rounds, caps or replaces a calculation through its evaluate events can no longer change an answer in these forms. Formatting an answer for display still works.
+- Formie now requires `symfony/expression-language` 6.2 or later.
 - Only admins can now add environment variables to integration and CAPTCHA settings. Other users who change where an integration connects must enter credentials that come from environment variables, or masked CAPTCHA secrets, again.
 
 ### Deprecated
@@ -31,6 +32,10 @@
 - Fixed two low-severity information disclosure vulnerabilities.
 - Fixed the Outseta integration updating the first person in the Outseta account on every submission, instead of the person with the submitted email.
 - Fixed hidden Recipients fields populated with `craft.formie.populateFormValues()` sending their notification to an invalid address instead of the populated recipients.
+- Fixed Calculations fields in server-rendered forms using the answer of a field that conditions hide, such as a hidden field’s default value.
+- Fixed Calculations fields in server-rendered forms not updating when conditions showed or hid a field their formula uses.
+- Fixed Calculations formulas that pick a Repeater row by index reading the wrong row in server-rendered forms after an earlier row was deleted.
+- Fixed Calculations fields in client-rendered forms reading Table columns as empty, and reading Agree fields differently from server-rendered forms.
 - Fixed every submission after the first failing to save on PostgreSQL when the form uses `setRelations()`. Sites already affected are repaired when migrations run.
 - Fixed submissions failing when `setRelations()` was given the same element more than once, including by calling it twice.
 - Fixed User element integrations on all but one form losing their **User Group** when upgrading from Formie 2 or Formie 3. Upgraded sites are repaired when migrations run, except forms saved since the upgrade, which need their group selected again. ([#2206](https://github.com/verbb/formie/issues/2206))

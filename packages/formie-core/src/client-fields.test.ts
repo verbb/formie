@@ -181,6 +181,27 @@ describe('client calculations', () => {
         expect(deriveCalculationValues(current)).toBe(current);
     });
 
+    it('reads Table columns by ID and Agree fields as the inputs post them', () => {
+        const current = {
+            definition: {
+                pages: [{ id: 'p', rows: [{ fields: [
+                    field('table', { fieldKind: 'table', columns: [{ id: 'col1', heading: 'Price', handle: 'price', type: 'number' }] }, {
+                        id: '1', handle: 'lines', client: { children: { model: 'scalar' }, valueType: { kind: 'array' } },
+                    }),
+                    field('agree', {}, { id: '2', handle: 'giftWrap' }),
+                    field('calculations', {}, { id: '3', handle: 'total', moduleRefs: ['calc'] }),
+                ] }] }],
+                modules: { entries: [{ key: 'calc', moduleId: 'formie:calculations', config: {
+                    formula: { expression: 'field_lines + field_giftWrap * 5', variables: { field_lines: { sourceKey: 'lines.col1', scope: 'all' }, field_giftWrap: { sourceKey: 'giftWrap' } } },
+                } }] },
+            },
+            values: { 1: [{ price: '10' }, { price: '4' }], 2: true, 3: '' },
+        } as unknown as ClientFormState;
+
+        expect(deriveCalculationValues(current).values[3]).toBe(19);
+        expect(deriveCalculationValues({ ...current, values: { ...current.values, 2: false } } as ClientFormState).values[3]).toBe(14);
+    });
+
     it('leaves a hidden Calculations field cleared', () => {
         const current = { ...state({ 1: '7', 2: null }), fieldStates: { 2: { hidden: true, disabled: false } } } as ClientFormState;
 

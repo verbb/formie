@@ -17,6 +17,9 @@ import { createDebug } from '#utils/debug';
 
 const INPUT_SELECTOR = 'input[data-formie-calculation-input]';
 
+// Conditions clear a hidden field's answer on the server, so a calculation doesn't read it either.
+const UNAVAILABLE_SOURCE_SELECTOR = '[data-formie-conditionally-hidden], [data-formie-conditionally-disabled], [data-formie-conditions-disabled]';
+
 function getRowScopeParams(variable: CalculationVariable): RowScopeParams {
     const scoped = variable as CalculationVariable & RowScopeParams;
 
@@ -59,6 +62,14 @@ function resolveVariables(
 ): Record<string, unknown> {
     const registry = buildFieldValueRegistry(root);
     const variables: Record<string, unknown> = {};
+
+    registry.forEach((entry, key) => {
+        entry.inputs = entry.inputs.filter((input) => !input.closest(UNAVAILABLE_SOURCE_SELECTOR));
+
+        if (!entry.inputs.length) {
+            registry.delete(key);
+        }
+    });
 
     variableEntries.forEach(([variableKey, variable]) => {
         const scopeParams = getRowScopeParams(variable);
@@ -114,7 +125,9 @@ function getWatchNames(root: Element, variableEntries: CalculationVariableEntry[
     return watchNames;
 }
 
-function bindCalculationsField(root: Element, field: HTMLElement, input: HTMLInputElement, options: CalculationOptions): () => void {
+type CalculationsBinding = { destroy: () => void; reevaluate: () => void };
+
+function bindCalculationsField(root: Element, field: HTMLElement, input: HTMLInputElement, options: CalculationOptions): CalculationsBinding {
     const formula = getCalculationFormula(options);
     const variableEntries = getCalculationVariableEntries(options);
     const row = getRowContext(input);
@@ -279,10 +292,13 @@ function bindCalculationsField(root: Element, field: HTMLElement, input: HTMLInp
     });
     evaluate(true);
 
-    return () => {
-        destroyed = true;
-        observer?.disconnect();
-        cleanupBindings();
+    return {
+        destroy: () => {
+            destroyed = true;
+            observer?.disconnect();
+            cleanupBindings();
+        },
+        reevaluate: () => scheduleEvaluate(false),
     };
 }
 
@@ -301,26 +317,29 @@ export const calculationsModule: BrowserModuleDefinition = {
             fieldCount: fields.length,
             formatting: options.formatting || null,
         });
-        const cleanups = fields.map((field) => {
+        const bindings = fields.flatMap((field) => {
             const input = field.querySelector(INPUT_SELECTOR);
-            if (!(input instanceof HTMLInputElement)) {
-                return () => {};
-            }
 
-            return bindCalculationsField(ctx.root, field, input, options);
+            return input instanceof HTMLInputElement ? [bindCalculationsField(ctx.root, field, input, options)] : [];
+        });
+
+        // Showing or hiding a source changes what a calculation reads without an input event.
+        const offConditions = ctx.on('formie:conditions:evaluated', () => {
+            bindings.forEach((binding) => binding.reevaluate());
         });
 
         await ctx.emit('formie:module:calculations:init', {
-            count: cleanups.length,
+            count: bindings.length,
         });
 
         return {
             destroy: () => {
                 debug.log('Module destroy.', {
-                    fieldCount: cleanups.length,
+                    fieldCount: bindings.length,
                 });
-                cleanups.forEach((cleanup) => {
-                    cleanup();
+                offConditions();
+                bindings.forEach((binding) => {
+                    binding.destroy();
                 });
 
                 void ctx.emit('formie:module:calculations:destroy', {});

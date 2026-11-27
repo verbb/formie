@@ -7,7 +7,7 @@ import {
     type CalculationOptions,
     type CalculationVariable,
 } from './calculations.js';
-import { allFields, compositePartDefinitions, isCalculationField, isCompositeField, isRepeatableField, repeaterFieldDefinitions } from './schema.js';
+import { allFields, compositePartDefinitions, isCalculationField, isCompositeField, isRepeatableField, repeaterFieldDefinitions, tableColumns } from './schema.js';
 import type { ClientFieldDefinition, ClientFormState } from './types.js';
 
 function calculationOptions(state: ClientFormState, field: ClientFieldDefinition): CalculationOptions | null {
@@ -19,12 +19,17 @@ function calculationOptions(state: ClientFormState, field: ClientFieldDefinition
 
 const ROW_SCOPES = new Set(['first', 'last', 'index', 'all', 'count', 'rows']);
 
+// A ticked checkbox, such as an Agree field, posts `1` in server-rendered forms and an unticked one posts nothing.
+function inputString(item: unknown): string {
+    return typeof item === 'boolean' ? (item ? '1' : '') : String(item);
+}
+
 function toStrings(value: unknown): string | string[] {
     if (Array.isArray(value)) {
-        return value.filter((item) => item != null && typeof item !== 'object').map((item) => String(item));
+        return value.filter((item) => item != null && typeof item !== 'object').map(inputString);
     }
 
-    return value == null || typeof value === 'object' ? '' : String(value);
+    return value == null || typeof value === 'object' ? '' : inputString(value);
 }
 
 function readPath(value: unknown, path: string[]): unknown {
@@ -91,8 +96,11 @@ type RowContext = { handle: string; index: number };
 
 // Reads a source like `quantity`, `group.part` or `repeater.rowField` from form values keyed by field ID.
 function sourceValue(state: ClientFormState, variable: CalculationVariable, row?: RowContext): string | string[] {
-    const [handle, ...path] = (variable.sourceKey || '').split('.').filter(Boolean);
+    const [handle, ...sourcePath] = (variable.sourceKey || '').split('.').filter(Boolean);
     const source = allFields(state.definition).find((field) => field.handle === handle);
+    // Formulas select a Table column by its ID, while table rows hold values by column handle.
+    const columns = source?.type === 'table' ? tableColumns(source) : [];
+    const path = sourcePath.map((key) => columns.find((column) => column.id === key)?.handle ?? key);
     const value = source ? state.values[source.id] : undefined;
     const scope = String(variable.scope || '').trim().toLowerCase();
 
@@ -146,7 +154,7 @@ function readSourcePath(value: unknown, path: string[]): string | string[] {
 
     const strings = values.flatMap((item) => Array.isArray(item) ? item : [item])
         .filter((item) => item != null && typeof item !== 'object')
-        .map((item) => String(item));
+        .map(inputString);
 
     return path.length > 0 || Array.isArray(values[0]) ? strings : (strings[0] ?? '');
 }

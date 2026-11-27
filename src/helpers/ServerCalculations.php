@@ -6,14 +6,15 @@ use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\base\RepeatableParentFieldInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\Calculations;
+use verbb\formie\fields\Table;
 
-use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
-
+use InvalidArgumentException;
 use Throwable;
 
 /**
- * Works out Calculations answers on the server the way the browser does (`client-calculations.ts` and
- * `calculations.ts`), so an answer that decides what a visitor pays isn't taken from the request.
+ * Works out Calculations answers on the server the way the browser does (the server-rendered `calculations.ts`
+ * module and formie-core's `client-calculations.ts`), so an answer that decides what a visitor pays isn't taken
+ * from the request.
  */
 final class ServerCalculations
 {
@@ -22,111 +23,68 @@ final class ServerCalculations
 
     public static function calculate(Submission $submission, Calculations $field): mixed
     {
-        $form = $submission->getForm();
-
-        if (!$form) {
-            return null;
-        }
-
-        $values = [];
-
-        foreach ($form->getFields() as $formField) {
-            $values[$formField->handle] = $formField->serializeValueForClientInput($submission->getFieldValue($formField->handle), $submission);
-        }
-
-        $values = self::_deriveValues($form->getFields(), $values, $submission);
-
-        return $values[$field->handle] ?? null;
+        return self::_derive($submission)['values'][$field->handle] ?? null;
     }
 
-    /** Matches JavaScript's `String()` for the values a calculation reads and returns. */
-    public static function toJsString(mixed $value): string
+    /**
+     * Returns the paths of Calculations answers in the submission that differ from the server's answer.
+     * Conditions on the server read the posted answers, so every one has to agree, not just the amount.
+     */
+    public static function mismatches(Submission $submission): array
     {
-        if (is_bool($value)) {
-            return $value ? 'true' : 'false';
-        }
+        $derived = self::_derive($submission);
+        $mismatches = [];
 
-        if (is_int($value)) {
-            return (string)$value;
-        }
+        foreach ($derived['calculated'] as $key => $path) {
+            $posted = self::_readValue($derived['posted'], $path);
+            $calculated = self::_readValue($derived['values'], $path);
 
-        if (!is_float($value)) {
-            return (string)$value;
-        }
-
-        if (is_nan($value)) {
-            return 'NaN';
-        }
-
-        if (is_infinite($value)) {
-            return $value > 0 ? 'Infinity' : '-Infinity';
-        }
-
-        if ($value == 0) {
-            return '0';
-        }
-
-        // The shortest digits that read back as the same number, as JavaScript prints them.
-        for ($precision = 1; $precision <= 17; $precision++) {
-            $exponential = sprintf('%.' . ($precision - 1) . 'e', $value);
-
-            if ((float)$exponential === $value) {
-                break;
+            if (!self::answersMatch($posted, $calculated)) {
+                $mismatches[] = $key;
             }
         }
 
-        [$mantissa, $exponent] = explode('e', $exponential);
-        $sign = str_starts_with($mantissa, '-') ? '-' : '';
-        $digits = rtrim(str_replace(['-', '.'], '', $mantissa), '0') ?: '0';
-        $point = (int)$exponent + 1;
-
-        if ($point > 21 || $point <= -6) {
-            $fraction = strlen($digits) > 1 ? '.' . substr($digits, 1) : '';
-            $power = $point - 1;
-
-            return $sign . $digits[0] . $fraction . 'e' . ($power < 0 ? '-' : '+') . abs($power);
-        }
-
-        if ($point <= 0) {
-            return $sign . '0.' . str_repeat('0', -$point) . $digits;
-        }
-
-        if ($point >= strlen($digits)) {
-            return $sign . $digits . str_repeat('0', $point - strlen($digits));
-        }
-
-        return $sign . substr($digits, 0, $point) . '.' . substr($digits, $point);
+        return $mismatches;
     }
 
-    /** Matches JavaScript's `Number.prototype.toFixed()`, which rounds the exact value half away from zero. */
-    public static function toFixed(float $value, int $decimals): string
+    public static function answersMatch(mixed $posted, mixed $calculated): bool
     {
-        if (is_nan($value) || is_infinite($value)) {
-            return self::toJsString($value);
+        $posted = trim(is_float($posted) || is_int($posted) ? CalculationExpression::toJsString($posted) : (string)$posted);
+        $calculated = trim(is_float($calculated) || is_int($calculated) ? CalculationExpression::toJsString($calculated) : (string)$calculated);
+
+        // Server-rendered forms show a formula with no number as `NaN` or `Infinity`, while client-rendered forms leave it empty.
+        $noAnswer = ['', 'NaN', 'Infinity', '-Infinity'];
+
+        if ($posted === $calculated || (in_array($posted, $noAnswer, true) && in_array($calculated, $noAnswer, true))) {
+            return true;
         }
 
-        $sign = $value < 0 ? '-' : '';
-        $exact = sprintf('%.40f', abs($value));
-        [$whole, $fraction] = explode('.', $exact);
-        $kept = $whole . substr($fraction, 0, $decimals);
-
-        if ((int)($fraction[$decimals] ?? '0') >= 5) {
-            $kept = self::_incrementDigits($kept);
-        }
-
-        $whole = substr($kept, 0, strlen($kept) - $decimals) ?: '0';
-        $result = $decimals > 0 ? $whole . '.' . substr($kept, -$decimals) : $whole;
-
-        return $sign . $result;
+        // Site code can format a number for display, such as `$6.00` for 6, which is still the same answer.
+        return preg_match('/\d/', $posted) && preg_match('/\d/', $calculated) && self::_amount($posted) !== null && self::_amount($posted) === self::_amount($calculated);
     }
 
 
     // Private Methods
     // =========================================================================
 
-    private static function _deriveValues(array $fields, array $values, Submission $submission): array
+    private static function _derive(Submission $submission): array
     {
+        $form = $submission->getForm();
+
+        if (!$form) {
+            return ['values' => [], 'posted' => [], 'calculated' => []];
+        }
+
+        $fields = $form->getFields();
+        $values = [];
+
+        foreach ($fields as $field) {
+            $values[$field->handle] = self::_clientValue($field, $submission->getFieldValue($field->handle), $submission);
+        }
+
+        $posted = $values;
         $occurrences = self::_occurrences($fields, $values);
+        $calculated = [];
         $calculationCount = count(array_unique(array_map(static fn(array $occurrence) => $occurrence['field']->uid ?: $occurrence['field']->handle, $occurrences)));
 
         // A calculation can read another one later in the form, so repeat until the answers settle. A formula that
@@ -135,8 +93,12 @@ final class ServerCalculations
             $changed = false;
 
             foreach ($occurrences as $occurrence) {
-                // Conditions clear a hidden field's answer, so it isn't worked out again.
+                $key = implode('.', $occurrence['path']);
+
+                // Conditions clear a hidden field's answer, so it isn't worked out, or read by other calculations.
                 if (!isset($occurrence['row']) && $occurrence['field']->isConditionallyHidden($submission)) {
+                    unset($calculated[$key]);
+
                     continue;
                 }
 
@@ -148,7 +110,13 @@ final class ServerCalculations
 
                 $result = self::_calculateOccurrence($values, $occurrence);
 
-                if ($result !== null && !self::_strictEquals(self::_readValue($values, $occurrence['path']), $result)) {
+                if ($result === null) {
+                    continue;
+                }
+
+                $calculated[$key] = $occurrence['path'];
+
+                if (!self::_sameValue(self::_readValue($values, $occurrence['path']), $result)) {
                     $values = self::_writeValue($values, $occurrence['path'], $result);
                     $changed = true;
                 }
@@ -161,7 +129,41 @@ final class ServerCalculations
             $occurrences = self::_occurrences($fields, $values);
         }
 
-        return $values;
+        return ['values' => $values, 'posted' => $posted, 'calculated' => $calculated];
+    }
+
+    /** A field's answer as the browser reads it from the form's inputs. */
+    private static function _clientValue(FieldInterface $field, mixed $value, Submission $submission): mixed
+    {
+        // Table inputs are named by column ID, which is also how formulas select a column.
+        if ($field instanceof Table) {
+            $rows = [];
+
+            foreach (is_array($value) ? $value : [] as $row) {
+                $cells = [];
+
+                foreach ($field->columns ?? [] as $id => $column) {
+                    $cell = is_array($row) ? ($row[$id] ?? $row[$column['handle'] ?? $id] ?? null) : null;
+                    $cells[(string)$id] = is_bool($cell) ? ($cell ? '1' : '') : $cell;
+                }
+
+                $rows[] = $cells;
+            }
+
+            return $rows;
+        }
+
+        return self::_booleansAsInputs($field->serializeValueForClientInput($value, $submission));
+    }
+
+    /** A ticked checkbox posts `1` and an unticked one posts nothing. */
+    private static function _booleansAsInputs(mixed $value): mixed
+    {
+        if (is_bool($value)) {
+            return $value ? '1' : '';
+        }
+
+        return is_array($value) ? array_map(self::_booleansAsInputs(...), $value) : $value;
     }
 
     private static function _occurrences(array $fields, array $values): array
@@ -199,25 +201,41 @@ final class ServerCalculations
         /** @var Calculations $field */
         $field = $occurrence['field'];
         $formula = $field->getFormula();
-        $expression = trim((string)($formula['expression'] ?? $formula['formula'] ?? ''));
+        $expression = trim((string)(($formula['expression'] ?? '') ?: ($formula['formula'] ?? '')));
 
         if ($expression === '') {
             return null;
         }
 
-        $variables = [];
+        $variables = array_filter($formula['variables'] ?? [], static fn($variable) => is_array($variable) && !empty($variable['sourceKey']));
+        $sources = array_map(fn(array $variable) => self::_sourceValue($values, $variable, $occurrence['row'] ?? null), $variables);
 
-        foreach ($formula['variables'] ?? [] as $key => $variable) {
-            if (!is_array($variable) || empty($variable['sourceKey'])) {
-                continue;
-            }
+        return self::evaluateFormula($expression, $variables, $sources, [
+            'formatting' => $field->formatting,
+            'prefix' => $field->prefix,
+            'suffix' => $field->suffix,
+            'decimals' => $field->decimals,
+        ]);
+    }
 
-            $variables[$key] = self::_readVariableValue($variable, self::_sourceValue($values, $variable, $occurrence['row'] ?? null));
+    /**
+     * Works out a formula from its sources' answers as the browser reads them, the way `client-calculations.ts`
+     * does, returning `''` when the formula has no answer.
+     *
+     * @param array<string, array> $variables Variable settings from `Calculations::getFormula()`.
+     * @param array<string, string|string[]> $sources Each variable's source answer.
+     * @param array{formatting?: string, prefix?: string, suffix?: string, decimals?: int} $format
+     */
+    public static function evaluateFormula(string $expression, array $variables, array $sources, array $format = []): mixed
+    {
+        $values = [];
+
+        foreach ($variables as $key => $variable) {
+            $values[$key] = self::_readVariableValue($variable, $sources[$key] ?? '');
         }
 
         try {
-            $result = (new ExpressionLanguage())->evaluate($expression, self::_coerceVariables($variables));
-            $result = self::_formatValue($result, $field);
+            $result = self::_formatValue(CalculationExpression::evaluate($expression, self::_coerceVariables($values)), $format);
         } catch (Throwable) {
             // An incomplete formula, such as one waiting on an empty source, has no answer yet.
             return '';
@@ -295,7 +313,7 @@ final class ServerCalculations
         foreach ($values as $item) {
             foreach (self::_isList($item) ? $item : [$item] as $scalar) {
                 if (is_scalar($scalar)) {
-                    $strings[] = self::toJsString($scalar);
+                    $strings[] = CalculationExpression::toJsString($scalar);
                 }
             }
         }
@@ -303,12 +321,13 @@ final class ServerCalculations
         return $path || self::_isList($values[0] ?? null) ? $strings : ($strings[0] ?? '');
     }
 
+    /** `readCalculationVariableValue()` in `calculations.ts`. */
     private static function _readVariableValue(array $variable, string|array $value): mixed
     {
         if (isset($variable['numberFormat']) && is_array($variable['numberFormat'])) {
             $prefix = (string)($variable['numberFormat']['prefix'] ?? '');
             $suffix = (string)($variable['numberFormat']['suffix'] ?? '');
-            $readNumber = static function(string $formatted) use ($prefix, $suffix): float|int {
+            $readNumber = static function(string $formatted) use ($prefix, $suffix): float {
                 // Remove only the source field's configured affixes, which may themselves contain digits.
                 if ($prefix !== '' && str_starts_with($formatted, $prefix)) {
                     $formatted = substr($formatted, strlen($prefix));
@@ -318,7 +337,7 @@ final class ServerCalculations
                     $formatted = substr($formatted, 0, -strlen($suffix));
                 }
 
-                return self::_toNumber($formatted);
+                return CalculationExpression::toNumber($formatted === '' ? 0.0 : $formatted);
             };
 
             return is_array($value) ? array_map($readNumber, $value) : $readNumber($value);
@@ -331,44 +350,57 @@ final class ServerCalculations
         return $value;
     }
 
+    /** `coerceCalculationVariables()` in `calculations.ts`. */
     private static function _coerceVariables(array $variables): array
     {
         // Numeric-looking answers are numbers even without number formatting, otherwise `1 + 2` becomes `12`.
         foreach ($variables as $key => $value) {
             if (is_array($value)) {
-                $coerced = array_map(static fn($item) => is_string($item) && self::_isNumericString($item) ? self::_toNumber($item) : $item, $value);
-                $numbers = array_filter($coerced, static fn($item) => is_int($item) || is_float($item));
-                $variables[$key] = $coerced && count($numbers) === count($coerced) ? array_sum($numbers) : $coerced;
+                $coerced = array_map(static fn($item) => is_string($item) && self::_isNumericString($item) ? CalculationExpression::toNumber($item) : $item, $value);
+                $numbers = array_filter($coerced, static fn($item) => is_float($item));
+
+                if ($coerced && count($numbers) === count($coerced)) {
+                    // `total + Number(item || 0)`, so an unreadable number counts as 0.
+                    $variables[$key] = array_reduce($coerced, static fn(float $total, float $item) => $total + (CalculationExpression::isTruthy($item) ? $item : 0.0), 0.0);
+                } else {
+                    $variables[$key] = $coerced;
+                }
             } elseif (is_string($value) && self::_isNumericString($value)) {
-                $variables[$key] = self::_toNumber($value);
+                $variables[$key] = CalculationExpression::toNumber($value);
             }
         }
 
         return $variables;
     }
 
-    private static function _formatValue(mixed $value, Calculations $field): mixed
+    /** `formatCalculationValue()` in `calculations.ts`. */
+    private static function _formatValue(mixed $value, array $format): mixed
     {
-        if ($field->formatting !== 'number') {
-            return is_int($value) || is_float($value) || is_string($value) ? $value : '';
+        if (($format['formatting'] ?? '') !== 'number') {
+            return is_float($value) || is_string($value) ? $value : '';
         }
 
         if (is_array($value)) {
-            $value = array_reduce($value, static fn($total, $item) => $total + self::_toNumber($item ?: 0), 0);
+            $value = array_reduce($value, static fn(float $total, mixed $item) => $total + CalculationExpression::toNumber(CalculationExpression::isTruthy($item) ? $item : 0.0), 0.0);
         }
 
-        $number = self::_isFalsy($value) ? 0.0 : (float)self::_toNumber($value);
+        $number = CalculationExpression::toNumber(CalculationExpression::isTruthy($value) ? $value : 0.0);
 
-        return $field->prefix . self::toFixed($number, $field->decimals) . $field->suffix;
+        return ($format['prefix'] ?? '') . CalculationExpression::toFixed($number, (int)($format['decimals'] ?? 0)) . ($format['suffix'] ?? '');
+    }
+
+    private static function _isNumericString(string $value): bool
+    {
+        return trim($value) !== '' && !is_nan(CalculationExpression::toNumber($value));
     }
 
     private static function _toStrings(mixed $value): string|array
     {
         if (self::_isList($value)) {
-            return array_values(array_map(self::toJsString(...), array_filter($value, static fn($item) => is_scalar($item))));
+            return array_values(array_map(CalculationExpression::toJsString(...), array_filter($value, static fn($item) => is_scalar($item))));
         }
 
-        return $value === null || is_array($value) || is_object($value) ? '' : self::toJsString($value);
+        return $value === null || is_array($value) || is_object($value) ? '' : CalculationExpression::toJsString($value);
     }
 
     private static function _flattenCells(array $cells): array
@@ -414,7 +446,7 @@ final class ServerCalculations
         return $values;
     }
 
-    private static function _strictEquals(mixed $left, mixed $right): bool
+    private static function _sameValue(mixed $left, mixed $right): bool
     {
         // JavaScript has a single number type, so 2 and 2.0 are the same answer.
         if ((is_int($left) || is_float($left)) && (is_int($right) || is_float($right))) {
@@ -424,48 +456,23 @@ final class ServerCalculations
         return $left === $right;
     }
 
+    private static function _amount(string $value): ?string
+    {
+        try {
+            $amount = PaymentAmountHelper::parseAmount($value);
+        } catch (InvalidArgumentException) {
+            return null;
+        }
+
+        $negative = str_starts_with($amount, '-');
+        [$whole, $fraction] = array_pad(explode('.', ltrim($amount, '-'), 2), 2, '');
+        $amount = (ltrim($whole, '0') ?: '0') . (rtrim($fraction, '0') !== '' ? '.' . rtrim($fraction, '0') : '');
+
+        return $negative && $amount !== '0' ? '-' . $amount : $amount;
+    }
+
     private static function _isList(mixed $value): bool
     {
         return is_array($value) && array_is_list($value);
-    }
-
-    private static function _isNumericString(string $value): bool
-    {
-        return trim($value) !== '' && is_numeric(trim($value));
-    }
-
-    private static function _toNumber(mixed $value): int|float
-    {
-        if (is_int($value) || is_float($value)) {
-            return $value;
-        }
-
-        if (is_bool($value)) {
-            return (int)$value;
-        }
-
-        $value = trim((string)$value);
-
-        if ($value === '') {
-            return 0;
-        }
-
-        return is_numeric($value) ? $value + 0 : NAN;
-    }
-
-    private static function _isFalsy(mixed $value): bool
-    {
-        return $value === null || $value === false || $value === '' || $value === 0 || $value === 0.0 || (is_float($value) && is_nan($value));
-    }
-
-    private static function _incrementDigits(string $digits): string
-    {
-        for ($i = strlen($digits) - 1; $i >= 0; $i--) {
-            if ($digits[$i] !== '9') {
-                return substr($digits, 0, $i) . ((int)$digits[$i] + 1) . str_repeat('0', strlen($digits) - $i - 1);
-            }
-        }
-
-        return '1' . str_repeat('0', strlen($digits));
     }
 }

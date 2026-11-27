@@ -5,7 +5,6 @@ declare(strict_types=1);
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\helpers\ServerCalculations;
 use verbb\formie\integrations\payments\Stripe;
 use verbb\formie\models\RichText;
 
@@ -95,35 +94,6 @@ it('keeps amounts from fields other than Calculations as posted', function (): v
     expect(calculationsPaymentIntegration($form, 'quantity')->getPaymentAmount($submission))->toBe('7');
 });
 
-it('formats numbers as the browser does', function (float $value, int $decimals, string $expected): void {
-    expect(ServerCalculations::toFixed($value, $decimals))->toBe($expected);
-})->with([
-    [1.005, 2, '1.00'],
-    [2.675, 2, '2.67'],
-    [0.25, 1, '0.3'],
-    [2.5, 0, '3'],
-    [-1.5, 0, '-2'],
-    [1.45, 1, '1.4'],
-    [9.995, 2, '9.99'],
-    [99.5, 0, '100'],
-    [-0.001, 2, '-0.00'],
-    [37.5, 2, '37.50'],
-]);
-
-it('prints numbers as the browser does', function (float|int $value, string $expected): void {
-    expect(ServerCalculations::toJsString($value))->toBe($expected);
-})->with([
-    [0.1 + 0.2, '0.30000000000000004'],
-    [10.0, '10'],
-    [42, '42'],
-    [37.5, '37.5'],
-    [-0.5, '-0.5'],
-    [1.0e21, '1e+21'],
-    [1.0e-7, '1e-7'],
-    [0.000001, '0.000001'],
-    [123456789.125, '123456789.125'],
-]);
-
 it('works out Repeater row calculations behind the amount', function (string $postedLineTotal, bool $matches): void {
     $ref = 'rows' . substr(md5(uniqid('', true)), 0, 8);
     $form = formie()->form(['title' => 'Calculations payment rows ' . uniqid()])
@@ -153,3 +123,56 @@ it('works out Repeater row calculations behind the amount', function (string $po
     'matching rows' => ['20', true],
     'a lower row' => ['1', false],
 ]);
+
+function calculationsFormulaForm(array $numbers, string $formula, array $format = []): Form
+{
+    $factory = formie()->form(['title' => 'Calculations formula ' . uniqid()]);
+
+    foreach ($numbers as $handle) {
+        $factory = $factory->numberField($handle);
+    }
+
+    $form = Form::find()->id($factory->calculationsField('total')->create()->id)->one();
+    $total = $form->getFieldByHandle('total');
+    $total->formula = RichText::from(preg_replace_callback('/\{(\w+)\}/', static fn(array $match) => '{field:' . $form->getFieldByHandle($match[1])->reference . '}', $formula));
+
+    foreach ($format as $setting => $value) {
+        $total->$setting = $value;
+    }
+
+    expect(Craft::$app->getElements()->saveElement($form))->toBeTrue();
+
+    return Form::find()->id($form->id)->one();
+}
+
+it('accepts the browser’s answer when an optional source is empty', function (): void {
+    // The browser joins `37.5 + ''` as text, then formats it as a number.
+    $form = calculationsFormulaForm(['quantity', 'addon'], '{quantity} * 12.5 + {addon}', ['formatting' => 'number', 'prefix' => '$', 'decimals' => 2]);
+    $submission = calculationsPaymentSubmission($form, ['quantity' => '3', 'addon' => '', 'total' => '$37.50']);
+
+    expect(calculationsPaymentIntegration($form, 'total')->getPaymentAmount($submission))->toBe('37.50');
+});
+
+it('works out logical operators as the browser does', function (string $postedTotal, ?string $charged): void {
+    $form = calculationsFormulaForm(['quantity', 'price'], '({quantity} || 1) * {price}');
+    $submission = calculationsPaymentSubmission($form, ['quantity' => '3', 'price' => '10', 'total' => $postedTotal]);
+    $integration = calculationsPaymentIntegration($form, 'total');
+
+    if ($charged === null) {
+        expect(fn() => $integration->getPaymentAmount($submission))->toThrow(RuntimeException::class);
+    } else {
+        expect($integration->getPaymentAmount($submission))->toBe($charged);
+    }
+})->with([
+    'the browser’s answer' => ['30', '30'],
+    'PHP’s answer' => ['10', null],
+]);
+
+it('refuses a payment when another posted calculation differs', function (): void {
+    // Conditions on the server read the posted subtotal, so it has to agree even when the total does.
+    $form = calculationsPaymentForm();
+    $submission = calculationsPaymentSubmission($form, ['quantity' => '3', 'subtotal' => '$150.00', 'total' => '$42.50']);
+
+    expect(fn() => calculationsPaymentIntegration($form, 'total')->getPaymentAmount($submission))
+        ->toThrow(RuntimeException::class, 'The payment amount doesn’t match its calculation.');
+});

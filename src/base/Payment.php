@@ -14,6 +14,7 @@ use verbb\formie\events\PaymentIntegrationProcessEvent;
 use verbb\formie\fields\Calculations;
 use verbb\formie\fields\Payment as PaymentField;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\CalculationExpression;
 use verbb\formie\helpers\FieldReferenceHelper;
 use verbb\formie\helpers\IntegrationSecrets;
 use verbb\formie\helpers\PaymentAmountHelper;
@@ -752,14 +753,14 @@ abstract class Payment extends Integration
             return $value;
         }
 
-        $calculated = ServerCalculations::calculate($submission, $field);
-        $calculated = is_int($calculated) || is_float($calculated) ? ServerCalculations::toJsString($calculated) : $calculated;
-
-        if (!PaymentAmountHelper::amountsMatch($value, $calculated)) {
+        // Conditions on the server read every posted answer, so they all have to agree, not only the amount's.
+        if (ServerCalculations::mismatches($submission)) {
             throw new RuntimeException('The payment amount doesn’t match its calculation.');
         }
 
-        return $calculated;
+        $calculated = ServerCalculations::calculate($submission, $field);
+
+        return is_float($calculated) ? CalculationExpression::toJsString($calculated) : ($calculated ?? $value);
     }
 
     protected function refreshPaymentState(PaymentModel $payment): void

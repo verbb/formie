@@ -100,6 +100,26 @@ if (!Craft::$app->getElements()->saveElement($nested)) {
     throw new RuntimeException('Cannot save adapter nested calculations fixture.');
 }
 
+// A calculation reading a field that conditions hide, which starts hidden with a default answer, and one reading
+// a Repeater row by position.
+$hidden = \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Adapter hidden calculations', 'handle' => 'adapterHiddenCalculations'])
+    ->settings(['disableCaptchas' => true, 'submitMethod' => 'ajax'])
+    ->radioField('plan', ['label' => 'Plan', 'options' => [['label' => 'Basic', 'value' => 'basic', 'isDefault' => true], ['label' => 'Pro', 'value' => 'pro']]])
+    ->numberField('base', ['label' => 'Base'])
+    ->numberField('extra', ['label' => 'Extra', 'defaultValue' => '5', 'enableConditions' => true, 'conditions' => ['conditionRule' => 'all', 'showRule' => 'show', 'conditions' => [['field' => 'plan', 'condition' => '=', 'value' => 'pro']]]])
+    ->calculationsField('total', ['label' => 'Total'])
+    ->repeaterField('items', ['label' => 'Items', 'minRows' => 1, 'rows' => [['fields' => [
+        ['type' => \verbb\formie\fields\Number::class, 'handle' => 'qty', 'label' => 'Qty'],
+    ]]]])
+    ->calculationsField('firstQty', ['label' => 'First qty'])
+    ->create();
+$hidden->getFieldByHandle('total')->formula = RichText::from('{field:' . $hidden->getFieldByHandle('base')->reference . '} + {field:' . $hidden->getFieldByHandle('extra')->reference . '}');
+$hidden->getFieldByHandle('firstQty')->formula = RichText::from('{field:' . $hidden->getFieldByHandle('items')->reference . ':qty;scope=index;index=0} * 1');
+
+if (!Craft::$app->getElements()->saveElement($hidden)) {
+    throw new RuntimeException('Cannot save adapter hidden calculations fixture.');
+}
+
 // Phone fields with the country picker, at the top level and in Repeater rows, next to one without it.
 \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Adapter phone', 'handle' => 'adapterPhone'])
     ->settings(['disableCaptchas' => true, 'submitMethod' => 'ajax'])
