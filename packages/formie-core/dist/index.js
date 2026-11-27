@@ -4453,7 +4453,7 @@ function dn(e) {
 }
 function fn({ envelope: e, transport: t }) {
 	Jt(e);
-	let n = new en(), r = /* @__PURE__ */ new Set(), i = rn(e), a = 0, o = {
+	let n = new en(), r = /* @__PURE__ */ new Set(), i = rn(e), a = 0, o = e.session, s = {
 		status: "ready",
 		definition: e.definition,
 		session: e.session,
@@ -4467,18 +4467,18 @@ function fn({ envelope: e, transport: t }) {
 		currentPageId: e.session.currentPageId || e.definition.settings.initialPageId,
 		lastSubmitResult: null
 	};
-	o = $(o);
-	let s = () => {
-		if (o.status === "destroyed") return;
-		let e = nn(o);
+	s = $(s);
+	let c = () => {
+		if (s.status === "destroyed") return;
+		let e = nn(s);
 		r.forEach((t) => {
 			t(e);
 		});
-	}, c = (e) => {
-		o.status !== "destroyed" && (o = e(o), s());
-	}, l = (e) => o.status === "destroyed" || e !== a, u = () => void 0, d = async () => ({}), f = {
+	}, l = (e) => {
+		s.status !== "destroyed" && (s = e(s), c());
+	}, u = (e) => s.status === "destroyed" || e !== a, d = () => void 0, f = async () => ({}), p = {
 		setBrowserModuleGuard(e) {
-			u = e;
+			d = e;
 		},
 		getBrowserRequestOptions() {
 			return {
@@ -4487,19 +4487,19 @@ function fn({ envelope: e, transport: t }) {
 			};
 		},
 		setBrowserModulePreparation(e) {
-			d = e;
+			f = e;
 		},
 		id: e.session.id,
 		getState() {
-			return nn(o);
+			return nn(s);
 		},
 		subscribe(e) {
-			return r.add(e), e(nn(o)), () => {
+			return r.add(e), e(nn(s)), () => {
 				r.delete(e);
 			};
 		},
 		setValue(e, t) {
-			c((n) => {
+			l((n) => {
 				let r = Object.fromEntries(Object.entries(n.errors.fields).filter(([t]) => t !== e && !t.startsWith(`${e}.`)));
 				return r[e] = [], $({
 					...n,
@@ -4515,7 +4515,7 @@ function fn({ envelope: e, transport: t }) {
 			});
 		},
 		patchValues(e) {
-			c((t) => $({
+			l((t) => $({
 				...t,
 				values: {
 					...t.values,
@@ -4524,7 +4524,7 @@ function fn({ envelope: e, transport: t }) {
 			}));
 		},
 		async submit(e) {
-			if (u(), o.status === "destroyed") return {
+			if (d(), s.status === "destroyed") return {
 				success: !1,
 				isFinalPage: !1,
 				errors: {
@@ -4532,9 +4532,9 @@ function fn({ envelope: e, transport: t }) {
 					fields: {}
 				},
 				messages: { error: "Form instance has been destroyed." },
-				session: o.session
+				session: s.session
 			};
-			if (o.status === "submitting") return {
+			if (s.status === "submitting") return {
 				success: !1,
 				isFinalPage: !1,
 				errors: {
@@ -4542,28 +4542,28 @@ function fn({ envelope: e, transport: t }) {
 					fields: {}
 				},
 				messages: { error: "A submission is already in progress." },
-				session: o.session
+				session: s.session
 			};
-			let r = o.definition.pages.find((e) => e.id === o.currentPageId), i = e || r?.actions.primary.type || "submit", s = i === "next" ? "submit" : i;
-			if (s !== "back" && s !== "save" && o.definition.settings.validation.onSubmit) {
-				let e = dn(o);
+			let r = s.definition.pages.find((e) => e.id === s.currentPageId), i = e || r?.actions.primary.type || "submit", c = i === "next" ? "submit" : i;
+			if (c !== "back" && c !== "save" && s.definition.settings.validation.onSubmit) {
+				let e = dn(s);
 				if (e.form.length > 0 || Object.keys(e.fields).length > 0) {
 					let t = {
 						success: !1,
 						isFinalPage: !1,
 						errors: e,
 						messages: { error: e.form[0] || null },
-						session: o.session
+						session: s.session
 					};
-					return c((n) => ({
+					return l((n) => ({
 						...n,
 						errors: e,
 						lastSubmitResult: t
 					})), n.emit("formie:submit:result", t), t;
 				}
 			}
-			let f = ++a;
-			c((e) => ({
+			let p = ++a;
+			l((e) => ({
 				...e,
 				status: "submitting",
 				errors: {
@@ -4572,16 +4572,16 @@ function fn({ envelope: e, transport: t }) {
 				}
 			}));
 			try {
-				let e = await d(s);
-				if (l(f)) throw Error("Submission was cancelled before sending.");
+				let e = await f(c);
+				if (u(p)) throw Error("Submission was cancelled before sending.");
 				let r = await t.submit({
 					browserData: e,
-					definition: o.definition,
-					session: o.session,
-					values: o.values,
-					action: s
+					definition: s.definition,
+					session: s.session,
+					values: s.values,
+					action: c
 				});
-				return l(f) || (c((e) => $({
+				return u(p) || (r.success && r.completion && r.session && (o = r.session), l((e) => $({
 					...e,
 					status: "ready",
 					session: r.session ?? e.session,
@@ -4589,7 +4589,7 @@ function fn({ envelope: e, transport: t }) {
 					errors: r.errors,
 					lastSubmitResult: r
 				})), n.emit("formie:submit:result", r), (r.currentPageId || r.nextPageId) && n.emit("formie:page:navigate", {
-					currentPageId: o.currentPageId,
+					currentPageId: s.currentPageId,
 					nextPageId: r.nextPageId || r.currentPageId
 				})), r;
 			} catch (e) {
@@ -4601,9 +4601,9 @@ function fn({ envelope: e, transport: t }) {
 						fields: {}
 					},
 					messages: { error: t },
-					session: o.session
+					session: s.session
 				};
-				return l(f) || (c((e) => ({
+				return u(p) || (l((e) => ({
 					...e,
 					status: "ready",
 					errors: r.errors,
@@ -4612,9 +4612,9 @@ function fn({ envelope: e, transport: t }) {
 			}
 		},
 		async setPage(e) {
-			if (o.status === "destroyed" || o.status === "submitting") return;
+			if (s.status === "destroyed" || s.status === "submitting") return;
 			let r = ++a;
-			if (!t.setPage) c((t) => $({
+			if (!t.setPage) l((t) => $({
 				...t,
 				status: "ready",
 				currentPageId: e,
@@ -4624,21 +4624,21 @@ function fn({ envelope: e, transport: t }) {
 				}
 			}));
 			else {
-				c((e) => ({
+				l((e) => ({
 					...e,
 					status: "refreshing"
 				}));
 				try {
 					let i = await t.setPage({
-						definition: o.definition,
-						session: o.session,
-						values: o.values,
-						currentPageId: o.currentPageId,
+						definition: s.definition,
+						session: s.session,
+						values: s.values,
+						currentPageId: s.currentPageId,
 						targetPageId: e
 					});
-					if (l(r)) return;
+					if (u(r)) return;
 					if (!i.success || !i.session) {
-						c((e) => ({
+						l((e) => ({
 							...e,
 							status: "ready",
 							errors: i.errors,
@@ -4647,22 +4647,22 @@ function fn({ envelope: e, transport: t }) {
 						return;
 					}
 					let a = i.session;
-					c((e) => $({
+					l((e) => $({
 						...e,
 						status: "ready",
 						session: a,
 						currentPageId: a.currentPageId
 					})), n.emit("formie:page:navigate", {
-						currentPageId: o.currentPageId,
+						currentPageId: s.currentPageId,
 						nextPageId: e
 					});
 				} catch (t) {
 					let i = t instanceof Error ? t.message : "Unable to change page.";
-					l(r) || (c((e) => ({
+					u(r) || (l((e) => ({
 						...e,
 						status: "ready"
 					})), n.emit("formie:page:navigate:error", {
-						currentPageId: o.currentPageId,
+						currentPageId: s.currentPageId,
 						nextPageId: e,
 						error: i
 					}));
@@ -4670,20 +4670,20 @@ function fn({ envelope: e, transport: t }) {
 			}
 		},
 		async refreshSession() {
-			if (o.status === "destroyed" || o.status === "submitting") return;
+			if (s.status === "destroyed" || s.status === "submitting") return;
 			let e = ++a;
-			c((e) => ({
+			l((e) => ({
 				...e,
 				status: "refreshing"
 			}));
 			try {
 				let r = await t.refreshSession({
-					formHandle: o.definition.handle,
-					siteId: o.definition.siteId ?? void 0,
-					session: o.session
+					formHandle: s.definition.handle,
+					siteId: s.definition.siteId ?? void 0,
+					session: s.session
 				});
-				if (l(e)) return;
-				c((e) => $({
+				if (u(e)) return;
+				l((e) => $({
 					...e,
 					status: "ready",
 					session: r,
@@ -4691,29 +4691,29 @@ function fn({ envelope: e, transport: t }) {
 				})), n.emit("formie:session:refreshed", r);
 			} catch (t) {
 				let r = t instanceof Error ? t.message : "Unable to refresh session.";
-				l(e) || (c((e) => ({
+				u(e) || (l((e) => ({
 					...e,
 					status: "ready"
 				})), n.emit("formie:session:refresh:error", { error: r }));
 			}
 		},
 		reset() {
-			o.status !== "destroyed" && (a += 1, c((t) => $({
+			s.status !== "destroyed" && (a += 1, l((t) => $({
 				...t,
 				status: "ready",
-				session: e.session,
+				session: o,
 				values: tn(i),
 				errors: {
 					form: [],
 					fields: {}
 				},
-				currentPageId: e.session.currentPageId || e.definition.settings.initialPageId,
+				currentPageId: o.currentPageId || e.definition.settings.initialPageId,
 				lastSubmitResult: null
 			})), n.emit("formie:state:reset", null));
 		},
 		async destroy() {
-			a += 1, o = {
-				...o,
+			a += 1, s = {
+				...s,
 				status: "destroyed"
 			}, r.clear();
 		},
@@ -4722,8 +4722,8 @@ function fn({ envelope: e, transport: t }) {
 		}
 	};
 	return queueMicrotask(() => {
-		n.emit("formie:client:ready", f.getState());
-	}), f;
+		n.emit("formie:client:ready", p.getState());
+	}), p;
 }
 //#endregion
 //#region src/event-names.ts
