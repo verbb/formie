@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use craft\db\Query;
 use craft\elements\User;
+use craft\helpers\Json;
 use Tests\Support\WebRequestTestHelper;
 use verbb\formie\controllers\FormsController;
 use verbb\formie\elements\Form;
@@ -11,6 +12,7 @@ use verbb\formie\fields\SingleLineText;
 use verbb\formie\Formie;
 use verbb\formie\models\Notification;
 use verbb\formie\services\Permissions;
+use yii\base\InvalidConfigException;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 
@@ -88,7 +90,13 @@ it('rejects foreign and malformed translation identities before saving any form 
         Formie::$plugin->getFieldSiteOverrides()->saveOverride($ownId, $fixture['site'], ['definitionId' => $foreignId]);
     }
     $before = translationAclSnapshot();
-    expect(fn() => translationAclSave($fixture, $body))->toThrow($variant === 'malformed' ? BadRequestHttpException::class : ForbiddenHttpException::class);
+    $expected = match ($variant) {
+        'malformed' => BadRequestHttpException::class,
+        // The posted layout is built before field translations are checked, and its foreign fields are rejected there.
+        'posted layout' => InvalidConfigException::class,
+        default => ForbiddenHttpException::class,
+    };
+    expect(fn() => translationAclSave($fixture, $body))->toThrow($expected);
     expect(translationAclSnapshot())->toBe($before);
 })->with(['mixed', 'numeric alias', 'posted layout', 'json', 'malformed', 'poisoned override'])->group('security');
 
@@ -145,6 +153,29 @@ it('allows authorized nested and shared definition translations and notification
     Formie::$plugin->getForms()->invalidateFormCaches();
     expect(Formie::$plugin->getForms()->getFormById($shared->id, $site)->getFieldByHandle('message')->label)->toBe('Translated ' . $sharedId);
 });
+
+it('allows translations for a synced field added in the same secondary-site save', function (): void {
+    $fixture = translationAclFixture();
+    ['form' => $form, 'foreign' => $foreign, 'site' => $site, 'user' => $user] = $fixture;
+    $synced = $foreign->getFieldByHandle('privateField');
+    $config = $synced->getFormBuilderConfig();
+    foreach (['id', 'uid', 'reference', 'layoutId', 'pageId', 'rowId'] as $key) {
+        unset($config[$key]);
+    }
+    $config['isSynced'] = true;
+    $config['definitionToken'] = Craft::$app->getSecurity()->hashData(Json::encode([
+        'purpose' => 'field-definition', 'definitionId' => $synced->definitionId, 'formId' => $form->id, 'userId' => $user->id,
+    ]));
+    $pages = $form->getFormLayout()->getFormBuilderConfig();
+    $pages[0]['rows'][] = ['fields' => [$config]];
+
+    $response = translationAclSave($fixture, ['pages' => $pages,
+        'translations' => ['fieldOverrides' => [$synced->definitionId => ['label' => 'Translated synced']]]]);
+    expect($response)->not->toHaveKey('errors');
+    Formie::$plugin->getForms()->invalidateFormCaches();
+    expect(Formie::$plugin->getForms()->getFormById($form->id, $site)->getFieldByHandle('privateField')->definitionId)->toBe($synced->definitionId)
+        ->and(Formie::$plugin->getFieldSiteOverrides()->getOverride($synced->definitionId, $site)['label'])->toBe('Translated synced');
+})->group('security');
 
 it('keeps historical undeclared translations out of a successful secondary-site save response', function (): void {
     $fixture = translationAclFixture();

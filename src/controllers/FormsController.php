@@ -481,23 +481,25 @@ class FormsController extends Controller
             if (is_string($translations)) {
                 $translations = Json::decodeIfJson($translations);
             }
-
-            if ($siteOverrides->isEnabled() && $siteId !== $siteOverrides->getSourceSiteId($persistedForm) && is_array($translations)) {
-                $fieldOverrides = $translations['fieldOverrides'] ?? [];
-
-                if (!is_array($fieldOverrides)) {
-                    throw new BadRequestHttpException('Invalid field translations.');
-                }
-
-                $allowedIds = Formie::$plugin->getFieldSiteOverrides()->collectFieldDefinitionIds($persistedForm);
-
-                if (array_diff_key($fieldOverrides, array_fill_keys($allowedIds, true)) !== []) {
-                    throw new ForbiddenHttpException('Field translations are outside this form.');
-                }
-            }
         }
 
         $form = Formie::$plugin->getForms()->buildFormFromPost();
+
+        if ($formId && $siteOverrides->isEnabled() && $siteId !== $siteOverrides->getSourceSiteId($persistedForm) && is_array($translations)) {
+            $fieldOverrides = $translations['fieldOverrides'] ?? [];
+
+            if (!is_array($fieldOverrides)) {
+                throw new BadRequestHttpException('Invalid field translations.');
+            }
+
+            // Fields added in this save (such as a synced field) are authorised when the posted layout is built.
+            $fieldSiteOverrides = Formie::$plugin->getFieldSiteOverrides();
+            $allowedIds = array_merge($fieldSiteOverrides->collectFieldDefinitionIds($persistedForm), $fieldSiteOverrides->collectFieldDefinitionIds($form));
+
+            if (array_diff_key($fieldOverrides, array_fill_keys($allowedIds, true)) !== []) {
+                throw new ForbiddenHttpException('Field translations are outside this form.');
+            }
+        }
         $isNewForm = !$form->id;
         $sourceSiteId = $siteOverrides->getSourceSiteId($form);
 
