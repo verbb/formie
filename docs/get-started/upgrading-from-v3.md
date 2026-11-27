@@ -1388,6 +1388,20 @@ Existing `process-webhook?handle=…` URLs remain routable while `compatibilityM
 
 The webhook adapter does not provide the durable receipt handling of the new API. See [Payment Integration](/developers/custom-integration/payment-integration) when updating it. Other [payment method and property renames](#payment-compatibility), including the cancellation adapter, can wait until later.
 
+### Hidden Recipients Values
+
+A hidden Recipients field renders a token of its default recipients, so the email addresses stay out of the page and visitors can't change who receives the notification. Formie 3 templates and submission clients could post email addresses for a hidden Recipients field instead. Formie still accepts them while compatibility mode is enabled, and logs a deprecation warning. With compatibility mode disabled, a hidden Recipients field ignores posted addresses and uses its default.
+
+To set a hidden field's recipients from a template, [populate the field](/templates/populating-forms#recipients) before rendering the form, so the rendered token carries the addresses:
+
+```twig
+{% do craft.formie.populateFormValues(form, {
+    recipients: entry.contactEmail,
+}) %}
+
+{{ craft.formie.renderForm(form) }}
+```
+
 ## Deprecated Changes
 
 <span id="replacement-reference"></span>

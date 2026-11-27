@@ -169,6 +169,15 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         return $this->displayType === 'hidden';
     }
 
+    public function normalizeValueFromRequest(mixed $value, ?ElementInterface $element): mixed
+    {
+        if ($this->displayType === 'hidden') {
+            $value = $this->_hiddenRequestValue($value, $element);
+        }
+
+        return parent::normalizeValueFromRequest($value, $element);
+    }
+
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
         $value = $this->_resolveRecipientInput($value);
@@ -1078,6 +1087,34 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         }
 
         return $value;
+    }
+
+    private function _hiddenRequestValue(mixed $value, ?ElementInterface $element): mixed
+    {
+        // Hidden fields post a token of their default, so the addresses stay private and fixed.
+        if (is_string($value) && RecipientTokenHelper::matchesHidden($value, $this->defaultValue)) {
+            return $value;
+        }
+
+        // Values from `populateFormValues()` render a token of the populated recipients instead.
+        $initial = $element instanceof Submission ? ($element->getForm()?->getInstanceConfig()->initial ?? []) : [];
+
+        if (is_string($value) && array_key_exists($this->uid, $initial) && RecipientTokenHelper::matchesHidden($value, $initial[$this->uid])) {
+            return $initial[$this->uid];
+        }
+
+        if ($value === $this->defaultValue || (in_array($value, [null, ''], true) && in_array($this->defaultValue, [null, ''], true))) {
+            return $value;
+        }
+
+        // Formie 3 templates could post raw addresses. Compatibility mode keeps that working until the next major.
+        if (Formie::$plugin->getCompatibility()->isCompatibilityModeEnabled()) {
+            Craft::$app->getDeprecator()->log(self::class . '::hiddenAddresses', 'Posting email addresses to a hidden Recipients field has been deprecated. Post the field’s rendered value instead.');
+
+            return $value;
+        }
+
+        return $this->defaultValue;
     }
 
     private function _getResolvedRecipientOptionRows(): array

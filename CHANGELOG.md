@@ -12,6 +12,10 @@
 - Exporting forms from the **Forms** index now requires the **Export forms** permission, matching the **Import/Export** page.
 - Updated Tiptap to 3.31.4 for rich text editing in the control panel and Moment to 2.31.0.
 - A date a submission already has is no longer checked against the Date/Time field’s **Min Date** and **Max Date** when the submission is saved again, so changing its status, marking it as spam or editing its other fields still works once a limit such as **Today’s Date/Time** has moved past it. New and changed dates are still checked.
+- Hidden Recipients fields now send to their default recipients when an email address is posted for them while `compatibilityMode` is disabled.
+
+### Deprecated
+- Deprecated posting email addresses to hidden Recipients fields. Post the field’s rendered value instead.
 
 ### Fixed
 - Fixed a high-severity information disclosure vulnerability.
@@ -21,6 +25,7 @@
 - Fixed three moderate-severity information disclosure vulnerabilities.
 - Fixed a low-severity information disclosure vulnerability.
 - Fixed the Outseta integration updating the first person in the Outseta account on every submission, instead of the person with the submitted email.
+- Fixed hidden Recipients fields populated with `craft.formie.populateFormValues()` sending their notification to an invalid address instead of the populated recipients.
 - Fixed every submission after the first failing to save on PostgreSQL when the form uses `setRelations()`. Sites already affected are repaired when migrations run.
 - Fixed submissions failing when `setRelations()` was given the same element more than once, including by calling it twice.
 - Fixed User element integrations on all but one form losing their **User Group** when upgrading from Formie 2 or Formie 3. Upgraded sites are repaired when migrations run, except forms saved since the upgrade, which need their group selected again. ([#2206](https://github.com/verbb/formie/issues/2206))
