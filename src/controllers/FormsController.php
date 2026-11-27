@@ -519,6 +519,11 @@ class FormsController extends Controller
             if (!$currentUser || !Formie::$plugin->getPermissions()->canManageForm($currentUser, $form)) {
                 throw new ForbiddenHttpException('User is not permitted to perform this action');
             }
+
+            // A form's own manage grant doesn't extend to other groups, so moving it needs permission on the new group.
+            if ($formId && !$saveAsNew && (int)$persistedForm->groupId !== (int)$form->groupId && !Formie::$plugin->getPermissions()->canManageFormInGroup($currentUser, $form->getGroup())) {
+                throw new ForbiddenHttpException('User is not permitted to perform this action');
+            }
         }
 
         if ($sitePolicyError = $this->_validateFormGroupSitePolicy($form)) {

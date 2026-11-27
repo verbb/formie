@@ -514,12 +514,13 @@ it('keeps update imports that stay in the group or move into a group the importe
             importGroupMoveGrant(Permissions::PERM_MANAGE_FORMS, $groups['a']),
             importGroupMoveGrant(Permissions::PERM_MANAGE_FORMS, $groups['b']),
         ],
-        'dedicated form grant' => [
+        'dedicated form grant in a managed destination' => [
             Formie::$plugin->getPermissions()->scopedPermission(Permissions::PERM_MANAGE_FORMS, Formie::$plugin->getPermissions()->formScope($form)),
+            importGroupMoveGrant(Permissions::PERM_MANAGE_FORMS, $groups['b']),
         ],
         'manage all forms' => [Permissions::PERM_MANAGE_FORMS],
         'admin' => [],
-    }, $role === 'admin', $role === 'dedicated form grant');
+    }, $role === 'admin', str_starts_with($role, 'dedicated form grant'));
     ['a' => $groupA, 'b' => $groupB] = $fixture['groups'];
     $destination = $role === 'same group' ? $groupA : $groupB;
     $payload = importGroupMovePayload($fixture['form'], importGroupMoveConfig($destination));
@@ -532,4 +533,28 @@ it('keeps update imports that stay in the group or move into a group the importe
         ->and($result['form']->id)->toBe($fixture['form']->id)
         ->and(importGroupMoveStoredGroupId((int)$fixture['form']->id))->toBe((int)$destination->id)
         ->and(Formie::$plugin->getForms()->getFormById((int)$fixture['form']->id)?->title)->toBe($payload['title']);
-})->with(['same group', 'managed destination', 'dedicated form grant', 'manage all forms', 'admin'])->group('security');
+})->with(['same group', 'managed destination', 'dedicated form grant in a managed destination', 'manage all forms', 'admin'])->group('security');
+
+it('refuses an update import that moves a form with its own manage grant into a group the importer cannot manage', function(): void {
+    $fixture = importGroupMoveFixture(fn(array $groups, Form $form) => [
+        Formie::$plugin->getPermissions()->scopedPermission(Permissions::PERM_MANAGE_FORMS, Formie::$plugin->getPermissions()->formScope($form)),
+        Permissions::PERM_ACCESS_SUBMISSIONS,
+        importGroupMoveGrant(Permissions::PERM_VIEW_SUBMISSIONS, $groups['b']),
+    ], dedicated: true);
+    ['a' => $groupA, 'b' => $groupB] = $fixture['groups'];
+    $payload = importGroupMovePayload($fixture['form'], importGroupMoveConfig($groupB));
+
+    $result = importGroupMoveRun($fixture, $payload);
+
+    expect($result['plan']['deniedGroup'])->toBe($groupB->name)
+        ->and($result['error'])->toBe('You don’t have permission to move this form to the “' . $groupB->name . '” form group.')
+        ->and(importGroupMoveStoredGroupId((int)$fixture['form']->id))->toBe((int)$groupA->id);
+
+    // Updating the form in its own group still works.
+    $payload = importGroupMovePayload($fixture['form'], importGroupMoveConfig($groupA));
+    $payload['title'] = 'Import Move Dedicated Update';
+    $result = importGroupMoveRun($fixture, $payload);
+
+    expect($result['error'])->toBeNull()
+        ->and(Formie::$plugin->getForms()->getFormById((int)$fixture['form']->id)?->title)->toBe('Import Move Dedicated Update');
+})->group('security');

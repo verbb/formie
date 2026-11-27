@@ -184,3 +184,65 @@ it('allows trusted stencil hydration to include posted notifications', function(
             ->and($stencilForm->getNotifications()[0]->handle)->toBe('stencilNotification');
     }, ['method' => 'POST', 'headers' => ['Accept' => 'application/json']]);
 })->group('security');
+
+it('refuses moving a form into a group the user cannot manage with only the form\'s own manage grant', function(): void {
+    $groups = [];
+
+    foreach (['a', 'b', 'c'] as $key) {
+        $groups[$key] = new FormGroup([
+            'name' => 'Dedicated Move ' . strtoupper($key),
+            'handle' => 'dedicatedMove' . strtoupper($key) . bin2hex(random_bytes(6)),
+        ]);
+
+        expect(Formie::$plugin->getFormGroups()->saveGroup($groups[$key]))->toBeTrue();
+    }
+
+    $form = formie()->form(['title' => 'Dedicated Move Form', 'groupId' => $groups['a']->id])
+        ->settings(['usePerFormPermissions' => true])
+        ->create();
+    $username = 'dedicatedMove' . bin2hex(random_bytes(6));
+    $user = new User(['username' => $username, 'email' => $username . '@example.test']);
+
+    expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
+
+    Craft::$app->set('userPermissions', new \craft\services\UserPermissions());
+
+    $permissionService = Formie::$plugin->getPermissions();
+
+    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, \Tests\Support\PermissionTestHelper::withParents([
+        'accessCp',
+        'accessPlugin-formie',
+        Permissions::PERM_ACCESS_FORMS,
+        $permissionService->scopedPermission(Permissions::PERM_MANAGE_FORMS, $permissionService->formScope($form)),
+        $permissionService->scopedPermission(Permissions::PERM_MANAGE_FORMS, $permissionService->groupScope($groups['c']->handle)),
+        ...array_map(fn($site) => 'editSite:' . $site->uid, Craft::$app->getSites()->getAllSites()),
+    ])))->toBeTrue();
+
+    $save = fn(?int $groupId, string $title) => WebRequestTestHelper::withWebRequestContext(function($request) use ($form, $user, $groupId, $title): void {
+        $request->setIsCpRequest(true);
+        Craft::$app->getUser()->setIdentity(User::find()->id($user->id)->status(null)->one());
+        $request->setBodyParams([
+            $request->csrfParam => $request->getCsrfToken(),
+            'id' => $form->id,
+            'siteId' => Craft::$app->getSites()->getCurrentSite()->id,
+            'title' => $title,
+            'groupId' => $groupId,
+        ]);
+
+        (new FormsController('forms', Formie::$plugin))->runAction('save');
+    }, ['method' => 'POST', 'headers' => ['Accept' => 'application/json']]);
+    $stored = fn() => Formie::$plugin->getForms()->getFormById((int)$form->id);
+
+    expect(fn() => $save((int)$groups['b']->id, 'Dedicated Move Form'))
+        ->toThrow(ForbiddenHttpException::class, 'User is not permitted to perform this action')
+        ->and((int)$stored()->groupId)->toBe((int)$groups['a']->id);
+
+    // The form's own grant still covers saving it in its group, and the user can move it into a group they manage.
+    $save((int)$groups['a']->id, 'Dedicated Move Form Renamed');
+
+    expect($stored()->title)->toBe('Dedicated Move Form Renamed');
+
+    $save((int)$groups['c']->id, 'Dedicated Move Form Renamed');
+
+    expect((int)$stored()->groupId)->toBe((int)$groups['c']->id);
+})->group('security');

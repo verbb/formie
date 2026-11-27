@@ -123,6 +123,8 @@ Formie generates permissions for each form group you've created in **Settings �
 
 To control access to a single form, turn on **Use Dedicated Permissions** in the **Permissions** section of the form's **Settings** tab. On Craft Pro, the form then gets its own **Manage “{form}” form**, **View “{form}” submissions** and **View “{form}” sent notifications** permissions. Dedicated permissions are added on top of the group's permissions. Someone with the group's permissions can still reach the form, so use dedicated permissions to give extra people access to one form, rather than to keep a form from its group.
 
+Moving a form into another form group, from the form builder, the **Move form** action or an import, needs permission to manage forms in that group. A form's own **Manage “{form}” form** permission covers it only in the group it's in.
+
 The form group and per-form permissions sit beside the **View all** and **Manage all** permissions they narrow down. Someone with **Manage all forms** or **View all submissions** doesn't need them.
 
 ## Permissions Given to Form Creators

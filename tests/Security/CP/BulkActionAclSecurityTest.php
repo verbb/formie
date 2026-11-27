@@ -283,20 +283,40 @@ it('offers and allows Ungrouped to users who can manage ungrouped forms', functi
         ->and(moveFormToGroupStoredGroupId($fixture['form']))->toBeNull();
 })->group('security');
 
-it('checks each selected form in its new group like the form builder', function (): void {
+it('checks the destination group for each selected form, including forms with their own manage grant', function (): void {
     $fixture = moveFormToGroupFixture(fn(array $groups, Form $dedicatedForm) => [
         moveFormToGroupManageGrant($groups['a']),
         Formie::$plugin->getPermissions()->scopedPermission(Permissions::PERM_MANAGE_FORMS, Formie::$plugin->getPermissions()->formScope($dedicatedForm)),
     ]);
+    $groupA = $fixture['groups']['a'];
     $groupB = $fixture['groups']['b'];
 
     [$result, $message] = moveFormToGroupPerform($fixture, (string)$groupB->id, [$fixture['form'], $fixture['dedicatedForm']]);
 
-    // The dedicated grant still covers the form in group B, so the builder allows that move too.
+    // A form's own manage grant doesn't extend to group B, so neither form moves.
+    expect($result)->toBeFalse()
+        ->and($message)->toBe('You don’t have permission to move forms to the selected group.')
+        ->and(moveFormToGroupStoredGroupId($fixture['form']))->toBe((int)$groupA->id)
+        ->and(moveFormToGroupStoredGroupId($fixture['dedicatedForm']))->toBe((int)$groupA->id);
+})->group('security');
+
+it('lets a form\'s own manage grant move it only into groups the user can manage', function (): void {
+    $fixture = moveFormToGroupFixture(fn(array $groups, Form $dedicatedForm) => [
+        moveFormToGroupManageGrant($groups['c']),
+        Formie::$plugin->getPermissions()->scopedPermission(Permissions::PERM_MANAGE_FORMS, Formie::$plugin->getPermissions()->formScope($dedicatedForm)),
+    ]);
+    ['a' => $groupA, 'b' => $groupB, 'c' => $groupC] = $fixture['groups'];
+
+    [$result] = moveFormToGroupPerform($fixture, (string)$groupB->id, [$fixture['dedicatedForm']]);
+
+    expect($result)->toBeFalse()
+        ->and(moveFormToGroupStoredGroupId($fixture['dedicatedForm']))->toBe((int)$groupA->id);
+
+    [$result, $message] = moveFormToGroupPerform($fixture, (string)$groupC->id, [$fixture['dedicatedForm']]);
+
     expect($result)->toBeTrue()
-        ->and($message)->toBe('Some forms could not be moved.')
-        ->and(moveFormToGroupStoredGroupId($fixture['form']))->toBe((int)$fixture['groups']['a']->id)
-        ->and(moveFormToGroupStoredGroupId($fixture['dedicatedForm']))->toBe((int)$groupB->id);
+        ->and($message)->toBe('Form moved.')
+        ->and(moveFormToGroupStoredGroupId($fixture['dedicatedForm']))->toBe((int)$groupC->id);
 })->group('security');
 
 it('keeps moving forms into any group for admins and Manage all forms', function (bool $admin): void {

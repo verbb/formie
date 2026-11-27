@@ -146,10 +146,10 @@ JS, [static::class]);
                 continue;
             }
 
-            // Check the form again in its new group, as the form builder does when the group changes.
+            // A form's own manage grant doesn't extend to other groups, as in the form builder.
             $element->setGroup($targetGroup);
 
-            if (!$permissions->canManageForm($currentUser, $element)) {
+            if (!$permissions->canManageFormInGroup($currentUser, $targetGroup)) {
                 $failureMessage = Craft::t('formie', 'You don’t have permission to move forms to the selected group.');
                 $failCount++;
 

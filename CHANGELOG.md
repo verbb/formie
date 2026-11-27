@@ -10,6 +10,7 @@
 - Searchable dropdowns that allow one choice now mark the chosen option in the list with a check mark.
 - Searchable dropdowns that allow one choice now show their clear button beside the dropdown arrow instead of straight after the chosen value. A search now takes the place of the chosen value while it’s typed, instead of following it.
 - Exporting forms from the **Forms** index now requires the **Export forms** permission, matching the **Import/Export** page.
+- Moving a form into another form group, from the form builder, the **Move form** action on the **Forms** index or an import, now needs permission to manage forms in that group. A form’s own **Manage “{form}” form** permission no longer covers moving it.
 - GraphQL requests through a public schema now return Recipients field options, default values and submission values as recipient tokens instead of email addresses, the same as the rendered form. Mutations already accept these tokens. Private schemas with an access token still return the email addresses.
 - Updated Tiptap to 3.31.4 for rich text editing in the control panel and Moment to 2.31.0.
 - A date a submission already has is no longer checked against the Date/Time field’s **Min Date** and **Max Date** when the submission is saved again, so changing its status, marking it as spam or editing its other fields still works once a limit such as **Today’s Date/Time** has moved past it. New and changed dates are still checked.
@@ -24,7 +25,7 @@
 - Fixed two high-severity information disclosure vulnerabilities.
 - Fixed a high-severity vulnerability.
 - Fixed a moderate-severity vulnerability.
-- Fixed a moderate-severity privilege escalation vulnerability.
+- Fixed two moderate-severity privilege escalation vulnerabilities.
 - Fixed four moderate-severity cross-site scripting vulnerabilities.
 - Fixed three moderate-severity information disclosure vulnerabilities.
 - Fixed two low-severity information disclosure vulnerabilities.

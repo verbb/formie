@@ -501,8 +501,8 @@ class ImportExportHelper
                 ]);
             }
 
-            // As in the form builder, a dedicated manage grant for the form still covers it in its new group.
-            if ($permissions->canManageFormInGroup($user, $group) || $user->can($permissions->scopedPermission(Permissions::PERM_MANAGE_FORMS, $permissions->formScope($form)))) {
+            // As in the form builder, a dedicated manage grant for the form doesn't extend to other groups.
+            if ($permissions->canManageFormInGroup($user, $group)) {
                 continue;
             }
 
