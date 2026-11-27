@@ -14,12 +14,13 @@
 - A date a submission already has is no longer checked against the Date/Time field’s **Min Date** and **Max Date** when the submission is saved again, so changing its status, marking it as spam or editing its other fields still works once a limit such as **Today’s Date/Time** has moved past it. New and changed dates are still checked.
 - Hidden Recipients fields now send to their default recipients when an email address is posted for them while `compatibilityMode` is disabled.
 - Payments that take their amount from a Calculations field now have the amount worked out again on the server, and are refused if the submitted amount is different. Browser code that rounds, caps or replaces a calculation through its evaluate events can no longer change a payment amount.
+- Only admins can now add environment variables to integration and CAPTCHA settings. Other users who change where an integration connects must enter credentials that come from environment variables, or masked CAPTCHA secrets, again.
 
 ### Deprecated
 - Deprecated posting email addresses to hidden Recipients fields. Post the field’s rendered value instead.
 
 ### Fixed
-- Fixed a high-severity information disclosure vulnerability.
+- Fixed two high-severity information disclosure vulnerabilities.
 - Fixed a high-severity vulnerability.
 - Fixed a moderate-severity vulnerability.
 - Fixed a moderate-severity privilege escalation vulnerability.

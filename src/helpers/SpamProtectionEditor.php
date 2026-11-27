@@ -51,6 +51,13 @@ class SpamProtectionEditor
             throw new BadRequestHttpException('Invalid CAPTCHA settings.');
         }
 
+        // Saved secrets are masked, so one carried over to a new endpoint would send a value the user can't see.
+        $posted = array_filter($settings, static fn($value) => $value !== '' && $value !== self::SECRET_PLACEHOLDER);
+
+        if ($violation = IntegrationSettingsPolicy::violation($posted, $provider->getSettings(), IntegrationSecrets::sensitiveAttributes($provider), hiddenCredentials: true)) {
+            throw new BadRequestHttpException($violation);
+        }
+
         foreach (IntegrationSecrets::sensitiveAttributes($provider) as $attribute) {
             if (!empty($config['clearSecrets'][$attribute]) || ($clearEmptySecrets && array_key_exists($attribute, $settings) && $settings[$attribute] === '')) {
                 $settings[$attribute] = null;

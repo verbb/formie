@@ -8,6 +8,8 @@ use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\Payment as PaymentIntegration;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\IntegrationSecrets;
+use verbb\formie\helpers\IntegrationSettingsPolicy;
 use verbb\formie\integrations\elements\User as UserIntegration;
 use verbb\formie\models\IntegrationSettingsContext;
 use verbb\formie\services\Permissions;
@@ -60,7 +62,7 @@ class IntegrationsController extends Controller
         $type = $this->request->getParam('type');
         $integrationId = (int)$this->request->getParam('id');
 
-        $settings = $this->_postedProviderSettings($type);
+        $settings = $postedSettings = $this->_postedProviderSettings($type);
 
         if ($integrationId) {
             $savedIntegration = $integrationsService->getIntegrationById($integrationId);
@@ -86,6 +88,17 @@ class IntegrationsController extends Controller
         ];
 
         $integration = $integrationsService->createIntegration($integrationData);
+        $violation = IntegrationSettingsPolicy::violation($postedSettings, $savedIntegration->settings ?? [], IntegrationSecrets::sensitiveAttributes($integration), providerChanged: $savedIntegration && $savedIntegration::class !== $integration::class);
+
+        if ($violation) {
+            $this->setFailFlash($violation);
+
+            Craft::$app->getUrlManager()->setRouteParams([
+                'integration' => $integration,
+            ]);
+
+            return null;
+        }
 
         if ($integration instanceof UserIntegration) {
             // Nested settings cannot change the identity used for the assignment baseline.
@@ -283,7 +296,13 @@ class IntegrationsController extends Controller
                 'uid' => $integration->uid,
             ];
 
+            $savedIntegration = $integration;
             $integration = Formie::$plugin->getIntegrations()->createIntegration($integrationData);
+            $violation = IntegrationSettingsPolicy::violation($settings, $savedIntegration->settings ?? [], IntegrationSecrets::sensitiveAttributes($integration), providerChanged: $savedIntegration::class !== $integration::class);
+
+            if ($violation) {
+                return $this->asFailure($violation);
+            }
         }
 
         if (!$integration::supportsConnection()) {

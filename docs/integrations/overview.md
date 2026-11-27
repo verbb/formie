@@ -24,6 +24,8 @@ Project config sync leaves instance-level integrations unchanged, including thos
 
 For project integrations, use environment variable references such as `$MAILCHIMP_API_KEY` in credential fields that support them, and set the corresponding value in each environment. The reference is stored in project config; entering a literal credential can put that value in project config instead. OAuth connections must be authorised in each environment; deploying the configuration does not transfer the connected account’s tokens.
 
+Only admins can add environment variable references to integration and CAPTCHA settings, because a reference can read any variable on the server. Other users with permission to manage integrations can keep the references an admin saved. If they change where an integration connects, such as its API URL or domain, they must enter credentials that come from environment variables, or masked CAPTCHA secrets, again.
+
 The choice applies to the reusable connection. Each form’s enabled integrations, destinations and field mappings are still saved with the form. See [Project Config, Environment, and Control Panel Settings](/guides/configuration/project-config-environment-and-control-panel-settings) for how connection configuration and form content move between environments.
 
 ### Captcha Provider Settings
