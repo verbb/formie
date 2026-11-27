@@ -5,6 +5,7 @@ declare const _default: {
     url: ValidationRuleDefinition;
     number: ValidationRuleDefinition;
     match: ValidationRuleDefinition;
+    dateParts: ValidationRuleDefinition;
 };
 export default _default;
 //# sourceMappingURL=rules.d.ts.map
