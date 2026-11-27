@@ -99,6 +99,11 @@ class MultiLineText extends Field implements SortableFieldInterface, Previewable
 
     public function normalizeValueFromRequest(mixed $value, ?ElementInterface $element): mixed
     {
+        // Rich text is one HTML string. An array, such as `?message[]=` in a prefill URL, would skip the purifier.
+        if ($this->useRichText && is_array($value)) {
+            $value = null;
+        }
+
         if ($this->useRichText && is_string($value) && $value !== '') {
             $buttons = $this->getRichTextButtons() ?? [];
             $value = StringHelper::cleanRichTextRequest($value, in_array('image', $buttons, true));
