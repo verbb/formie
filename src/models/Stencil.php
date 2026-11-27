@@ -193,6 +193,19 @@ class Stencil extends Model implements FormInterface
             'data' => $this->data->getSerializedData(),
         ];
 
+        // Project stencils cross environments where template IDs differ.
+        if ($this->isProjectScope()) {
+            foreach ($config['data']['notifications'] as &$notification) {
+                $templateId = $notification['templateId'] ?? null;
+                $pdfTemplateId = $notification['pdfTemplateId'] ?? null;
+                $notification['templateUid'] = $templateId ? Formie::$plugin->getEmailTemplates()->getTemplateById($templateId)?->uid : null;
+                $notification['pdfTemplateUid'] = $pdfTemplateId ? Formie::$plugin->getPdfTemplates()->getTemplateById($pdfTemplateId)?->uid : null;
+                unset($notification['templateId'], $notification['pdfTemplateId']);
+            }
+
+            unset($notification);
+        }
+
         // Entry UIDs are shared across sites, so keep the chosen site alongside it.
         if ($redirectEntry && $this->redirectEntrySiteId) {
             $config['redirectEntrySite'] = Craft::$app->getSites()->getSiteById($this->redirectEntrySiteId)?->uid;

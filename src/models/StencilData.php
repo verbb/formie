@@ -34,6 +34,27 @@ class StencilData extends Model
         return $notifications;
     }
 
+    /**
+     * Project stencils store their notification templates by UID, as template IDs differ between environments.
+     * Resolve them to this environment's IDs. Older configs that only have IDs are kept as they are.
+     */
+    public static function materializeNotificationTemplates(array $notification): array
+    {
+        if (array_key_exists('templateUid', $notification)) {
+            $templateUid = $notification['templateUid'];
+            $notification['templateId'] = $templateUid ? Formie::$plugin->getEmailTemplates()->getTemplateByUid($templateUid)?->id : null;
+            unset($notification['templateUid']);
+        }
+
+        if (array_key_exists('pdfTemplateUid', $notification)) {
+            $pdfTemplateUid = $notification['pdfTemplateUid'];
+            $notification['pdfTemplateId'] = $pdfTemplateUid ? Formie::$plugin->getPdfTemplates()->getTemplateByUid($pdfTemplateUid)?->id : null;
+            unset($notification['pdfTemplateUid']);
+        }
+
+        return $notification;
+    }
+
     public static function getSerializedFormSettings(array|FormSettings $settings): array
     {
         if ($settings instanceof FormSettings) {
@@ -129,7 +150,8 @@ class StencilData extends Model
                         $notification['handle'] = StringHelper::toHandle($notification['name']);
                     }
 
-                    $notification = new Notification($notification);
+                    // Stencil data read straight from project config still has template UIDs.
+                    $notification = new Notification(static::materializeNotificationTemplates($notification));
                 }
             }
         }

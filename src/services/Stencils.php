@@ -11,6 +11,7 @@ use verbb\formie\helpers\FormSerializer;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\Stencil;
+use verbb\formie\models\StencilData;
 use verbb\formie\records\Stencil as StencilRecord;
 
 use Craft;
@@ -383,6 +384,7 @@ class Stencils extends Component
         $projectConfig = Craft::$app->getProjectConfig();
         $formTemplates = $projectConfig->get(FormTemplates::CONFIG_TEMPLATES_KEY, true) ?? [];
         $emailTemplates = $projectConfig->get(EmailTemplates::CONFIG_TEMPLATES_KEY, true) ?? [];
+        $pdfTemplates = $projectConfig->get(PdfTemplates::CONFIG_TEMPLATES_KEY, true) ?? [];
         $statuses = $projectConfig->get(SubmissionStatuses::CONFIG_SUBMISSION_STATUSES_KEY, true) ?? [];
 
         foreach ($formTemplates as $formTemplateUid => $formTemplateData) {
@@ -391,6 +393,15 @@ class Stencils extends Component
 
         foreach ($emailTemplates as $emailTemplateUid => $emailTemplateData) {
             $projectConfig->processConfigChanges(EmailTemplates::CONFIG_TEMPLATES_KEY . '.' . $emailTemplateUid);
+        }
+
+        foreach ($pdfTemplates as $pdfTemplateUid => $pdfTemplateData) {
+            $projectConfig->processConfigChanges(PdfTemplates::CONFIG_TEMPLATES_KEY . '.' . $pdfTemplateUid);
+        }
+
+        // Materialise portable references locally, retaining old ID-only configurations.
+        foreach ($data['data']['notifications'] ?? [] as $key => $notification) {
+            $data['data']['notifications'][$key] = StencilData::materializeNotificationTemplates($notification);
         }
 
         foreach ($statuses as $statusUid => $statusData) {
