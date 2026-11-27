@@ -10,6 +10,7 @@ use verbb\formie\gql\interfaces\RowInterface;
 use verbb\formie\gql\types\input\RepeaterInputType;
 use verbb\formie\gql\types\RowType;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\DynamicModel;
 use verbb\formie\models\SlotTag;
@@ -388,7 +389,8 @@ class Repeater extends RepeatableParentField
             return SlotTag::make('button')
                 ->core([
                     'type' => 'button',
-                    'text' => $this->addRowLabel,
+                    // `text` is output as HTML, so builder-authored text is purified first.
+                    'text' => StringHelper::cleanString((string)$this->addRowLabel),
                     'disabled' => $isStatic,
                     'data-formie-add-button' => true,
                     'data-formie-repeater-add' => $this->handle,

@@ -159,7 +159,8 @@ class Summary extends CosmeticField
             return SlotTag::make('p')
                 ->core([
                     'data-formie-summary-heading' => true,
-                    'text' => $this->description,
+                    // `text` is output as HTML, so builder-authored text is purified first.
+                    'text' => StringHelper::cleanString((string)$this->description),
                 ])
                 ->theme([
                     'class' => [

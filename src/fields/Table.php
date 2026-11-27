@@ -844,7 +844,8 @@ class Table extends Field
             return SlotTag::make('button')
                 ->core([
                     'type' => 'button',
-                    'text' => $this->addRowLabel,
+                    // `text` is output as HTML, so builder-authored text is purified first.
+                    'text' => StringHelper::cleanString((string)$this->addRowLabel),
                     'disabled' => $isStatic,
                     'data-formie-add-button' => true,
                     'data-formie-table-add' => $this->handle,
