@@ -2183,12 +2183,15 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
         $rule = ['type' => 'dateParts'];
 
+        // The browser shows the same messages as the server.
         if ($minDate = $this->getMinDate()) {
             $rule['minDate'] = $minDate->format('Y-m-d\TH:i:s');
+            $rule['messages']['dateMin'] = $this->_getDateLimitMessage('min', $minDate);
         }
 
         if ($maxDate = $this->getMaxDate()) {
             $rule['maxDate'] = $maxDate->format('Y-m-d\TH:i:s');
+            $rule['messages']['dateMax'] = $this->_getDateLimitMessage('max', $maxDate);
         }
 
         $validators[] = $rule;
@@ -2910,17 +2913,20 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             return false;
         }
 
-        // The limits hold wall-clock values, so print their own day. A date-only string skips the formatter's time zone
-        // conversion, which would otherwise shift the day by the site's UTC offset.
-        $element->addError($this->valueKey(), $beforeMin
-            ? Craft::t('formie', 'The date must be on or after {date}.', [
-                'date' => Craft::$app->getFormatter()->asDate($minDate->format('Y-m-d')),
-            ])
-            : Craft::t('formie', 'The date must be on or before {date}.', [
-                'date' => Craft::$app->getFormatter()->asDate($maxDate->format('Y-m-d')),
-            ]));
+        $element->addError($this->valueKey(), $beforeMin ? $this->_getDateLimitMessage('min', $minDate) : $this->_getDateLimitMessage('max', $maxDate));
 
         return true;
+    }
+
+    private function _getDateLimitMessage(string $limit, DateTime $date): string
+    {
+        // The limits hold wall-clock values, so print their own day. A date-only string skips the formatter's time zone
+        // conversion, which would otherwise shift the day by the site's UTC offset.
+        $params = ['date' => Craft::$app->getFormatter()->asDate($date->format('Y-m-d'))];
+
+        return $limit === 'min'
+            ? Craft::t('formie', 'The date must be on or after {date}.', $params)
+            : Craft::t('formie', 'The date must be on or before {date}.', $params);
     }
 
     /**

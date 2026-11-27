@@ -56,7 +56,7 @@ For a date range field:
 
 Individual part selectors such as `{field:myDate:month}` still return the raw stored part value when using dropdown or text-input display types.
 
-For **Text Inputs** and **Dropdowns**, each date/time part is a number or option field with sensible defaults (for example, month 1–12 and day 1–31). You can adjust limits per part from the nested sub-field editor. Formie also validates that the combined date parts form a real calendar date, and enforces any configured minimum or maximum dates on submit.
+For **Text Inputs** and **Dropdowns**, each date/time part is a number or option field with sensible defaults (for example, month 1–12 and day 1–31). You can adjust limits per part from the nested sub-field editor. Formie also validates that the combined date parts form a real calendar date, and enforces any configured minimum or maximum dates on submit. The browser checks the minimum and maximum first, so visitors see the message before the form is sent.
 
 When querying or saving submissions through GraphQL, Date/Time fields can expose a field-specific content type. Query the form’s `formFields` and include `inputTypeName` when building mutations. Date range fields expose a form-specific type with `start` and `end` datetime values.
 

@@ -17,6 +17,7 @@ import { t } from '#utils/i18n';
 import { getValidatorEventName } from '#utils/event-names';
 import { createDebug } from '#utils/debug';
 import { isValidationSkipped } from '#validation/skip';
+import { getDatePartsField } from '#validation/rules/date-parts';
 
 type ValidatorDefinition = {
     validate: (ctx: ValidationContext) => boolean;
@@ -159,6 +160,11 @@ export class FormieValidator {
 
     validate(inputOrSelector: Element | null = null, options: ValidateOptions = {}): ValidationError[] {
         this.errors = [];
+
+        // A date's limits depend on all of its parts, so changing one part checks the whole Date field again.
+        if (isValidationInput(inputOrSelector)) {
+            inputOrSelector = getDatePartsField(inputOrSelector)?.field ?? inputOrSelector;
+        }
 
         // Checkbox/radio fields often render as many inputs for one logical field.
         // We validate and render errors once per group to avoid duplicate messages.

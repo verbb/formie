@@ -1,4 +1,5 @@
 import type { ValidationRuleDefinition } from '#validation/types';
+import dateParts from '#validation/rules/date-parts';
 import email from '#validation/rules/email';
 import match from '#validation/rules/match';
 import number from '#validation/rules/number';
@@ -13,4 +14,5 @@ export default {
     url,
     number,
     match,
+    dateParts,
 } satisfies Record<string, ValidationRuleDefinition>;

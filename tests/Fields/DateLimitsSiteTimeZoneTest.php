@@ -167,3 +167,32 @@ it('names the limit’s own day in the error message', function(string $timeZone
         '2026-11-19', 'The date must be on or before {date}.', '2026-11-18',
     ],
 ]);
+
+it('gives the browser rule the same Min Date and Max Date messages as the server', function(string $timeZone, string $date): void {
+    dateLimitsUseSiteTimeZone($timeZone);
+
+    $field = dateLimitsField([
+        'minDateOption' => 'date', 'minDate' => '2026-12-01',
+        'maxDateOption' => 'date', 'maxDate' => '2027-06-30',
+    ]);
+    $messages = [];
+
+    foreach ($field->browserValidationRules() as $rule) {
+        if ($rule['type'] === 'dateParts') {
+            $messages = $rule['messages'];
+        }
+    }
+
+    $serverError = function(string $date) use ($field): string {
+        $submission = $this->getMockBuilder(Submission::class)->onlyMethods(['getFieldValue'])->getMock();
+
+        return dateLimitsErrors($field, $submission, $date)[0];
+    };
+
+    expect($messages['dateMin'] ?? null)->toBe($serverError('2026-11-30'))
+        ->and($messages['dateMin'])->toContain('2026')
+        ->and($messages['dateMax'] ?? null)->toBe($serverError($date));
+})->with([
+    'west of UTC' => ['America/New_York', '2027-07-01'],
+    'east of UTC' => ['Australia/Melbourne', '2027-07-01'],
+]);

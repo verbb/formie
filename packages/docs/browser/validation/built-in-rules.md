@@ -1,6 +1,6 @@
 # Built-in Rules
 
-Formie's core validator registry currently ships five rule names: `required`, `email`, `url`, `number`, and `match`.
+Formie's core validator registry currently ships six rule names: `required`, `email`, `url`, `number`, `match`, and `dateParts`.
 
 This page covers the validator registry only. Some field-specific constraints, such as upload limits, checkbox max selections, or provider-specific checks, are enforced by field modules rather than this shared validator registry.
 
@@ -90,5 +90,26 @@ Checks that the field matches another field by Formie field handle.
 ```
 
 `match` resolves by `fieldHandle`, not raw input `name`, so it stays aligned with the rest of Formie's field-level DOM contract.
+
+## `dateParts`
+
+Checks a Date/Time field that uses separate inputs or dropdowns for its parts against its `minDate` and `maxDate`. Formie adds this rule for the **Text Inputs** and **Dropdowns** display types.
+
+```html
+<div
+  data-formie-field-handle="startDate"
+  data-formie-validation='[
+    {
+      "type": "dateParts",
+      "minDate": "2026-12-01T00:00:00",
+      "messages": { "dateMin": "The date must be on or after Dec 1, 2026." }
+    }
+  ]'
+>
+  ...
+</div>
+```
+
+The rule sits on the Date/Time field's wrapper, while each part is a nested field with its own input. It runs once the year, month and day are all filled in, and reads `minDate` and `maxDate` as wall-clock times. The message shows under the last date part, and uses `messages.dateMin` or `messages.dateMax` from the rule. Changing any part checks the whole date again. An impossible date such as 31 February is left to the server, and so is a date an edited submission already has, when the form has a `submissionId` input and the parts still hold their rendered values.
 
 When the built-in rules do not cover your requirement, follow [Validation](https://verbb.io/craft-plugins/formie/docs/v4/developers/validation) to implement and test a matching PHP and JavaScript rule. The [browser validation overview](/browser/validation/) explains when the rules run and how their payload is read.

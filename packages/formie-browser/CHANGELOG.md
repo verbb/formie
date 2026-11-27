@@ -14,6 +14,7 @@
 - Fixed multi-select pills in the combobox module sitting slightly higher than the search text beside them, and the control growing taller once it had a pill. Pills are now spaced by the control’s `gap` instead of their own margins.
 - Fixed the options in the combobox module’s list using the form’s body text size instead of the control’s (`--formie-control-font-size`).
 - Fixed Summary fields staying empty on server-rendered forms mounted from another allowed origin, such as with the React, Vue or Web Components packages.
+- Fixed the `dateParts` rule that Date/Time fields put on server-rendered forms being ignored, so their **Min Date** and **Max Date** were only checked once the form was sent. The new `dateParts` validator checks the date once its year, month and day are filled in, shows `messages.dateMin` or `messages.dateMax` under the last date part, and checks the whole date again when any part changes.
 
 ## 4.1.0 - 2026-11-24
 
