@@ -65,6 +65,7 @@
 - Fixed client-rendered forms set to reset after completion failing on the next submission without a page reload.
 - Fixed required Date/Time fields using the **Dropdowns** or **Text Inputs** display types losing their validation when upgrading from Formie 2. Sites that have already upgraded aren’t changed, so check whether those fields are still required.
 - Fixed updating a form from an import keeping custom form, email and PDF templates that were cleared in the exported form.
+- Fixed manually sending an email notification from a submission reporting success when the email couldn’t be sent. It now shows an error instead.
 
 ## 4.1.0 - 2026-11-24
 
