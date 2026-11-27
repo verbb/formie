@@ -154,7 +154,7 @@ class FileUpload extends ElementField
         if (is_array($value) && isset($value['mutationData'])) {
             if ($paramName = $this->requestParamName($element)) {
                 // Save for later, in the format `fields.repeater.rows.new2.fields.file`.
-                $this->_uploadedDataFiles[$paramName] = $value['mutationData'];
+                $this->_uploadedDataFiles[$paramName] = $this->_filterRequestDataFiles($value['mutationData']);
             }
 
             unset($value['mutationData']);
@@ -796,10 +796,6 @@ class FileUpload extends ElementField
                         FileHelper::writeToFile($tempPath, $file['data']);
 
                         break;
-                    case 'file':
-                        rename($file['path'], $tempPath);
-
-                        break;
                     case 'upload':
                         move_uploaded_file($file['path'], $tempPath);
 
@@ -918,6 +914,21 @@ class FileUpload extends ElementField
         }
 
         return round($size, $precision) . ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'][$i];
+    }
+
+    private function _filterRequestDataFiles(mixed $files): array
+    {
+        // Request values can only carry file contents. Server paths and upload handles come
+        // from PHP's own upload handling, never from posted values.
+        if (!is_array($files)) {
+            return [];
+        }
+
+        return array_filter($files, static fn($file) => is_array($file)
+            && ($file['type'] ?? null) === 'data'
+            && is_string($file['data'] ?? null)
+            && is_string($file['filename'] ?? null)
+            && $file['filename'] !== '');
     }
 
     private function _getUploadedFiles(ElementInterface $element): array
