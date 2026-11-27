@@ -39,6 +39,7 @@ use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\errors\GqlException;
 use craft\helpers\Json;
 
 use yii\validators\EmailValidator;
@@ -76,6 +77,11 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         return ($settings['displayType'] ?? null) === 'checkboxes'
             ? Type::listOf(Type::string())
             : Type::string();
+    }
+
+    public static function gqlContentTypeFromConfig(array $config): Type|array
+    {
+        return self::_gqlContentType($config['handle'] ?? '', static fn(): FieldInterface => Formie::$plugin->getFields()->hydrateField($config));
     }
 
 
@@ -599,8 +605,21 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
             'options' => [
                 'name' => 'options',
                 'type' => Type::listOf(FieldOptionGenerator::generateType()),
+                // A public schema is read by the browser, so it gets the same tokens as the rendered form.
+                'resolve' => static fn(self $field): array => self::_isPublicGqlSchema() ? $field->getFieldOptions() : $field->options,
+            ],
+            'defaultValue' => [
+                'name' => 'defaultValue',
+                'type' => Type::string(),
+                'description' => 'The field’s default value as a string. Some fields have different fields for their default value.',
+                'resolve' => static fn(self $field): mixed => self::_isPublicGqlSchema() ? $field->_getPublicGqlValue($field->defaultValue) : $field->defaultValue,
             ],
         ]);
+    }
+
+    public function getContentGqlType(): Type|array
+    {
+        return self::_gqlContentType($this->handle, fn(): FieldInterface => $this);
     }
 
     public function getContentGqlMutationArgumentType(): Type|array
@@ -1065,6 +1084,46 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
 
     // Private Methods
     // =========================================================================
+
+    private static function _gqlContentType(string $handle, callable $getField): array
+    {
+        return [
+            'name' => $handle,
+            'type' => Type::string(),
+            'resolve' => static function(mixed $source) use ($handle, $getField): mixed {
+                // Nested fields resolve from a model of their parent's values, not an element.
+                $element = $source instanceof ElementInterface ? $source : null;
+                $value = $element ? $element->getFieldValue($handle) : ($source[$handle] ?? null);
+
+                return self::_isPublicGqlSchema() ? $getField()->_getPublicGqlValue($value, $element) : $value;
+            },
+        ];
+    }
+
+    private static function _isPublicGqlSchema(): bool
+    {
+        try {
+            return Craft::$app->getGql()->getActiveSchema()->isPublic;
+        } catch (GqlException) {
+            return false;
+        }
+    }
+
+    private function _getPublicGqlValue(mixed $value, ?ElementInterface $element = null): ?string
+    {
+        if ($value !== null && !$value instanceof RecipientsFieldValue) {
+            $value = $this->normalizeValue($value, $element);
+        }
+
+        if (!$value instanceof RecipientsFieldValue || $value->isEmpty()) {
+            return $value === null ? null : '';
+        }
+
+        // Return the tokens the client bootstrap uses, which a mutation accepts in place of the address.
+        $tokens = $this->serializeValueForClientInput($value, $element);
+
+        return is_array($tokens) ? implode(',', $tokens) : $tokens;
+    }
 
     private function _resolveRecipientInput($value)
     {

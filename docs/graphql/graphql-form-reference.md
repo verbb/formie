@@ -461,6 +461,8 @@ Field | Type | Description
 `useSearchable` | `Boolean` | Whether the front-end dropdown is filterable when `displayType` is `dropdown`.
 `options` | `[FieldOption]` | The recipient options.
 
+Through a public schema, the `value` of each option and the field’s `defaultValue` are recipient tokens instead of email addresses, the same as the rendered form uses. Submission values for the field are returned as tokens too, with several selections separated by commas. A private schema with an access token returns the email addresses.
+
 ### Repeater
 
 Field | Type | Description

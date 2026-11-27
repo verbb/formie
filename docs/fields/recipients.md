@@ -16,7 +16,7 @@ Use Recipients when the submitter’s choice should affect notification routing.
 
 Recipients stores the selected recipient option value and resolves it to protected recipient email addresses for notification routing. The front-end form should not need to expose the real email addresses.
 
-When querying or saving submissions through GraphQL, the field handle is used as the field name. Query the form’s `formFields` and include `inputTypeName` if you need to confirm the generated input type for a specific form.
+When querying or saving submissions through GraphQL, the field handle is used as the field name. A public schema returns recipient tokens instead of email addresses, for the form’s options and for submission values, and accepts those tokens in mutations. A private schema with an access token returns the email addresses. Query the form’s `formFields` and include `inputTypeName` if you need to confirm the generated input type for a specific form.
 
 ## Recipients vs Choice Fields
 
