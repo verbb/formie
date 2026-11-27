@@ -64,6 +64,7 @@
 - Fixed front-end edits of a completed submission ignoring a redirect set on the edit form with `form.setRedirectUrl()`, and showing an untranslatable “Submission completed.” message. Edits now follow a redirect set on the edit form or show “Submission saved.”, and still don’t run **After Completion**, which is for new submissions.
 - Fixed client-rendered forms set to reset after completion failing on the next submission without a page reload.
 - Fixed required Date/Time fields using the **Dropdowns** or **Text Inputs** display types losing their validation when upgrading from Formie 2. Sites that have already upgraded aren’t changed, so check whether those fields are still required.
+- Fixed updating a form from an import keeping custom form, email and PDF templates that were cleared in the exported form.
 
 ## 4.1.0 - 2026-11-24
 

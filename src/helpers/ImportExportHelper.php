@@ -262,6 +262,8 @@ class ImportExportHelper
             }
 
             $form->setTemplate($template);
+        } else {
+            $form->setTemplate(null);
         }
 
         if ($notifications !== null) {
@@ -290,6 +292,8 @@ class ImportExportHelper
                     }
 
                     $notification->setTemplate($template);
+                } else {
+                    $notification->setTemplate(null);
                 }
 
                 if ($pdfTemplate) {
@@ -301,6 +305,8 @@ class ImportExportHelper
                     }
 
                     $notification->setPdfTemplate($template);
+                } else {
+                    $notification->setPdfTemplate(null);
                 }
 
                 $allNotifications[] = $notification;
