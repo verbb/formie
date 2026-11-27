@@ -111,4 +111,14 @@ class RecipientOptionSelectionHelper
 
         return $optionsByValue[$selection['value']] ?? null;
     }
+
+    public static function canonicalSelection(?array $selection, ?array $option): ?array
+    {
+        // Option ids are public, so a selection made by id takes the option's own address and label.
+        if ($selection === null || $option === null || ($selection['id'] ?? null) === null) {
+            return $selection;
+        }
+
+        return [...$selection, 'label' => $option['label'], 'value' => $option['value']];
+    }
 }

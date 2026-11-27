@@ -203,8 +203,9 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
 
             if (in_array($this->displayType, ['dropdown', 'radio'])) {
                 $selection = reset($selectedRecipients) ?: null;
-                $selectedValue = $selection['value'] ?? null;
                 $option = RecipientOptionSelectionHelper::resolveSelectionOption($selection, $optionsById, $optionsByValue);
+                $selection = RecipientOptionSelectionHelper::canonicalSelection($selection, $option);
+                $selectedValue = $selection['value'] ?? null;
                 // An empty answer isn't an invalid recipient. Required fields are enforced by their own rule.
                 $valid = $selection === null || $option !== null;
                 $label = $selection['label'] ?? ($option['label'] ?? null);
@@ -214,6 +215,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
 
                 foreach ($selectedRecipients as $selection) {
                     $option = RecipientOptionSelectionHelper::resolveSelectionOption($selection, $optionsById, $optionsByValue);
+                    $selection = RecipientOptionSelectionHelper::canonicalSelection($selection, $option);
                     $valid = $option !== null;
                     $label = $selection['label'] ?? ($option['label'] ?? null);
                     $selectedOptions[] = new OptionValue($label, $selection['value'], true, $valid);
