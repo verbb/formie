@@ -46,7 +46,7 @@ dataset('configured upload types', [
     'EPS' => ['drawing.eps', 'illustrator', "%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 10 10\n%%EOF\n"],
 ]);
 
-it('uses Craft configuration for temporary files and decoded uploads', function (string $filename, string $kind, string $contents, string $source): void {
+it('uses Craft configuration for decoded uploads', function (string $filename, string $kind, string $contents): void {
     UploadTestHelper::ensureUploadVolume();
     $form = formie()->form()->fileUploadField('document', [
         'restrictFiles' => true,
@@ -55,28 +55,16 @@ it('uses Craft configuration for temporary files and decoded uploads', function 
     $field = $form->getFieldByHandle('document');
     $submission = new Submission();
     $submission->setForm($form);
-    $path = $source === 'path' ? tempnam(sys_get_temp_dir(), 'formie-upload-config-') : null;
 
-    try {
-        if ($path !== null) {
-            file_put_contents($path, $contents);
-        }
+    // Neither the supplied MIME nor a guessed content kind defines the site's extension policy.
+    $upload = ['filename' => $filename, 'mimeType' => 'application/octet-stream', 'type' => 'data', 'data' => $contents];
+    $submission->setFieldValueFromRequest('document', ['mutationData' => [$upload]]);
+    $submission->getFieldValue('document');
+    $field->validateFileType($submission);
 
-        // Neither the supplied MIME nor a guessed content kind defines the site's extension policy.
-        $upload = ['filename' => $filename, 'mimeType' => 'application/octet-stream', 'type' => 'upload'];
-        $upload[$source] = $path ?? $contents;
-        $submission->setFieldValueFromRequest('document', ['mutationData' => [$upload]]);
-        $submission->getFieldValue('document');
-        $field->validateFileType($submission);
-
-        expect($submission->getErrors('document'))->toBe([])
-            ->and($field->getAccept())->toContain('.' . strtolower(pathinfo($filename, PATHINFO_EXTENSION)));
-    } finally {
-        if ($path !== null && is_file($path)) {
-            unlink($path);
-        }
-    }
-})->with('configured upload types')->with(['path', 'data']);
+    expect($submission->getErrors('document'))->toBe([])
+        ->and($field->getAccept())->toContain('.' . strtolower(pathinfo($filename, PATHINFO_EXTENSION)));
+})->with('configured upload types');
 
 it('exposes configured kinds and only their globally allowed extensions', function (): void {
     $field = new FileUpload(['restrictFiles' => true, 'allowedKinds' => ['design']]);

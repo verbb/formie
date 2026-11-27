@@ -14,6 +14,7 @@
 - A date a submission already has is no longer checked against the Date/Time field’s **Min Date** and **Max Date** when the submission is saved again, so changing its status, marking it as spam or editing its other fields still works once a limit such as **Today’s Date/Time** has moved past it. New and changed dates are still checked.
 
 ### Fixed
+- Fixed a high-severity information disclosure vulnerability.
 - Fixed two moderate-severity cross-site scripting vulnerabilities.
 - Fixed a moderate-severity information disclosure vulnerability.
 - Fixed a low-severity information disclosure vulnerability.

@@ -26,14 +26,13 @@ it('rejects uploaded files whose extensions are not allowed for the field', func
     $submission->setForm($form);
     $submission->setFieldValue('attachments', $field->normalizeValue([], $submission));
 
-    $tempPath = tempnam(sys_get_temp_dir(), 'formie-upload-');
-    file_put_contents($tempPath, 'not really an svg');
+    $contents = 'not really an svg';
 
     seedUploadedFilesForField($field, $submission, [
         'attachments' => [[
             'filename' => 'payload.svg',
-            'path' => $tempPath,
-            'type' => 'upload',
+            'data' => $contents,
+            'type' => 'data',
         ]],
     ]);
 
@@ -56,14 +55,13 @@ it('rejects uploaded files that exceed the configured max file size', function (
     $submission->setForm($form);
     $submission->setFieldValue('attachments', $field->normalizeValue([], $submission));
 
-    $tempPath = tempnam(sys_get_temp_dir(), 'formie-upload-');
-    file_put_contents($tempPath, str_repeat('A', 4096));
+    $contents = str_repeat('A', 4096);
 
     seedUploadedFilesForField($field, $submission, [
         'attachments' => [[
             'filename' => 'payload.txt',
-            'path' => $tempPath,
-            'type' => 'upload',
+            'data' => $contents,
+            'type' => 'data',
         ]],
     ]);
 
@@ -86,15 +84,14 @@ it('rejects disallowed extensions even when the supplied MIME is allowed', funct
     $submission->setForm($form);
     $submission->setFieldValue('attachments', $field->normalizeValue([], $submission));
 
-    $tempPath = tempnam(sys_get_temp_dir(), 'formie-upload-');
-    file_put_contents($tempPath, 'The supplied MIME does not grant upload permission.');
+    $contents = 'The supplied MIME does not grant upload permission.';
 
     seedUploadedFilesForField($field, $submission, [
         'attachments' => [[
             'filename' => 'payload.exe',
-            'path' => $tempPath,
+            'data' => $contents,
             'mimeType' => 'image/jpeg',
-            'type' => 'upload',
+            'type' => 'data',
         ]],
     ]);
 
@@ -120,15 +117,14 @@ it('rejects extensions disabled in Craft even when the file kind is selected', f
     $submission->setForm($form);
     $submission->setFieldValue('attachments', $field->normalizeValue([], $submission));
 
-    $tempPath = tempnam(sys_get_temp_dir(), 'formie-upload-');
-    file_put_contents($tempPath, '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>');
+    $contents = '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>';
 
     seedUploadedFilesForField($field, $submission, [
         'attachments' => [[
             'filename' => 'payload.svg',
-            'path' => $tempPath,
+            'data' => $contents,
             'mimeType' => 'image/svg+xml',
-            'type' => 'upload',
+            'type' => 'data',
         ]],
     ]);
 
@@ -151,22 +147,20 @@ it('rejects uploaded files above the configured file-count limit', function (): 
     $submission->setForm($form);
     $submission->setFieldValue('attachments', $field->normalizeValue([], $submission));
 
-    $tempOne = tempnam(sys_get_temp_dir(), 'formie-upload-');
-    $tempTwo = tempnam(sys_get_temp_dir(), 'formie-upload-');
-    file_put_contents($tempOne, 'one');
-    file_put_contents($tempTwo, 'two');
+    $contentsOne = 'one';
+    $contentsTwo = 'two';
 
     seedUploadedFilesForField($field, $submission, [
         'attachments' => [
             [
                 'filename' => 'one.txt',
-                'path' => $tempOne,
-                'type' => 'upload',
+                'data' => $contentsOne,
+                'type' => 'data',
             ],
             [
                 'filename' => 'two.txt',
-                'path' => $tempTwo,
-                'type' => 'upload',
+                'data' => $contentsTwo,
+                'type' => 'data',
             ],
         ],
     ]);
