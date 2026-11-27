@@ -30,6 +30,7 @@
 - Fixed four moderate-severity cross-site scripting vulnerabilities.
 - Fixed three moderate-severity information disclosure vulnerabilities.
 - Fixed two low-severity information disclosure vulnerabilities.
+- Fixed every front-end render of a form with a File Upload field creating an empty Temporary Uploads folder for the visitor’s session, even when nothing was uploaded. Sites with lots of visitors or crawlers could build up thousands of folders, which slowed Craft’s folder lookups.
 - Fixed the Outseta integration updating the first person in the Outseta account on every submission, instead of the person with the submitted email.
 - Fixed hidden Recipients fields populated with `craft.formie.populateFormValues()` sending their notification to an invalid address instead of the populated recipients.
 - Fixed Calculations fields in server-rendered forms using the answer of a field that conditions hide, such as a hidden field’s default value.

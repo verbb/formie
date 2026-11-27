@@ -1152,6 +1152,16 @@ class FileUpload extends ElementField
         return $variables;
     }
 
+    protected function availableSources(): array
+    {
+        // Outside the settings context, Craft adds a Temporary Uploads source and creates that folder for the
+        // current visitor, so every front-end render would leave one behind. Upload fields only use volumes.
+        return ArrayHelper::where(
+            Craft::$app->getElementSources()->getSources(Asset::class, ElementSources::CONTEXT_SETTINGS),
+            fn($s) => $s['type'] !== ElementSources::TYPE_HEADING
+        );
+    }
+
     protected function supportedDefaults(): array
     {
         return ['uploadLocationSource', 'displayType', 'assetDataRetention', 'assetDataRetentionValue'];
