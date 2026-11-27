@@ -53,7 +53,7 @@ it('prints numbers as the browser does', function (float $value, string $expecte
     [123456789.125, '123456789.125'],
 ]);
 
-it('compares a posted answer with the server’s', function (mixed $posted, mixed $calculated, bool $matches): void {
+it('compares a posted answer with the server answer', function (mixed $posted, mixed $calculated, bool $matches): void {
     expect(ServerCalculations::answersMatch($posted, $calculated))->toBe($matches);
 })->with([
     'the same text' => ['Ada Lovelace', 'Ada Lovelace', true],
