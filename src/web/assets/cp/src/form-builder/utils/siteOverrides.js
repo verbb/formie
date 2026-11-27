@@ -45,6 +45,24 @@ const getFieldDefinitionId = (field) => {
     return String(fieldId);
 };
 
+// Existing fields keeps a synced field's values from when it was picked, as the shared definition's source content.
+// Its placement settings, such as required, belong to this form and aren't part of it.
+const getAddedSyncedFieldSource = (field) => {
+    const source = field?.isSynced ? field?._syncSource : null;
+
+    if (!source || typeof source !== 'object') {
+        return null;
+    }
+
+    const definitionSource = { ...source };
+
+    getTranslatableConfig().fieldInstance.forEach((key) => {
+        delete definitionSource[key];
+    });
+
+    return definitionSource;
+};
+
 const getFieldOverrideKey = (field, preferReference = false) => {
     if (preferReference) {
         return getFieldStorageKey(field) || getFieldDefinitionId(field);
@@ -949,15 +967,19 @@ const diffFields = (canonicalFields = {}, postedFields = {}, preferReferences = 
             return;
         }
 
-        // A synced field added since the source data loaded keeps its shared definition ID, but
-        // isn't on this form yet. Its values belong to that definition, so they aren't translations.
+        let canonicalField = resolveCollectedField(canonicalFields, fieldKey, field);
+
+        // A synced field added since the source data loaded keeps its shared definition ID, but isn't
+        // on this form yet. Only changes to the values it was picked with are translations.
         if (!preferReferences && !canonicalDefinitionIds.has(fieldDefinitionId)) {
-            return;
+            canonicalField = getAddedSyncedFieldSource(field);
+
+            if (!canonicalField) {
+                return;
+            }
         }
 
         seen.add(fieldDefinitionId);
-
-        const canonicalField = resolveCollectedField(canonicalFields, fieldKey, field);
         const fieldDiff = {};
         const translatableProperties = resolveFieldTranslatableProperties(field);
 
@@ -1273,7 +1295,13 @@ const revertFieldTree = (field, canonicalFieldsByKey = {}) => {
     }
 
     const storageKey = getFieldStorageKey(field);
-    const canonicalField = resolveCollectedField(canonicalFieldsByKey, storageKey, field);
+    let canonicalField = resolveCollectedField(canonicalFieldsByKey, storageKey, field);
+
+    // An added synced field posts the values it was picked with, so the shared definition keeps its source content.
+    if (!Object.keys(canonicalField).length) {
+        canonicalField = getAddedSyncedFieldSource(field) || canonicalField;
+    }
+
     let reverted = revertFieldTranslatables(field, canonicalField);
 
     const nestedRows = getNestedLayoutRows(field);

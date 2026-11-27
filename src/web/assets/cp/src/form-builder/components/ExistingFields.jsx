@@ -327,6 +327,7 @@ const ExistingFields = ({ onClose, nestedPlacement = null }) => {
 
         const type = source.type || field.type || settings.type;
         const data = stripImportedFieldMeta(source);
+        const { rows, layouts, ...syncSource } = data;
 
         return {
             ...data,
@@ -334,6 +335,8 @@ const ExistingFields = ({ onClose, nestedPlacement = null }) => {
             isSynced: synced,
             definitionId: synced ? syncSourceId : null,
             definitionToken: synced ? source.definitionToken : null,
+            // Another site's edits before the form is saved compare against these values (not posted).
+            _syncSource: synced ? JSON.parse(JSON.stringify(syncSource)) : undefined,
         };
     };
 

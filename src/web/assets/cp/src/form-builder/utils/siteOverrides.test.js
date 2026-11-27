@@ -283,6 +283,54 @@ describe('siteOverrides', () => {
         });
     });
 
+    describe('a synced field added since the source data loaded, with its picked values', () => {
+        const canonical = {
+            pages: [{
+                uid: 'synced-page',
+                rows: [{
+                    fields: [{
+                        type: 'verbb\\formie\\fields\\SingleLineText',
+                        definitionId: 10,
+                        reference: 'first-name',
+                        label: 'First Name',
+                    }],
+                }],
+            }],
+        };
+        const addSyncedField = (label) => {
+            const values = structuredClone(canonical);
+            values.pages[0].rows.push({
+                fields: [{
+                    type: 'verbb\\formie\\fields\\SingleLineText',
+                    definitionId: 77,
+                    isSynced: true,
+                    reference: 'email',
+                    label,
+                    instructions: 'Your email',
+                    required: true,
+                    _syncSource: { label: 'Email', instructions: 'Your email', required: false },
+                }],
+            });
+
+            return values;
+        };
+
+        it('translates only the values edited on this site', () => {
+            const translations = extractSiteTranslationsFromFormData(canonical, addSyncedField('Courriel'));
+
+            expect(translations.fieldOverrides).toEqual({ 77: { label: 'Courriel' } });
+            expect(extractSiteTranslationsFromFormData(canonical, addSyncedField('Email')).fieldOverrides).toBeUndefined();
+        });
+
+        it('posts its picked values as the source content', () => {
+            const field = stripTranslatableValuesToCanonical(addSyncedField('Courriel'), canonical).pages[0].rows[1].fields[0];
+
+            // Placement settings such as required stay as set, like any field added on this site.
+            expect(field.label).toBe('Email');
+            expect(field.required).toBe(true);
+        });
+    });
+
     it('extracts only changed translatable values', () => {
         const formData = mergeSiteOverridesIntoFormData(canonicalData, {
             title: 'French title',

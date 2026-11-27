@@ -238,6 +238,19 @@ class FieldSiteOverrides extends Component
         return array_values(array_unique(array_filter($fieldIds)));
     }
 
+    public function collectSyncedDefinitionIdsFromBuilderPages(array $pages, int $formId): array
+    {
+        $fieldIds = [];
+
+        foreach ($pages as $page) {
+            if (is_array($page) && is_array($page['rows'] ?? null)) {
+                $this->_collectSyncedDefinitionIdsFromRows($page['rows'], $formId, $fieldIds);
+            }
+        }
+
+        return array_values(array_unique($fieldIds));
+    }
+
 
     // Private Methods
     // =========================================================================
@@ -303,6 +316,35 @@ class FieldSiteOverrides extends Component
         }
     }
 
+    private function _collectSyncedDefinitionIdsFromRows(array $rows, int $formId, array &$fieldIds): void
+    {
+        foreach ($rows as $row) {
+            if (!is_array($row) || !is_array($row['fields'] ?? null)) {
+                continue;
+            }
+
+            foreach ($row['fields'] as $field) {
+                if (!is_array($field)) {
+                    continue;
+                }
+
+                $settings = Json::decodeIfJson($field['settings'] ?? []);
+                $source = array_merge(is_array($settings) ? $settings : [], $field);
+
+                // Synced fields added in this save are granted by the selection token the form builder hydrates them with.
+                if (!empty($source['isSynced']) && is_string($source['definitionToken'] ?? null)) {
+                    if ($fieldId = Formie::$plugin->getFields()->getSyncedDefinitionIdFromToken($source['definitionToken'], $formId)) {
+                        $fieldIds[] = $fieldId;
+                    }
+                }
+
+                if (is_array($source['rows'] ?? null)) {
+                    $this->_collectSyncedDefinitionIdsFromRows($source['rows'], $formId, $fieldIds);
+                }
+            }
+        }
+    }
+
     private function _getFieldDefinitionId(array $field): int
     {
         $fieldId = (int)($field['definitionId'] ?? $field['fieldId'] ?? $field['settings']['definitionId'] ?? $field['settings']['fieldId'] ?? $field['syncId'] ?? $field['settings']['syncId'] ?? 0);
@@ -325,11 +367,13 @@ class FieldSiteOverrides extends Component
         foreach ($incoming as $key => $value) {
             if ($key === 'options' && is_array($value)) {
                 $merged['options'] = $value;
+
                 continue;
             }
 
             if ($key === 'columns' && is_array($value)) {
                 $merged['columns'] = $value;
+
                 continue;
             }
 

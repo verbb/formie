@@ -463,14 +463,13 @@ class FormSerializer
             }
 
             if (!$existing && !empty($source['isSynced'])) {
-                $signed = Craft::$app->getSecurity()->validateData((string)($source['definitionToken'] ?? ''));
-                $grant = $signed ? Json::decode($signed) : [];
+                $definitionId = $service->getSyncedDefinitionIdFromToken((string)($source['definitionToken'] ?? ''), $this->_targetFormId);
 
-                if (($grant['purpose'] ?? null) !== 'field-definition' || ($grant['formId'] ?? null) !== $this->_targetFormId || ($grant['userId'] ?? null) !== Craft::$app->getUser()->getId()) {
+                if (!$definitionId) {
                     throw new InvalidConfigException('Invalid synced field selection. Select the field again.');
                 }
 
-                $definition = $service->getFieldDefinitionById((int)$grant['definitionId']);
+                $definition = $service->getFieldDefinitionById($definitionId);
 
                 if (!$definition || $definition->type !== $type) {
                     throw new InvalidConfigException('The selected synced field is unavailable.');

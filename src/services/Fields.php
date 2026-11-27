@@ -869,6 +869,19 @@ class Fields extends Component
         return $fields;
     }
 
+    public function getSyncedDefinitionIdFromToken(string $token, ?int $formId): ?int
+    {
+        $signed = $token !== '' ? Craft::$app->getSecurity()->validateData($token) : false;
+        $grant = $signed ? Json::decode($signed) : [];
+
+        // A selection only grants the definition to the form and user it was made for.
+        if (!is_array($grant) || ($grant['purpose'] ?? null) !== 'field-definition' || ($grant['formId'] ?? null) !== $formId || ($grant['userId'] ?? null) !== Craft::$app->getUser()->getId()) {
+            return null;
+        }
+
+        return (int)($grant['definitionId'] ?? 0) ?: null;
+    }
+
     public function createField(array $config = []): FieldInterface
     {
         return $this->hydrateField($config);

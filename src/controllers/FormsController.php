@@ -489,9 +489,18 @@ class FormsController extends Controller
                     throw new BadRequestHttpException('Invalid field translations.');
                 }
 
-                $allowedIds = Formie::$plugin->getFieldSiteOverrides()->collectFieldDefinitionIds($persistedForm);
+                $fieldSiteOverrides = Formie::$plugin->getFieldSiteOverrides();
+                $allowedIds = $fieldSiteOverrides->collectFieldDefinitionIds($persistedForm);
+                $outsideIds = array_diff_key($fieldOverrides, array_fill_keys($allowedIds, true));
 
-                if (array_diff_key($fieldOverrides, array_fill_keys($allowedIds, true)) !== []) {
+                // A synced field added in this save can be translated with the selection that adds it.
+                if ($outsideIds !== []) {
+                    $pages = Json::decodeIfJson($request->getBodyParam('pages', []));
+                    $syncedIds = is_array($pages) ? $fieldSiteOverrides->collectSyncedDefinitionIdsFromBuilderPages($pages, $formId) : [];
+                    $outsideIds = array_diff_key($outsideIds, array_fill_keys($syncedIds, true));
+                }
+
+                if ($outsideIds !== []) {
                     throw new ForbiddenHttpException('Field translations are outside this form.');
                 }
             }

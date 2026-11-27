@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use craft\db\Query;
 use craft\elements\User;
+use craft\helpers\Json;
 use Tests\Support\WebRequestTestHelper;
 use verbb\formie\controllers\FormsController;
 use verbb\formie\elements\Form;
@@ -145,6 +146,47 @@ it('allows authorized nested and shared definition translations and notification
     Formie::$plugin->getForms()->invalidateFormCaches();
     expect(Formie::$plugin->getForms()->getFormById($shared->id, $site)->getFieldByHandle('message')->label)->toBe('Translated ' . $sharedId);
 });
+
+function translationAclSyncedSave(array $fixture, ?int $grantFormId, ?int $grantUserId, string $label): mixed
+{
+    ['form' => $form, 'foreign' => $foreign] = $fixture;
+    $synced = $foreign->getFieldByHandle('privateField');
+    $config = array_diff_key($synced->getFormBuilderConfig(), array_flip(['id', 'uid', 'reference', 'layoutId', 'pageId', 'rowId']));
+    $config['isSynced'] = true;
+    $config['label'] = $synced->label;
+    $config['definitionToken'] = Craft::$app->getSecurity()->hashData(Json::encode([
+        'purpose' => 'field-definition', 'definitionId' => $synced->definitionId, 'formId' => $grantFormId, 'userId' => $grantUserId,
+    ]));
+    $pages = $form->getFormLayout()->getFormBuilderConfig();
+    $pages[0]['rows'][] = ['fields' => [$config]];
+
+    return translationAclSave($fixture, ['pages' => $pages,
+        'translations' => ['fieldOverrides' => [$synced->definitionId => ['label' => $label]]]]);
+}
+
+it('saves a translation for a synced field added on a secondary site without changing its source', function (): void {
+    $fixture = translationAclFixture();
+    ['form' => $form, 'foreign' => $foreign, 'site' => $site, 'source' => $source, 'user' => $user] = $fixture;
+    $definitionId = $foreign->getFieldByHandle('privateField')->definitionId;
+    $sourceLabel = $foreign->getFieldByHandle('privateField')->label;
+
+    expect(translationAclSyncedSave($fixture, $form->id, $user->id, 'Translated synced'))->not->toHaveKey('errors');
+
+    Formie::$plugin->getForms()->invalidateFormCaches();
+    expect(Formie::$plugin->getForms()->getFormById($form->id, $site)->getFieldByHandle('privateField')->definitionId)->toBe($definitionId)
+        ->and(Formie::$plugin->getForms()->getFormById($foreign->id, $site)->getFieldByHandle('privateField')->label)->toBe('Translated synced')
+        ->and(Formie::$plugin->getForms()->getFormById($foreign->id, $source)->getFieldByHandle('privateField')->label)->toBe($sourceLabel);
+})->group('security');
+
+it('rejects translations for a synced field added with another form or user\'s selection', function (string $variant): void {
+    $fixture = translationAclFixture();
+    ['form' => $form, 'foreign' => $foreign, 'user' => $user] = $fixture;
+    $before = translationAclSnapshot();
+    [$formId, $userId] = $variant === 'other form' ? [$foreign->id, $user->id] : [$form->id, $user->id + 1000];
+
+    expect(fn() => translationAclSyncedSave($fixture, $formId, $userId, 'Forged'))->toThrow(ForbiddenHttpException::class);
+    expect(translationAclSnapshot())->toBe($before);
+})->with(['other form', 'other user'])->group('security');
 
 it('keeps historical undeclared translations out of a successful secondary-site save response', function (): void {
     $fixture = translationAclFixture();
