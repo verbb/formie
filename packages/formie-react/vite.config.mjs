@@ -15,7 +15,7 @@ export default defineConfig({
             fileName: 'index',
         },
         rollupOptions: {
-            external: ['react', 'react-dom', '@verbb/formie-browser', '@verbb/formie-core'],
+            external: [/^react(\/.*)?$/, /^react-dom(\/.*)?$/, '@verbb/formie-browser', '@verbb/formie-core'],
         },
     },
 });

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed
+- Fixed forms failing to draw in development builds, such as the Vite and Next.js dev servers, with “Calling `require` for "react"” or “dynamic usage of require is not supported”. The package now imports `react/jsx-runtime` from your project instead of bundling its own copy.
+
 ## 4.1.0 - 2026-11-24
 
 ### Changed
