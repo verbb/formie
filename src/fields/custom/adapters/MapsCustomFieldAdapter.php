@@ -463,20 +463,22 @@ class MapsCustomFieldAdapter extends AbstractCustomFieldAdapter
         ];
     }
 
+    protected function getMapsPluginSettings(): object
+    {
+        return SimpleMap::getInstance()->getSettings();
+    }
+
     protected function getMapsPluginBrowserSettings(CustomField $field): array
     {
-        $settings = SimpleMap::getInstance()->getSettings();
+        $settings = $this->getMapsPluginSettings();
         $mapTiles = $settings->mapTiles === MapTiles::Wikimedia ? MapTiles::OpenStreetMap : $settings->mapTiles;
-        $mapToken = $settings->getMapToken();
-        $geoToken = $settings->getGeoToken();
 
+        // The browser map uses OpenStreetMap tiles and Nominatim, so the Maps plugin's API tokens
+        // stay on the server. Apple MapKit's token is a private key.
         return [
             'mapTiles' => $mapTiles,
-            'mapToken' => is_array($mapToken) ? $mapToken : (string)$mapToken,
             'geoService' => $settings->geoService,
-            'geoToken' => is_array($geoToken) ? $geoToken : (string)$geoToken,
             'w3wEnabled' => $settings->isW3WEnabled(),
-            'w3wToken' => $settings->getW3WToken(),
             'showW3WGrid' => $this->getBooleanSetting($field, 'showW3WGrid'),
             'showW3WField' => $this->getBooleanSetting($field, 'showW3WField'),
             'defaultLat' => $this->getNullableFloatSetting($field, 'defaultLat'),

@@ -17,7 +17,7 @@
 - Fixed a high-severity information disclosure vulnerability.
 - Fixed a moderate-severity vulnerability.
 - Fixed three moderate-severity cross-site scripting vulnerabilities.
-- Fixed a moderate-severity information disclosure vulnerability.
+- Fixed two moderate-severity information disclosure vulnerabilities.
 - Fixed a low-severity information disclosure vulnerability.
 - Fixed every submission after the first failing to save on PostgreSQL when the form uses `setRelations()`. Sites already affected are repaired when migrations run.
 - Fixed submissions failing when `setRelations()` was given the same element more than once, including by calling it twice.
