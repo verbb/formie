@@ -60,7 +60,7 @@ class IntegrationsController extends Controller
         $type = $this->request->getParam('type');
         $integrationId = (int)$this->request->getParam('id');
 
-        $settings = $this->request->getParam('types.' . $type, []);
+        $settings = $this->_postedProviderSettings($type);
 
         if ($integrationId) {
             $savedIntegration = $integrationsService->getIntegrationById($integrationId);
@@ -269,7 +269,7 @@ class IntegrationsController extends Controller
 
         // Build a temporary integration instance with the currently posted settings
         // so connection checks reflect unsaved values.
-        $settings = $request->getParam('types.' . $type, []);
+        $settings = $this->_postedProviderSettings($type);
 
         if ($type && is_array($settings)) {
             $integrationData = [
@@ -425,6 +425,23 @@ class IntegrationsController extends Controller
 
     // Private Methods
     // =========================================================================
+
+    private function _postedProviderSettings(string $type): array
+    {
+        $settings = $this->request->getParam('types.' . $type, []);
+
+        if (!is_array($settings)) {
+            return [];
+        }
+
+        // These belong to the saved integration, not its provider settings. Settings are merged over
+        // the integration's own attributes, so posting them would retarget or unlock the record.
+        foreach (['id', 'uid', 'scope', 'type', 'sortOrder', 'cache'] as $key) {
+            unset($settings[$key]);
+        }
+
+        return $settings;
+    }
 
     private function _getFormSettingsIntegration(): IntegrationInterface
     {
