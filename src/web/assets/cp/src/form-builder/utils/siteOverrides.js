@@ -1044,6 +1044,13 @@ const diffFieldInstances = (canonicalFields = {}, postedFields = {}) => {
         }
 
         const canonicalField = resolveCollectedField(canonicalFields, fieldKey, field);
+
+        // A field added since the source data loaded has no source placement yet. Its settings
+        // save as the source, so the source site can still change them for every site.
+        if (!Object.keys(canonicalField).length) {
+            return;
+        }
+
         const fieldDiff = {};
 
         getTranslatableConfig().fieldInstance.forEach((key) => {

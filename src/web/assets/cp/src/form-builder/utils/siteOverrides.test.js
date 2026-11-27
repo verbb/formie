@@ -413,6 +413,25 @@ describe('siteOverrides', () => {
         expect(translations.fieldInstanceOverrides).toEqual({});
     });
 
+    it('keeps required for a field added since the source data loaded as its source setting', () => {
+        const formData = structuredClone(canonicalData);
+        formData.pages[0].rows[0].fields[1].required = true;
+        formData.pages[0].rows.push({
+            fields: [{
+                reference: 'phone-field',
+                type: 'verbb\\formie\\fields\\SingleLineText',
+                label: 'Phone',
+                handle: 'phone',
+                required: false,
+            }],
+        });
+
+        expect(extractSiteTranslationsFromFormData(canonicalData, formData).fieldInstanceOverrides).toEqual({
+            'choice-field': { required: true },
+        });
+        expect(stripTranslatableValuesToCanonical(formData, canonicalData).pages[0].rows[1].fields[0].required).toBe(false);
+    });
+
     it('does not extract unchanged nested child fields when canonical uses settings.rows', () => {
         const nameFieldCanonical = {
             uid: 'name-field',
