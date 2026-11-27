@@ -19,6 +19,7 @@
 - Fixed three moderate-severity cross-site scripting vulnerabilities.
 - Fixed two moderate-severity information disclosure vulnerabilities.
 - Fixed a low-severity information disclosure vulnerability.
+- Fixed the Outseta integration updating the first person in the Outseta account on every submission, instead of the person with the submitted email.
 - Fixed every submission after the first failing to save on PostgreSQL when the form uses `setRelations()`. Sites already affected are repaired when migrations run.
 - Fixed submissions failing when `setRelations()` was given the same element more than once, including by calling it twice.
 - Fixed User element integrations on all but one form losing their **User Group** when upgrading from Formie 2 or Formie 3. Upgraded sites are repaired when migrations run, except forms saved since the upgrade, which need their group selected again. ([#2206](https://github.com/verbb/formie/issues/2206))
