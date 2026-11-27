@@ -92,6 +92,7 @@ class FormSettings extends Model
     public bool $disableCaptchas = false;
 
     private ?Form $_form = null;
+    private array $_integrationSettingsErrors = [];
 
 
     // Public Methods
@@ -183,6 +184,15 @@ class FormSettings extends Model
     public function setForm($value): void
     {
         $this->_form = $value;
+    }
+
+    /**
+     * Sets errors found in posted integration settings before they were applied, keyed by `<handle>.<setting>`, so
+     * validation reports them.
+     */
+    public function setIntegrationSettingsErrors(array $errors): void
+    {
+        $this->_integrationSettingsErrors = $errors;
     }
 
     public function getFormBuilderConfig(): array
@@ -314,6 +324,10 @@ class FormSettings extends Model
 
     public function validateIntegrations(): void
     {
+        foreach ($this->_integrationSettingsErrors as $key => $error) {
+            $this->addError('integrations.' . $key, $error);
+        }
+
         if ($form = $this->getForm()) {
             $integrations = Formie::$plugin->getIntegrations()->getAllEnabledIntegrationsForForm($form);
 

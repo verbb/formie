@@ -169,6 +169,17 @@ class ImportExportController extends SettingsAccessController
             return $this->redirect(UrlHelper::cpUrl('formie/settings/import-export'));
         }
 
+        // Imported integration settings follow the same rules as saving them on the form, against the form they update.
+        $importSettings = Json::decodeIfJson($json['settings'] ?? []);
+        $importIntegrations = is_array($importSettings['integrations'] ?? null) ? $importSettings['integrations'] : [];
+        $existingForm = $formAction === 'update' ? Formie::$plugin->getForms()->getFormByHandle($json['handle']) : null;
+
+        if ($errors = Formie::$plugin->getIntegrations()->getFormSettingsEnvironmentErrors($importIntegrations, $existingForm->settings->integrations ?? [])) {
+            $this->setFailFlash(reset($errors));
+
+            return $this->redirect(UrlHelper::cpUrl('formie/settings/import-export'));
+        }
+
         $form = ImportExportHelper::importFormFromJson($json, $formAction);
 
         // check for errors

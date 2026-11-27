@@ -149,11 +149,13 @@ class Forms extends Component
                 $newIntegrationSettings = $integrationsService->filterAllIntegrationFormSettings($newIntegrationSettings);
                 $mergedIntegrationSettings = array_merge($oldIntegrationSettings, $newIntegrationSettings);
                 $newSettings['integrations'] = $integrationsService->filterAllIntegrationFormSettings($mergedIntegrationSettings, true);
+                $integrationSettingsErrors = $integrationsService->getFormSettingsEnvironmentErrors($newIntegrationSettings, $isStencil && !$form->id ? $this->_stencilIntegrationSettings() : $oldIntegrationSettings);
             } else {
                 $newSettings['integrations'] = $oldIntegrationSettings;
             }
 
             $form->settings->setAttributes($newSettings, false);
+            $form->settings->setIntegrationSettingsErrors($integrationSettingsErrors ?? []);
         }
 
         // Set the notifications
@@ -367,6 +369,16 @@ class Forms extends Component
 
     // Private Methods
     // =========================================================================
+
+    private function _stencilIntegrationSettings(): array
+    {
+        // A stencil is built into a new form, so the settings it already has are saved on the stencil.
+        $stencilId = (int)Craft::$app->getRequest()->getParam('stencilId');
+        $settings = $stencilId ? Formie::$plugin->getStencils()->getStencilById($stencilId)?->data?->settings : null;
+        $integrations = $settings instanceof FormSettings ? $settings->integrations : ($settings['integrations'] ?? []);
+
+        return is_array($integrations) ? $integrations : [];
+    }
 
     private function _handleNestedElement(ElementInterface $element, ?FieldInterface $field, int $level, array &$accumulator = []): void
     {

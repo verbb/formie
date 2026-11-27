@@ -2,6 +2,7 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
+use verbb\formie\base\Automation;
 use verbb\formie\base\Captcha;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
@@ -46,6 +47,9 @@ use yii\db\ActiveRecord;
 use Throwable;
 use yii\base\InvalidConfigException;
 use yii\db\Exception;
+
+use verbb\base\helpers\EnvironmentSettings;
+use verbb\base\models\EnvironmentSettingsViolation;
 
 class Integrations extends Component
 {
@@ -269,7 +273,7 @@ class Integrations extends Component
 
             // Backward-compatibility until Formie 4
             Integration::TYPE_AUTOMATION => array_merge(...[$event->automations, $event->webhooks]),
-            
+
             Integration::TYPE_MISC => $event->miscellaneous,
         ];
 
@@ -383,11 +387,11 @@ class Integrations extends Component
 
         if ($isNewIntegration) {
             $integration->uid = StringHelper::UUID();
-            
+
             $integration->sortOrder = (new Query())
                     ->from([Table::FORMIE_INTEGRATIONS])
                     ->max('[[sortOrder]]') + 1;
-        } else if (!$integration->uid) {
+        } elseif (!$integration->uid) {
             $integration->uid = Db::uidById(Table::FORMIE_INTEGRATIONS, $integration->id);
         }
 
@@ -413,6 +417,7 @@ class Integrations extends Component
         }
 
         $transaction = Craft::$app->getDb()->beginTransaction();
+
         try {
             $integrationRecord = $this->_getIntegrationRecord($integrationUid, true);
             $isNewIntegration = $integrationRecord->getIsNewRecord();
@@ -448,6 +453,7 @@ class Integrations extends Component
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
+
             throw $e;
         }
 
@@ -581,6 +587,7 @@ class Integrations extends Component
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
+
             throw $e;
         }
 
@@ -697,6 +704,47 @@ class Integrations extends Component
         }
 
         return $filtered;
+    }
+
+    /**
+     * Returns why posted form-level integration settings can't be saved or applied, keyed by `<handle>.<setting>`.
+     *
+     * Form-level settings are resolved with `App::parseEnv()` too, so only admins can point one at an environment
+     * variable. A reference already saved on the form, or on the integration itself, can stay. Changing where a request
+     * goes means entering any saved credential that refers to a variable again.
+     */
+    public function getFormSettingsEnvironmentErrors(array $posted, array $saved): array
+    {
+        $errors = [];
+
+        foreach ($posted as $handle => $settings) {
+            if (!is_string($handle) || !is_array($settings)) {
+                continue;
+            }
+
+            $integration = $this->getIntegrationByHandle($handle) ?? $this->getCaptchaByHandle($handle);
+
+            // Form-level settings override the integration's own, and form settings can start out with its values.
+            $savedSettings = array_replace($integration ? $integration->getSettings() : [], is_array($saved[$handle] ?? null) ? $saved[$handle] : []);
+
+            if ($integration instanceof Automation) {
+                // Automations send their headers and HTTP auth to the URL set on the form.
+                $violation = EnvironmentSettings::violation($settings, $savedSettings, ['headers', 'httpAuth'], destinations: ['url', 'webhook']);
+            } elseif ($integration && !$this->_usesStrictFormSettingAttributes($integration)) {
+                // Third-party integrations take every posted setting, including where they connect.
+                $violation = EnvironmentSettings::violation($settings, $savedSettings);
+            } else {
+                $violation = EnvironmentSettings::violation($settings, $savedSettings, []);
+            }
+
+            if ($violation) {
+                $errors[$handle . '.' . ($violation->getAttribute() ?? 'settings')] = $violation->reason === EnvironmentSettingsViolation::REFERENCE
+                    ? Craft::t('formie', 'Only admins can use environment variables here.')
+                    : Craft::t('formie', 'Enter the credentials again after changing where this connects.');
+            }
+        }
+
+        return $errors;
     }
 
     public function populateIntegrationFromFormSettings(IntegrationInterface $integration, array $settings): IntegrationInterface

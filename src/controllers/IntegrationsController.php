@@ -3,6 +3,7 @@ namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
 use verbb\formie\base\IntegrationInterface;
+use verbb\formie\elements\Form;
 use verbb\formie\errors\IntegrationException;
 
 use Craft;
@@ -157,7 +158,7 @@ class IntegrationsController extends Controller
             return $this->asFailure(Craft::t('formie', 'Unknown integration: “{handle}”', ['handle' => $handle]));
         }
 
-        $this->_requireIntegrationFormPermission($formId);
+        $form = $this->_requireIntegrationFormPermission($formId);
 
         $integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($handle);
 
@@ -167,6 +168,13 @@ class IntegrationsController extends Controller
 
         // Apply any settings provided by the payload. Particularly if we're enabling/disabling objects to fetch for.
         if (is_array($settings)) {
+            // Fetching settings can send a request, so posted settings follow the same rules as saving them on the form.
+            $errors = Formie::$plugin->getIntegrations()->getFormSettingsEnvironmentErrors([$handle => $settings], $form->settings->integrations ?? []);
+
+            if ($errors) {
+                return $this->asFailure(reset($errors));
+            }
+
             $integration = Formie::$plugin->getIntegrations()->populateIntegrationFromFormSettings($integration, $settings);
         }
 
@@ -329,7 +337,7 @@ class IntegrationsController extends Controller
         return Craft::t('formie', 'Enter the credentials again after changing where this connects.');
     }
 
-    private function _requireIntegrationFormPermission(int $formId): void
+    private function _requireIntegrationFormPermission(int $formId): Form
     {
         if (!$formId) {
             throw new BadRequestHttpException('Missing form ID.');
@@ -342,7 +350,7 @@ class IntegrationsController extends Controller
         }
 
         if (Formie::$plugin->getForms()->canManageFormIntegrations($form)) {
-            return;
+            return $form;
         }
 
         throw new ForbiddenHttpException('User is not permitted to perform this action');
