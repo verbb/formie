@@ -85,7 +85,7 @@ Payment fields often depend on provider JavaScript, Ajax submission, redirects o
 ## Related Fields
 
 - Use [Products](/fields/products) or [Variants](/fields/variants) when the form should select Commerce elements.
-- Use [Calculations](/fields/calculations) when the payment amount is derived from other field values.
+- Use [Calculations](/fields/calculations) when the payment amount is derived from other field values. Formie works the amount out again on the server before charging, and refuses the payment if the submitted amount is different.
 
 
 

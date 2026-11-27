@@ -351,7 +351,7 @@ class Stripe extends Payment
         if ($feeType === Payment::VALUE_TYPE_FIXED) {
             $value = $this->getFieldSetting('subscriptionSetupFeeFixed');
         } elseif ($feeType === Payment::VALUE_TYPE_DYNAMIC) {
-            $value = References::resolveValue($this->getFieldSetting('subscriptionSetupFeeVariable'), ReferenceContext::forSubmission($submission))->requireValue();
+            $value = $this->resolveAmountReference((string)$this->getFieldSetting('subscriptionSetupFeeVariable'), $submission);
         } else {
             return null;
         }

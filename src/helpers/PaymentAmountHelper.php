@@ -58,4 +58,28 @@ class PaymentAmountHelper
 
         return $sanitized;
     }
+
+    public static function amountsMatch(mixed $left, mixed $right): bool
+    {
+        try {
+            return self::_canonicalAmount(self::parseAmount($left)) === self::_canonicalAmount(self::parseAmount($right));
+        } catch (InvalidArgumentException) {
+            return false;
+        }
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private static function _canonicalAmount(string $amount): string
+    {
+        $negative = str_starts_with($amount, '-');
+        [$whole, $fraction] = array_pad(explode('.', ltrim($amount, '-'), 2), 2, '');
+        $whole = ltrim($whole, '0') ?: '0';
+        $fraction = rtrim($fraction, '0');
+        $canonical = $fraction === '' ? $whole : "$whole.$fraction";
+
+        return $negative && $canonical !== '0' ? "-$canonical" : $canonical;
+    }
 }

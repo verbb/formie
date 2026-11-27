@@ -11,12 +11,14 @@ use verbb\formie\enums\SubscriptionStatus;
 use verbb\formie\errors\DeliveryOutcomeUnknownException;
 use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
 use verbb\formie\events\PaymentIntegrationProcessEvent;
+use verbb\formie\fields\Calculations;
 use verbb\formie\fields\Payment as PaymentField;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\FieldReferenceHelper;
 use verbb\formie\helpers\IntegrationSecrets;
 use verbb\formie\helpers\PaymentAmountHelper;
 use verbb\formie\helpers\References;
+use verbb\formie\helpers\ServerCalculations;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
@@ -733,10 +735,31 @@ abstract class Payment extends Integration
         if ($amountType === Payment::VALUE_TYPE_FIXED) {
             $amount = PaymentAmountHelper::parseAmount($amountFixed);
         } elseif ($amountType === Payment::VALUE_TYPE_DYNAMIC) {
-            $amount = PaymentAmountHelper::parseAmount(References::resolveValue($amountVariable, ReferenceContext::forSubmission($submission))->requireValue());
+            $amount = PaymentAmountHelper::parseAmount($this->resolveAmountReference((string)$amountVariable, $submission));
         }
 
         return $amount;
+    }
+
+    protected function resolveAmountReference(string $reference, Submission $submission): mixed
+    {
+        $resolved = References::resolveValue($reference, ReferenceContext::forSubmission($submission));
+        $value = $resolved->requireValue();
+        $field = $resolved->field;
+
+        // Calculations are worked out in the browser, so the server works the answer out again before charging it.
+        if (!$field instanceof Calculations || $submission->getForm()?->getFieldByHandle($field->handle)?->uid !== $field->uid) {
+            return $value;
+        }
+
+        $calculated = ServerCalculations::calculate($submission, $field);
+        $calculated = is_int($calculated) || is_float($calculated) ? ServerCalculations::toJsString($calculated) : $calculated;
+
+        if (!PaymentAmountHelper::amountsMatch($value, $calculated)) {
+            throw new RuntimeException('The payment amount doesn’t match its calculation.');
+        }
+
+        return $calculated;
     }
 
     protected function refreshPaymentState(PaymentModel $payment): void

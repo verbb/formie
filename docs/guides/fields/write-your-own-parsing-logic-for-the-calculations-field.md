@@ -116,6 +116,10 @@ document.addEventListener('formie:field:calculations:before-evaluate', (event) =
 
 Given `1` and `5`, the result becomes `6 is 🔥`.
 
+## Calculations That Set a Payment Amount
+
+When a Calculations field sets a Payment field's amount, Formie works the formula out again on the server before charging, and refuses the payment if the submitted answer is a different amount. The server doesn't run these browser events. Formatting a result for display, such as adding a currency symbol, is fine. Rounding, capping or replacing the formula changes the amount, so use the field's **Formatting** and **Decimal Rounding** settings for those fields, or write the rule into the formula itself.
+
 ## Tips
 
 - Use the **after-evaluate** event for display formatting. Use **before-evaluate** for logic that affects what the expression sees.
