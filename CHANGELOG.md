@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.2.0 - 2026-11-29
 
 ### Added
 - Added **Map to Lead** and **Map to Custom Module** to the SuiteCRM integration, so forms can create Leads and records in custom modules as well as Contacts. ([#3164](https://github.com/verbb/formie/issues/3164))
