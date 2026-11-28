@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.2.0 - 2026-11-29
 
 ### Fixed
 - Fixed three high-severity information disclosure vulnerabilities.
