@@ -16,7 +16,7 @@
         "@eslint/js": "^10.0.1",
         "@tailwindcss/vite": "^4.2.4",
         "@vitejs/plugin-react": "^6.0.1",
-        "eslint": "^10.2.1",
+        "eslint": "^10.16.0",
         "fs-extra": "^11.3.4",
         "sass-embedded": "^1.99.0",
         "svgo": "^3.3.5",
