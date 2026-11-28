@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 4.2.0 - 2026-11-28
+
 ### Fixed
 - Fixed client-rendered forms set to reset after completion failing on the next submission without a page reload.
 

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 4.2.0 - 2026-11-28
+
+### Changed
+- Released alongside Formie 4.2.0 with no changes to this package.
+
 ## 4.1.0 - 2026-11-24
 
 ### Changed

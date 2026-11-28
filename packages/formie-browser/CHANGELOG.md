@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 4.2.0 - 2026-11-28
+
 ### Changed
 - The combobox module now styles option group names as headings, with their options indented beneath them, instead of like options.
 - The combobox module now marks the chosen option of a single dropdown in the list with a check mark, and keeps Tom Select’s `selected` class on the right option when the list is reopened without leaving the control.
